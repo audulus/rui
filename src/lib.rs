@@ -1,10 +1,9 @@
-
 use std::any::{Any, TypeId};
 
 #[derive(Clone, Copy, Eq, PartialEq, Debug)]
 enum Stack {
     HStack,
-    VStack
+    VStack,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -12,28 +11,27 @@ enum Command {
     Button(String),
     Text(String),
     Begin(Stack),
-    End
+    End,
 }
 
 enum Event {
     Draw,
     Process,
-    TapButton(String)
+    TapButton(String),
 }
 
 pub struct Gui {
     commands: Vec<Command>,
     event: Event,
-    state: Box<dyn Any>
+    state: Box<dyn Any>,
 }
 
 impl Gui {
-
     pub fn new() -> Self {
         Self {
             commands: vec![],
             event: Event::Draw,
-            state: Box::new(0)
+            state: Box::new(0),
         }
     }
 
@@ -43,13 +41,9 @@ impl Gui {
                 self.commands.push(Command::Button(String::from(name)));
                 false
             }
-            Event::Process => {
-                false
-            }
-            Event::TapButton(n) => {
-                n == name
-            }
-            _ => false
+            Event::Process => false,
+            Event::TapButton(n) => n == name,
+            _ => false,
         }
     }
 
@@ -58,7 +52,7 @@ impl Gui {
             Event::Draw => {
                 self.commands.push(Command::Text(String::from(name)));
             }
-            Event::Process => { }
+            Event::Process => {}
             _ => {}
         }
     }
@@ -68,7 +62,7 @@ impl Gui {
             Event::Draw => {
                 self.commands.push(Command::Begin(Stack::HStack));
             }
-            Event::Process => { }
+            Event::Process => {}
             _ => {}
         }
     }
@@ -78,19 +72,18 @@ impl Gui {
             Event::Draw => {
                 self.commands.push(Command::End);
             }
-            Event::Process => { }
+            Event::Process => {}
             _ => {}
         }
     }
 
-    pub fn hstack<F : FnOnce(&mut Gui)>(&mut self, f: F) {
+    pub fn hstack<F: FnOnce(&mut Gui)>(&mut self, f: F) {
         self.begin_hstack();
         f(self);
         self.end_hstack();
     }
 
-    pub fn state<F : FnOnce(&mut Gui, &mut S), S : Default + Any + Clone> (&mut self, f: F) {
-
+    pub fn state<F: FnOnce(&mut Gui, &mut S), S: Default + Any + Clone>(&mut self, f: F) {
         if let Some(mut s) = self.state.downcast_mut::<S>() {
             let mut g = Self::new();
             f(&mut g, &mut s);
@@ -99,11 +92,10 @@ impl Gui {
             f(self, &mut st);
             self.state = Box::new(st);
         }
-
     }
 }
 
-pub fn gui<F : Fn(&mut Gui)>(f: F) {
+pub fn gui<F: Fn(&mut Gui)>(f: F) {
     let mut gui = Gui::new();
     f(&mut gui);
 }
@@ -115,10 +107,9 @@ mod tests {
 
     #[test]
     fn describe_gui() {
-        
         let mut gui = Gui::new();
 
-        gui.hstack(|gui|{
+        gui.hstack(|gui| {
             if gui.button("click me!") {
                 println!("clicked!")
             }
@@ -129,7 +120,7 @@ mod tests {
     #[test]
     fn test_gui() {
         gui(|gui| {
-            gui.hstack(|gui|{
+            gui.hstack(|gui| {
                 if gui.button("click me!") {
                     println!("clicked!")
                 }
@@ -142,7 +133,7 @@ mod tests {
     fn test_counter() {
         gui(|gui| {
             gui.state(|gui, state: &mut usize| {
-                gui.hstack(|gui|{
+                gui.hstack(|gui| {
                     if gui.button("click me!") {
                         println!("clicked!");
                         *state += 1;
@@ -152,5 +143,4 @@ mod tests {
             })
         })
     }
-
 }
