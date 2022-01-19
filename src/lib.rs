@@ -1,13 +1,13 @@
 
 use std::any::{Any, TypeId};
 
-#[derive(Clone, Copy, Eq, PartialEq)]
+#[derive(Clone, Copy, Eq, PartialEq, Debug)]
 enum Stack {
     HStack,
     VStack
 }
 
-#[derive(Clone, Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq, Debug)]
 enum Command {
     Button(String),
     Text(String),
