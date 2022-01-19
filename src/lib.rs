@@ -118,12 +118,12 @@ pub fn state<'a, V: View, F: Fn(&mut S) -> V + 'a, S: Default + 'a>(f: F) -> Sta
 
 pub struct Button<'a> {
     text: String,
-    func: Box<dyn Fn() + 'a>
+    func: Box<dyn FnMut() + 'a>
 }
 
 impl<'a> View for Button<'a> { }
 
-pub fn button<'a, F: Fn() + 'a>(name: &str, f: F) -> Button<'a> {
+pub fn button<'a, F: FnMut() + 'a>(name: &str, f: F) -> Button<'a> {
     Button{text: String::from(name), func: Box::new(f)}
 }
 
