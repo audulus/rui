@@ -81,7 +81,6 @@ impl Gui {
         self.end_hstack();
     }
 
-    // XXX: how do we generically store and retrieve state?
     pub fn state<F : FnOnce(&mut Gui, &mut S), S : Default + Any + Clone> (&mut self, f: F) {
 
         if let Some(s) = self.state.downcast_ref::<S>() {
