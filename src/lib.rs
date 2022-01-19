@@ -104,10 +104,12 @@ mod tests {
     #[test]
     fn test_dogui() {
         do_gui(|gui| {
-            if gui.button("click me!") {
-                println!("clicked!")
-            }
-            gui.text("Hello world!");
+            gui.hstack(|gui|{
+                if gui.button("click me!") {
+                    println!("clicked!")
+                }
+                gui.text("Hello world!");
+            })
         })
     }
 
