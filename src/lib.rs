@@ -23,7 +23,7 @@ enum Event {
 pub struct Gui {
     commands: Vec<Command>,
     event: Event,
-    state: Vec<Box<dyn Any>>
+    state: Box<dyn Any>
 }
 
 impl Gui {
@@ -32,7 +32,7 @@ impl Gui {
         Self {
             commands: vec![],
             event: Event::Draw,
-            state: vec![]
+            state: Box::new(0)
         }
     }
 
@@ -82,9 +82,12 @@ impl Gui {
     }
 
     // XXX: how do we generically store and retrieve state?
-    pub fn state<F : FnOnce(&mut Gui, &mut S), S : Default> (&mut self, f: F) {
-        let mut state = S::default();
-        f(self, &mut state);
+    pub fn state<F : FnOnce(&mut Gui, &mut S), S : Default + Any + Clone> (&mut self, f: F) {
+
+        if let Some(s) = self.state.downcast_ref::<S>() {
+            f(self, &mut s.clone());
+        }
+
     }
 }
 
