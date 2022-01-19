@@ -103,12 +103,12 @@ pub fn gui<F: Fn(&mut Gui)>(f: F) {
 trait View { }
 
 struct State<S: Default> { 
-    func: Box<dyn FnOnce(&mut S) -> Box<dyn View> >
+    func: Box<dyn Fn(&mut S) -> Box<dyn View> >
 }
 
 impl<S> View for State<S> where S: Default { }
 
-pub fn state<F: FnOnce(&mut S) -> Box<dyn View> + 'static, S: Default + 'static>(f: F) -> Box<dyn View> {
+pub fn state<F: Fn(&mut S) -> Box<dyn View> + 'static, S: Default + 'static>(f: F) -> Box<dyn View> {
     Box::new(State{func: Box::new(f)})
 }
 
@@ -119,7 +119,7 @@ struct Button {
 
 impl View for Button { }
 
-pub fn button<F: FnOnce() + 'static>(name: &str, f: F) -> Box<dyn View> {
+pub fn button<F: Fn() + 'static>(name: &str, f: F) -> Box<dyn View> {
     Box::new(Button{text: String::from(name), func: Box::new(f)})
 }
 
@@ -175,7 +175,7 @@ mod tests {
         });
     }
     */
-    
+
     /*
     #[test]
     fn test_counter2() {
