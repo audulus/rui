@@ -100,7 +100,7 @@ pub fn gui<F: Fn(&mut Gui)>(f: F) {
     f(&mut gui);
 }
 
-trait View { }
+pub trait View { }
 
 struct State<S: Default> { 
     func: Box<dyn Fn(&mut S) -> Box<dyn View> >
