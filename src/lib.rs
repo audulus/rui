@@ -83,7 +83,7 @@ impl Gui {
     }
 }
 
-pub fn do_gui<F : Fn(&mut Gui)>(f: F) {
+pub fn gui<F : Fn(&mut Gui)>(f: F) {
     let mut gui = Gui::new();
     f(&mut gui);
 }
@@ -108,7 +108,7 @@ mod tests {
 
     #[test]
     fn test_dogui() {
-        do_gui(|gui| {
+        gui(|gui| {
             gui.hstack(|gui|{
                 if gui.button("click me!") {
                     println!("clicked!")
@@ -120,7 +120,7 @@ mod tests {
 
     #[test]
     fn test_counter() {
-        do_gui(|gui| {
+        gui(|gui| {
             gui.hstack(|gui|{
                 gui.state(|gui, state: &mut usize| {
                     if gui.button("click me!") {
