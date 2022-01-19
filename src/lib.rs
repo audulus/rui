@@ -169,6 +169,15 @@ mod tests {
 
     /*
     #[test]
+    fn test_button() {
+        let _ = button("click me", || {
+            println!("clicked!");
+        });
+    }
+    */
+    
+    /*
+    #[test]
     fn test_counter2() {
         let _ = state(|state: &mut usize| {
             button(format!("{:?}", state).as_str(), ||{
