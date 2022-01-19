@@ -108,7 +108,7 @@ pub struct State<'a, S: Default> {
 
 impl<'a, S> View for State<'a, S> where S: Default { }
 
-pub fn state<'a, F: Fn(&mut S) -> Box<dyn View> + 'a, S: Default + 'static>(f: F) -> Box<State<'a, S>> {
+pub fn state<'a, F: Fn(&mut S) -> Box<dyn View> + 'a, S: Default + 'a>(f: F) -> Box<State<'a, S>> {
     Box::new(State{func: Box::new(f)})
 }
 
