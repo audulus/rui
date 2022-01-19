@@ -114,7 +114,7 @@ pub fn state<F: Fn(&mut S) -> Box<dyn View> + 'static, S: Default + 'static>(f: 
 
 struct Button {
     text: String,
-    func: Box<dyn FnOnce()>
+    func: Box<dyn Fn()>
 }
 
 impl View for Button { }
