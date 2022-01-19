@@ -78,6 +78,11 @@ impl Gui {
     }
 }
 
+fn do_gui<F : Fn(&mut Gui)>(f: F) {
+    let mut gui = Gui::new();
+    f(&mut gui);
+}
+
 #[cfg(test)]
 mod tests {
 
@@ -89,6 +94,16 @@ mod tests {
         let mut gui = Gui::new();
 
         gui.hstack(|gui|{
+            if gui.button("click me!") {
+                println!("clicked!")
+            }
+            gui.text("Hello world!");
+        })
+    }
+
+    #[test]
+    fn test_dogui() {
+        do_gui(|gui| {
             if gui.button("click me!") {
                 println!("clicked!")
             }
