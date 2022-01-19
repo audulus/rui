@@ -102,13 +102,13 @@ pub fn gui<F: Fn(&mut Gui)>(f: F) {
 
 pub trait View { }
 
-struct State<S: Default> { 
-    func: Box<dyn Fn(&mut S) -> Box<dyn View> >
+pub struct State<'a, S: Default> { 
+    func: Box<dyn Fn(&mut S) -> Box<dyn View> + 'a>
 }
 
-impl<S> View for State<S> where S: Default { }
+impl<'a, S> View for State<'a, S> where S: Default { }
 
-pub fn state<F: Fn(&mut S) -> Box<dyn View> + 'static, S: Default + 'static>(f: F) -> Box<dyn View> {
+pub fn state<'a, F: Fn(&mut S) -> Box<dyn View> + 'a, S: Default + 'static>(f: F) -> Box<State<'a, S>> {
     Box::new(State{func: Box::new(f)})
 }
 
