@@ -102,6 +102,10 @@ pub fn gui<F: Fn(&mut Gui)>(f: F) {
 
 pub trait View { }
 
+pub struct EmptyView { }
+
+impl View for EmptyView { }
+
 pub struct State<'a, S: Default> { 
     func: Box<dyn Fn(&mut S) -> Box<dyn View> + 'a>
 }
@@ -174,14 +178,13 @@ mod tests {
         });
     }
 
-    /*
     #[test]
     fn test_counter2() {
         let _ = state(|state: &mut usize| {
-            button(format!("{:?}", state).as_str(), ||{
-                *state += 1;
-            })
+            Box::new(EmptyView{})
+            //button(format!("{:?}", state).as_str(), ||{
+            //    *state += 1;
+            //})
         });
     }
-    */
 }
