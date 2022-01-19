@@ -18,6 +18,7 @@ enum Command {
 enum Event {
     Draw,
     Process,
+    TapButton(String)
 }
 
 pub struct Gui {
@@ -37,7 +38,7 @@ impl Gui {
     }
 
     pub fn button(&mut self, name: &str) -> bool {
-        match self.event {
+        match &self.event {
             Event::Draw => {
                 self.commands.push(Command::Button(String::from(name)));
                 false
@@ -45,6 +46,10 @@ impl Gui {
             Event::Process => {
                 false
             }
+            Event::TapButton(n) => {
+                n == name
+            }
+            _ => false
         }
     }
 
@@ -54,6 +59,7 @@ impl Gui {
                 self.commands.push(Command::Text(String::from(name)));
             }
             Event::Process => { }
+            _ => {}
         }
     }
 
@@ -63,6 +69,7 @@ impl Gui {
                 self.commands.push(Command::Begin(Stack::HStack));
             }
             Event::Process => { }
+            _ => {}
         }
     }
 
@@ -72,6 +79,7 @@ impl Gui {
                 self.commands.push(Command::End);
             }
             Event::Process => { }
+            _ => {}
         }
     }
 
