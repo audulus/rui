@@ -117,6 +117,8 @@ pub struct Button<'a> {
     func: Box<dyn Fn() + 'a>
 }
 
+impl<'a> View for Button<'a> { }
+
 pub fn button<'a, F: Fn() + 'a>(name: &str, f: F) -> Box<Button<'a>> {
     Box::new(Button{text: String::from(name), func: Box::new(f)})
 }
