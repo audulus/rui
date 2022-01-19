@@ -76,6 +76,11 @@ impl Gui {
         f(self);
         self.end_hstack();
     }
+
+    pub fn state<F : FnOnce(&mut Gui, &mut S), S : Default> (&mut self, f: F) {
+        let mut state = S::default();
+        f(self, &mut state);
+    }
 }
 
 pub fn do_gui<F : Fn(&mut Gui)>(f: F) {
@@ -109,6 +114,21 @@ mod tests {
                     println!("clicked!")
                 }
                 gui.text("Hello world!");
+            })
+        })
+    }
+
+    #[test]
+    fn test_counter() {
+        do_gui(|gui| {
+            gui.hstack(|gui|{
+                gui.state(|gui, state: &mut usize| {
+                    if gui.button("click me!") {
+                        println!("clicked!");
+                        *state += 1;
+                    }
+                    gui.text(format!("{:?}", state).as_str());
+                })
             })
         })
     }
