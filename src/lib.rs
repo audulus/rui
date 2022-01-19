@@ -100,6 +100,29 @@ pub fn gui<F: Fn(&mut Gui)>(f: F) {
     f(&mut gui);
 }
 
+trait View { }
+
+struct State<S: Default> { 
+    func: Box<dyn FnOnce(&mut S)>
+}
+
+impl<S> View for State<S> where S: Default { }
+
+pub fn state<F: FnOnce(&mut S) + 'static, S: Default + 'static>(f: F) -> Box<dyn View> {
+    Box::new(State{func: Box::new(f)})
+}
+
+struct Button {
+    text: String,
+    func: Box<dyn FnOnce(bool)>
+}
+
+impl View for Button { }
+
+pub fn button<F: FnOnce(bool) + 'static>(name: &str, f: F) -> Box<dyn View> {
+    Box::new(Button{text: String::from(name), func: Box::new(f)})
+}
+
 #[cfg(test)]
 mod tests {
 
