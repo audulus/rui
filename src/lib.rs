@@ -13,14 +13,14 @@ enum Command {
     End
 }
 
-enum State {
+enum Event {
     Draw,
     Process,
 }
 
 pub struct Gui {
     commands: Vec<Command>,
-    state: State
+    event: Event
 }
 
 impl Gui {
@@ -28,46 +28,46 @@ impl Gui {
     pub fn new() -> Self {
         Self {
             commands: vec![],
-            state: State::Draw
+            event: Event::Draw
         }
     }
 
     pub fn button(&mut self, name: &str) -> bool {
-        match self.state {
-            State::Draw => {
+        match self.event {
+            Event::Draw => {
                 self.commands.push(Command::Button(String::from(name)));
                 false
             }
-            State::Process => {
+            Event::Process => {
                 false
             }
         }
     }
 
     pub fn text(&mut self, name: &str) {
-        match self.state {
-            State::Draw => {
+        match self.event {
+            Event::Draw => {
                 self.commands.push(Command::Text(String::from(name)));
             }
-            State::Process => { }
+            Event::Process => { }
         }
     }
 
     fn begin_hstack(&mut self) {
-        match self.state {
-            State::Draw => {
+        match self.event {
+            Event::Draw => {
                 self.commands.push(Command::Begin(Stack::HStack));
             }
-            State::Process => { }
+            Event::Process => { }
         }
     }
 
     fn end_hstack(&mut self) {
-        match self.state {
-            State::Draw => {
+        match self.event {
+            Event::Draw => {
                 self.commands.push(Command::End);
             }
-            State::Process => { }
+            Event::Process => { }
         }
     }
 
