@@ -182,9 +182,17 @@ mod tests {
     fn test_state() {
         let _ = state(|state: &mut usize| {
             Box::new(EmptyView{})
-            //button(format!("{:?}", state).as_str(), ||{
-            //    *state += 1;
-            //})
         });
     }
+
+    /*
+    #[test]
+    fn test_state2() {
+        let _ = state(|state: &mut usize| {
+            button(format!("{:?}", state).as_str(), ||{
+                *state += 1;
+            })
+        });
+    }
+    */
 }
