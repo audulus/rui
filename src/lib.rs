@@ -1,4 +1,6 @@
 
+use std::any::{Any, TypeId};
+
 #[derive(Clone, Copy, Eq, PartialEq)]
 enum Stack {
     HStack,
@@ -20,7 +22,8 @@ enum Event {
 
 pub struct Gui {
     commands: Vec<Command>,
-    event: Event
+    event: Event,
+    state: Vec<Box<dyn Any>>
 }
 
 impl Gui {
@@ -28,7 +31,8 @@ impl Gui {
     pub fn new() -> Self {
         Self {
             commands: vec![],
-            event: Event::Draw
+            event: Event::Draw,
+            state: vec![]
         }
     }
 
