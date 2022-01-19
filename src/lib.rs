@@ -85,7 +85,13 @@ impl Gui {
     pub fn state<F : FnOnce(&mut Gui, &mut S), S : Default + Any + Clone> (&mut self, f: F) {
 
         if let Some(s) = self.state.downcast_ref::<S>() {
-            f(self, &mut s.clone());
+            let mut sc = s.clone();
+            f(self, &mut sc);
+            self.state = Box::new(sc);
+        } else {
+            let mut st = S::default();
+            f(self, &mut st);
+            self.state = Box::new(st);
         }
 
     }
