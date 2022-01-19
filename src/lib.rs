@@ -180,7 +180,7 @@ mod tests {
 
     #[test]
     fn test_state() {
-        let _ = state(|state: &mut usize| {
+        let _ = state(|_state: &mut usize| {
             Box::new(EmptyView{})
         });
     }
