@@ -179,7 +179,7 @@ mod tests {
     }
 
     #[test]
-    fn test_counter2() {
+    fn test_state() {
         let _ = state(|state: &mut usize| {
             Box::new(EmptyView{})
             //button(format!("{:?}", state).as_str(), ||{
