@@ -106,14 +106,14 @@ pub struct EmptyView { }
 
 impl View for EmptyView { }
 
-pub struct State<'a, S: Default> { 
-    func: Box<dyn Fn(&mut S) -> Box<dyn View> + 'a>
+pub struct State<'a, S: Default, V: View> { 
+    func: Box<dyn Fn(&mut S) -> V + 'a>
 }
 
-impl<'a, S> View for State<'a, S> where S: Default { }
+impl<'a, S, V> View for State<'a, S, V> where S: Default, V: View { }
 
-pub fn state<'a, F: Fn(&mut S) -> Box<dyn View> + 'a, S: Default + 'a>(f: F) -> Box<State<'a, S>> {
-    Box::new(State{func: Box::new(f)})
+pub fn state<'a, V: View, F: Fn(&mut S) -> V + 'a, S: Default + 'a>(f: F) -> State<'a, S, V> {
+    State{func: Box::new(f)}
 }
 
 pub struct Button<'a> {
@@ -123,8 +123,8 @@ pub struct Button<'a> {
 
 impl<'a> View for Button<'a> { }
 
-pub fn button<'a, F: Fn() + 'a>(name: &str, f: F) -> Box<Button<'a>> {
-    Box::new(Button{text: String::from(name), func: Box::new(f)})
+pub fn button<'a, F: Fn() + 'a>(name: &str, f: F) -> Button<'a> {
+    Button{text: String::from(name), func: Box::new(f)}
 }
 
 #[cfg(test)]
@@ -178,19 +178,22 @@ mod tests {
         });
     }
 
+    
     #[test]
     fn test_state() {
         let _ = state(|_state: &mut usize| {
-            Box::new(EmptyView{})
+            EmptyView{}
         });
     }
 
+    /*
     #[test]
     fn test_state2() {
         let _ = state(|state: &mut usize| {
             button(format!("{:?}", state).as_str(), ||{
-                // *state += 1;
+                *state += 1;
             })
         });
     }
+    */
 }
