@@ -107,7 +107,7 @@ mod tests {
     }
 
     #[test]
-    fn test_dogui() {
+    fn test_gui() {
         gui(|gui| {
             gui.hstack(|gui|{
                 if gui.button("click me!") {
