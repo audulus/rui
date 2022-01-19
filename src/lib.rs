@@ -1,9 +1,11 @@
 
+#[derive(Clone, Copy, Eq, PartialEq)]
 enum Stack {
     HStack,
     VStack
 }
 
+#[derive(Clone, Eq, PartialEq)]
 enum Command {
     Button(String),
     Text(String),
@@ -16,7 +18,7 @@ enum State {
     Process,
 }
 
-struct Gui {
+pub struct Gui {
     commands: Vec<Command>,
     state: State
 }
@@ -42,10 +44,10 @@ impl Gui {
         }
     }
 
-    fn text(&mut self, name: &str) {
+    pub fn text(&mut self, name: &str) {
         match self.state {
             State::Draw => {
-                self.commands.push(Command::Button(String::from(name)));
+                self.commands.push(Command::Text(String::from(name)));
             }
             State::Process => { }
         }
@@ -63,13 +65,13 @@ impl Gui {
     fn end_hstack(&mut self) {
         match self.state {
             State::Draw => {
-                self.commands.push(Command::Begin(Stack::HStack));
+                self.commands.push(Command::End);
             }
             State::Process => { }
         }
     }
 
-    fn hstack<F : FnOnce(&mut Gui)>(&mut self, f: F) {
+    pub fn hstack<F : FnOnce(&mut Gui)>(&mut self, f: F) {
         self.begin_hstack();
         f(self);
         self.end_hstack();
@@ -93,5 +95,5 @@ mod tests {
             gui.text("Hello world!");
         })
     }
-    
+
 }
