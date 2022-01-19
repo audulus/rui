@@ -78,7 +78,7 @@ impl Gui {
     }
 }
 
-fn do_gui<F : Fn(&mut Gui)>(f: F) {
+pub fn do_gui<F : Fn(&mut Gui)>(f: F) {
     let mut gui = Gui::new();
     f(&mut gui);
 }
