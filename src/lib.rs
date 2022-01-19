@@ -77,6 +77,7 @@ impl Gui {
         self.end_hstack();
     }
 
+    // XXX: how do we generically store and retrieve state?
     pub fn state<F : FnOnce(&mut Gui, &mut S), S : Default> (&mut self, f: F) {
         let mut state = S::default();
         f(self, &mut state);
