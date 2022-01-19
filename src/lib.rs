@@ -121,8 +121,8 @@ mod tests {
     #[test]
     fn test_counter() {
         gui(|gui| {
-            gui.hstack(|gui|{
-                gui.state(|gui, state: &mut usize| {
+            gui.state(|gui, state: &mut usize| {
+                gui.hstack(|gui|{
                     if gui.button("click me!") {
                         println!("clicked!");
                         *state += 1;
