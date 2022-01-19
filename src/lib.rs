@@ -112,14 +112,12 @@ pub fn state<F: Fn(&mut S) -> Box<dyn View> + 'static, S: Default + 'static>(f: 
     Box::new(State{func: Box::new(f)})
 }
 
-struct Button {
+pub struct Button<'a> {
     text: String,
-    func: Box<dyn Fn()>
+    func: Box<dyn Fn() + 'a>
 }
 
-impl View for Button { }
-
-pub fn button<F: Fn() + 'static>(name: &str, f: F) -> Box<dyn View> {
+pub fn button<'a, F: Fn() + 'a>(name: &str, f: F) -> Box<Button<'a>> {
     Box::new(Button{text: String::from(name), func: Box::new(f)})
 }
 
@@ -167,14 +165,12 @@ mod tests {
         })
     }
 
-    /*
     #[test]
     fn test_button() {
         let _ = button("click me", || {
             println!("clicked!");
         });
     }
-    */
 
     /*
     #[test]
