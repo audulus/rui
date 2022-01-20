@@ -95,7 +95,7 @@ impl View2 for Counter {
     fn body(&self) -> Box<dyn View2> {
         let count = self.count.clone();
         Box::new(Button2::new(format!("{:?}", count.get()).as_str(), move || {
-            count.set(*count.get() + 1);
+            *count.get() += 1;
         }))
     }
 }
