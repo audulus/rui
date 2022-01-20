@@ -100,33 +100,6 @@ pub fn gui<F: Fn(&mut Gui)>(f: F) {
     f(&mut gui);
 }
 
-pub trait View { }
-
-pub struct EmptyView { }
-
-impl View for EmptyView { }
-
-pub struct State<'a, S: Default, V: View> { 
-    func: Box<dyn Fn(&mut S) -> V + 'a>
-}
-
-impl<'a, S, V> View for State<'a, S, V> where S: Default, V: View { }
-
-pub fn state<'a, V: View, F: Fn(&mut S) -> V + 'a, S: Default + 'a>(f: F) -> State<'a, S, V> {
-    State{func: Box::new(f)}
-}
-
-pub struct Button<'a> {
-    text: String,
-    func: Box<dyn FnMut() + 'a>
-}
-
-impl<'a> View for Button<'a> { }
-
-pub fn button<'a, F: FnMut() + 'a>(name: &str, f: F) -> Button<'a> {
-    Button{text: String::from(name), func: Box::new(f)}
-}
-
 pub struct Context {
     state: usize
 }
@@ -139,6 +112,33 @@ impl Context {
     pub fn set(&mut self, value: usize) {
         self.state = value
     }
+}
+
+pub trait View { }
+
+pub struct EmptyView { }
+
+impl View for EmptyView { }
+
+pub struct State<'a, V: View> { 
+    func: Box<dyn Fn(&Context) -> V + 'a>
+}
+
+impl<'a, V> View for State<'a, V> where V: View { }
+
+pub fn state<'a, V: View, F: Fn(&Context) -> V + 'a>(f: F) -> State<'a, V> {
+    State{func: Box::new(f)}
+}
+
+pub struct Button<'a> {
+    text: String,
+    func: Box<dyn Fn(&mut Context) + 'a>
+}
+
+impl<'a> View for Button<'a> { }
+
+pub fn button<'a, F: Fn(&mut Context) + 'a>(name: &str, f: F) -> Button<'a> {
+    Button{text: String::from(name), func: Box::new(f)}
 }
 
 #[cfg(test)]
@@ -187,7 +187,7 @@ mod tests {
 
     #[test]
     fn test_button() {
-        let _ = button("click me", || {
+        let _ = button("click me", |cx| {
             println!("clicked!");
         });
     }
@@ -195,16 +195,16 @@ mod tests {
     
     #[test]
     fn test_state() {
-        let _ = state(|_state: &mut usize| {
+        let _ = state(|_cx: &Context| {
             EmptyView{}
         });
     }
 
     #[test]
     fn test_state2() {
-        let _ = state(|state: &mut usize| {
-            button(format!("{:?}", state).as_str(), ||{
-                // *state += 1;
+        let _ = state(|cx| {
+            button(format!("{:?}", cx.get()).as_str(), |cx|{
+                cx.set( cx.get() + 1);
             })
         });
     }
