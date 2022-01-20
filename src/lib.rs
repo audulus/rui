@@ -36,12 +36,12 @@ pub struct EmptyView { }
 impl View for EmptyView { }
 
 pub struct StateView<'a, S, V: View> { 
-    func: Box<dyn Fn(Rc<S>) -> V + 'a>
+    func: Box<dyn Fn(State<S>) -> V + 'a>
 }
 
 impl<'a, S, V> View for StateView<'a, S, V> where V: View { }
 
-pub fn state<'a, S, V: View, F: Fn(Rc<S>) -> V + 'a>(f: F) -> StateView<'a, S, V> {
+pub fn state<'a, S, V: View, F: Fn(State<S>) -> V + 'a>(f: F) -> StateView<'a, S, V> {
     StateView{func: Box::new(f)}
 }
 
@@ -149,15 +149,15 @@ mod tests {
     
     #[test]
     fn test_state() {
-        let _ = state(|_s: Rc<usize>| {
+        let _ = state(|_s: State<usize>| {
             EmptyView{}
         });
     }
 
     fn counter() -> impl View {
-        state(|count: Rc<RefCell<usize>>| {
-            button(format!("{:?}", (*count)).as_str(), move || {
-                *count.borrow_mut() += 1;
+        state(|count: State<usize>| {
+            button(format!("{:?}", count.get()).as_str(), move || {
+                *count.get() += 1;
             })
         })
     }
