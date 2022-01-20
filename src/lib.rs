@@ -41,7 +41,7 @@ pub struct StateView<'a, S, V: View> {
 
 impl<'a, S, V> View for StateView<'a, S, V> where V: View { }
 
-pub fn state<'a, S, V: View, F: Fn(State<S>) -> V + 'a>(f: F) -> StateView<'a, S, V> {
+pub fn state<'a, S, V: View, F: Fn(State<S>) -> V + 'a>(initial: S, f: F) -> StateView<'a, S, V> {
     StateView{func: Box::new(f)}
 }
 
@@ -149,13 +149,13 @@ mod tests {
     
     #[test]
     fn test_state() {
-        let _ = state(|_s: State<usize>| {
+        let _ = state(0, |_s: State<usize>| {
             EmptyView{}
         });
     }
 
     fn counter() -> impl View {
-        state(|count: State<usize>| {
+        state(42, |count: State<usize>| {
             button(format!("{:?}", *count.get()).as_str(), move || {
                 *count.get() += 1;
             })
