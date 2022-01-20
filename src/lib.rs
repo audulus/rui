@@ -1,4 +1,5 @@
 use std::any::{Any, TypeId};
+use std::ops::{Index, IndexMut};
 
 #[derive(Clone, Copy, Eq, PartialEq, Debug)]
 enum Stack {
@@ -114,6 +115,19 @@ impl Context {
     }
 }
 
+impl Index<usize> for Context {
+    type Output = usize;
+    fn index<'a>(&'a self, _i: usize) -> &'a usize {
+        &self.state
+    }
+}
+
+impl IndexMut<usize> for Context {
+    fn index_mut<'a>(&'a mut self, _i: usize) -> &'a mut usize {
+        &mut self.state
+    }
+}
+
 pub trait View { }
 
 pub struct EmptyView { }
@@ -204,7 +218,7 @@ mod tests {
     fn test_state2() {
         let _ = state(|cx, index| {
             button(format!("{:?}", cx.get(index)).as_str(), move |cx| {
-                cx.set(index, cx.get(index) + 1);
+                cx[index] += 1;
             })
         });
     }
