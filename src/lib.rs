@@ -91,6 +91,14 @@ pub struct Counter {
     count: State2<usize>
 }
 
+impl Counter {
+    fn new() -> Self {
+        Self {
+            count: State2::new(0)
+        }
+    }
+}
+
 impl View2 for Counter {
     fn body(&self) -> Box<dyn View2> {
         let count = self.count.clone();
