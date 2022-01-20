@@ -1,3 +1,5 @@
+#![feature(type_alias_impl_trait)]
+
 use std::any::{Any, TypeId};
 use std::ops::{Index, IndexMut};
 use std::rc::Rc;
