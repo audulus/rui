@@ -36,13 +36,19 @@ pub trait View2 {
     fn body(&self) -> Box<dyn View2>;
 }
 
-pub struct Button2 {
+pub struct Button2<'a> {
     text: String,
-    func: Box<dyn Fn()>
+    func: Box<dyn Fn() + 'a>
 }
 
-impl Button2 {
+impl<'a> Button2<'a> {
     
+    fn new<F: Fn() + 'a>(name: &str, f: F) -> Self {
+        Self {
+            text: String::from(name),
+            func: Box::new(f)
+        }
+    }
 }
 
 pub struct State2<S> {
