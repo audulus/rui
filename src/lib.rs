@@ -11,14 +11,14 @@ pub struct EmptyView { }
 
 impl View for EmptyView { }
 
-pub struct State<'a, S, V: View> { 
+pub struct StateView<'a, S, V: View> { 
     func: Box<dyn Fn(Rc<S>) -> V + 'a>
 }
 
-impl<'a, S, V> View for State<'a, S, V> where V: View { }
+impl<'a, S, V> View for StateView<'a, S, V> where V: View { }
 
-pub fn state<'a, S, V: View, F: Fn(Rc<S>) -> V + 'a>(f: F) -> State<'a, S, V> {
-    State{func: Box::new(f)}
+pub fn state<'a, S, V: View, F: Fn(Rc<S>) -> V + 'a>(f: F) -> StateView<'a, S, V> {
+    StateView{func: Box::new(f)}
 }
 
 pub struct Button<'a> {
