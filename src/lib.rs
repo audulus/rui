@@ -127,6 +127,20 @@ pub fn button<'a, F: FnMut() + 'a>(name: &str, f: F) -> Button<'a> {
     Button{text: String::from(name), func: Box::new(f)}
 }
 
+pub struct Context {
+    state: usize
+}
+
+impl Context {
+    pub fn get(&self) -> usize {
+        self.state
+    }
+
+    pub fn set(&mut self, value: usize) {
+        self.state = value
+    }
+}
+
 #[cfg(test)]
 mod tests {
 
