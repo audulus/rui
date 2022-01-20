@@ -50,12 +50,16 @@ mod tests {
         });
     }
 
-    #[test]
-    fn test_state2() {
-        let _ = state(|count: Rc<RefCell<usize>>| {
+    fn counter() -> Box<dyn View> {
+        Box::new(state(|count: Rc<RefCell<usize>>| {
             button(format!("{:?}", (*count)).as_str(), move || {
                 *count.borrow_mut() += 1;
             })
-        });
+        }))
+    }
+
+    #[test]
+    fn test_state2() {
+        let _ = counter();
     }
 }
