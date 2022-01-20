@@ -5,6 +5,30 @@ use std::ops::{Index, IndexMut};
 use std::rc::Rc;
 use std::cell::{Cell, RefCell, RefMut};
 
+#[derive(Clone)]
+pub struct State<S> {
+    value: Rc<RefCell<S>>
+}
+
+impl<S> State<S> {
+    
+    fn new(value: S) -> Self {
+        Self {
+            value: Rc::new(RefCell::new(value))
+        }
+    }
+
+    fn get(&self) -> RefMut<'_, S> {
+        // Here we can indicate that a state change has
+        // been made.
+        self.value.borrow_mut()
+    }
+
+    fn set(&self, value: S) {
+        *self.value.borrow_mut() = value;
+    }
+}
+
 pub trait View { }
 
 pub struct EmptyView { }
