@@ -156,7 +156,7 @@ mod tests {
 
     fn counter() -> impl View {
         state(|count: State<usize>| {
-            button(format!("{:?}", count.get()).as_str(), move || {
+            button(format!("{:?}", *count.get()).as_str(), move || {
                 *count.get() += 1;
             })
         })
