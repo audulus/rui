@@ -154,8 +154,8 @@ mod tests {
         });
     }
 
-    fn counter() -> impl View {
-        state(42, |count: State<usize>| {
+    fn counter(start: usize) -> impl View {
+        state(start, |count: State<usize>| {
             button(format!("{:?}", *count.get()).as_str(), move || {
                 *count.get() += 1;
             })
@@ -164,6 +164,6 @@ mod tests {
 
     #[test]
     fn test_state2() {
-        let _ = counter();
+        let _ = counter(42);
     }
 }
