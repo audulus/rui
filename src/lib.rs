@@ -103,33 +103,6 @@ pub fn gui<F: Fn(&mut Gui)>(f: F) {
     f(&mut gui);
 }
 
-pub struct Context {
-    state: usize
-}
-
-impl Context {
-    pub fn get(&self, _index: usize) -> usize {
-        self.state
-    }
-
-    pub fn set(&mut self, _index: usize, value: usize) {
-        self.state = value
-    }
-}
-
-impl Index<usize> for Context {
-    type Output = usize;
-    fn index<'a>(&'a self, _i: usize) -> &'a usize {
-        &self.state
-    }
-}
-
-impl IndexMut<usize> for Context {
-    fn index_mut<'a>(&'a mut self, _i: usize) -> &'a mut usize {
-        &mut self.state
-    }
-}
-
 pub trait View { }
 
 pub struct EmptyView { }
