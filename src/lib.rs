@@ -36,6 +36,14 @@ pub trait View2 {
     fn body(&self) -> Box<dyn View2>;
 }
 
+pub struct Bottom { }
+
+impl View2 for Bottom { 
+    fn body(&self) -> Box<dyn View2> {
+        Box::new(Bottom{})
+    }
+}
+
 pub struct Button2<'a> {
     text: String,
     func: Box<dyn Fn() + 'a>
@@ -51,6 +59,13 @@ impl<'a> Button2<'a> {
     }
 }
 
+impl<'a> View2 for Button2<'a> {
+    fn body(&self) -> Box<dyn View2> {
+        Box::new(Bottom{})
+    }
+}
+
+#[derive(Clone)]
 pub struct State2<S> {
     value: Rc<RefCell<S>>
 }
@@ -69,6 +84,19 @@ impl<S> State2<S> {
 
     fn set(&self, value: S) {
         *self.value.borrow_mut() = value;
+    }
+}
+
+pub struct Counter {
+    count: State2<usize>
+}
+
+impl View2 for Counter {
+    fn body(&self) -> Box<dyn View2> {
+        let count = self.count.clone();
+        Box::new(Button2::new(format!("{:?}", count.get()).as_str(), move || {
+            count.set(*count.get() + 1);
+        }))
     }
 }
 
