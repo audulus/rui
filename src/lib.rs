@@ -1,7 +1,7 @@
 use std::any::{Any, TypeId};
 use std::ops::{Index, IndexMut};
 use std::rc::Rc;
-use std::cell::{Cell, RefCell};
+use std::cell::{Cell, RefCell, RefMut};
 
 pub trait View { }
 
@@ -28,6 +28,42 @@ impl<'a> View for Button<'a> { }
 
 pub fn button<'a, F: Fn() + 'a>(name: &str, f: F) -> Button<'a> {
     Button{text: String::from(name), func: Box::new(f)}
+}
+
+// More SwiftUI like
+
+pub trait View2 {
+    fn body(&self) -> Box<dyn View2>;
+}
+
+pub struct Button2 {
+    text: String,
+    func: Box<dyn Fn()>
+}
+
+impl Button2 {
+    
+}
+
+pub struct State2<S> {
+    value: Rc<RefCell<S>>
+}
+
+impl<S> State2<S> {
+    
+    fn new(value: S) -> Self {
+        Self {
+            value: Rc::new(RefCell::new(value))
+        }
+    }
+
+    fn get(&self) -> RefMut<'_, S> {
+        self.value.borrow_mut()
+    }
+
+    fn set(&self, value: S) {
+        *self.value.borrow_mut() = value;
+    }
 }
 
 #[cfg(test)]
