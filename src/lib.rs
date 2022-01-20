@@ -1,5 +1,7 @@
 use std::any::{Any, TypeId};
 use std::ops::{Index, IndexMut};
+use std::rc::Rc;
+use std::cell::{Cell, RefCell};
 
 #[derive(Clone, Copy, Eq, PartialEq, Debug)]
 enum Stack {
@@ -134,24 +136,24 @@ pub struct EmptyView { }
 
 impl View for EmptyView { }
 
-pub struct State<'a, V: View> { 
-    func: Box<dyn Fn(&Context, usize) -> V + 'a>
+pub struct State<'a, S, V: View> { 
+    func: Box<dyn Fn(Rc<S>) -> V + 'a>
 }
 
-impl<'a, V> View for State<'a, V> where V: View { }
+impl<'a, S, V> View for State<'a, S, V> where V: View { }
 
-pub fn state<'a, V: View, F: Fn(&Context, usize) -> V + 'a>(f: F) -> State<'a, V> {
+pub fn state<'a, S, V: View, F: Fn(Rc<S>) -> V + 'a>(f: F) -> State<'a, S, V> {
     State{func: Box::new(f)}
 }
 
 pub struct Button<'a> {
     text: String,
-    func: Box<dyn Fn(&mut Context) + 'a>
+    func: Box<dyn Fn() + 'a>
 }
 
 impl<'a> View for Button<'a> { }
 
-pub fn button<'a, F: Fn(&mut Context) + 'a>(name: &str, f: F) -> Button<'a> {
+pub fn button<'a, F: Fn() + 'a>(name: &str, f: F) -> Button<'a> {
     Button{text: String::from(name), func: Box::new(f)}
 }
 
@@ -201,7 +203,7 @@ mod tests {
 
     #[test]
     fn test_button() {
-        let _ = button("click me", |cx| {
+        let _ = button("click me", || {
             println!("clicked!");
         });
     }
@@ -209,16 +211,16 @@ mod tests {
     
     #[test]
     fn test_state() {
-        let _ = state(|_cx, _index| {
+        let _ = state(|s: Rc<usize>| {
             EmptyView{}
         });
     }
 
     #[test]
     fn test_state2() {
-        let _ = state(|cx, index| {
-            button(format!("{:?}", cx.get(index)).as_str(), move |cx| {
-                cx[index] += 1;
+        let _ = state(|count: Rc<RefCell<usize>>| {
+            button(format!("{:?}", (*count)).as_str(), move || {
+                *count.borrow_mut() += 1;
             })
         });
     }
