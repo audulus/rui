@@ -184,7 +184,7 @@ mod tests {
     
     #[test]
     fn test_state() {
-        let _ = state(|s: Rc<usize>| {
+        let _ = state(|_s: Rc<usize>| {
             EmptyView{}
         });
     }
