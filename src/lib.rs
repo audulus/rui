@@ -105,11 +105,11 @@ pub struct Context {
 }
 
 impl Context {
-    pub fn get(&self) -> usize {
+    pub fn get(&self, _index: usize) -> usize {
         self.state
     }
 
-    pub fn set(&mut self, value: usize) {
+    pub fn set(&mut self, _index: usize, value: usize) {
         self.state = value
     }
 }
@@ -121,12 +121,12 @@ pub struct EmptyView { }
 impl View for EmptyView { }
 
 pub struct State<'a, V: View> { 
-    func: Box<dyn Fn(&Context) -> V + 'a>
+    func: Box<dyn Fn(&Context, usize) -> V + 'a>
 }
 
 impl<'a, V> View for State<'a, V> where V: View { }
 
-pub fn state<'a, V: View, F: Fn(&Context) -> V + 'a>(f: F) -> State<'a, V> {
+pub fn state<'a, V: View, F: Fn(&Context, usize) -> V + 'a>(f: F) -> State<'a, V> {
     State{func: Box::new(f)}
 }
 
@@ -195,16 +195,16 @@ mod tests {
     
     #[test]
     fn test_state() {
-        let _ = state(|_cx: &Context| {
+        let _ = state(|_cx, _index| {
             EmptyView{}
         });
     }
 
     #[test]
     fn test_state2() {
-        let _ = state(|cx| {
-            button(format!("{:?}", cx.get()).as_str(), |cx|{
-                cx.set( cx.get() + 1);
+        let _ = state(|cx, index| {
+            button(format!("{:?}", cx.get(index)).as_str(), move |cx| {
+                cx.set(index, cx.get(index) + 1);
             })
         });
     }
