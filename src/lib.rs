@@ -146,7 +146,7 @@ mod tests {
         let _ = counter2(42);
     }
 
-    fn counter3(count: State<usize>) -> impl View {
+    fn counter3<B>(count: B) -> impl View where B : Binding<usize> + Clone + 'static {
         let count2 = count.clone();
         let mut stack = Stack::new();
         stack.push(button("increment", move || {
