@@ -239,7 +239,7 @@ mod tests {
 
     #[test]
     fn test_stack() {
-        let mut s = stack2(
+        let s = stack2(
             EmptyView{},
             button("click me!", || {
                 println!("clicked");
