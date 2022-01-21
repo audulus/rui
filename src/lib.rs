@@ -6,6 +6,9 @@ pub use view::*;
 mod state;
 pub use state::*;
 
+mod text;
+pub use text::*;
+
 pub struct StateView<S, V: View> {
     state: State<S>,
     func: Box<dyn Fn(State<S>) -> V>,
@@ -22,23 +25,6 @@ impl<S, V> View for StateView<S, V> where V: View, S: Clone {
 
 pub fn state<S: Clone, V: View, F: Fn(State<S>) -> V + 'static>(initial: S, f: F) -> StateView<S, V> {
     StateView { state: State::new(initial), func: Box::new(f) }
-}
-
-pub struct Text {
-    text: String
-}
-
-impl View for Text {
-    fn draw(&self) {
-        println!("Text({:?})", self.text);
-    }
-    fn process(&self, _event: &Event) {}
-}
-
-pub fn text(name: &str) -> Text {
-    Text {
-        text: String::from(name)
-    }
 }
 
 pub struct Button {
