@@ -251,16 +251,16 @@ mod tests {
     fn counter(start: usize) -> impl View {
         state(start, |count: State<usize>| {
             let count2 = count.clone();
-            let mut stack = Stack::new();
             let value_string = format!("value: {:?}", *count.get());
-            stack.push(text(value_string.as_str()));
-            stack.push(button("increment", move || {
-                *count.get() += 1;
-            }));
-            stack.push(button("decrement", move || {
-                *count2.get() -= 1;
-            }));
-            stack
+            stack3(
+                text(value_string.as_str()),
+                button("increment", move || {
+                    *count.get() += 1;
+                }),
+                button("decrement", move || {
+                    *count2.get() -= 1;
+                })
+            )
         })
     }
 
