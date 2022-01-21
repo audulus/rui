@@ -1,8 +1,6 @@
 // #![feature(type_alias_impl_trait)]
 
-use std::any::{Any, TypeId};
-use std::cell::{Cell, RefCell, RefMut};
-use std::ops::{Index, IndexMut};
+use std::cell::{RefCell, RefMut};
 use std::rc::Rc;
 
 pub trait Binding<S> {
