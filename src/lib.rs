@@ -56,6 +56,23 @@ pub fn button<'a, F: Fn() + 'a>(name: &str, f: F) -> Button<'a> {
     Button{text: String::from(name), func: Box::new(f)}
 }
 
+pub struct Stack<'a> {
+    children: Vec<Box<dyn View + 'a>>
+}
+
+impl<'a> View for Stack<'a> { }
+
+impl<'a> Stack<'a> {
+
+    fn new() -> Self {
+        Self { children: vec![] }
+    }
+
+    fn push(&mut self, view: impl View + 'a) {
+        self.children.push(Box::new(view))
+    }
+}
+
 // More SwiftUI like
 
 pub trait View2 {
