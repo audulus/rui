@@ -45,14 +45,14 @@ pub fn state<'a, S, V: View, F: Fn(State<S>) -> V + 'a>(initial: S, f: F) -> Sta
     StateView{func: Box::new(f)}
 }
 
-pub struct Button<'a> {
+pub struct Button {
     text: String,
-    func: Box<dyn Fn() + 'a>
+    func: Box<dyn Fn() + 'static>
 }
 
-impl<'a> View for Button<'a> { }
+impl View for Button{ }
 
-pub fn button<'a, F: Fn() + 'a>(name: &str, f: F) -> Button<'a> {
+pub fn button<F: Fn() + 'static>(name: &str, f: F) -> Button {
     Button{text: String::from(name), func: Box::new(f)}
 }
 
