@@ -3,6 +3,9 @@
 use std::cell::{RefCell, RefMut};
 use std::rc::Rc;
 
+mod view;
+pub use view::*;
+
 pub trait Binding<S> {
     fn get(&self) -> RefMut<'_, S>;
 }
@@ -36,23 +39,7 @@ impl<S> Binding<S> for State<S> {
     }
 }
 
-pub enum Event {
-    PressButton(String)
-}
 
-pub trait View {
-    fn draw(&self);
-    fn process(&self, event: &Event);
-}
-
-pub struct EmptyView {}
-
-impl View for EmptyView {
-    fn draw(&self) {
-        println!("EmptyView");
-    }
-    fn process(&self, _event: &Event) { }
-}
 
 pub struct StateView<S, V: View> {
     state: State<S>,
