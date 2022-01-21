@@ -197,6 +197,8 @@ mod tests {
         state(start, |count: State<usize>| {
             let count2 = count.clone();
             let mut stack = Stack::new();
+            let value_string = format!("value: {:?}", *count.get());
+            stack.push(text(value_string.as_str()));
             stack.push(button("increment", move || {
                 *count.get() += 1;
             }));
@@ -210,8 +212,11 @@ mod tests {
     #[test]
     fn test_state3() {
         let v = counter2(42);
+        println!("\"drawing\" the UI");
         v.draw();
+        println!("ok, now pressing increment button");
         v.process(&Event::PressButton(String::from("increment")));
+        println!("\"drawing\" the UI again");
         v.draw();
     }
 
