@@ -183,4 +183,13 @@ mod tests {
     fn test_state2() {
         let _ = counter(42);
     }
+
+    #[test]
+    fn test_stack() {
+        let mut s = Stack::new();
+        s.push(EmptyView{});
+        s.push(button("click me!", || {
+            println!("clicked");
+        }))
+    }
 }
