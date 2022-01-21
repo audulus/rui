@@ -68,6 +68,23 @@ pub fn state<S: Clone, V: View, F: Fn(State<S>) -> V + 'static>(initial: S, f: F
     StateView { state: State::new(initial), func: Box::new(f) }
 }
 
+pub struct Text {
+    text: String
+}
+
+impl View for Text {
+    fn draw(&self) {
+        println!("Text({:?})", self.text);
+    }
+    fn process(&self, _event: &Event) {}
+}
+
+pub fn text(name: &str) -> Text {
+    Text {
+        text: String::from(name)
+    }
+}
+
 pub struct Button {
     text: String,
     func: Box<dyn Fn()>,
