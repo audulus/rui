@@ -1,20 +1,19 @@
 // #![feature(type_alias_impl_trait)]
 
 use std::any::{Any, TypeId};
+use std::cell::{Cell, RefCell, RefMut};
 use std::ops::{Index, IndexMut};
 use std::rc::Rc;
-use std::cell::{Cell, RefCell, RefMut};
 
 #[derive(Clone)]
 pub struct State<S> {
-    value: Rc<RefCell<S>>
+    value: Rc<RefCell<S>>,
 }
 
 impl<S> State<S> {
-    
     fn new(value: S) -> Self {
         Self {
-            value: Rc::new(RefCell::new(value))
+            value: Rc::new(RefCell::new(value)),
         }
     }
 
@@ -29,41 +28,43 @@ impl<S> State<S> {
     }
 }
 
-pub trait View { }
+pub trait View {}
 
-pub struct EmptyView { }
+pub struct EmptyView {}
 
-impl View for EmptyView { }
+impl View for EmptyView {}
 
-pub struct StateView<S, V: View> { 
-    func: Box<dyn Fn(State<S>) -> V + 'static>
+pub struct StateView<S, V: View> {
+    func: Box<dyn Fn(State<S>) -> V + 'static>,
 }
 
-impl<S, V> View for StateView<S, V> where V: View { }
+impl<S, V> View for StateView<S, V> where V: View {}
 
 pub fn state<'a, S, V: View, F: Fn(State<S>) -> V + 'static>(_initial: S, f: F) -> StateView<S, V> {
-    StateView{func: Box::new(f)}
+    StateView { func: Box::new(f) }
 }
 
 pub struct Button {
     text: String,
-    func: Box<dyn Fn() + 'static>
+    func: Box<dyn Fn() + 'static>,
 }
 
-impl View for Button { }
+impl View for Button {}
 
 pub fn button<F: Fn() + 'static>(name: &str, f: F) -> Button {
-    Button{text: String::from(name), func: Box::new(f)}
+    Button {
+        text: String::from(name),
+        func: Box::new(f),
+    }
 }
 
 pub struct Stack {
-    children: Vec<Box<dyn View>>
+    children: Vec<Box<dyn View>>,
 }
 
-impl View for Stack { }
+impl View for Stack {}
 
 impl Stack {
-
     fn new() -> Self {
         Self { children: vec![] }
     }
@@ -93,12 +94,9 @@ mod tests {
         });
     }
 
-    
     #[test]
     fn test_state() {
-        let _ = state(0, |_s: State<usize>| {
-            EmptyView{}
-        });
+        let _ = state(0, |_s: State<usize>| EmptyView {});
     }
 
     fn counter(start: usize) -> impl View {
@@ -117,7 +115,7 @@ mod tests {
     #[test]
     fn test_stack() {
         let mut s = Stack::new();
-        s.push(EmptyView{});
+        s.push(EmptyView {});
         s.push(button("click me!", || {
             println!("clicked");
         }))
