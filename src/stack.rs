@@ -7,20 +7,20 @@ pub struct Stack {
 
 impl View for Stack {
 
-    fn draw(&self, id: ViewID) {
+    fn draw(&self, id: ViewID, cx: &mut Context) {
         println!("Stack {{");
         let mut c: u16 = 0;
         for child in &self.children {
-            (*child).draw(id.child(c));
+            (*child).draw(id.child(c), cx);
             c += 1;
         }
         println!("}}");
     }
 
-    fn process(&self, event: &Event, id: ViewID) {
+    fn process(&self, event: &Event, id: ViewID, cx: &mut Context) {
         let mut c: u16 = 0;
         for child in &self.children {
-            (*child).process(event, id.child(c));
+            (*child).process(event, id.child(c), cx);
             c += 1;
         }
     }
@@ -43,16 +43,16 @@ pub struct Stack2<V0: View, V1: View> {
 
 impl<V0, V1> View for Stack2<V0, V1> where V0:View, V1:View {
 
-    fn draw(&self, id: ViewID) {
+    fn draw(&self, id: ViewID, cx: &mut Context) {
         println!("Stack {{");
-        self.children.0.draw(id.child(0));
-        self.children.1.draw(id.child(1));
+        self.children.0.draw(id.child(0), cx);
+        self.children.1.draw(id.child(1), cx);
         println!("}}");
     }
 
-    fn process(&self, event: &Event, id: ViewID) {
-        self.children.0.process(event, id.child(0));
-        self.children.1.process(event, id.child(1));
+    fn process(&self, event: &Event, id: ViewID, cx: &mut Context) {
+        self.children.0.process(event, id.child(0), cx);
+        self.children.1.process(event, id.child(1), cx);
     }
 
 }
@@ -67,18 +67,18 @@ pub struct Stack3<V0: View, V1: View, V2: View> {
 
 impl<V0, V1, V2> View for Stack3<V0, V1, V2> where V0:View, V1:View, V2:View {
 
-    fn draw(&self, id: ViewID) {
+    fn draw(&self, id: ViewID, cx: &mut Context) {
         println!("Stack {{");
-        self.children.0.draw(id.child(0));
-        self.children.1.draw(id.child(1));
-        self.children.2.draw(id.child(2));
+        self.children.0.draw(id.child(0), cx);
+        self.children.1.draw(id.child(1), cx);
+        self.children.2.draw(id.child(2), cx);
         println!("}}");
     }
 
-    fn process(&self, event: &Event, id: ViewID) {
-        self.children.0.process(event, id.child(0));
-        self.children.1.process(event, id.child(1));
-        self.children.2.process(event, id.child(2));
+    fn process(&self, event: &Event, id: ViewID, cx: &mut Context) {
+        self.children.0.process(event, id.child(0), cx);
+        self.children.1.process(event, id.child(1), cx);
+        self.children.2.process(event, id.child(2), cx);
     }
 
 }

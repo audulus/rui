@@ -42,11 +42,11 @@ pub struct StateView<S, V: View> {
 }
 
 impl<S, V> View for StateView<S, V> where V: View, S: Clone {
-    fn draw(&self, id: ViewID) {
-        (*self.func)(self.state.clone()).draw(id.child(0));
+    fn draw(&self, id: ViewID, cx: &mut Context) {
+        (*self.func)(self.state.clone()).draw(id.child(0), cx);
     }
-    fn process(&self, event: &Event, id: ViewID) {
-        (*self.func)(self.state.clone()).process(event, id.child(0));
+    fn process(&self, event: &Event, id: ViewID, cx: &mut Context) {
+        (*self.func)(self.state.clone()).process(event, id.child(0), cx);
     }
 }
 

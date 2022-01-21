@@ -6,10 +6,10 @@ pub struct Text {
 }
 
 impl View for Text {
-    fn draw(&self, _id: ViewID) {
+    fn draw(&self, _id: ViewID, _cx: &mut Context) {
         println!("Text({:?})", self.text);
     }
-    fn process(&self, _event: &Event, _id: ViewID) {}
+    fn process(&self, _event: &Event, _id: ViewID, _cx: &mut Context) {}
 }
 
 pub fn text(name: &str) -> Text {

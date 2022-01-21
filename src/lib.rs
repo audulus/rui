@@ -53,19 +53,21 @@ mod tests {
 
     #[test]
     fn test_state2() {
+        let mut cx = Context::new();
         let v = counter(42);
-        v.draw(ViewID::default());
+        v.draw(ViewID::default(), &mut cx);
     }
 
     #[test]
     fn test_stack() {
+        let mut cx = Context::new();
         let s = stack2(
             EmptyView{},
             button("click me!", || {
                 println!("clicked");
             })
         );
-        s.draw(ViewID::default());
+        s.draw(ViewID::default(), &mut cx);
     }
 
     fn counter(start: usize) -> impl View {
@@ -86,13 +88,14 @@ mod tests {
 
     #[test]
     fn test_state3() {
+        let mut cx = Context::new();
         let v = counter(42);
         println!("\"drawing\" the UI");
-        v.draw(ViewID::default());
+        v.draw(ViewID::default(), &mut cx);
         println!("ok, now pressing increment button");
-        v.process(&Event::PressButton(String::from("increment")), ViewID::default());
+        v.process(&Event::PressButton(String::from("increment")), ViewID::default(), &mut cx);
         println!("\"drawing\" the UI again");
-        v.draw(ViewID::default());
+        v.draw(ViewID::default(), &mut cx);
     }
 
     fn counter3<B>(count: B) -> impl View where B : Binding<usize> + Clone + 'static {
