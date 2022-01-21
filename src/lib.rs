@@ -56,19 +56,19 @@ pub fn button<F: Fn() + 'static>(name: &str, f: F) -> Button {
     Button{text: String::from(name), func: Box::new(f)}
 }
 
-pub struct Stack<'a> {
-    children: Vec<Box<dyn View + 'a>>
+pub struct Stack {
+    children: Vec<Box<dyn View>>
 }
 
-impl<'a> View for Stack<'a> { }
+impl View for Stack { }
 
-impl<'a> Stack<'a> {
+impl Stack {
 
     fn new() -> Self {
         Self { children: vec![] }
     }
 
-    fn push(&mut self, view: impl View + 'a) {
+    fn push(&mut self, view: impl View + 'static) {
         self.children.push(Box::new(view))
     }
 }
