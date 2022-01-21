@@ -51,6 +51,8 @@ pub struct StateView<S, V: View> {
 
 impl<S, V> View for StateView<S, V> where V: View, S: Clone {
     fn draw(&self) {
+        // XXX: of course we need to actually pull the state
+        //      from a context.
         let s = State::new(self.initial.clone());
         (*self.func)(s).draw();
     }
