@@ -32,8 +32,13 @@ impl<S> Binding<S> for State<S> {
     }
 }
 
+pub enum Event {
+    PressButton(String)
+}
+
 pub trait View {
     fn draw(&self);
+    fn process(&self, event: &Event);
 }
 
 pub struct EmptyView {}
@@ -42,6 +47,7 @@ impl View for EmptyView {
     fn draw(&self) {
         println!("EmptyView");
     }
+    fn process(&self, _event: &Event) { }
 }
 
 pub struct StateView<S, V: View> {
@@ -52,6 +58,9 @@ pub struct StateView<S, V: View> {
 impl<S, V> View for StateView<S, V> where V: View, S: Clone {
     fn draw(&self) {
         (*self.func)(self.state.clone()).draw();
+    }
+    fn process(&self, event: &Event) {
+        (*self.func)(self.state.clone()).process(event);
     }
 }
 
@@ -67,6 +76,15 @@ pub struct Button {
 impl View for Button {
     fn draw(&self) {
         println!("Button({:?})", self.text);
+    }
+    fn process(&self, event: &Event) {
+        match event {
+            Event::PressButton(name) => {
+                if *name == self.text {
+                    (*self.func)();
+                }
+            }
+        }
     }
 }
 
@@ -89,6 +107,12 @@ impl View for Stack {
             (*child).draw();
         }
         println!("}}");
+    }
+
+    fn process(&self, event: &Event) {
+        for child in &self.children {
+            (*child).process(event);
+        }
     }
 
 }
