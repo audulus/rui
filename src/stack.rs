@@ -1,0 +1,84 @@
+
+use crate::*;
+
+pub struct Stack {
+    children: Vec<Box<dyn View>>,
+}
+
+impl View for Stack {
+
+    fn draw(&self) {
+        println!("Stack {{");
+        for child in &self.children {
+            (*child).draw();
+        }
+        println!("}}");
+    }
+
+    fn process(&self, event: &Event) {
+        for child in &self.children {
+            (*child).process(event);
+        }
+    }
+
+}
+
+impl Stack {
+    pub fn new() -> Self {
+        Self { children: vec![] }
+    }
+
+    pub fn push(&mut self, view: impl View + 'static) {
+        self.children.push(Box::new(view))
+    }
+}
+
+pub struct Stack2<V0: View, V1: View> {
+    children: (V0, V1)
+}
+
+impl<V0, V1> View for Stack2<V0, V1> where V0:View, V1:View {
+
+    fn draw(&self) {
+        println!("Stack {{");
+        self.children.0.draw();
+        self.children.1.draw();
+        println!("}}");
+    }
+
+    fn process(&self, event: &Event) {
+        self.children.0.process(event);
+        self.children.1.process(event);
+    }
+
+}
+
+pub fn stack2(v0: impl View + 'static, v1: impl View + 'static) -> impl View {
+    Stack2{ children: (v0, v1) }
+}
+
+pub struct Stack3<V0: View, V1: View, V2: View> {
+    children: (V0, V1, V2)
+}
+
+impl<V0, V1, V2> View for Stack3<V0, V1, V2> where V0:View, V1:View, V2:View {
+
+    fn draw(&self) {
+        println!("Stack {{");
+        self.children.0.draw();
+        self.children.1.draw();
+        self.children.2.draw();
+        println!("}}");
+    }
+
+    fn process(&self, event: &Event) {
+        self.children.0.process(event);
+        self.children.1.process(event);
+        self.children.2.process(event);
+    }
+
+}
+
+pub fn stack3(v0: impl View + 'static, v1: impl View + 'static, v2: impl View + 'static) -> impl View {
+    Stack3{ children: (v0, v1, v2) }
+}
