@@ -15,26 +15,6 @@ pub use button::*;
 mod stack;
 pub use stack::*;
 
-pub struct StateView<S, V: View> {
-    state: State<S>,
-    func: Box<dyn Fn(State<S>) -> V>,
-}
-
-impl<S, V> View for StateView<S, V> where V: View, S: Clone {
-    fn draw(&self) {
-        (*self.func)(self.state.clone()).draw();
-    }
-    fn process(&self, event: &Event) {
-        (*self.func)(self.state.clone()).process(event);
-    }
-}
-
-pub fn state<S: Clone, V: View, F: Fn(State<S>) -> V + 'static>(initial: S, f: F) -> StateView<S, V> {
-    StateView { state: State::new(initial), func: Box::new(f) }
-}
-
-
-
 #[cfg(test)]
 mod tests {
 
