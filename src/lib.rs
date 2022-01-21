@@ -211,4 +211,16 @@ mod tests {
     fn test_state3() {
         let _ = counter2(42);
     }
+
+    fn counter3(count: State<usize>) -> impl View {
+        let count2 = count.clone();
+        let mut stack = Stack::new();
+        stack.push(button("increment", move || {
+            *count.get() += 1;
+        }));
+        stack.push(button("decrement", move || {
+            *count2.get() -= 1;
+        }));
+        stack
+    }
 }
