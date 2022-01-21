@@ -158,6 +158,13 @@ mod tests {
         stack
     }
 
+    #[test]
+    fn test_binding() {
+        let _ = state(42, |count: State<usize>| {
+            counter3(count)
+        });
+    }
+
     fn ok_button<F: Fn() + 'static>(f: F) -> impl View {
         button("ok", f)
     }
