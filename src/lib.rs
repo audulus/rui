@@ -148,6 +148,30 @@ impl Stack {
     }
 }
 
+pub struct Stack2<V0: View, V1: View> {
+    children: (V0, V1)
+}
+
+impl<V0, V1> View for Stack2<V0, V1> where V0:View, V1:View {
+
+    fn draw(&self) {
+        println!("Stack {{");
+        self.children.0.draw();
+        self.children.1.draw();
+        println!("}}");
+    }
+
+    fn process(&self, event: &Event) {
+        self.children.0.process(event);
+        self.children.1.process(event);
+    }
+
+}
+
+fn stack(v0: impl View + 'static, v1: impl View + 'static) -> impl View {
+    Stack2{ children: (v0, v1) }
+}
+
 #[cfg(test)]
 mod tests {
 
