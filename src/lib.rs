@@ -139,7 +139,8 @@ mod tests {
 
     #[test]
     fn test_state2() {
-        let _ = counter(42);
+        let v = counter(42);
+        v.draw();
     }
 
     #[test]
@@ -148,7 +149,8 @@ mod tests {
         s.push(EmptyView {});
         s.push(button("click me!", || {
             println!("clicked");
-        }))
+        }));
+        s.draw();
     }
 
     fn counter2(start: usize) -> impl View {
@@ -167,7 +169,8 @@ mod tests {
 
     #[test]
     fn test_state3() {
-        let _ = counter2(42);
+        let v = counter2(42);
+        v.draw();
     }
 
     fn counter3<B>(count: B) -> impl View where B : Binding<usize> + Clone + 'static {
