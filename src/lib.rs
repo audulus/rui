@@ -213,11 +213,12 @@ mod tests {
 
     #[test]
     fn test_stack() {
-        let mut s = Stack::new();
-        s.push(EmptyView {});
-        s.push(button("click me!", || {
-            println!("clicked");
-        }));
+        let mut s = stack(
+            EmptyView{},
+            button("click me!", || {
+                println!("clicked");
+            })
+        );
         s.draw();
     }
 
