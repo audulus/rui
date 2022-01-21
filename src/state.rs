@@ -45,8 +45,8 @@ impl<S, V> View for StateView<S, V> where V: View, S: Clone {
     fn draw(&self, id: ViewID) {
         (*self.func)(self.state.clone()).draw(id.child(0));
     }
-    fn process(&self, event: &Event) {
-        (*self.func)(self.state.clone()).process(event);
+    fn process(&self, event: &Event, id: ViewID) {
+        (*self.func)(self.state.clone()).process(event, id.child(0));
     }
 }
 

@@ -90,7 +90,7 @@ mod tests {
         println!("\"drawing\" the UI");
         v.draw(ViewID::default());
         println!("ok, now pressing increment button");
-        v.process(&Event::PressButton(String::from("increment")));
+        v.process(&Event::PressButton(String::from("increment")), ViewID::default());
         println!("\"drawing\" the UI again");
         v.draw(ViewID::default());
     }

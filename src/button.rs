@@ -9,7 +9,7 @@ impl View for Button {
     fn draw(&self, _id: ViewID) {
         println!("Button({:?})", self.text);
     }
-    fn process(&self, event: &Event) {
+    fn process(&self, event: &Event, _id: ViewID) {
         match event {
             Event::PressButton(name) => {
                 if *name == self.text {

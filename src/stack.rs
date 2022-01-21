@@ -17,9 +17,11 @@ impl View for Stack {
         println!("}}");
     }
 
-    fn process(&self, event: &Event) {
+    fn process(&self, event: &Event, id: ViewID) {
+        let mut c: u16 = 0;
         for child in &self.children {
-            (*child).process(event);
+            (*child).process(event, id.child(c));
+            c += 1;
         }
     }
 
@@ -48,9 +50,9 @@ impl<V0, V1> View for Stack2<V0, V1> where V0:View, V1:View {
         println!("}}");
     }
 
-    fn process(&self, event: &Event) {
-        self.children.0.process(event);
-        self.children.1.process(event);
+    fn process(&self, event: &Event, id: ViewID) {
+        self.children.0.process(event, id.child(0));
+        self.children.1.process(event, id.child(1));
     }
 
 }
@@ -73,10 +75,10 @@ impl<V0, V1, V2> View for Stack3<V0, V1, V2> where V0:View, V1:View, V2:View {
         println!("}}");
     }
 
-    fn process(&self, event: &Event) {
-        self.children.0.process(event);
-        self.children.1.process(event);
-        self.children.2.process(event);
+    fn process(&self, event: &Event, id: ViewID) {
+        self.children.0.process(event, id.child(0));
+        self.children.1.process(event, id.child(1));
+        self.children.2.process(event, id.child(2));
     }
 
 }

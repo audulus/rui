@@ -9,7 +9,7 @@ impl View for Text {
     fn draw(&self, _id: ViewID) {
         println!("Text({:?})", self.text);
     }
-    fn process(&self, _event: &Event) {}
+    fn process(&self, _event: &Event, _id: ViewID) {}
 }
 
 pub fn text(name: &str) -> Text {
