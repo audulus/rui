@@ -9,6 +9,9 @@ pub use state::*;
 mod text;
 pub use text::*;
 
+mod button;
+pub use button::*;
+
 pub struct StateView<S, V: View> {
     state: State<S>,
     func: Box<dyn Fn(State<S>) -> V>,
@@ -25,33 +28,6 @@ impl<S, V> View for StateView<S, V> where V: View, S: Clone {
 
 pub fn state<S: Clone, V: View, F: Fn(State<S>) -> V + 'static>(initial: S, f: F) -> StateView<S, V> {
     StateView { state: State::new(initial), func: Box::new(f) }
-}
-
-pub struct Button {
-    text: String,
-    func: Box<dyn Fn()>,
-}
-
-impl View for Button {
-    fn draw(&self) {
-        println!("Button({:?})", self.text);
-    }
-    fn process(&self, event: &Event) {
-        match event {
-            Event::PressButton(name) => {
-                if *name == self.text {
-                    (*self.func)();
-                }
-            }
-        }
-    }
-}
-
-pub fn button<F: Fn() + 'static>(name: &str, f: F) -> Button {
-    Button {
-        text: String::from(name),
-        func: Box::new(f),
-    }
 }
 
 pub struct Stack {
