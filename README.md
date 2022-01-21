@@ -1,5 +1,5 @@
 # rui
-Experimental Rust UI for Audulus
+Experimental Rust UI library for Audulus
 
 Looks like this:
 
