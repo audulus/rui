@@ -46,7 +46,7 @@ pub fn state<'a, S, V: View, F: Fn(State<S>) -> V + 'static>(_initial: S, f: F) 
 
 pub struct Button {
     text: String,
-    func: Box<dyn Fn() + 'static>,
+    func: Box<dyn Fn()>,
 }
 
 impl View for Button {}
