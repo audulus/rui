@@ -194,6 +194,8 @@ mod tests {
     fn test_state3() {
         let v = counter2(42);
         v.draw();
+        v.process(&Event::PressButton(String::from("increment")));
+        v.draw();
     }
 
     fn counter3<B>(count: B) -> impl View where B : Binding<usize> + Clone + 'static {
