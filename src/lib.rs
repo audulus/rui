@@ -157,6 +157,14 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_state_clone() {
+        let s = State::new(0);
+        let s2 = s.clone();
+        s.set(42);
+        assert_eq!(*s2.get(), 42);
+    }
+
+    #[test]
     fn test_button() {
         let _ = button("click me", || {
             println!("clicked!");
