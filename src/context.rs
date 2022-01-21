@@ -3,7 +3,7 @@ use crate::*;
 use std::collections::HashMap;
 
 #[derive(Copy, Clone, Default, Eq, PartialEq, Hash, Debug)]
-struct ViewID {
+pub struct ViewID {
     path: [u16; 32],
     len: usize
 }
@@ -18,13 +18,13 @@ impl ViewID {
     }
 }
 
-struct Context {
-    state_map: HashMap<ViewID, Box<dyn AnyState>>
+pub struct Context {
+    pub state_map: HashMap<ViewID, Box<dyn AnyState>>
 }
 
 impl Context {
 
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self {
             state_map: HashMap::new()
         }
