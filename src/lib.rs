@@ -154,9 +154,7 @@ mod tests {
         stack
     }
 
-    /*
-    fn ok_button<'a, F: Fn() + 'a>(f: F) -> impl View {
+    fn ok_button<F: Fn() + 'static>(f: F) -> impl View {
         button("ok", f)
     }
-    */
 }
