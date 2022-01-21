@@ -36,21 +36,43 @@ impl<S> Binding<S> for State<S> {
     }
 }
 
-pub struct StateView<S, V: View> {
-    state: State<S>,
+pub struct StateView<S: 'static, V: View> {
+    default: S,
     func: Box<dyn Fn(State<S>) -> V>,
 }
 
 impl<S, V> View for StateView<S, V> where V: View, S: Clone {
+    
     fn draw(&self, id: ViewID, cx: &mut Context) {
-        (*self.func)(self.state.clone()).draw(id.child(0), cx);
+
+        // Look up the state in the context.
+        let newstate = Box::new(State::new(self.default.clone()));
+        let s = cx.state_map.entry(id).or_insert(newstate);
+
+        if let Some(state) = s.downcast_ref::<State<S>>() {
+            (*self.func)(state.clone()).draw(id.child(0), cx);
+        } else {
+            panic!("state has wrong type")
+        }
+
     }
+
     fn process(&self, event: &Event, id: ViewID, cx: &mut Context) {
-        (*self.func)(self.state.clone()).process(event, id.child(0), cx);
+
+        // Look up the state in the context.
+        let newstate = Box::new(State::new(self.default.clone()));
+        let s = cx.state_map.entry(id).or_insert(newstate);
+
+        if let Some(state) = s.downcast_ref::<State<S>>() {
+            (*self.func)(state.clone()).process(event, id.child(0), cx);
+        } else {
+            panic!("state has wrong type")
+        }
+        
     }
 }
 
 pub fn state<S: Clone, V: View, F: Fn(State<S>) -> V + 'static>(initial: S, f: F) -> StateView<S, V> {
-    StateView { state: State::new(initial), func: Box::new(f) }
+    StateView { default: initial, func: Box::new(f) }
 }
 

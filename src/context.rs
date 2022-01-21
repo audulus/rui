@@ -1,6 +1,7 @@
 
 use crate::*;
 use std::collections::HashMap;
+use std::any::Any;
 
 #[derive(Copy, Clone, Default, Eq, PartialEq, Hash, Debug)]
 pub struct ViewID {
@@ -19,7 +20,7 @@ impl ViewID {
 }
 
 pub struct Context {
-    pub state_map: HashMap<ViewID, Box<dyn AnyState>>
+    pub state_map: HashMap<ViewID, Box<dyn Any>>
 }
 
 impl Context {
