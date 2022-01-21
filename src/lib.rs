@@ -231,4 +231,10 @@ mod tests {
         }));
         stack
     }
+
+    /*
+    fn ok_button<'a, F: Fn() + 'a>(f: F) -> impl View {
+        button("ok", f)
+    }
+    */
 }
