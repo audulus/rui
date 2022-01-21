@@ -9,7 +9,7 @@ pub struct ViewID {
 }
 
 impl ViewID {
-    fn child(&self, index: u16) -> Self {
+    pub fn child(&self, index: u16) -> Self {
         let mut c = *self;
         assert!(c.len < 32);
         c.path[c.len] = index;
