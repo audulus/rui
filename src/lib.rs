@@ -45,21 +45,18 @@ impl View for EmptyView {
 }
 
 pub struct StateView<S, V: View> {
-    initial: S,
+    state: State<S>,
     func: Box<dyn Fn(State<S>) -> V>,
 }
 
 impl<S, V> View for StateView<S, V> where V: View, S: Clone {
     fn draw(&self) {
-        // XXX: of course we need to actually pull the state
-        //      from a context.
-        let s = State::new(self.initial.clone());
-        (*self.func)(s).draw();
+        (*self.func)(self.state.clone()).draw();
     }
 }
 
 pub fn state<S: Clone, V: View, F: Fn(State<S>) -> V + 'static>(initial: S, f: F) -> StateView<S, V> {
-    StateView { initial: initial, func: Box::new(f) }
+    StateView { state: State::new(initial), func: Box::new(f) }
 }
 
 pub struct Button {
