@@ -6,40 +6,8 @@ use std::rc::Rc;
 mod view;
 pub use view::*;
 
-pub trait Binding<S> {
-    fn get(&self) -> RefMut<'_, S>;
-}
-
-pub trait AnyState { }
-
-#[derive(Clone)]
-pub struct State<S> {
-    value: Rc<RefCell<S>>,
-}
-
-impl<S> State<S> {
-    fn new(value: S) -> Self {
-        Self {
-            value: Rc::new(RefCell::new(value)),
-        }
-    }
-
-    fn set(&self, value: S) {
-        *self.value.borrow_mut() = value;
-    }
-}
-
-impl<S> AnyState for State<S> { }
-
-impl<S> Binding<S> for State<S> {
-    fn get(&self) -> RefMut<'_, S> {
-        // Here we can indicate that a state change has
-        // been made.
-        self.value.borrow_mut()
-    }
-}
-
-
+mod state;
+pub use state::*;
 
 pub struct StateView<S, V: View> {
     state: State<S>,
