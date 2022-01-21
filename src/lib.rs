@@ -32,20 +32,32 @@ impl<S> Binding<S> for State<S> {
     }
 }
 
-pub trait View {}
+pub trait View {
+    fn draw(&self);
+}
 
 pub struct EmptyView {}
 
-impl View for EmptyView {}
+impl View for EmptyView {
+    fn draw(&self) {
+        println!("EmptyView");
+    }
+}
 
 pub struct StateView<S, V: View> {
+    initial: S,
     func: Box<dyn Fn(State<S>) -> V>,
 }
 
-impl<S, V> View for StateView<S, V> where V: View {}
+impl<S, V> View for StateView<S, V> where V: View, S: Clone {
+    fn draw(&self) {
+        let s = State::new(self.initial.clone());
+        (*self.func)(s).draw();
+    }
+}
 
-pub fn state<S, V: View, F: Fn(State<S>) -> V + 'static>(_initial: S, f: F) -> StateView<S, V> {
-    StateView { func: Box::new(f) }
+pub fn state<S: Clone, V: View, F: Fn(State<S>) -> V + 'static>(initial: S, f: F) -> StateView<S, V> {
+    StateView { initial: initial, func: Box::new(f) }
 }
 
 pub struct Button {
@@ -53,7 +65,11 @@ pub struct Button {
     func: Box<dyn Fn()>,
 }
 
-impl View for Button {}
+impl View for Button {
+    fn draw(&self) {
+        println!("Button({:?})", self.text);
+    }
+}
 
 pub fn button<F: Fn() + 'static>(name: &str, f: F) -> Button {
     Button {
@@ -66,7 +82,17 @@ pub struct Stack {
     children: Vec<Box<dyn View>>,
 }
 
-impl View for Stack {}
+impl View for Stack {
+
+    fn draw(&self) {
+        println!("Stack {{");
+        for child in &self.children {
+            (*child).draw();
+        }
+        println!("}}");
+    }
+
+}
 
 impl Stack {
     fn new() -> Self {
