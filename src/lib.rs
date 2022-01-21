@@ -50,7 +50,7 @@ pub struct Button {
     func: Box<dyn Fn() + 'static>
 }
 
-impl View for Button{ }
+impl View for Button { }
 
 pub fn button<F: Fn() + 'static>(name: &str, f: F) -> Button {
     Button{text: String::from(name), func: Box::new(f)}
