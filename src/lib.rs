@@ -35,7 +35,7 @@ pub struct EmptyView {}
 impl View for EmptyView {}
 
 pub struct StateView<S, V: View> {
-    func: Box<dyn Fn(State<S>) -> V + 'static>,
+    func: Box<dyn Fn(State<S>) -> V>,
 }
 
 impl<S, V> View for StateView<S, V> where V: View {}
