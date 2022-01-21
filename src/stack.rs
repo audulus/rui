@@ -7,10 +7,12 @@ pub struct Stack {
 
 impl View for Stack {
 
-    fn draw(&self) {
+    fn draw(&self, id: ViewID) {
         println!("Stack {{");
+        let mut c: u16 = 0;
         for child in &self.children {
-            (*child).draw();
+            (*child).draw(id.child(c));
+            c += 1;
         }
         println!("}}");
     }
@@ -39,10 +41,10 @@ pub struct Stack2<V0: View, V1: View> {
 
 impl<V0, V1> View for Stack2<V0, V1> where V0:View, V1:View {
 
-    fn draw(&self) {
+    fn draw(&self, id: ViewID) {
         println!("Stack {{");
-        self.children.0.draw();
-        self.children.1.draw();
+        self.children.0.draw(id.child(0));
+        self.children.1.draw(id.child(1));
         println!("}}");
     }
 
@@ -63,11 +65,11 @@ pub struct Stack3<V0: View, V1: View, V2: View> {
 
 impl<V0, V1, V2> View for Stack3<V0, V1, V2> where V0:View, V1:View, V2:View {
 
-    fn draw(&self) {
+    fn draw(&self, id: ViewID) {
         println!("Stack {{");
-        self.children.0.draw();
-        self.children.1.draw();
-        self.children.2.draw();
+        self.children.0.draw(id.child(0));
+        self.children.1.draw(id.child(1));
+        self.children.2.draw(id.child(2));
         println!("}}");
     }
 

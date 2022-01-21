@@ -6,7 +6,7 @@ pub struct Text {
 }
 
 impl View for Text {
-    fn draw(&self) {
+    fn draw(&self, _id: ViewID) {
         println!("Text({:?})", self.text);
     }
     fn process(&self, _event: &Event) {}

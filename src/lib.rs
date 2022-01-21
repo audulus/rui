@@ -54,7 +54,7 @@ mod tests {
     #[test]
     fn test_state2() {
         let v = counter(42);
-        v.draw();
+        v.draw(ViewID::default());
     }
 
     #[test]
@@ -65,7 +65,7 @@ mod tests {
                 println!("clicked");
             })
         );
-        s.draw();
+        s.draw(ViewID::default());
     }
 
     fn counter(start: usize) -> impl View {
@@ -88,11 +88,11 @@ mod tests {
     fn test_state3() {
         let v = counter(42);
         println!("\"drawing\" the UI");
-        v.draw();
+        v.draw(ViewID::default());
         println!("ok, now pressing increment button");
         v.process(&Event::PressButton(String::from("increment")));
         println!("\"drawing\" the UI again");
-        v.draw();
+        v.draw(ViewID::default());
     }
 
     fn counter3<B>(count: B) -> impl View where B : Binding<usize> + Clone + 'static {
