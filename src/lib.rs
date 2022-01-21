@@ -197,10 +197,10 @@ mod tests {
         state(start, |count: State<usize>| {
             let count2 = count.clone();
             let mut stack = Stack::new();
-            stack.push(button(format!("{:?}", *count.get()).as_str(), move || {
+            stack.push(button("increment", move || {
                 *count.get() += 1;
             }));
-            stack.push(button(format!("{:?}", *count2.get()).as_str(), move || {
+            stack.push(button("decrement", move || {
                 *count2.get() -= 1;
             }));
             stack
