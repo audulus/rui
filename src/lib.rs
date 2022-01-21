@@ -173,7 +173,7 @@ mod tests {
         let _ = state(0, |_s: State<usize>| EmptyView {});
     }
 
-    fn counter(start: usize) -> impl View {
+    fn counter0(start: usize) -> impl View {
         state(start, |count: State<usize>| {
             button(format!("{:?}", *count.get()).as_str(), move || {
                 *count.get() += 1;
@@ -197,7 +197,7 @@ mod tests {
         s.draw();
     }
 
-    fn counter2(start: usize) -> impl View {
+    fn counter(start: usize) -> impl View {
         state(start, |count: State<usize>| {
             let count2 = count.clone();
             let mut stack = Stack::new();
@@ -215,7 +215,7 @@ mod tests {
 
     #[test]
     fn test_state3() {
-        let v = counter2(42);
+        let v = counter(42);
         println!("\"drawing\" the UI");
         v.draw();
         println!("ok, now pressing increment button");
