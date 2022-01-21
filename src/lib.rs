@@ -7,6 +7,8 @@ pub trait Binding<S> {
     fn get(&self) -> RefMut<'_, S>;
 }
 
+pub trait AnyState { }
+
 #[derive(Clone)]
 pub struct State<S> {
     value: Rc<RefCell<S>>,
@@ -23,6 +25,8 @@ impl<S> State<S> {
         *self.value.borrow_mut() = value;
     }
 }
+
+impl<S> AnyState for State<S> { }
 
 impl<S> Binding<S> for State<S> {
     fn get(&self) -> RefMut<'_, S> {
