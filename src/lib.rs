@@ -40,7 +40,7 @@ pub struct StateView<S, V: View> {
 
 impl<S, V> View for StateView<S, V> where V: View {}
 
-pub fn state<'a, S, V: View, F: Fn(State<S>) -> V + 'static>(_initial: S, f: F) -> StateView<S, V> {
+pub fn state<S, V: View, F: Fn(State<S>) -> V + 'static>(_initial: S, f: F) -> StateView<S, V> {
     StateView { func: Box::new(f) }
 }
 
