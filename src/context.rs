@@ -7,6 +7,7 @@ pub struct LocalSpace;
 pub type LocalRect = Rect<f32, LocalSpace>;
 pub type LocalOffset = Vector2D<f32, LocalSpace>;
 pub type LocalSize = Size2D<f32, LocalSpace>;
+pub type LocalPoint = Point2D<f32, LocalSpace>;
 
 #[derive(Copy, Clone, Default, Eq, PartialEq, Hash, Debug)]
 pub struct ViewID {
@@ -25,14 +26,14 @@ impl ViewID {
 }
 
 #[derive(Copy, Clone, Default, PartialEq, Debug)]
-struct LayoutBox {
-    rect: LocalRect,
-    offset: LocalOffset
+pub struct LayoutBox {
+    pub rect: LocalRect,
+    pub offset: LocalOffset
 }
 
 pub struct Context {
     state_map: HashMap<ViewID, Box<dyn Any>>,
-    layout: HashMap<ViewID, LayoutBox>
+    pub layout: HashMap<ViewID, LayoutBox>
 }
 
 impl Context {
