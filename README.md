@@ -30,3 +30,5 @@ Looks like this:
 [Towards principled reactive UI](https://raphlinus.github.io/rust/druid/2020/09/25/principled-reactive-ui.html)
 
 [Towards a unified theory of reactive UI](https://raphlinus.github.io/ui/druid/2019/11/22/reactive-ui.html)
+
+[Flutter's Rendering Pipeline](https://www.youtube.com/watch?v=UUfXWzp0-DU)
