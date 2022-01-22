@@ -28,7 +28,7 @@ struct LayoutBox {
 }
 
 pub struct Context {
-    pub state_map: HashMap<ViewID, Box<dyn Any>>,
+    state_map: HashMap<ViewID, Box<dyn Any>>,
     layout: HashMap<ViewID, LayoutBox>
 }
 
