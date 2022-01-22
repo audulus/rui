@@ -13,7 +13,7 @@ impl View for Text {
 
 impl Text {
     fn layout(&self, id: ViewID, cx: &mut Context) -> LocalSize {
-        // XXX: obviously need to use vger to computer text size
+        // XXX: obviously need to use vger to compute text size
         let size = LocalSize::new(self.text.len() as f32 * 10.0, 10.0);
         cx.layout.insert(id, LayoutBox{ rect: LocalRect::new(LocalPoint::zero(), size),
                                         offset: LocalOffset::zero() });
