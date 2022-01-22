@@ -34,6 +34,19 @@ impl Stack {
     }
 }
 
+#[macro_export]
+macro_rules! stack {
+    ( $( $x:expr ),* ) => {
+        {
+            let mut temp_stack = Stack::new();
+            $(
+                temp_stack.push($x);
+            )*
+            temp_stack
+        }
+    };
+}
+
 pub struct Stack2<V0: View, V1: View> {
     children: (V0, V1),
 }
