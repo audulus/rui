@@ -1,8 +1,7 @@
-
 use crate::*;
 
 pub enum Event {
-    PressButton(String)
+    PressButton(String),
 }
 
 pub trait View {
@@ -16,5 +15,5 @@ impl View for EmptyView {
     fn draw(&self, _id: ViewID, _cx: &mut Context) {
         println!("EmptyView");
     }
-    fn process(&self, _event: &Event, _id: ViewID, _cx: &mut Context) { }
+    fn process(&self, _event: &Event, _id: ViewID, _cx: &mut Context) {}
 }

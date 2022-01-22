@@ -7,7 +7,7 @@ pub trait Binding<S> {
     fn get(&self) -> RefMut<'_, S>;
 }
 
-pub trait AnyState { }
+pub trait AnyState {}
 
 #[derive(Clone)]
 pub struct State<S> {
@@ -26,7 +26,7 @@ impl<S> State<S> {
     }
 }
 
-impl<S> AnyState for State<S> { }
+impl<S> AnyState for State<S> {}
 
 impl<S> Binding<S> for State<S> {
     fn get(&self) -> RefMut<'_, S> {
@@ -41,10 +41,12 @@ pub struct StateView<S: 'static, V: View> {
     func: Box<dyn Fn(State<S>) -> V>,
 }
 
-impl<S, V> View for StateView<S, V> where V: View, S: Clone {
-    
+impl<S, V> View for StateView<S, V>
+where
+    V: View,
+    S: Clone,
+{
     fn draw(&self, id: ViewID, cx: &mut Context) {
-
         // Look up the state in the context.
         let newstate = Box::new(State::new(self.default.clone()));
         let s = cx.state_map.entry(id).or_insert(newstate);
@@ -54,11 +56,9 @@ impl<S, V> View for StateView<S, V> where V: View, S: Clone {
         } else {
             panic!("state has wrong type")
         }
-
     }
 
     fn process(&self, event: &Event, id: ViewID, cx: &mut Context) {
-
         // Look up the state in the context.
         let newstate = Box::new(State::new(self.default.clone()));
         let s = cx.state_map.entry(id).or_insert(newstate);
@@ -68,11 +68,15 @@ impl<S, V> View for StateView<S, V> where V: View, S: Clone {
         } else {
             panic!("state has wrong type")
         }
-        
     }
 }
 
-pub fn state<S: Clone, V: View, F: Fn(State<S>) -> V + 'static>(initial: S, f: F) -> StateView<S, V> {
-    StateView { default: initial, func: Box::new(f) }
+pub fn state<S: Clone, V: View, F: Fn(State<S>) -> V + 'static>(
+    initial: S,
+    f: F,
+) -> StateView<S, V> {
+    StateView {
+        default: initial,
+        func: Box::new(f),
+    }
 }
-

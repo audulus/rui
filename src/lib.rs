@@ -62,10 +62,10 @@ mod tests {
     fn test_stack() {
         let mut cx = Context::new();
         let s = stack2(
-            EmptyView{},
+            EmptyView {},
             button("click me!", || {
                 println!("clicked");
-            })
+            }),
         );
         s.draw(ViewID::default(), &mut cx);
     }
@@ -81,7 +81,7 @@ mod tests {
                 }),
                 button("decrement", move || {
                     *count2.get() -= 1;
-                })
+                }),
             )
         })
     }
@@ -93,12 +93,19 @@ mod tests {
         println!("\"drawing\" the UI");
         v.draw(ViewID::default(), &mut cx);
         println!("ok, now pressing increment button");
-        v.process(&Event::PressButton(String::from("increment")), ViewID::default(), &mut cx);
+        v.process(
+            &Event::PressButton(String::from("increment")),
+            ViewID::default(),
+            &mut cx,
+        );
         println!("\"drawing\" the UI again");
         v.draw(ViewID::default(), &mut cx);
     }
 
-    fn counter3<B>(count: B) -> impl View where B : Binding<usize> + Clone + 'static {
+    fn counter3<B>(count: B) -> impl View
+    where
+        B: Binding<usize> + Clone + 'static,
+    {
         let count2 = count.clone();
         let mut stack = Stack::new();
         stack.push(button("increment", move || {
@@ -112,9 +119,7 @@ mod tests {
 
     #[test]
     fn test_binding() {
-        let _ = state(42, |count: State<usize>| {
-            counter3(count)
-        });
+        let _ = state(42, |count: State<usize>| counter3(count));
     }
 
     fn ok_button<F: Fn() + 'static>(f: F) -> impl View {

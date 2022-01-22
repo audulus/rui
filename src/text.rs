@@ -1,8 +1,7 @@
-
 use crate::*;
 
 pub struct Text {
-    text: String
+    text: String,
 }
 
 impl View for Text {
@@ -14,6 +13,6 @@ impl View for Text {
 
 pub fn text(name: &str) -> Text {
     Text {
-        text: String::from(name)
+        text: String::from(name),
     }
 }

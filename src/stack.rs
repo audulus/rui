@@ -1,4 +1,3 @@
-
 use crate::*;
 
 pub struct Stack {
@@ -6,7 +5,6 @@ pub struct Stack {
 }
 
 impl View for Stack {
-
     fn draw(&self, id: ViewID, cx: &mut Context) {
         println!("Stack {{");
         let mut c: u16 = 0;
@@ -24,7 +22,6 @@ impl View for Stack {
             c += 1;
         }
     }
-
 }
 
 impl Stack {
@@ -38,11 +35,14 @@ impl Stack {
 }
 
 pub struct Stack2<V0: View, V1: View> {
-    children: (V0, V1)
+    children: (V0, V1),
 }
 
-impl<V0, V1> View for Stack2<V0, V1> where V0:View, V1:View {
-
+impl<V0, V1> View for Stack2<V0, V1>
+where
+    V0: View,
+    V1: View,
+{
     fn draw(&self, id: ViewID, cx: &mut Context) {
         println!("Stack {{");
         self.children.0.draw(id.child(0), cx);
@@ -54,19 +54,22 @@ impl<V0, V1> View for Stack2<V0, V1> where V0:View, V1:View {
         self.children.0.process(event, id.child(0), cx);
         self.children.1.process(event, id.child(1), cx);
     }
-
 }
 
 pub fn stack2(v0: impl View + 'static, v1: impl View + 'static) -> impl View {
-    Stack2{ children: (v0, v1) }
+    Stack2 { children: (v0, v1) }
 }
 
 pub struct Stack3<V0: View, V1: View, V2: View> {
-    children: (V0, V1, V2)
+    children: (V0, V1, V2),
 }
 
-impl<V0, V1, V2> View for Stack3<V0, V1, V2> where V0:View, V1:View, V2:View {
-
+impl<V0, V1, V2> View for Stack3<V0, V1, V2>
+where
+    V0: View,
+    V1: View,
+    V2: View,
+{
     fn draw(&self, id: ViewID, cx: &mut Context) {
         println!("Stack {{");
         self.children.0.draw(id.child(0), cx);
@@ -80,9 +83,14 @@ impl<V0, V1, V2> View for Stack3<V0, V1, V2> where V0:View, V1:View, V2:View {
         self.children.1.process(event, id.child(1), cx);
         self.children.2.process(event, id.child(2), cx);
     }
-
 }
 
-pub fn stack3(v0: impl View + 'static, v1: impl View + 'static, v2: impl View + 'static) -> impl View {
-    Stack3{ children: (v0, v1, v2) }
+pub fn stack3(
+    v0: impl View + 'static,
+    v1: impl View + 'static,
+    v2: impl View + 'static,
+) -> impl View {
+    Stack3 {
+        children: (v0, v1, v2),
+    }
 }

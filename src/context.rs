@@ -1,11 +1,10 @@
-
-use std::collections::HashMap;
 use std::any::Any;
+use std::collections::HashMap;
 
 #[derive(Copy, Clone, Default, Eq, PartialEq, Hash, Debug)]
 pub struct ViewID {
     path: [u16; 32],
-    len: usize
+    len: usize,
 }
 
 impl ViewID {
@@ -19,14 +18,13 @@ impl ViewID {
 }
 
 pub struct Context {
-    pub state_map: HashMap<ViewID, Box<dyn Any>>
+    pub state_map: HashMap<ViewID, Box<dyn Any>>,
 }
 
 impl Context {
-
     pub fn new() -> Self {
         Self {
-            state_map: HashMap::new()
+            state_map: HashMap::new(),
         }
     }
 }
