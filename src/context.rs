@@ -5,6 +5,7 @@ use euclid::*;
 
 pub struct LocalSpace;
 pub type LocalRect = Rect<f32, LocalSpace>;
+pub type LocalOffset = Vector2D<f32, LocalSpace>;
 
 #[derive(Copy, Clone, Default, Eq, PartialEq, Hash, Debug)]
 pub struct ViewID {
@@ -24,7 +25,8 @@ impl ViewID {
 
 #[derive(Copy, Clone, Default, PartialEq, Debug)]
 struct LayoutBox {
-    rect: LocalRect
+    rect: LocalRect,
+    offset: LocalOffset
 }
 
 pub struct Context {
