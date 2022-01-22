@@ -1,6 +1,10 @@
 use std::any::Any;
 use std::collections::HashMap;
 use crate::*;
+use euclid::*;
+
+pub struct LocalSpace;
+pub type LocalRect = Rect<f32, LocalSpace>;
 
 #[derive(Copy, Clone, Default, Eq, PartialEq, Hash, Debug)]
 pub struct ViewID {
@@ -18,14 +22,21 @@ impl ViewID {
     }
 }
 
+#[derive(Copy, Clone, Default, PartialEq, Debug)]
+struct LayoutBox {
+    rect: LocalRect
+}
+
 pub struct Context {
     pub state_map: HashMap<ViewID, Box<dyn Any>>,
+    layout: HashMap<ViewID, LayoutBox>
 }
 
 impl Context {
     pub fn new() -> Self {
         Self {
             state_map: HashMap::new(),
+            layout: HashMap::new()
         }
     }
 
