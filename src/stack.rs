@@ -36,7 +36,7 @@ impl Stack {
 
 #[macro_export]
 macro_rules! stack {
-    ( $( $x:expr ),* ) => {
+    ( $( $x:expr );* ) => {
         {
             let mut temp_stack = Stack::new();
             $(
