@@ -1,5 +1,5 @@
 # rui
-Experimental Rust UI library for Audulus
+Experimental Rust UI library for Audulus. "rui" is a temporary name.
 
 Looks like this:
 
