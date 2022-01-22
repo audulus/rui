@@ -31,7 +31,7 @@ impl Context {
 
     pub fn with_state<S: Clone + 'static, F: Fn(State<S>, &mut Self)>(&mut self, default: S, id: ViewID, f: F) {
 
-        let newstate = Box::new(State::new(default.clone()));
+        let newstate = Box::new(State::new(default));
         let s = self.state_map.entry(id).or_insert(newstate);
 
         if let Some(state) = s.downcast_ref::<State<S>>() {
