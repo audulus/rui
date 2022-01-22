@@ -47,27 +47,19 @@ where
     S: Clone,
 {
     fn draw(&self, id: ViewID, cx: &mut Context) {
-        // Look up the state in the context.
-        let newstate = Box::new(State::new(self.default.clone()));
-        let s = cx.state_map.entry(id).or_insert(newstate);
 
-        if let Some(state) = s.downcast_ref::<State<S>>() {
+        cx.with_state(self.default.clone(), id, |state: State<S>, cx| {
             (*self.func)(state.clone()).draw(id.child(0), cx);
-        } else {
-            panic!("state has wrong type")
-        }
+        });
+
     }
 
     fn process(&self, event: &Event, id: ViewID, cx: &mut Context) {
-        // Look up the state in the context.
-        let newstate = Box::new(State::new(self.default.clone()));
-        let s = cx.state_map.entry(id).or_insert(newstate);
 
-        if let Some(state) = s.downcast_ref::<State<S>>() {
+        cx.with_state(self.default.clone(), id, |state: State<S>, cx| {
             (*self.func)(state.clone()).process(event, id.child(0), cx);
-        } else {
-            panic!("state has wrong type")
-        }
+        });
+
     }
 }
 
