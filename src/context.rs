@@ -6,6 +6,7 @@ use euclid::*;
 pub struct LocalSpace;
 pub type LocalRect = Rect<f32, LocalSpace>;
 pub type LocalOffset = Vector2D<f32, LocalSpace>;
+pub type LocalSize = Size2D<f32, LocalSpace>;
 
 #[derive(Copy, Clone, Default, Eq, PartialEq, Hash, Debug)]
 pub struct ViewID {
