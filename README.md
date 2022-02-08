@@ -23,7 +23,7 @@ Looks like this:
 
 - Encode UI in types to ensure stable identity.
 - Use immediate mode initially, then optimize to reduce redraw later.
-- Use a forthcoming rust port of [vger](https://github.com/audulus/vger) for rendering.
+- Use a [vger-rs](https://github.com/audulus/vger-rs) for rendering.
 
 ## References
 
