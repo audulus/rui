@@ -12,4 +12,6 @@ edition = "2018"
 [dependencies]
 euclid = "0.22.6"
 winit = "0.26.0"
+wgpu = "0.12.0"
+futures = "0.3"
 vger = { git = "https://github.com/audulus/vger-rs" }
