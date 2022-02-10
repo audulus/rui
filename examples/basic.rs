@@ -37,7 +37,10 @@ async fn setup() -> (wgpu::Device, wgpu::Queue) {
 
 fn main() {
    let event_loop = EventLoop::new();
-   let window = WindowBuilder::new().build(&event_loop).unwrap();
+   let window = WindowBuilder::new()
+       .with_title("rui")
+       .build(&event_loop)
+       .unwrap();
 
    event_loop.run(move |event, _, control_flow| {
       // ControlFlow::Poll continuously runs the event loop, even if the OS hasn't
