@@ -91,6 +91,17 @@ pub fn rui(view: impl View + 'static) {
                println!("The close button was pressed; stopping");
                *control_flow = ControlFlow::Exit
          },
+         winit::event::Event::WindowEvent {
+            event:
+                WindowEvent::Resized(size)
+                | WindowEvent::ScaleFactorChanged {
+                    new_inner_size: &mut size,
+                    ..
+                },
+            ..
+        } => {
+            println!("Resizing to {:?}", size);
+        }
          winit::event::Event::MainEventsCleared => {
                // Application update code.
 
