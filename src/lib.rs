@@ -122,6 +122,8 @@ pub fn rui(view: impl View + 'static) {
                 // It's preferable for applications that do not render continuously to render in
                 // this event rather than in MainEventsCleared, since rendering in here allows
                 // the program to gracefully handle redraws requested by the OS.
+
+                println!("RedrawRequested");
             }
             _ => (),
         }
