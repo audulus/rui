@@ -5,7 +5,7 @@ use winit::{
 };
 
 use wgpu::*;
-//use vger::*;
+use vger::*;
 //use vger::color::Color;
 //use vger::defs::*;
 use futures::executor::block_on;
@@ -49,6 +49,8 @@ fn main() {
        .unwrap();
 
    let (device, queue) = block_on(setup(&window));
+
+   let vger = VGER::new(&device);
 
    event_loop.run(move |event, _, control_flow| {
       // ControlFlow::Poll continuously runs the event loop, even if the OS hasn't
