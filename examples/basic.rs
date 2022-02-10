@@ -10,13 +10,13 @@ use wgpu::*;
 //use vger::defs::*;
 use futures::executor::block_on;
 
-async fn setup(window: winit::window::Window) -> (wgpu::Device, wgpu::Queue) {
+async fn setup(window: &winit::window::Window) -> (wgpu::Device, wgpu::Queue) {
     let backend = wgpu::Backends::all();
     let instance = wgpu::Instance::new(backend);
 
     let (size, surface) = unsafe {
         let size = window.inner_size();
-        let surface = instance.create_surface(&window);
+        let surface = instance.create_surface(window);
         (size, surface)
     };
 
@@ -47,6 +47,8 @@ fn main() {
        .with_title("rui")
        .build(&event_loop)
        .unwrap();
+
+   let (device, queue) = block_on(setup(&window));
 
    event_loop.run(move |event, _, control_flow| {
       // ControlFlow::Poll continuously runs the event loop, even if the OS hasn't
