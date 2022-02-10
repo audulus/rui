@@ -47,19 +47,15 @@ where
     S: Clone,
 {
     fn draw(&self, id: ViewID, cx: &mut Context) {
-
         cx.with_state(self.default.clone(), id, |state: State<S>, cx| {
             (*self.func)(state.clone()).draw(id.child(0), cx);
         });
-
     }
 
     fn process(&self, event: &Event, id: ViewID, cx: &mut Context) {
-
         cx.with_state(self.default.clone(), id, |state: State<S>, cx| {
             (*self.func)(state.clone()).process(event, id.child(0), cx);
         });
-
     }
 }
 
@@ -70,7 +66,7 @@ where
     S: Clone
 {
     fn layout(&self, id: ViewID, cx: &mut Context) -> LocalSize {
-        
+
         cx.with_state(self.default.clone(), id, |state: State<S>, cx| {
             (*self.func)(state.clone()).layout(id.child(0), cx);
         });

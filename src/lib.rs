@@ -25,10 +25,10 @@ use futures::executor::block_on;
 use vger::*;
 
 use winit::{
-    event::{WindowEvent},
+    event::WindowEvent,
     event_loop::{ControlFlow, EventLoop},
     window::WindowBuilder,
- };
+};
 
 async fn setup(window: &winit::window::Window) -> (wgpu::Device, wgpu::Queue) {
     let backend = wgpu::Backends::all();
@@ -40,9 +40,10 @@ async fn setup(window: &winit::window::Window) -> (wgpu::Device, wgpu::Queue) {
         (size, surface)
     };
 
-    let adapter = wgpu::util::initialize_adapter_from_env_or_default(&instance, backend, Some(&surface))
-        .await
-        .expect("No suitable GPU adapters found on the system!");
+    let adapter =
+        wgpu::util::initialize_adapter_from_env_or_default(&instance, backend, Some(&surface))
+            .await
+            .expect("No suitable GPU adapters found on the system!");
 
     let adapter_info = adapter.get_info();
     println!("Using {} ({:?})", adapter_info.name, adapter_info.backend);
@@ -62,69 +63,69 @@ async fn setup(window: &winit::window::Window) -> (wgpu::Device, wgpu::Queue) {
 }
 
 pub fn rui(view: impl View + 'static) {
-   let event_loop = EventLoop::new();
-   let window = WindowBuilder::new()
-       .with_title("rui")
-       .build(&event_loop)
-       .unwrap();
+    let event_loop = EventLoop::new();
+    let window = WindowBuilder::new()
+        .with_title("rui")
+        .build(&event_loop)
+        .unwrap();
 
-   let (device, queue) = block_on(setup(&window));
+    let (device, queue) = block_on(setup(&window));
 
-   let vger = VGER::new(&device);
-   let mut cx = Context::new();
-   let mut window_size = [0.0, 0.0];
+    let vger = VGER::new(&device);
+    let mut cx = Context::new();
+    let mut window_size = [0.0, 0.0];
 
-   event_loop.run(move |event, _, control_flow| {
-      // ControlFlow::Poll continuously runs the event loop, even if the OS hasn't
-      // dispatched any events. This is ideal for games and similar applications.
-      // *control_flow = ControlFlow::Poll;
+    event_loop.run(move |event, _, control_flow| {
+        // ControlFlow::Poll continuously runs the event loop, even if the OS hasn't
+        // dispatched any events. This is ideal for games and similar applications.
+        // *control_flow = ControlFlow::Poll;
 
-      // ControlFlow::Wait pauses the event loop if no events are available to process.
-      // This is ideal for non-game applications that only update in response to user
-      // input, and uses significantly less power/CPU time than ControlFlow::Poll.
-      *control_flow = ControlFlow::Wait;
+        // ControlFlow::Wait pauses the event loop if no events are available to process.
+        // This is ideal for non-game applications that only update in response to user
+        // input, and uses significantly less power/CPU time than ControlFlow::Poll.
+        *control_flow = ControlFlow::Wait;
 
-      match event {
-         winit::event::Event::WindowEvent {
-               event: WindowEvent::CloseRequested,
-               ..
-         } => {
-               println!("The close button was pressed; stopping");
-               *control_flow = ControlFlow::Exit
-         },
-         winit::event::Event::WindowEvent {
-            event:
-                WindowEvent::Resized(size)
-                | WindowEvent::ScaleFactorChanged {
-                    new_inner_size: &mut size,
-                    ..
-                },
-            ..
-        } => {
-            println!("Resizing to {:?}", size);
-            window_size[0] = size.width as f32;
-            window_size[1] = size.height as f32;
+        match event {
+            winit::event::Event::WindowEvent {
+                event: WindowEvent::CloseRequested,
+                ..
+            } => {
+                println!("The close button was pressed; stopping");
+                *control_flow = ControlFlow::Exit
+            }
+            winit::event::Event::WindowEvent {
+                event:
+                    WindowEvent::Resized(size)
+                    | WindowEvent::ScaleFactorChanged {
+                        new_inner_size: &mut size,
+                        ..
+                    },
+                ..
+            } => {
+                println!("Resizing to {:?}", size);
+                window_size[0] = size.width as f32;
+                window_size[1] = size.height as f32;
+            }
+            winit::event::Event::MainEventsCleared => {
+                // Application update code.
+
+                // Queue a RedrawRequested event.
+                //
+                // You only need to call this if you've determined that you need to redraw, in
+                // applications which do not always need to. Applications that redraw continuously
+                // can just render here instead.
+                window.request_redraw();
+            }
+            winit::event::Event::RedrawRequested(_) => {
+                // Redraw the application.
+                //
+                // It's preferable for applications that do not render continuously to render in
+                // this event rather than in MainEventsCleared, since rendering in here allows
+                // the program to gracefully handle redraws requested by the OS.
+            }
+            _ => (),
         }
-         winit::event::Event::MainEventsCleared => {
-               // Application update code.
-
-               // Queue a RedrawRequested event.
-               //
-               // You only need to call this if you've determined that you need to redraw, in
-               // applications which do not always need to. Applications that redraw continuously
-               // can just render here instead.
-               window.request_redraw();
-         },
-         winit::event::Event::RedrawRequested(_) => {
-               // Redraw the application.
-               //
-               // It's preferable for applications that do not render continuously to render in
-               // this event rather than in MainEventsCleared, since rendering in here allows
-               // the program to gracefully handle redraws requested by the OS.
-         },
-         _ => ()
-      }
-   });
+    });
 }
 
 #[cfg(test)]

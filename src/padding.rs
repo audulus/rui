@@ -6,7 +6,7 @@ pub struct Padding<V: View> {
 
 impl<V> View for Padding<V>
 where
-    V: View
+    V: View,
 {
     fn draw(&self, id: ViewID, cx: &mut Context) {
         println!("Padding {{");
@@ -19,7 +19,10 @@ where
     }
 }
 
-impl<V> Padding<V> where V:View + 'static {
+impl<V> Padding<V>
+where
+    V: View + 'static,
+{
     pub fn new(child: V) -> Self {
         Self { child: child }
     }

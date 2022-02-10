@@ -1,7 +1,7 @@
-use std::any::Any;
-use std::collections::HashMap;
 use crate::*;
 use euclid::*;
+use std::any::Any;
+use std::collections::HashMap;
 
 pub struct LocalSpace;
 pub type LocalRect = Rect<f32, LocalSpace>;
@@ -28,24 +28,28 @@ impl ViewID {
 #[derive(Copy, Clone, Default, PartialEq, Debug)]
 pub struct LayoutBox {
     pub rect: LocalRect,
-    pub offset: LocalOffset
+    pub offset: LocalOffset,
 }
 
 pub struct Context {
     state_map: HashMap<ViewID, Box<dyn Any>>,
-    pub layout: HashMap<ViewID, LayoutBox>
+    pub layout: HashMap<ViewID, LayoutBox>,
 }
 
 impl Context {
     pub fn new() -> Self {
         Self {
             state_map: HashMap::new(),
-            layout: HashMap::new()
+            layout: HashMap::new(),
         }
     }
 
-    pub fn with_state<S: Clone + 'static, F: Fn(State<S>, &mut Self)>(&mut self, default: S, id: ViewID, f: F) {
-
+    pub fn with_state<S: Clone + 'static, F: Fn(State<S>, &mut Self)>(
+        &mut self,
+        default: S,
+        id: ViewID,
+        f: F,
+    ) {
         let newstate = Box::new(State::new(default));
         let s = self.state_map.entry(id).or_insert(newstate);
 
