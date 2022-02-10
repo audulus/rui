@@ -72,6 +72,7 @@ pub fn rui(view: impl View + 'static) {
 
    let vger = VGER::new(&device);
    let mut cx = Context::new();
+   let mut window_size = [0.0, 0.0];
 
    event_loop.run(move |event, _, control_flow| {
       // ControlFlow::Poll continuously runs the event loop, even if the OS hasn't
@@ -101,6 +102,8 @@ pub fn rui(view: impl View + 'static) {
             ..
         } => {
             println!("Resizing to {:?}", size);
+            window_size[0] = size.width as f32;
+            window_size[1] = size.height as f32;
         }
          winit::event::Event::MainEventsCleared => {
                // Application update code.
