@@ -20,7 +20,7 @@ async fn setup(window: winit::window::Window) -> (wgpu::Device, wgpu::Queue) {
         (size, surface)
     };
 
-    let adapter = wgpu::util::initialize_adapter_from_env_or_default(&instance, backend, None)
+    let adapter = wgpu::util::initialize_adapter_from_env_or_default(&instance, backend, Some(&surface))
         .await
         .expect("No suitable GPU adapters found on the system!");
 
