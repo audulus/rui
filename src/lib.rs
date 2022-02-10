@@ -124,6 +124,9 @@ pub fn rui(view: impl View + 'static) {
                 // the program to gracefully handle redraws requested by the OS.
 
                 println!("RedrawRequested");
+
+                // vger.begin(window_size[0], window_size[1], 1.0);
+                
             }
             _ => (),
         }
