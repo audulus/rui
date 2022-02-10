@@ -61,7 +61,7 @@ async fn setup(window: &winit::window::Window) -> (wgpu::Device, wgpu::Queue) {
         .expect("Unable to find a suitable GPU adapter!")
 }
 
-pub fn rui() {
+pub fn rui(view: impl View + 'static) {
    let event_loop = EventLoop::new();
    let window = WindowBuilder::new()
        .with_title("rui")
@@ -71,6 +71,7 @@ pub fn rui() {
    let (device, queue) = block_on(setup(&window));
 
    let vger = VGER::new(&device);
+   let mut cx = Context::new();
 
    event_loop.run(move |event, _, control_flow| {
       // ControlFlow::Poll continuously runs the event loop, even if the OS hasn't
