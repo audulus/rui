@@ -10,9 +10,15 @@ use wgpu::*;
 //use vger::defs::*;
 use futures::executor::block_on;
 
-async fn setup() -> (wgpu::Device, wgpu::Queue) {
+async fn setup(window: winit::window::Window) -> (wgpu::Device, wgpu::Queue) {
     let backend = wgpu::Backends::all();
     let instance = wgpu::Instance::new(backend);
+
+    let (size, surface) = unsafe {
+        let size = window.inner_size();
+        let surface = instance.create_surface(&window);
+        (size, surface)
+    };
 
     let adapter = wgpu::util::initialize_adapter_from_env_or_default(&instance, backend, None)
         .await
