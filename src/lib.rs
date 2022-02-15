@@ -30,26 +30,68 @@ use winit::{
     window::WindowBuilder,
 };
 
-async fn setup(window: &winit::window::Window) -> (wgpu::Device, wgpu::Queue) {
-    let backend = wgpu::Backends::all();
-    let instance = wgpu::Instance::new(backend);
+struct Setup {
+    window: winit::window::Window,
+    event_loop: EventLoop<()>,
+    instance: wgpu::Instance,
+    size: winit::dpi::PhysicalSize<u32>,
+    surface: wgpu::Surface,
+    adapter: wgpu::Adapter,
+    device: wgpu::Device,
+    queue: wgpu::Queue,
+}
 
+async fn setup(title: &str) -> Setup {
+
+    let event_loop = EventLoop::new();
+    let mut builder = winit::window::WindowBuilder::new();
+    builder = builder.with_title(title);
+    let window = builder.build(&event_loop).unwrap();
+
+    #[cfg(target_arch = "wasm32")]
+    {
+        use winit::platform::web::WindowExtWebSys;
+        let query_string = web_sys::window().unwrap().location().search().unwrap();
+        let level: log::Level = parse_url_query_string(&query_string, "RUST_LOG")
+            .map(|x| x.parse().ok())
+            .flatten()
+            .unwrap_or(log::Level::Error);
+        console_log::init_with_level(level).expect("could not initialize logger");
+        std::panic::set_hook(Box::new(console_error_panic_hook::hook));
+        // On wasm, append the canvas to the document body
+        web_sys::window()
+            .and_then(|win| win.document())
+            .and_then(|doc| doc.body())
+            .and_then(|body| {
+                body.append_child(&web_sys::Element::from(window.canvas()))
+                    .ok()
+            })
+            .expect("couldn't append canvas to document body");
+    }
+
+    // log::info!("Initializing the surface...");
+
+    let backend = wgpu::util::backend_bits_from_env().unwrap_or_else(wgpu::Backends::all);
+
+    let instance = wgpu::Instance::new(backend);
     let (size, surface) = unsafe {
         let size = window.inner_size();
-        let surface = instance.create_surface(window);
+        let surface = instance.create_surface(&window);
         (size, surface)
     };
-
     let adapter =
         wgpu::util::initialize_adapter_from_env_or_default(&instance, backend, Some(&surface))
             .await
             .expect("No suitable GPU adapters found on the system!");
 
-    let adapter_info = adapter.get_info();
-    println!("Using {} ({:?})", adapter_info.name, adapter_info.backend);
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        let adapter_info = adapter.get_info();
+        println!("Using {} ({:?})", adapter_info.name, adapter_info.backend);
+    }
 
     let trace_dir = std::env::var("WGPU_TRACE");
-    adapter
+    let (device, queue) = adapter
         .request_device(
             &wgpu::DeviceDescriptor {
                 label: None,
@@ -59,23 +101,31 @@ async fn setup(window: &winit::window::Window) -> (wgpu::Device, wgpu::Queue) {
             trace_dir.ok().as_ref().map(std::path::Path::new),
         )
         .await
-        .expect("Unable to find a suitable GPU adapter!")
+        .expect("Unable to find a suitable GPU adapter!");
+
+    Setup {
+        window,
+        event_loop,
+        instance,
+        size,
+        surface,
+        adapter,
+        device,
+        queue,
+    }
 }
 
 pub fn rui(view: impl View + 'static) {
-    let event_loop = EventLoop::new();
-    let window = WindowBuilder::new()
-        .with_title("rui")
-        .build(&event_loop)
-        .unwrap();
 
-    let (device, queue) = block_on(setup(&window));
+    let setup = block_on(setup("rui"));
+    let window = setup.window;
 
-    let vger = VGER::new(&device);
+
+    let vger = VGER::new(&setup.device);
     let mut cx = Context::new();
     let mut window_size = [0.0, 0.0];
 
-    event_loop.run(move |event, _, control_flow| {
+    setup.event_loop.run(move |event, _, control_flow| {
         // ControlFlow::Poll continuously runs the event loop, even if the OS hasn't
         // dispatched any events. This is ideal for games and similar applications.
         // *control_flow = ControlFlow::Poll;
