@@ -133,9 +133,8 @@ pub fn rui(view: impl View + 'static) {
     };
     surface.configure(&device, &config);
 
-    let vger = VGER::new(&device);
+    let mut vger = VGER::new(&device);
     let mut cx = Context::new();
-    let mut window_size = [0.0, 0.0];
 
     setup.event_loop.run(move |event, _, control_flow| {
         // ControlFlow::Poll continuously runs the event loop, even if the OS hasn't
@@ -165,8 +164,9 @@ pub fn rui(view: impl View + 'static) {
                 ..
             } => {
                 println!("Resizing to {:?}", size);
-                window_size[0] = size.width as f32;
-                window_size[1] = size.height as f32;
+                config.width = size.width.max(1);
+                config.height = size.height.max(1);
+                surface.configure(&device, &config);
             }
             winit::event::Event::MainEventsCleared => {
                 // Application update code.
@@ -200,7 +200,7 @@ pub fn rui(view: impl View + 'static) {
                     .texture
                     .create_view(&wgpu::TextureViewDescriptor::default());
 
-                // vger.begin(window_size[0], window_size[1], 1.0);
+                vger.begin(config.width as f32, config.height as f32, 1.0);
                 
             }
             _ => (),
