@@ -135,7 +135,7 @@ pub fn rui(view: impl View + 'static) {
     };
     surface.configure(&device, &config);
 
-    let mut vger = VGER::new(&device);
+    let mut vger = VGER::new(&device, wgpu::TextureFormat::Bgra8UnormSrgb);
     let mut cx = Context::new();
 
     setup.event_loop.run(move |event, _, control_flow| {
