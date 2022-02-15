@@ -124,6 +124,7 @@ pub fn rui(view: impl View + 'static) {
     let device = setup.device;
     let size = setup.size;
     let adapter = setup.adapter;
+    let queue = setup.queue;
 
     let mut config = wgpu::SurfaceConfiguration {
         usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
@@ -206,7 +207,20 @@ pub fn rui(view: impl View + 'static) {
                 let paint = vger.color_paint(Color { r: 0.0, g: 1.0, b: 1.0, a: 1.0 });
                 vger.text("This is a test", 18, None);
 
-                // vger.encode(&device, render_pass: &wgpu::RenderPassDescriptor);
+                let desc = wgpu::RenderPassDescriptor {
+                    label: None,
+                    color_attachments: &[wgpu::RenderPassColorAttachment {
+                        view: &view,
+                        resolve_target: None,
+                        ops: wgpu::Operations {
+                            load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
+                            store: true,
+                        },
+                    }],
+                    depth_stencil_attachment: None,
+                };
+            
+                queue.submit(Some(vger.encode(&device, &desc)));
 
                 frame.present();
                 
