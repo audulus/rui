@@ -119,9 +119,21 @@ pub fn rui(view: impl View + 'static) {
 
     let setup = block_on(setup("rui"));
     let window = setup.window;
+    let surface = setup.surface;
+    let device = setup.device;
+    let size = setup.size;
+    let adapter = setup.adapter;
 
+    let mut config = wgpu::SurfaceConfiguration {
+        usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+        format: surface.get_preferred_format(&adapter).unwrap(),
+        width: size.width,
+        height: size.height,
+        present_mode: wgpu::PresentMode::Mailbox,
+    };
+    surface.configure(&device, &config);
 
-    let vger = VGER::new(&setup.device);
+    let vger = VGER::new(&device);
     let mut cx = Context::new();
     let mut window_size = [0.0, 0.0];
 
@@ -174,6 +186,19 @@ pub fn rui(view: impl View + 'static) {
                 // the program to gracefully handle redraws requested by the OS.
 
                 println!("RedrawRequested");
+
+                let frame = match surface.get_current_texture() {
+                    Ok(frame) => frame,
+                    Err(_) => {
+                        surface.configure(&device, &config);
+                        surface
+                            .get_current_texture()
+                            .expect("Failed to acquire next surface texture!")
+                    }
+                };
+                let view = frame
+                    .texture
+                    .create_view(&wgpu::TextureViewDescriptor::default());
 
                 // vger.begin(window_size[0], window_size[1], 1.0);
                 
