@@ -198,15 +198,16 @@ pub fn rui(view: impl View + 'static) {
                             .expect("Failed to acquire next surface texture!")
                     }
                 };
-                let view = frame
-                    .texture
-                    .create_view(&wgpu::TextureViewDescriptor::default());
 
                 vger.begin(config.width as f32, config.height as f32, 1.0);
 
                 vger.translate([32.0, 256.0].into());
                 let paint = vger.color_paint(Color { r: 0.0, g: 1.0, b: 1.0, a: 1.0 });
                 vger.text("This is a test", 18, None);
+
+                let view = frame
+                    .texture
+                    .create_view(&wgpu::TextureViewDescriptor::default());
 
                 let desc = wgpu::RenderPassDescriptor {
                     label: None,
