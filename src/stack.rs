@@ -22,6 +22,14 @@ impl View for Stack {
             c += 1;
         }
     }
+
+    fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
+        let mut c: u16 = 0;
+        for child in &self.children {
+            (*child).draw(id.child(c), cx, vger);
+            c += 1;
+        }
+    }
 }
 
 impl Stack {
@@ -67,6 +75,11 @@ where
         self.children.0.process(event, id.child(0), cx);
         self.children.1.process(event, id.child(1), cx);
     }
+
+    fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
+        self.children.0.draw(id.child(0), cx, vger);
+        self.children.1.draw(id.child(1), cx, vger);
+    }
 }
 
 pub fn stack2(v0: impl View + 'static, v1: impl View + 'static) -> impl View {
@@ -95,6 +108,12 @@ where
         self.children.0.process(event, id.child(0), cx);
         self.children.1.process(event, id.child(1), cx);
         self.children.2.process(event, id.child(2), cx);
+    }
+
+    fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
+        self.children.0.draw(id.child(0), cx, vger);
+        self.children.1.draw(id.child(1), cx, vger);
+        self.children.2.draw(id.child(2), cx, vger);
     }
 }
 

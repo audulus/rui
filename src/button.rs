@@ -18,6 +18,10 @@ impl View for Button {
             }
         }
     }
+    
+    fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
+        
+    }
 }
 
 pub fn button<F: Fn() + 'static>(name: &str, f: F) -> Button {

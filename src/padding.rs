@@ -17,6 +17,10 @@ where
     fn process(&self, event: &Event, id: ViewID, cx: &mut Context) {
         self.child.process(event, id.child(0), cx);
     }
+
+    fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
+        self.child.draw(id, cx, vger);
+    }
 }
 
 impl<V> Padding<V>

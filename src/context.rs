@@ -59,4 +59,21 @@ impl Context {
             panic!("state has wrong type")
         }
     }
+
+    pub fn with_state_vger<S: Clone + 'static, F: Fn(State<S>, &mut Self, &mut VGER)>(
+        &mut self,
+        vger: &mut VGER,
+        default: S,
+        id: ViewID,
+        f: F,
+    ) {
+        let newstate = Box::new(State::new(default));
+        let s = self.state_map.entry(id).or_insert(newstate);
+
+        if let Some(state) = s.downcast_ref::<State<S>>() {
+            f(state.clone(), self, vger)
+        } else {
+            panic!("state has wrong type")
+        }
+    }
 }

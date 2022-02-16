@@ -57,6 +57,12 @@ where
             (*self.func)(state.clone()).process(event, id.child(0), cx);
         });
     }
+
+    fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
+        cx.with_state_vger(vger, self.default.clone(), id, |state: State<S>, cx, vger| {
+            (*self.func)(state.clone()).draw(id.child(0), cx, vger);
+        });
+    }
 }
 
 /*

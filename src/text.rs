@@ -9,6 +9,9 @@ impl View for Text {
         println!("Text({:?})", self.text);
     }
     fn process(&self, _event: &Event, _id: ViewID, _cx: &mut Context) {}
+    fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
+        vger.text(self.text.as_str(), 18, None);
+    }
 }
 
 impl Text {
