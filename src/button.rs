@@ -6,7 +6,7 @@ pub struct Button {
 }
 
 impl View for Button {
-    fn draw(&self, _id: ViewID, _cx: &mut Context) {
+    fn print(&self, _id: ViewID, _cx: &mut Context) {
         println!("Button({:?})", self.text);
     }
     fn process(&self, event: &Event, _id: ViewID, _cx: &mut Context) {

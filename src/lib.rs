@@ -268,7 +268,7 @@ mod tests {
     fn test_state2() {
         let mut cx = Context::new();
         let v = counter(42);
-        v.draw(ViewID::default(), &mut cx);
+        v.print(ViewID::default(), &mut cx);
     }
 
     #[test]
@@ -280,7 +280,7 @@ mod tests {
                 println!("clicked");
             }),
         );
-        s.draw(ViewID::default(), &mut cx);
+        s.print(ViewID::default(), &mut cx);
     }
 
     fn counter(start: usize) -> impl View {
@@ -304,7 +304,7 @@ mod tests {
         let mut cx = Context::new();
         let v = counter(42);
         println!("\"drawing\" the UI");
-        v.draw(ViewID::default(), &mut cx);
+        v.print(ViewID::default(), &mut cx);
         println!("ok, now pressing increment button");
         v.process(
             &Event::PressButton(String::from("increment")),
@@ -312,7 +312,7 @@ mod tests {
             &mut cx,
         );
         println!("\"drawing\" the UI again");
-        v.draw(ViewID::default(), &mut cx);
+        v.print(ViewID::default(), &mut cx);
     }
 
     fn counter3<B>(count: B) -> impl View

@@ -8,9 +8,9 @@ impl<V> View for Padding<V>
 where
     V: View,
 {
-    fn draw(&self, id: ViewID, cx: &mut Context) {
+    fn print(&self, id: ViewID, cx: &mut Context) {
         println!("Padding {{");
-        (self.child).draw(id.child(0), cx);
+        (self.child).print(id.child(0), cx);
         println!("}}");
     }
 

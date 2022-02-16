@@ -46,9 +46,9 @@ where
     V: View,
     S: Clone,
 {
-    fn draw(&self, id: ViewID, cx: &mut Context) {
+    fn print(&self, id: ViewID, cx: &mut Context) {
         cx.with_state(self.default.clone(), id, |state: State<S>, cx| {
-            (*self.func)(state.clone()).draw(id.child(0), cx);
+            (*self.func)(state.clone()).print(id.child(0), cx);
         });
     }
 
