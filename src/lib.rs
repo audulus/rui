@@ -203,7 +203,8 @@ pub fn rui(view: impl View + 'static) {
 
                 vger.translate([32.0, 256.0].into());
                 let paint = vger.color_paint(Color { r: 0.0, g: 1.0, b: 1.0, a: 1.0 });
-                vger.text("This is a test", 18, None);
+                // vger.text("This is a test", 18, None);
+                view.draw(ViewID::default(), &mut cx, &mut vger);
 
                 let texture_view = frame
                     .texture
