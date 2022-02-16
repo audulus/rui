@@ -205,14 +205,14 @@ pub fn rui(view: impl View + 'static) {
                 let paint = vger.color_paint(Color { r: 0.0, g: 1.0, b: 1.0, a: 1.0 });
                 vger.text("This is a test", 18, None);
 
-                let view = frame
+                let texture_view = frame
                     .texture
                     .create_view(&wgpu::TextureViewDescriptor::default());
 
                 let desc = wgpu::RenderPassDescriptor {
                     label: None,
                     color_attachments: &[wgpu::RenderPassColorAttachment {
-                        view: &view,
+                        view: &texture_view,
                         resolve_target: None,
                         ops: wgpu::Operations {
                             load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
