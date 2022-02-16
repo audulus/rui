@@ -187,7 +187,7 @@ pub fn rui(view: impl View + 'static) {
                 // this event rather than in MainEventsCleared, since rendering in here allows
                 // the program to gracefully handle redraws requested by the OS.
 
-                println!("RedrawRequested");
+                // println!("RedrawRequested");
 
                 let frame = match surface.get_current_texture() {
                     Ok(frame) => frame,
