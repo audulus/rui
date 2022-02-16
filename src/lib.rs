@@ -220,7 +220,7 @@ pub fn rui(view: impl View + 'static) {
                     depth_stencil_attachment: None,
                 };
             
-                queue.submit(Some(vger.encode(&device, &desc)));
+                vger.encode(&device, &desc, &queue);
 
                 frame.present();
                 
