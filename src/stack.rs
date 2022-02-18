@@ -47,10 +47,28 @@ impl Stack {
         self.children.push(Box::new(view))
     }
 
-    fn layout(&self, id: ViewID, boxc: BoxConstraint, cx: &mut Context) -> LocalSize {
-        let size = LocalSize::new(0.0,0.0);
+    fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context) -> LocalSize {
+        let n = self.children.len() as f32;
+        let proposed_child_size = match self.orientation {
+            StackOrientation::Horizontal => LocalSize::new(sz.width / n, sz.height),
+            StackOrientation::Vertical => LocalSize::new(sz.width, sz.height/n),
+        };
+
+        let child_sizes: Vec<LocalSize> = vec![];
+        for child in &self.children {
+            // layout each child
+        }
         
-        size
+        // Calculate child offsets.
+
+        // Return final size.
+        let width_sum:f32 = child_sizes.iter().map(|&sz| sz.width).sum();
+        let height_sum:f32 = child_sizes.iter().map(|&sz| sz.height).sum();
+        
+        match self.orientation {
+            StackOrientation::Horizontal => LocalSize::new(width_sum, sz.height),
+            StackOrientation::Vertical => LocalSize::new(sz.width, height_sum),
+        }
     }
 }
 
