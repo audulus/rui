@@ -36,16 +36,6 @@ impl View for Stack {
             c += 1;
         }
     }
-}
-
-impl Stack {
-    pub fn new(orientation: StackOrientation) -> Self {
-        Self { orientation, children: vec![] }
-    }
-
-    pub fn push(&mut self, view: impl View + 'static) {
-        self.children.push(Box::new(view))
-    }
 
     fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context) -> LocalSize {
         let n = self.children.len() as f32;
@@ -69,6 +59,16 @@ impl Stack {
             StackOrientation::Horizontal => LocalSize::new(width_sum, sz.height),
             StackOrientation::Vertical => LocalSize::new(sz.width, height_sum),
         }
+    }
+}
+
+impl Stack {
+    pub fn new(orientation: StackOrientation) -> Self {
+        Self { orientation, children: vec![] }
+    }
+
+    pub fn push(&mut self, view: impl View + 'static) {
+        self.children.push(Box::new(view))
     }
 }
 
@@ -123,6 +123,11 @@ where
         self.children.0.draw(id.child(0), cx, vger);
         self.children.1.draw(id.child(1), cx, vger);
     }
+
+    fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context) -> LocalSize {
+        // TODO
+        [0.0,0.0].into()
+    }
 }
 
 pub fn stack2(v0: impl View + 'static, v1: impl View + 'static) -> impl View {
@@ -157,6 +162,11 @@ where
         self.children.0.draw(id.child(0), cx, vger);
         self.children.1.draw(id.child(1), cx, vger);
         self.children.2.draw(id.child(2), cx, vger);
+    }
+
+    fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context) -> LocalSize {
+        // TODO
+        [0.0,0.0].into()
     }
 }
 

@@ -12,14 +12,9 @@ impl View for Text {
     fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
         vger.text(self.text.as_str(), 18, None);
     }
-}
-
-impl Text {
-    fn layout(&self, id: ViewID, boxc: BoxConstraint, cx: &mut Context) -> LocalSize {
+    fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context) -> LocalSize {
         // XXX: obviously need to use vger to compute text size
-        let size = LocalSize::new(
-            boxc.max_size.width.min(self.text.len() as f32 * 10.0),
-            boxc.max_size.height.min(10.0));
+        let size = LocalSize::new(self.text.len() as f32 * 10.0,10.0);
 
         cx.layout.insert(
             id,
