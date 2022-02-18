@@ -44,9 +44,12 @@ impl View for Stack {
             StackOrientation::Vertical => LocalSize::new(sz.width, sz.height/n),
         };
 
-        let child_sizes: Vec<LocalSize> = vec![];
+        let mut child_sizes: Vec<LocalSize> = vec![];
+        let mut c: u16 = 0;
         for child in &self.children {
             // layout each child
+            child_sizes.push(child.layout(id.child(c), proposed_child_size, cx));
+            c += 1;
         }
         
         // Calculate child offsets.
