@@ -289,7 +289,7 @@ mod tests {
         state(start, |count: State<usize>| {
             let count2 = count.clone();
             let value_string = format!("value: {:?}", *count.get());
-            stack! {
+            vstack! {
                 text(value_string.as_str());
                 button("increment", move || {
                     *count.get() += 1;
@@ -322,7 +322,7 @@ mod tests {
         B: Binding<usize> + Clone + 'static,
     {
         let count2 = count.clone();
-        let mut stack = Stack::new();
+        let mut stack = Stack::new(StackOrientation::Vertical);
         stack.push(button("increment", move || {
             *count.get() += 1;
         }));

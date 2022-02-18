@@ -1,6 +1,12 @@
 use crate::*;
 
+pub enum StackOrientation {
+    Horizontal,
+    Vertical,
+}
+
 pub struct Stack {
+    orientation: StackOrientation,
     children: Vec<Box<dyn View>>,
 }
 
@@ -33,20 +39,39 @@ impl View for Stack {
 }
 
 impl Stack {
-    pub fn new() -> Self {
-        Self { children: vec![] }
+    pub fn new(orientation: StackOrientation) -> Self {
+        Self { orientation, children: vec![] }
     }
 
     pub fn push(&mut self, view: impl View + 'static) {
         self.children.push(Box::new(view))
     }
+
+    fn layout(&self, id: ViewID, boxc: BoxConstraint, cx: &mut Context) -> LocalSize {
+        let size = LocalSize::new(0.0,0.0);
+        
+        size
+    }
 }
 
 #[macro_export]
-macro_rules! stack {
+macro_rules! hstack {
     ( $( $x:expr );* ) => {
         {
-            let mut temp_stack = Stack::new();
+            let mut temp_stack = Stack::new(StackOrientation::Horizontal);
+            $(
+                temp_stack.push($x);
+            )*
+            temp_stack
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! vstack {
+    ( $( $x:expr );* ) => {
+        {
+            let mut temp_stack = Stack::new(StackOrientation::Vertical);
             $(
                 temp_stack.push($x);
             )*
