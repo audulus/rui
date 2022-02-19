@@ -2,6 +2,8 @@ use crate::*;
 
 pub enum Event {
     PressButton(String),
+    TouchBegin { id: usize, position: LocalPoint },
+    TouchEnd { id: usize, position: LocalPoint },
 }
 
 pub trait View {
