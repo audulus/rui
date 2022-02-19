@@ -206,7 +206,8 @@ pub fn rui(view: impl View + 'static) {
                     b: 1.0,
                     a: 1.0,
                 });
-                // vger.text("This is a test", 18, None);
+
+                view.layout(ViewID::default(), [config.width as f32, config.height as f32].into(), &mut cx);
                 view.draw(ViewID::default(), &mut cx, &mut vger);
 
                 let texture_view = frame
