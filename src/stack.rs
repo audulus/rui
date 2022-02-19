@@ -32,8 +32,20 @@ impl View for Stack {
     fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
         let mut c: u16 = 0;
         for child in &self.children {
-            (*child).draw(id.child(c), cx, vger);
+            let child_id = id.child(c);
+            let offset = cx.layout
+                        .entry(child_id)
+                        .or_insert(LayoutBox::default())
+                        .offset;
+            
+            vger.save();
+
+            vger.translate(offset);
+
+            (*child).draw(child_id, cx, vger);
             c += 1;
+
+            vger.restore();
         }
     }
 
