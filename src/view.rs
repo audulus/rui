@@ -19,5 +19,7 @@ impl View for EmptyView {
     }
     fn process(&self, _event: &Event, _id: ViewID, _cx: &mut Context) {}
     fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {}
-    fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context) -> LocalSize { [0.0,0.0].into() }
+    fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context) -> LocalSize {
+        [0.0, 0.0].into()
+    }
 }

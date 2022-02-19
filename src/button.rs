@@ -18,14 +18,12 @@ impl View for Button {
             }
         }
     }
-    
-    fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
-        
-    }
+
+    fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {}
 
     fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context) -> LocalSize {
         // XXX: obviously need to use vger to compute text size
-        let size = LocalSize::new(self.text.len() as f32 * 10.0,10.0);
+        let size = LocalSize::new(self.text.len() as f32 * 10.0, 10.0);
 
         cx.layout.insert(
             id,

@@ -24,9 +24,11 @@ where
     }
 
     fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context) -> LocalSize {
-        let child_size = self.child.layout(id.child(0), sz - [self.padding, self.padding].into(), cx);
+        let child_size =
+            self.child
+                .layout(id.child(0), sz - [self.padding, self.padding].into(), cx);
         child_size + LocalSize::new(self.padding, self.padding)
-     }
+    }
 }
 
 impl<V> Padding<V>
@@ -34,6 +36,9 @@ where
     V: View + 'static,
 {
     pub fn new(child: V) -> Self {
-        Self { child: child, padding: 5.0 }
+        Self {
+            child: child,
+            padding: 5.0,
+        }
     }
 }

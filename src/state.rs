@@ -59,16 +59,21 @@ where
     }
 
     fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
-        cx.with_state_vger(vger, self.default.clone(), id, |state: State<S>, cx, vger| {
-            (*self.func)(state.clone()).draw(id.child(0), cx, vger);
-        });
+        cx.with_state_vger(
+            vger,
+            self.default.clone(),
+            id,
+            |state: State<S>, cx, vger| {
+                (*self.func)(state.clone()).draw(id.child(0), cx, vger);
+            },
+        );
     }
 
     fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context) -> LocalSize {
         cx.with_state(self.default.clone(), id, |state: State<S>, cx| {
             (*self.func)(state.clone()).layout(id.child(0), sz, cx)
         })
-     }
+    }
 }
 
 /*

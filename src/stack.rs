@@ -41,7 +41,7 @@ impl View for Stack {
         let n = self.children.len() as f32;
         let proposed_child_size = match self.orientation {
             StackOrientation::Horizontal => LocalSize::new(sz.width / n, sz.height),
-            StackOrientation::Vertical => LocalSize::new(sz.width, sz.height/n),
+            StackOrientation::Vertical => LocalSize::new(sz.width, sz.height / n),
         };
 
         let mut child_sizes: Vec<LocalSize> = vec![];
@@ -51,13 +51,13 @@ impl View for Stack {
             child_sizes.push(child.layout(id.child(c), proposed_child_size, cx));
             c += 1;
         }
-        
+
         // Calculate child offsets.
 
         // Return final size.
-        let width_sum:f32 = child_sizes.iter().map(|&sz| sz.width).sum();
-        let height_sum:f32 = child_sizes.iter().map(|&sz| sz.height).sum();
-        
+        let width_sum: f32 = child_sizes.iter().map(|&sz| sz.width).sum();
+        let height_sum: f32 = child_sizes.iter().map(|&sz| sz.height).sum();
+
         match self.orientation {
             StackOrientation::Horizontal => LocalSize::new(width_sum, sz.height),
             StackOrientation::Vertical => LocalSize::new(sz.width, height_sum),
@@ -67,7 +67,10 @@ impl View for Stack {
 
 impl Stack {
     pub fn new(orientation: StackOrientation) -> Self {
-        Self { orientation, children: vec![] }
+        Self {
+            orientation,
+            children: vec![],
+        }
     }
 
     pub fn push(&mut self, view: impl View + 'static) {
@@ -129,7 +132,7 @@ where
 
     fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context) -> LocalSize {
         // TODO
-        [0.0,0.0].into()
+        [0.0, 0.0].into()
     }
 }
 
@@ -169,7 +172,7 @@ where
 
     fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context) -> LocalSize {
         // TODO
-        [0.0,0.0].into()
+        [0.0, 0.0].into()
     }
 }
 

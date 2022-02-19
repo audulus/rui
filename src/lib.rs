@@ -22,8 +22,8 @@ mod padding;
 pub use padding::*;
 
 use futures::executor::block_on;
-use vger::*;
 use vger::color::*;
+use vger::*;
 
 use winit::{
     event::WindowEvent,
@@ -43,7 +43,6 @@ struct Setup {
 }
 
 async fn setup(title: &str) -> Setup {
-
     let event_loop = EventLoop::new();
     let mut builder = winit::window::WindowBuilder::new();
     builder = builder.with_title(title);
@@ -117,7 +116,6 @@ async fn setup(title: &str) -> Setup {
 }
 
 pub fn rui(view: impl View + 'static) {
-
     let setup = block_on(setup("rui"));
     let window = setup.window;
     let surface = setup.surface;
@@ -202,7 +200,12 @@ pub fn rui(view: impl View + 'static) {
                 vger.begin(config.width as f32, config.height as f32, 1.0);
 
                 vger.translate([32.0, 256.0].into());
-                let paint = vger.color_paint(Color { r: 0.0, g: 1.0, b: 1.0, a: 1.0 });
+                let paint = vger.color_paint(Color {
+                    r: 0.0,
+                    g: 1.0,
+                    b: 1.0,
+                    a: 1.0,
+                });
                 // vger.text("This is a test", 18, None);
                 view.draw(ViewID::default(), &mut cx, &mut vger);
 
@@ -222,11 +225,10 @@ pub fn rui(view: impl View + 'static) {
                     }],
                     depth_stencil_attachment: None,
                 };
-            
+
                 vger.encode(&device, &desc, &queue);
 
                 frame.present();
-                
             }
             _ => (),
         }
