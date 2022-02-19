@@ -39,28 +39,48 @@ impl View for Stack {
 
     fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context) -> LocalSize {
         let n = self.children.len() as f32;
-        let proposed_child_size = match self.orientation {
-            StackOrientation::Horizontal => LocalSize::new(sz.width / n, sz.height),
-            StackOrientation::Vertical => LocalSize::new(sz.width, sz.height / n),
-        };
-
-        let mut child_sizes: Vec<LocalSize> = vec![];
-        let mut c: u16 = 0;
-        for child in &self.children {
-            // layout each child
-            child_sizes.push(child.layout(id.child(c), proposed_child_size, cx));
-            c += 1;
-        }
-
-        // Calculate child offsets.
-
-        // Return final size.
-        let width_sum: f32 = child_sizes.iter().map(|&sz| sz.width).sum();
-        let height_sum: f32 = child_sizes.iter().map(|&sz| sz.height).sum();
 
         match self.orientation {
-            StackOrientation::Horizontal => LocalSize::new(width_sum, sz.height),
-            StackOrientation::Vertical => LocalSize::new(sz.width, height_sum),
+            StackOrientation::Horizontal => {
+                let proposed_child_size = LocalSize::new(sz.width / n, sz.height);
+
+                let mut c: u16 = 0;
+                let mut width_sum = 0.0;
+                for child in &self.children {
+                    let child_id = id.child(c);
+                    let child_size = child.layout(child_id, proposed_child_size, cx);
+
+                    cx.layout
+                        .entry(child_id)
+                        .or_insert(LayoutBox::default())
+                        .offset = [width_sum, (sz.height - child_size.height) / 2.0].into();
+
+                    width_sum += child_size.width;
+                    c += 1;
+                }
+
+                LocalSize::new(width_sum, sz.height)
+            }
+            StackOrientation::Vertical => {
+                let proposed_child_size = LocalSize::new(sz.width, sz.height / n);
+
+                let mut c: u16 = 0;
+                let mut height_sum = 0.0;
+                for child in &self.children {
+                    let child_id = id.child(c);
+                    let child_size = child.layout(child_id, proposed_child_size, cx);
+
+                    cx.layout
+                        .entry(child_id)
+                        .or_insert(LayoutBox::default())
+                        .offset = [(sz.width - child_size.width) / 2.0, height_sum].into();
+
+                    height_sum += child_size.height;
+                    c += 1;
+                }
+
+                LocalSize::new(sz.width, height_sum)
+            }
         }
     }
 }
