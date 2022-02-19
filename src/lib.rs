@@ -312,7 +312,7 @@ mod tests {
         v.print(ViewID::default(), &mut cx);
         println!("ok, now pressing increment button");
         v.process(
-            &Event::PressButton(String::from("increment")),
+            &Event { kind: EventKind::PressButton(String::from("increment")), position: [0.0,0.0].into() },
             ViewID::default(),
             &mut cx,
         );
