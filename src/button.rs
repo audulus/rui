@@ -10,14 +10,14 @@ impl View for Button {
         println!("Button({:?})", self.text);
     }
     fn process(&self, event: &Event, vid: ViewID, cx: &mut Context) {
-        match event {
-            Event::PressButton(name) => {
+        match &event.kind {
+            EventKind::PressButton(name) => {
                 if *name == self.text {
                     (*self.func)();
                 }
             },
-            Event::TouchBegin{id, position} => {
-                if cx.layout.entry(vid).or_default().rect.contains(*position) {
+            EventKind::TouchBegin{id} => {
+                if cx.layout.entry(vid).or_default().rect.contains(event.position) {
                     (*self.func)();
                 }
             },

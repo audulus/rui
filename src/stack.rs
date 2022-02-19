@@ -24,7 +24,17 @@ impl View for Stack {
     fn process(&self, event: &Event, id: ViewID, cx: &mut Context) {
         let mut c: u16 = 0;
         for child in &self.children {
-            (*child).process(event, id.child(c), cx);
+
+            let child_id = id.child(c);
+            let offset = cx.layout
+                        .entry(child_id)
+                        .or_insert(LayoutBox::default())
+                        .offset;
+
+            let mut local_event = event.clone();
+            local_event.position -= offset;
+
+            (*child).process(&local_event, child_id, cx);
             c += 1;
         }
     }

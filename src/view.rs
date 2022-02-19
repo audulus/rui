@@ -1,9 +1,16 @@
 use crate::*;
 
-pub enum Event {
+#[derive(Clone, Debug)]
+pub enum EventKind {
     PressButton(String),
-    TouchBegin { id: usize, position: LocalPoint },
-    TouchEnd { id: usize, position: LocalPoint },
+    TouchBegin{id:usize},
+    TouchEnd{id:usize},
+}
+
+#[derive(Clone, Debug)]
+pub struct Event {
+    pub kind: EventKind,
+    pub position: LocalPoint
 }
 
 pub trait View {
