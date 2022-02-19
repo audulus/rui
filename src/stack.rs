@@ -64,7 +64,7 @@ impl View for Stack {
 
                     cx.layout
                         .entry(child_id)
-                        .or_insert(LayoutBox::default())
+                        .or_default()
                         .offset = [width_sum, (sz.height - child_size.height) / 2.0].into();
 
                     width_sum += child_size.width;
@@ -84,7 +84,7 @@ impl View for Stack {
 
                     cx.layout
                         .entry(child_id)
-                        .or_insert(LayoutBox::default())
+                        .or_default()
                         .offset = [(sz.width - child_size.width) / 2.0, height_sum].into();
 
                     height_sum += child_size.height;
