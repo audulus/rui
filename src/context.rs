@@ -3,7 +3,7 @@ use euclid::*;
 use std::any::Any;
 use std::collections::HashMap;
 
-pub struct LocalSpace;
+pub type LocalSpace = vger::defs::LocalSpace;
 pub type LocalRect = Rect<f32, LocalSpace>;
 pub type LocalOffset = Vector2D<f32, LocalSpace>;
 pub type LocalSize = Size2D<f32, LocalSpace>;
