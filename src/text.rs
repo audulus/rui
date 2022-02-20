@@ -14,7 +14,12 @@ impl View for Text {
     }
     fn process(&self, _event: &Event, _id: ViewID, _cx: &mut Context) {}
     fn draw(&self, _id: ViewID, _cx: &mut Context, vger: &mut VGER) {
+        let origin = vger.text_bounds(self.text.as_str(), Button::DEFAULT_SIZE, None).origin;
+
+        vger.save();
+        vger.translate([-origin.x, -origin.y].into());
         vger.text(self.text.as_str(), Text::DEFAULT_SIZE, Color::CYAN, None);
+        vger.restore();
     }
     fn layout(&self, id: ViewID, _sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
         let size = vger.text_bounds(self.text.as_str(), Button::DEFAULT_SIZE, None).size;
