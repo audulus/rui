@@ -25,7 +25,9 @@ impl View for Button {
         }
     }
 
-    fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {}
+    fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
+        vger.text(self.text.as_str(), 18, None);
+    }
 
     fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context) -> LocalSize {
         // XXX: obviously need to use vger to compute text size
