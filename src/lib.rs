@@ -244,7 +244,8 @@ pub fn rui(view: impl View + 'static) {
                 view.process(&event, ViewID::default(), &mut cx)
             },
             winit::event::Event::WindowEvent { event: WindowEvent::CursorMoved { position, ..}, .. } => {
-                mouse_position = [position.x as f32, position.y as f32].into();
+                mouse_position = [position.x as f32, config.height as f32 - position.y as f32].into();
+                // println!("mouse moved to {:?}", mouse_position);
             }
             _ => (),
         }
