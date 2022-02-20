@@ -59,3 +59,7 @@ where
         }
     }
 }
+
+pub fn padding(view: impl View + 'static) -> impl View {
+    Padding::new(view)
+}
