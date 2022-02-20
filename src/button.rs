@@ -31,9 +31,10 @@ impl View for Button {
 
     fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
         let bounds = vger.text_bounds(self.text.as_str(), Button::DEFAULT_SIZE, None);
+        let padding = LocalSize::new(4.0, 4.0);
 
         let paint = vger.color_paint(Color{r: 0.1, g: 0.1, b: 0.1, a: 1.0});
-        vger.fill_rect(bounds.origin, bounds.origin + bounds.size, 4.0, paint);
+        vger.fill_rect(bounds.origin - padding, bounds.origin + bounds.size + padding, 4.0, paint);
 
         vger.text(self.text.as_str(), Button::DEFAULT_SIZE, Color::MAGENTA, None);
     }
