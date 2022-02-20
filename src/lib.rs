@@ -198,11 +198,17 @@ pub fn rui(view: impl View + 'static) {
                     }
                 };
 
-                vger.begin(config.width as f32, config.height as f32, window.scale_factor() as f32);
+                let window_size = window.inner_size();
+                let scale = window.scale_factor() as f32;
+                // println!("window_size: {:?}", window_size);
+                let width = window_size.width as f32 / scale;
+                let height = window_size.height as f32 / scale;
+
+                vger.begin(width, height, scale);
 
                 view.layout(
                     ViewID::default(),
-                    [config.width as f32, config.height as f32].into(),
+                    [width, height].into(),
                     &mut cx,
                     &mut vger,
                 );
@@ -249,8 +255,9 @@ pub fn rui(view: impl View + 'static) {
                 event: WindowEvent::CursorMoved { position, .. },
                 ..
             } => {
+                let scale = window.scale_factor() as f32;
                 mouse_position =
-                    [position.x as f32, config.height as f32 - position.y as f32].into();
+                    [position.x as f32 / scale, (config.height as f32 - position.y as f32) / scale].into();
                 // println!("mouse moved to {:?}", mouse_position);
             }
             _ => (),
