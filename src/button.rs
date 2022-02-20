@@ -5,6 +5,10 @@ pub struct Button {
     func: Box<dyn Fn()>,
 }
 
+impl Button {
+    pub const DEFAULT_SIZE: u32 = 18;
+}
+
 impl View for Button {
     fn print(&self, _id: ViewID, _cx: &mut Context) {
         println!("Button({:?})", self.text);
@@ -33,7 +37,7 @@ impl View for Button {
         let paint = vger.color_paint(Color{r: 0.1, g: 0.1, b: 0.1, a: 1.0});
         vger.fill_rect(LocalPoint::zero(), [size.width, size.height].into(), 4.0, paint);
 
-        vger.text(self.text.as_str(), 18, None);
+        vger.text(self.text.as_str(), Button::DEFAULT_SIZE, Color::MAGENTA, None);
     }
 
     fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context) -> LocalSize {
