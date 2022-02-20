@@ -13,10 +13,10 @@ impl View for Text {
         println!("Text({:?})", self.text);
     }
     fn process(&self, _event: &Event, _id: ViewID, _cx: &mut Context) {}
-    fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
+    fn draw(&self, _id: ViewID, _cx: &mut Context, vger: &mut VGER) {
         vger.text(self.text.as_str(), Text::DEFAULT_SIZE, Color::CYAN, None);
     }
-    fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
+    fn layout(&self, id: ViewID, _sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
         let size = vger.text_bounds(self.text.as_str(), Button::DEFAULT_SIZE, None).size;
 
         cx.layout.insert(
