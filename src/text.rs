@@ -43,9 +43,7 @@ impl View for Text {
 }
 
 impl Text {
-    pub fn padding(self) -> impl View {
-        Padding::new(self)
-    }
+    modifiers!();
 }
 
 pub fn text(name: &str) -> Text {

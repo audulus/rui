@@ -36,3 +36,12 @@ impl View for EmptyView {
         false
     }
 }
+
+#[macro_export]
+macro_rules! modifiers {
+    () => {
+        pub fn padding(self) -> impl View {
+            Padding::new(self)
+        }
+    }
+}

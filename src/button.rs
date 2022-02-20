@@ -92,9 +92,7 @@ impl View for Button {
 }
 
 impl Button {
-    pub fn padding(self) -> impl View {
-        Padding::new(self)
-    }
+    modifiers!();
 }
 
 pub fn button<F: Fn() + 'static>(name: &str, f: F) -> Button {
