@@ -198,7 +198,7 @@ pub fn rui(view: impl View + 'static) {
                     }
                 };
 
-                vger.begin(config.width as f32, config.height as f32, 1.0);
+                vger.begin(config.width as f32, config.height as f32, window.scale_factor() as f32);
 
                 view.layout(
                     ViewID::default(),
