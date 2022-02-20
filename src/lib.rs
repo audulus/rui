@@ -26,7 +26,7 @@ use vger::color::*;
 use vger::*;
 
 use winit::{
-    event::WindowEvent,
+    event::{self, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
     window::WindowBuilder,
 };
