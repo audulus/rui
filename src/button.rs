@@ -7,6 +7,7 @@ pub struct Button {
 
 impl Button {
     pub const DEFAULT_SIZE: u32 = 18;
+    pub const PADDING: f32 = 4.0;
 }
 
 impl View for Button {
@@ -29,18 +30,24 @@ impl View for Button {
         }
     }
 
-    fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
+    fn draw(&self, _id: ViewID, _cx: &mut Context, vger: &mut VGER) {
         let bounds = vger.text_bounds(self.text.as_str(), Button::DEFAULT_SIZE, None);
-        let padding = LocalSize::new(4.0, 4.0);
+        let padding = LocalSize::new(Button::PADDING, Button::PADDING);
 
         let paint = vger.color_paint(Color{r: 0.1, g: 0.1, b: 0.1, a: 1.0});
-        vger.fill_rect(bounds.origin - padding, bounds.origin + bounds.size + padding, 4.0, paint);
+        vger.fill_rect(LocalPoint::zero(), LocalPoint::zero() + bounds.size + padding * 2.0, 4.0, paint);
+
+        vger.save();
+        vger.translate(-LocalOffset::new(bounds.origin.x, bounds.origin.y) + LocalOffset::new(Button::PADDING, Button::PADDING));
 
         vger.text(self.text.as_str(), Button::DEFAULT_SIZE, Color::MAGENTA, None);
+
+        vger.restore();
     }
 
     fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
-        let size = vger.text_bounds(self.text.as_str(), Button::DEFAULT_SIZE, None).size;
+        let padding = LocalSize::new(Button::PADDING, Button::PADDING);
+        let size = vger.text_bounds(self.text.as_str(), Button::DEFAULT_SIZE, None).size + padding * 2.0;
 
         cx.layout.insert(
             id,
