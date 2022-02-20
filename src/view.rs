@@ -36,9 +36,3 @@ impl View for EmptyView {
         false
     }
 }
-
-impl View {
-    pub fn padding(self) -> impl View {
-        Padding::new(self)
-    }
-}
