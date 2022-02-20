@@ -26,6 +26,13 @@ impl View for Button {
     }
 
     fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
+
+        // XXX: obviously need to use vger to compute text size
+        let size = LocalSize::new(self.text.len() as f32 * 10.0, 10.0);
+
+        let paint = vger.color_paint(Color{r: 0.1, g: 0.1, b: 0.1, a: 1.0});
+        vger.fill_rect(LocalPoint::zero(), [size.width, size.height].into(), 4.0, paint);
+
         vger.text(self.text.as_str(), 18, None);
     }
 
