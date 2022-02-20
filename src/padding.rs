@@ -16,11 +16,16 @@ where
     }
 
     fn process(&self, event: &Event, id: ViewID, cx: &mut Context) {
-        self.child.process(event, id.child(0), cx);
+        let mut local_event = event.clone();
+        local_event.position -= LocalOffset::new(self.padding, self.padding);
+        self.child.process(&local_event, id.child(0), cx);
     }
 
     fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
+        vger.save();
+        vger.translate([self.padding, self.padding].into());
         self.child.draw(id, cx, vger);
+        vger.restore();
     }
 
     fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {

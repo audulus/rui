@@ -42,6 +42,12 @@ impl View for Text {
     }
 }
 
+impl Text {
+    pub fn padding(self) -> impl View {
+        Padding::new(self)
+    }
+}
+
 pub fn text(name: &str) -> Text {
     Text {
         text: String::from(name),
