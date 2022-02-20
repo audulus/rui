@@ -31,12 +31,6 @@ pub struct LayoutBox {
     pub offset: LocalOffset,
 }
 
-#[derive(Copy, Clone, Default, PartialEq, Debug)]
-pub struct BoxConstraint {
-    pub min_size: LocalSize,
-    pub max_size: LocalSize,
-}
-
 pub struct Context {
     state_map: HashMap<ViewID, Box<dyn Any>>,
     pub layout: HashMap<ViewID, LayoutBox>,
