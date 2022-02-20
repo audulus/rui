@@ -235,10 +235,15 @@ pub fn rui(view: impl View + 'static) {
 
                 frame.present();
             }
-            winit::event::Event::WindowEvent { event, .. } => match event {
-                winit::event::WindowEvent::MouseInput { state, .. } => {}
-                _ => (),
+            winit::event::Event::WindowEvent { event: WindowEvent::MouseInput { state, ..}, .. } => {
+                match state {
+                    Pressed => { }
+                    Released => { }
+                }
             },
+            winit::event::Event::WindowEvent { event: WindowEvent::CursorMoved { position, ..}, .. } => {
+                
+            }
             _ => (),
         }
     });
