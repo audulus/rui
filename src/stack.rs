@@ -87,15 +87,17 @@ impl View for Stack {
                 let proposed_child_size = LocalSize::new(sz.width, sz.height / n);
 
                 let mut c: u16 = 0;
+                let mut y = sz.height;
                 let mut height_sum = 0.0;
                 for child in &self.children {
                     let child_id = id.child(c);
                     let child_size = child.layout(child_id, proposed_child_size, cx);
 
+                    y -= child_size.height;
                     cx.layout
                         .entry(child_id)
                         .or_default()
-                        .offset = [(sz.width - child_size.width) / 2.0, height_sum].into();
+                        .offset = [(sz.width - child_size.width) / 2.0, y].into();
 
                     height_sum += child_size.height;
                     c += 1;
