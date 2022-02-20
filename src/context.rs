@@ -40,6 +40,7 @@ pub struct BoxConstraint {
 pub struct Context {
     state_map: HashMap<ViewID, Box<dyn Any>>,
     pub layout: HashMap<ViewID, LayoutBox>,
+    pub vger: Option<VGER>,
 }
 
 impl Context {
@@ -47,6 +48,7 @@ impl Context {
         Self {
             state_map: HashMap::new(),
             layout: HashMap::new(),
+            vger: None
         }
     }
 
