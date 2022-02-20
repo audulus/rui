@@ -26,7 +26,7 @@ use vger::color::*;
 use vger::*;
 
 use winit::{
-    event::{self, WindowEvent},
+    event::{self, WindowEvent, ElementState},
     event_loop::{ControlFlow, EventLoop},
     window::WindowBuilder,
 };
@@ -135,6 +135,7 @@ pub fn rui(view: impl View + 'static) {
 
     let mut vger = VGER::new(&device, wgpu::TextureFormat::Bgra8UnormSrgb);
     let mut cx = Context::new();
+    let mut mouse_position = LocalPoint::zero();
 
     setup.event_loop.run(move |event, _, control_flow| {
         // ControlFlow::Poll continuously runs the event loop, even if the OS hasn't
@@ -236,13 +237,14 @@ pub fn rui(view: impl View + 'static) {
                 frame.present();
             }
             winit::event::Event::WindowEvent { event: WindowEvent::MouseInput { state, ..}, .. } => {
-                match state {
-                    Pressed => { }
-                    Released => { }
-                }
+                let event = match state {
+                    ElementState::Pressed => { Event{ kind: EventKind::TouchBegin { id: 0 }, position: mouse_position } }
+                    ElementState::Released => { Event{ kind: EventKind::TouchEnd { id: 0 }, position: mouse_position } }
+                };
+                view.process(&event, ViewID::default(), &mut cx)
             },
             winit::event::Event::WindowEvent { event: WindowEvent::CursorMoved { position, ..}, .. } => {
-                
+                mouse_position = [position.x as f32, position.y as f32].into();
             }
             _ => (),
         }
