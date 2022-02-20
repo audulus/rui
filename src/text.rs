@@ -19,6 +19,7 @@ impl View for Text {
     fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context) -> LocalSize {
         // XXX: obviously need to use vger to compute text size
         let size = LocalSize::new(self.text.len() as f32 * 10.0, 20.0);
+        // vger.text_size(self.text.as_str(), Button::DEFAULT_SIZE, None);
 
         cx.layout.insert(
             id,
