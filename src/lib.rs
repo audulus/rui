@@ -206,7 +206,12 @@ pub fn rui(view: impl View + 'static) {
                     a: 1.0,
                 });
 
-                view.layout(ViewID::default(), [config.width as f32, config.height as f32].into(), &mut cx, &mut vger);
+                view.layout(
+                    ViewID::default(),
+                    [config.width as f32, config.height as f32].into(),
+                    &mut cx,
+                    &mut vger,
+                );
                 view.draw(ViewID::default(), &mut cx, &mut vger);
 
                 let texture_view = frame
@@ -311,7 +316,10 @@ mod tests {
         v.print(ViewID::default(), &mut cx);
         println!("ok, now pressing increment button");
         v.process(
-            &Event { kind: EventKind::PressButton(String::from("increment")), position: [0.0,0.0].into() },
+            &Event {
+                kind: EventKind::PressButton(String::from("increment")),
+                position: [0.0, 0.0].into(),
+            },
             ViewID::default(),
             &mut cx,
         );

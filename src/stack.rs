@@ -24,12 +24,12 @@ impl View for Stack {
     fn process(&self, event: &Event, id: ViewID, cx: &mut Context) {
         let mut c: u16 = 0;
         for child in &self.children {
-
             let child_id = id.child(c);
-            let offset = cx.layout
-                        .entry(child_id)
-                        .or_insert(LayoutBox::default())
-                        .offset;
+            let offset = cx
+                .layout
+                .entry(child_id)
+                .or_insert(LayoutBox::default())
+                .offset;
 
             let mut local_event = event.clone();
             local_event.position -= offset;
@@ -43,11 +43,12 @@ impl View for Stack {
         let mut c: u16 = 0;
         for child in &self.children {
             let child_id = id.child(c);
-            let offset = cx.layout
-                        .entry(child_id)
-                        .or_insert(LayoutBox::default())
-                        .offset;
-            
+            let offset = cx
+                .layout
+                .entry(child_id)
+                .or_insert(LayoutBox::default())
+                .offset;
+
             vger.save();
 
             vger.translate(offset);
@@ -72,10 +73,8 @@ impl View for Stack {
                     let child_id = id.child(c);
                     let child_size = child.layout(child_id, proposed_child_size, cx, vger);
 
-                    cx.layout
-                        .entry(child_id)
-                        .or_default()
-                        .offset = [width_sum, (sz.height - child_size.height) / 2.0].into();
+                    cx.layout.entry(child_id).or_default().offset =
+                        [width_sum, (sz.height - child_size.height) / 2.0].into();
 
                     width_sum += child_size.width;
                     c += 1;
@@ -94,10 +93,8 @@ impl View for Stack {
                     let child_size = child.layout(child_id, proposed_child_size, cx, vger);
 
                     y -= child_size.height;
-                    cx.layout
-                        .entry(child_id)
-                        .or_default()
-                        .offset = [(sz.width - child_size.width) / 2.0, y].into();
+                    cx.layout.entry(child_id).or_default().offset =
+                        [(sz.width - child_size.width) / 2.0, y].into();
 
                     height_sum += child_size.height;
                     c += 1;

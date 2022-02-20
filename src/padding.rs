@@ -24,9 +24,12 @@ where
     }
 
     fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
-        let child_size =
-            self.child
-                .layout(id.child(0), sz - [self.padding, self.padding].into(), cx, vger);
+        let child_size = self.child.layout(
+            id.child(0),
+            sz - [self.padding, self.padding].into(),
+            cx,
+            vger,
+        );
         child_size + LocalSize::new(self.padding, self.padding)
     }
 }

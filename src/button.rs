@@ -20,12 +20,18 @@ impl View for Button {
                 if *name == self.text {
                     (*self.func)();
                 }
-            },
-            EventKind::TouchBegin{id} => {
-                if cx.layout.entry(vid).or_default().rect.contains(event.position) {
+            }
+            EventKind::TouchBegin { id } => {
+                if cx
+                    .layout
+                    .entry(vid)
+                    .or_default()
+                    .rect
+                    .contains(event.position)
+                {
                     (*self.func)();
                 }
-            },
+            }
             _ => (),
         }
     }
@@ -34,20 +40,41 @@ impl View for Button {
         let bounds = vger.text_bounds(self.text.as_str(), Button::DEFAULT_SIZE, None);
         let padding = LocalSize::new(Button::PADDING, Button::PADDING);
 
-        let paint = vger.color_paint(Color{r: 0.1, g: 0.1, b: 0.1, a: 1.0});
-        vger.fill_rect(LocalPoint::zero(), LocalPoint::zero() + bounds.size + padding * 2.0, 4.0, paint);
+        let paint = vger.color_paint(Color {
+            r: 0.1,
+            g: 0.1,
+            b: 0.1,
+            a: 1.0,
+        });
+        vger.fill_rect(
+            LocalPoint::zero(),
+            LocalPoint::zero() + bounds.size + padding * 2.0,
+            4.0,
+            paint,
+        );
 
         vger.save();
-        vger.translate(-LocalOffset::new(bounds.origin.x, bounds.origin.y) + LocalOffset::new(Button::PADDING, Button::PADDING));
+        vger.translate(
+            -LocalOffset::new(bounds.origin.x, bounds.origin.y)
+                + LocalOffset::new(Button::PADDING, Button::PADDING),
+        );
 
-        vger.text(self.text.as_str(), Button::DEFAULT_SIZE, Color::MAGENTA, None);
+        vger.text(
+            self.text.as_str(),
+            Button::DEFAULT_SIZE,
+            Color::MAGENTA,
+            None,
+        );
 
         vger.restore();
     }
 
     fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
         let padding = LocalSize::new(Button::PADDING, Button::PADDING);
-        let size = vger.text_bounds(self.text.as_str(), Button::DEFAULT_SIZE, None).size + padding * 2.0;
+        let size = vger
+            .text_bounds(self.text.as_str(), Button::DEFAULT_SIZE, None)
+            .size
+            + padding * 2.0;
 
         cx.layout.insert(
             id,

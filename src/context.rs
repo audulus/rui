@@ -48,7 +48,7 @@ impl Context {
         Self {
             state_map: HashMap::new(),
             layout: HashMap::new(),
-            vger: None
+            vger: None,
         }
     }
 
