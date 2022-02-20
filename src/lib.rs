@@ -235,6 +235,9 @@ pub fn rui(view: impl View + 'static) {
 
                 frame.present();
             }
+            winit::event::Event::WindowEvent { event, .. } => match event {
+                _ => (),
+            },
             _ => (),
         }
     });
