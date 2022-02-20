@@ -68,13 +68,13 @@ impl Context {
         }
     }
 
-    pub fn with_state_vger<S: Clone + 'static, F: Fn(State<S>, &mut Self, &mut VGER)>(
+    pub fn with_state_vger<S: Clone + 'static, R, F: Fn(State<S>, &mut Self, &mut VGER) -> R>(
         &mut self,
         vger: &mut VGER,
         default: S,
         id: ViewID,
         f: F,
-    ) {
+    ) -> R {
         let newstate = Box::new(State::new(default));
         let s = self.state_map.entry(id).or_insert(newstate);
 

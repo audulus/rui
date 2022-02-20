@@ -206,7 +206,7 @@ pub fn rui(view: impl View + 'static) {
                     a: 1.0,
                 });
 
-                view.layout(ViewID::default(), [config.width as f32, config.height as f32].into(), &mut cx);
+                view.layout(ViewID::default(), [config.width as f32, config.height as f32].into(), &mut cx, &mut vger);
                 view.draw(ViewID::default(), &mut cx, &mut vger);
 
                 let texture_view = frame

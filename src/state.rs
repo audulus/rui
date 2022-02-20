@@ -69,9 +69,9 @@ where
         );
     }
 
-    fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context) -> LocalSize {
-        cx.with_state(self.default.clone(), id, |state: State<S>, cx| {
-            (*self.func)(state.clone()).layout(id.child(0), sz, cx)
+    fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
+        cx.with_state_vger(vger, self.default.clone(), id, |state: State<S>, cx, vger| {
+            (*self.func)(state.clone()).layout(id.child(0), sz, cx, vger)
         })
     }
 }

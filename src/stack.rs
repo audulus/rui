@@ -59,7 +59,7 @@ impl View for Stack {
         }
     }
 
-    fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context) -> LocalSize {
+    fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
         let n = self.children.len() as f32;
 
         match self.orientation {
@@ -70,7 +70,7 @@ impl View for Stack {
                 let mut width_sum = 0.0;
                 for child in &self.children {
                     let child_id = id.child(c);
-                    let child_size = child.layout(child_id, proposed_child_size, cx);
+                    let child_size = child.layout(child_id, proposed_child_size, cx, vger);
 
                     cx.layout
                         .entry(child_id)
@@ -91,7 +91,7 @@ impl View for Stack {
                 let mut height_sum = 0.0;
                 for child in &self.children {
                     let child_id = id.child(c);
-                    let child_size = child.layout(child_id, proposed_child_size, cx);
+                    let child_size = child.layout(child_id, proposed_child_size, cx, vger);
 
                     y -= child_size.height;
                     cx.layout
@@ -174,7 +174,7 @@ where
         self.children.1.draw(id.child(1), cx, vger);
     }
 
-    fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context) -> LocalSize {
+    fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
         // TODO
         [0.0, 0.0].into()
     }
@@ -214,7 +214,7 @@ where
         self.children.2.draw(id.child(2), cx, vger);
     }
 
-    fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context) -> LocalSize {
+    fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
         // TODO
         [0.0, 0.0].into()
     }
