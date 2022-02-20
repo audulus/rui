@@ -26,7 +26,7 @@ use vger::color::*;
 use vger::*;
 
 use winit::{
-    event::{self, WindowEvent, ElementState},
+    event::{self, ElementState, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
     window::WindowBuilder,
 };
@@ -229,15 +229,28 @@ pub fn rui(view: impl View + 'static) {
 
                 frame.present();
             }
-            winit::event::Event::WindowEvent { event: WindowEvent::MouseInput { state, ..}, .. } => {
+            winit::event::Event::WindowEvent {
+                event: WindowEvent::MouseInput { state, .. },
+                ..
+            } => {
                 let event = match state {
-                    ElementState::Pressed => { Event{ kind: EventKind::TouchBegin { id: 0 }, position: mouse_position } }
-                    ElementState::Released => { Event{ kind: EventKind::TouchEnd { id: 0 }, position: mouse_position } }
+                    ElementState::Pressed => Event {
+                        kind: EventKind::TouchBegin { id: 0 },
+                        position: mouse_position,
+                    },
+                    ElementState::Released => Event {
+                        kind: EventKind::TouchEnd { id: 0 },
+                        position: mouse_position,
+                    },
                 };
                 view.process(&event, ViewID::default(), &mut cx)
-            },
-            winit::event::Event::WindowEvent { event: WindowEvent::CursorMoved { position, ..}, .. } => {
-                mouse_position = [position.x as f32, config.height as f32 - position.y as f32].into();
+            }
+            winit::event::Event::WindowEvent {
+                event: WindowEvent::CursorMoved { position, .. },
+                ..
+            } => {
+                mouse_position =
+                    [position.x as f32, config.height as f32 - position.y as f32].into();
                 // println!("mouse moved to {:?}", mouse_position);
             }
             _ => (),
