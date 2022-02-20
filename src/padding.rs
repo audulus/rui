@@ -32,6 +32,15 @@ where
         );
         child_size + LocalSize::new(self.padding, self.padding)
     }
+
+    fn hittest(&self, id: ViewID, pt: LocalPoint, cx: &mut Context, vger: &mut VGER) -> bool {
+        self.child.hittest(
+            id.child(0),
+            pt - LocalOffset::new(self.padding, self.padding),
+            cx,
+            vger,
+        )
+    }
 }
 
 impl<V> Padding<V>

@@ -79,6 +79,17 @@ where
             },
         )
     }
+
+    fn hittest(&self, id: ViewID, pt: LocalPoint, cx: &mut Context, vger: &mut VGER) -> bool {
+        cx.with_state_vger(
+            vger,
+            self.default.clone(),
+            id,
+            |state: State<S>, cx, vger| {
+                (*self.func)(state.clone()).hittest(id.child(0), pt, cx, vger)
+            },
+        )
+    }
 }
 
 /*

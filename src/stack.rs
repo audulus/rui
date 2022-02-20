@@ -104,6 +104,22 @@ impl View for Stack {
             }
         }
     }
+
+    fn hittest(&self, id: ViewID, pt: LocalPoint, cx: &mut Context, vger: &mut VGER) -> bool {
+        let mut c: u16 = 0;
+        let mut hit = false;
+        for child in &self.children {
+            let child_id = id.child(c);
+            let offset = cx
+                .layout
+                .entry(child_id)
+                .or_insert(LayoutBox::default())
+                .offset;
+
+            hit = hit || child.hittest(child_id, pt - offset, cx, vger);
+        }
+        hit
+    }
 }
 
 impl Stack {
@@ -175,6 +191,11 @@ where
         // TODO
         [0.0, 0.0].into()
     }
+
+    fn hittest(&self, id: ViewID, pt: LocalPoint, cx: &mut Context, vger: &mut VGER) -> bool {
+        // TODO
+        false
+    }
 }
 
 pub fn stack2(v0: impl View + 'static, v1: impl View + 'static) -> impl View {
@@ -214,6 +235,11 @@ where
     fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
         // TODO
         [0.0, 0.0].into()
+    }
+
+    fn hittest(&self, id: ViewID, pt: LocalPoint, cx: &mut Context, vger: &mut VGER) -> bool {
+        // TODO
+        false
     }
 }
 

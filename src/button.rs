@@ -85,6 +85,10 @@ impl View for Button {
         );
         size
     }
+
+    fn hittest(&self, id: ViewID, pt: LocalPoint, cx: &mut Context, vger: &mut VGER) -> bool {
+        cx.layout.entry(id).or_default().rect.contains(pt)
+    }
 }
 
 pub fn button<F: Fn() + 'static>(name: &str, f: F) -> Button {

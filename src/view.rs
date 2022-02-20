@@ -18,6 +18,7 @@ pub trait View {
     fn process(&self, event: &Event, id: ViewID, cx: &mut Context);
     fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER);
     fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize;
+    fn hittest(&self, id: ViewID, pt: LocalPoint, cx: &mut Context, vger: &mut VGER) -> bool;
 }
 
 pub struct EmptyView {}
@@ -30,5 +31,8 @@ impl View for EmptyView {
     fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {}
     fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
         [0.0, 0.0].into()
+    }
+    fn hittest(&self, id: ViewID, pt: LocalPoint, cx: &mut Context, vger: &mut VGER) -> bool {
+        false
     }
 }
