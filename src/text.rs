@@ -20,7 +20,7 @@ impl View for Text {
 
         vger.save();
         vger.translate([-origin.x, -origin.y].into());
-        vger.text(self.text.as_str(), Text::DEFAULT_SIZE, Color::CYAN, None);
+        vger.text(self.text.as_str(), Text::DEFAULT_SIZE, TEXT_COLOR, None);
         vger.restore();
     }
     fn layout(&self, id: ViewID, _sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
