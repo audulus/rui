@@ -1,25 +1,24 @@
 # rui
-Experimental Rust UI library for Audulus. "rui" is a temporary name.
+Experimental Rust UI library for Audulus. "rui" is a temporary name. Early days, but some stuff already works.
 
-Looks like this:
+obligatory Counter:
 
 ```Rust
-    fn counter(start: usize) -> impl View {
-        state(start, |count: State<usize>| {
-            let count2 = count.clone();
-            let value_string = format!("value: {:?}", *count.get());
-            stack! {
-                text(value_string.as_str());
-                button("increment", move || {
-                    *count.get() += 1;
-                });
-                button("decrement", move || {
-                    *count2.get() -= 1;
-                })
-            }
-        })
-    }
+use rui::*;
+
+fn main() {
+    rui(state(1, |count: State<usize>| {
+        vstack! {
+            text(format!("{:?}", *count.get()).as_str()).padding();
+            button("increment", move || {
+                *count.get() += 1;
+            }).padding()
+        }
+    }));
+}
 ```
+
+![counter screenshot](screenshots/counter.png)
 
 - Encode UI in types to ensure stable identity.
 - Use immediate mode initially, then optimize to reduce redraw later.
