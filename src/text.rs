@@ -37,8 +37,8 @@ impl View for Text {
         );
         size
     }
-    fn hittest(&self, id: ViewID, pt: LocalPoint, cx: &mut Context, vger: &mut VGER) -> bool {
-        false
+    fn hittest(&self, id: ViewID, pt: LocalPoint, cx: &mut Context, vger: &mut VGER) -> Option<ViewID> {
+        None
     }
 }
 

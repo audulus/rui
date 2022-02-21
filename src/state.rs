@@ -80,7 +80,7 @@ where
         )
     }
 
-    fn hittest(&self, id: ViewID, pt: LocalPoint, cx: &mut Context, vger: &mut VGER) -> bool {
+    fn hittest(&self, id: ViewID, pt: LocalPoint, cx: &mut Context, vger: &mut VGER) -> Option<ViewID> {
         cx.with_state_vger(
             vger,
             self.default.clone(),

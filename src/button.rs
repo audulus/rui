@@ -86,8 +86,8 @@ impl View for Button {
         size
     }
 
-    fn hittest(&self, id: ViewID, pt: LocalPoint, cx: &mut Context, vger: &mut VGER) -> bool {
-        cx.layout.entry(id).or_default().rect.contains(pt)
+    fn hittest(&self, id: ViewID, pt: LocalPoint, cx: &mut Context, vger: &mut VGER) -> Option<ViewID> {
+        if cx.layout.entry(id).or_default().rect.contains(pt) { Some(id) } else { None }
     }
 }
 

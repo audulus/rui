@@ -41,10 +41,10 @@ impl View for Circle {
         sz
     }
 
-    fn hittest(&self, id: ViewID, pt: LocalPoint, cx: &mut Context, vger: &mut VGER) -> bool {
+    fn hittest(&self, id: ViewID, pt: LocalPoint, cx: &mut Context, vger: &mut VGER) -> Option<ViewID> {
         let (center, radius) = self.geom(id, cx);
 
-        pt.distance_to(center) < radius
+        if pt.distance_to(center) < radius { Some(id) } else { None }
     }
 }
 

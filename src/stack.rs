@@ -105,9 +105,9 @@ impl View for Stack {
         }
     }
 
-    fn hittest(&self, id: ViewID, pt: LocalPoint, cx: &mut Context, vger: &mut VGER) -> bool {
+    fn hittest(&self, id: ViewID, pt: LocalPoint, cx: &mut Context, vger: &mut VGER) -> Option<ViewID> {
         let mut c: u16 = 0;
-        let mut hit = false;
+        let mut hit = None;
         for child in &self.children {
             let child_id = id.child(c);
             let offset = cx
@@ -116,7 +116,9 @@ impl View for Stack {
                 .or_insert(LayoutBox::default())
                 .offset;
 
-            hit = hit || child.hittest(child_id, pt - offset, cx, vger);
+            if let Some(h) = child.hittest(child_id, pt - offset, cx, vger) {
+                hit = Some(h)
+            }
         }
         hit
     }
@@ -194,9 +196,9 @@ where
         [0.0, 0.0].into()
     }
 
-    fn hittest(&self, id: ViewID, pt: LocalPoint, cx: &mut Context, vger: &mut VGER) -> bool {
+    fn hittest(&self, id: ViewID, pt: LocalPoint, cx: &mut Context, vger: &mut VGER) -> Option<ViewID> {
         // TODO
-        false
+        None
     }
 }
 
@@ -239,9 +241,9 @@ where
         [0.0, 0.0].into()
     }
 
-    fn hittest(&self, id: ViewID, pt: LocalPoint, cx: &mut Context, vger: &mut VGER) -> bool {
+    fn hittest(&self, id: ViewID, pt: LocalPoint, cx: &mut Context, vger: &mut VGER) -> Option<ViewID> {
         // TODO
-        false
+        None
     }
 }
 
