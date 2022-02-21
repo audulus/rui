@@ -1,7 +1,7 @@
 # rui
 Experimental Rust UI library for Audulus. "rui" is a temporary name. Early days, but some stuff already works.
 
-obligatory Counter:
+obligatory Counter (`cargo run --example counter`):
 
 ```Rust
 use rui::*;
@@ -19,6 +19,25 @@ fn main() {
 ```
 
 ![counter screenshot](screenshots/counter.png)
+
+some shapes (`cargo run --example shapes`):
+
+```rust
+use rui::*;
+
+fn main() {
+    rui(vstack! {
+        circle()
+            .color(RED_HIGHLIGHT)
+            .padding();
+        rectangle(5.0)
+            .color(AZURE_HIGHLIGHT)
+            .padding()
+    });
+}
+```
+
+![shapes screenshot](screenshots/shapes.png)
 
 - Encode UI in types to ensure stable identity.
 - Use immediate mode initially, then optimize to reduce redraw later.
