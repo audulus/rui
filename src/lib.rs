@@ -21,6 +21,8 @@ pub use context::*;
 mod padding;
 pub use padding::*;
 
+mod shapes;
+
 use futures::executor::block_on;
 use vger::color::*;
 use vger::*;
