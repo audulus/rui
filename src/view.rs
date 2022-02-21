@@ -52,8 +52,8 @@ impl View for EmptyView {
 #[macro_export]
 macro_rules! modifiers {
     () => {
-        pub fn padding(self) -> impl View {
-            Padding::new(self)
+        pub fn padding(self, param: impl Into<PaddingParam>) -> impl View {
+            Padding::new(self, param.into())
         }
     };
 }

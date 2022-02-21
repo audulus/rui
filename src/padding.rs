@@ -54,18 +54,33 @@ where
     }
 }
 
+pub enum PaddingParam {
+    Auto,
+    Px(f32),
+}
+pub struct Auto;
+impl From<Auto> for PaddingParam {
+    fn from(_val: Auto) -> Self {
+        PaddingParam::Auto
+    }
+}
+impl From<f32> for PaddingParam {
+    fn from(val: f32) -> Self {
+        PaddingParam::Px(val)
+    }
+}
+
 impl<V> Padding<V>
 where
     V: View + 'static,
 {
-    pub fn new(child: V) -> Self {
+    pub fn new(child: V, param: PaddingParam) -> Self {
         Self {
             child: child,
-            padding: 5.0,
+            padding: match param {
+                PaddingParam::Auto => 5.0,
+                PaddingParam::Px(px) => px
+            },
         }
     }
-}
-
-pub fn padding(view: impl View + 'static) -> impl View {
-    Padding::new(view)
 }
