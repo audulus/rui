@@ -24,11 +24,7 @@ impl View for Circle {
     fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
         let (center, radius) = self.geom(id, cx);
 
-        let paint = match self.paint {
-            Paint::Color(color) => vger.color_paint(color),
-            Paint::Gradient{inner_color, ..} => vger.color_paint(inner_color), // TODO
-        };
-
+        let paint = self.paint.vger_paint(vger);
         vger.fill_circle(center, radius, paint);
     }
 
@@ -66,6 +62,7 @@ pub fn circle(paint: Paint) -> Circle {
 
 pub struct Rectangle {
     corner_radius: f32,
+    paint: Paint,
 }
 
 impl Rectangle {
@@ -86,7 +83,7 @@ impl View for Rectangle {
     fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
         let rect = self.geom(id, cx);
 
-        let paint = vger.color_paint(Color::MAGENTA);
+        let paint = self.paint.vger_paint(vger);
         vger.fill_rect(
             rect.origin,
             rect.origin + rect.size,
@@ -123,6 +120,6 @@ impl View for Rectangle {
     }
 }
 
-pub fn rectangle(corner_radius: f32) -> Rectangle {
-    Rectangle { corner_radius }
+pub fn rectangle(corner_radius: f32, paint: Paint) -> Rectangle {
+    Rectangle { corner_radius, paint }
 }
