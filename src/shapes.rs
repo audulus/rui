@@ -1,6 +1,8 @@
 use crate::*;
 
-pub struct Circle {}
+pub struct Circle {
+    paint: Paint
+}
 
 impl Circle {
     fn geom(&self, id: ViewID, cx: &mut Context) -> (LocalPoint, f32) {
@@ -22,7 +24,11 @@ impl View for Circle {
     fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
         let (center, radius) = self.geom(id, cx);
 
-        let paint = vger.color_paint(Color::CYAN);
+        let paint = match self.paint {
+            Paint::Color(color) => vger.color_paint(color),
+            Paint::Gradient{inner_color, ..} => vger.color_paint(inner_color), // TODO
+        };
+
         vger.fill_circle(center, radius, paint);
     }
 
@@ -54,8 +60,8 @@ impl View for Circle {
     }
 }
 
-pub fn circle() -> Circle {
-    Circle {}
+pub fn circle(paint: Paint) -> Circle {
+    Circle {paint}
 }
 
 pub struct Rectangle {
