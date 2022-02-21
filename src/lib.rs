@@ -42,6 +42,10 @@ struct Setup {
     queue: wgpu::Queue,
 }
 
+pub const TEXT_COLOR: Color = Color{ r: 0.839, g: 0.839, b: 0.839, a: 1.0 };
+pub const RED_HIGHLIGHT: Color = Color{ r: 1.0, g: 0.0, b: 0.384, a: 1.0 };
+pub const AZURE_HIGHLIGHT: Color = Color{ r: 0.0, g: 0.831, b: 1.0, a: 1.0 };
+
 async fn setup(title: &str) -> Setup {
     let event_loop = EventLoop::new();
     let mut builder = winit::window::WindowBuilder::new();
