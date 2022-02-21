@@ -14,6 +14,8 @@ impl Circle {
     pub fn color(self, color: Color) -> Circle {
         Circle{ paint: Paint::Color(color) }
     }
+
+    modifiers!();
 }
 
 impl View for Circle {
@@ -77,6 +79,8 @@ impl Rectangle {
     pub fn color(self, color: Color) -> Rectangle {
         Rectangle{ corner_radius: self.corner_radius, paint: Paint::Color(color) }
     }
+
+    modifiers!();
 }
 
 impl View for Rectangle {
