@@ -105,7 +105,13 @@ impl View for Stack {
         }
     }
 
-    fn hittest(&self, id: ViewID, pt: LocalPoint, cx: &mut Context, vger: &mut VGER) -> Option<ViewID> {
+    fn hittest(
+        &self,
+        id: ViewID,
+        pt: LocalPoint,
+        cx: &mut Context,
+        vger: &mut VGER,
+    ) -> Option<ViewID> {
         let mut c: u16 = 0;
         let mut hit = None;
         for child in &self.children {
@@ -196,7 +202,13 @@ where
         [0.0, 0.0].into()
     }
 
-    fn hittest(&self, id: ViewID, pt: LocalPoint, cx: &mut Context, vger: &mut VGER) -> Option<ViewID> {
+    fn hittest(
+        &self,
+        id: ViewID,
+        pt: LocalPoint,
+        cx: &mut Context,
+        vger: &mut VGER,
+    ) -> Option<ViewID> {
         // TODO
         None
     }
@@ -241,7 +253,13 @@ where
         [0.0, 0.0].into()
     }
 
-    fn hittest(&self, id: ViewID, pt: LocalPoint, cx: &mut Context, vger: &mut VGER) -> Option<ViewID> {
+    fn hittest(
+        &self,
+        id: ViewID,
+        pt: LocalPoint,
+        cx: &mut Context,
+        vger: &mut VGER,
+    ) -> Option<ViewID> {
         // TODO
         None
     }

@@ -24,6 +24,9 @@ pub use padding::*;
 mod shapes;
 pub use shapes::*;
 
+mod paint;
+pub use paint::*;
+
 use futures::executor::block_on;
 use vger::color::*;
 use vger::*;
@@ -45,9 +48,24 @@ struct Setup {
     queue: wgpu::Queue,
 }
 
-pub const TEXT_COLOR: Color = Color{ r: 0.839, g: 0.839, b: 0.839, a: 1.0 };
-pub const RED_HIGHLIGHT: Color = Color{ r: 1.0, g: 0.0, b: 0.384, a: 1.0 };
-pub const AZURE_HIGHLIGHT: Color = Color{ r: 0.0, g: 0.831, b: 1.0, a: 1.0 };
+pub const TEXT_COLOR: Color = Color {
+    r: 0.839,
+    g: 0.839,
+    b: 0.839,
+    a: 1.0,
+};
+pub const RED_HIGHLIGHT: Color = Color {
+    r: 1.0,
+    g: 0.0,
+    b: 0.384,
+    a: 1.0,
+};
+pub const AZURE_HIGHLIGHT: Color = Color {
+    r: 0.0,
+    g: 0.831,
+    b: 1.0,
+    a: 1.0,
+};
 
 async fn setup(title: &str) -> Setup {
     let event_loop = EventLoop::new();
@@ -263,8 +281,11 @@ pub fn rui(view: impl View + 'static) {
                 ..
             } => {
                 let scale = window.scale_factor() as f32;
-                mouse_position =
-                    [position.x as f32 / scale, (config.height as f32 - position.y as f32) / scale].into();
+                mouse_position = [
+                    position.x as f32 / scale,
+                    (config.height as f32 - position.y as f32) / scale,
+                ]
+                .into();
                 // println!("mouse moved to {:?}", mouse_position);
             }
             _ => (),

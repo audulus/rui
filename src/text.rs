@@ -37,7 +37,13 @@ impl View for Text {
         );
         size
     }
-    fn hittest(&self, id: ViewID, pt: LocalPoint, cx: &mut Context, vger: &mut VGER) -> Option<ViewID> {
+    fn hittest(
+        &self,
+        id: ViewID,
+        pt: LocalPoint,
+        cx: &mut Context,
+        vger: &mut VGER,
+    ) -> Option<ViewID> {
         None
     }
 }
