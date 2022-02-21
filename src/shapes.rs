@@ -60,8 +60,8 @@ impl View for Circle {
     }
 }
 
-pub fn circle(paint: Paint) -> Circle {
-    Circle {paint}
+pub fn circle() -> Circle {
+    Circle {paint: Paint::Color(Color::CYAN)}
 }
 
 pub struct Rectangle {
@@ -72,6 +72,10 @@ pub struct Rectangle {
 impl Rectangle {
     fn geom(&self, id: ViewID, cx: &mut Context) -> LocalRect {
         cx.layout.entry(id).or_insert(LayoutBox::default()).rect
+    }
+
+    pub fn color(self, color: Color) -> Rectangle {
+        Rectangle{ corner_radius: self.corner_radius, paint: Paint::Color(color) }
     }
 }
 
@@ -124,6 +128,6 @@ impl View for Rectangle {
     }
 }
 
-pub fn rectangle(corner_radius: f32, paint: Paint) -> Rectangle {
-    Rectangle { corner_radius, paint }
+pub fn rectangle(corner_radius: f32) -> Rectangle {
+    Rectangle { corner_radius, paint: Paint::Color(Color::CYAN) }
 }
