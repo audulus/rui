@@ -22,6 +22,7 @@ mod padding;
 pub use padding::*;
 
 mod shapes;
+pub use shapes::*;
 
 use futures::executor::block_on;
 use vger::color::*;
