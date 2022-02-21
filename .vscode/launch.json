@@ -7,6 +7,24 @@
         {
             "type": "lldb",
             "request": "launch",
+            "name": "Debug shapes example",
+            "cargo": {
+                "args": [
+                    "run",
+                    "--example",
+                    "shapes",
+                ],
+                "filter": {
+                    "name": "rui",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
             "name": "Debug unit tests in library 'rui'",
             "cargo": {
                 "args": [
