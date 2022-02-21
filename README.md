@@ -9,10 +9,12 @@ use rui::*;
 fn main() {
     rui(state(1, |count: State<usize>| {
         vstack! {
-            text(format!("{:?}", *count.get()).as_str()).padding();
+            text(format!("{:?}", *count.get()).as_str())
+                .padding(Auto);
             button("increment", move || {
                 *count.get() += 1;
-            }).padding()
+            })
+                .padding(Auto)
         }
     }));
 }
@@ -29,10 +31,10 @@ fn main() {
     rui(vstack! {
         circle()
             .color(RED_HIGHLIGHT)
-            .padding();
+            .padding(Auto);
         rectangle(5.0)
             .color(AZURE_HIGHLIGHT)
-            .padding()
+            .padding(Auto)
     });
 }
 ```
