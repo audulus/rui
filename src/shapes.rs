@@ -1,11 +1,11 @@
 
-struct Circle {}
+pub struct Circle {}
 
 pub fn circle() -> Circle {
     Circle {}
 }
 
-struct Rectangle {
+pub struct Rectangle {
     corner_radius: f32
 }
 
