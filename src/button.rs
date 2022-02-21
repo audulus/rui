@@ -62,7 +62,7 @@ impl View for Button {
         vger.text(
             self.text.as_str(),
             Button::DEFAULT_SIZE,
-            Color::MAGENTA,
+            TEXT_COLOR,
             None,
         );
 
