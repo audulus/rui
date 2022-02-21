@@ -1,7 +1,7 @@
 use crate::*;
 
 pub struct Circle {
-    paint: Paint
+    paint: Paint,
 }
 
 impl Circle {
@@ -12,7 +12,9 @@ impl Circle {
     }
 
     pub fn color(self, color: Color) -> Circle {
-        Circle{ paint: Paint::Color(color) }
+        Circle {
+            paint: Paint::Color(color),
+        }
     }
 
     modifiers!();
@@ -63,7 +65,9 @@ impl View for Circle {
 }
 
 pub fn circle() -> Circle {
-    Circle {paint: Paint::Color(Color::CYAN)}
+    Circle {
+        paint: Paint::Color(Color::CYAN),
+    }
 }
 
 pub struct Rectangle {
@@ -77,7 +81,10 @@ impl Rectangle {
     }
 
     pub fn color(self, color: Color) -> Rectangle {
-        Rectangle{ corner_radius: self.corner_radius, paint: Paint::Color(color) }
+        Rectangle {
+            corner_radius: self.corner_radius,
+            paint: Paint::Color(color),
+        }
     }
 
     modifiers!();
@@ -133,5 +140,8 @@ impl View for Rectangle {
 }
 
 pub fn rectangle(corner_radius: f32) -> Rectangle {
-    Rectangle { corner_radius, paint: Paint::Color(Color::CYAN) }
+    Rectangle {
+        corner_radius,
+        paint: Paint::Color(Color::CYAN),
+    }
 }
