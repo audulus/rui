@@ -10,6 +10,10 @@ impl Circle {
 
         (rect.center(), rect.size.width.min(rect.size.height) / 2.0)
     }
+
+    pub fn color(self, color: Color) -> Circle {
+        Circle{ paint: Paint::Color(color) }
+    }
 }
 
 impl View for Circle {
