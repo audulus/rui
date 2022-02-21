@@ -96,10 +96,6 @@ impl View for Button {
     }
 }
 
-impl Button {
-    modifiers!();
-}
-
 pub fn button<F: Fn() + 'static>(name: &str, f: F) -> Button {
     Button {
         text: String::from(name),

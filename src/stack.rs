@@ -141,8 +141,6 @@ impl Stack {
     pub fn push(&mut self, view: impl View + 'static) {
         self.children.push(Box::new(view))
     }
-
-    modifiers!();
 }
 
 #[macro_export]

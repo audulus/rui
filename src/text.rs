@@ -48,10 +48,6 @@ impl View for Text {
     }
 }
 
-impl Text {
-    modifiers!();
-}
-
 pub fn text(name: &str) -> Text {
     Text {
         text: String::from(name),

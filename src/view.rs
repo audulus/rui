@@ -49,11 +49,12 @@ impl View for EmptyView {
     }
 }
 
-#[macro_export]
-macro_rules! modifiers {
-    () => {
-        pub fn padding(self, param: impl Into<PaddingParam>) -> impl View {
-            Padding::new(self, param.into())
-        }
-    };
+pub trait Modifiers: View + Sized {
+    fn padding(self, param: impl Into<PaddingParam>) -> Padding<Self>;
+}
+
+impl <V: View + 'static> Modifiers for V {
+    fn padding(self, param: impl Into<PaddingParam>) -> Padding<Self> {
+        Padding::new(self, param.into())
+    }
 }

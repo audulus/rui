@@ -16,8 +16,6 @@ impl Circle {
             paint: Paint::Color(color),
         }
     }
-
-    modifiers!();
 }
 
 impl View for Circle {
@@ -86,8 +84,6 @@ impl Rectangle {
             paint: Paint::Color(color),
         }
     }
-
-    modifiers!();
 }
 
 impl View for Rectangle {
