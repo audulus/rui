@@ -1,6 +1,6 @@
 use crate::*;
 
-enum Paint {
+pub enum Paint {
     Color(Color),
     Gradient {
         start: LocalPoint,
