@@ -2,7 +2,8 @@ use rui::*;
 
 fn main() {
     rui(vstack! {
-            circle()
+            circle();
+            rectangle(5.0)
         }
     );
 }
