@@ -36,6 +36,9 @@ pub use background::*;
 mod modifiers;
 pub use modifiers::*;
 
+mod geom;
+pub use geom::*;
+
 use futures::executor::block_on;
 use vger::color::*;
 use vger::*;
