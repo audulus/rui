@@ -30,6 +30,9 @@ pub use paint::*;
 mod gestures;
 pub use gestures::*;
 
+mod background;
+pub use background::*;
+
 use futures::executor::block_on;
 use vger::color::*;
 use vger::*;
