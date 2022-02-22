@@ -27,6 +27,9 @@ pub use shapes::*;
 mod paint;
 pub use paint::*;
 
+mod gestures;
+pub use gestures::*;
+
 use futures::executor::block_on;
 use vger::color::*;
 use vger::*;
