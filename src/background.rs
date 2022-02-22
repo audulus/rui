@@ -58,3 +58,16 @@ where
         )
     }
 }
+
+impl<V, BG> Background<V, BG>
+where
+    V: View + 'static,
+    BG: View + 'static
+{
+    pub fn new(child: V, background: BG) -> Self {
+        Self {
+            child,
+            background,
+        }
+    }
+}
