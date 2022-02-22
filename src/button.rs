@@ -14,7 +14,7 @@ impl View for Button {
     fn print(&self, _id: ViewID, _cx: &mut Context) {
         println!("Button({:?})", self.text);
     }
-    fn process(&self, event: &Event, vid: ViewID, cx: &mut Context) {
+    fn process(&self, event: &Event, vid: ViewID, cx: &mut Context, _vger: &mut VGER) {
         match &event.kind {
             EventKind::PressButton(name) => {
                 if *name == self.text {

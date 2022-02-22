@@ -23,7 +23,7 @@ impl View for Circle {
         println!("circle");
     }
 
-    fn process(&self, _event: &Event, _id: ViewID, _cx: &mut Context) {
+    fn process(&self, _event: &Event, _id: ViewID, _cx: &mut Context, vger: &mut VGER) {
         // do nothing
     }
 
@@ -91,7 +91,7 @@ impl View for Rectangle {
         println!("rectangle");
     }
 
-    fn process(&self, _event: &Event, _id: ViewID, _cx: &mut Context) {
+    fn process(&self, _event: &Event, _id: ViewID, _cx: &mut Context, vger: &mut VGER) {
         // do nothing
     }
 

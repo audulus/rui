@@ -277,7 +277,7 @@ pub fn rui(view: impl View + 'static) {
                         position: mouse_position,
                     },
                 };
-                view.process(&event, ViewID::default(), &mut cx)
+                view.process(&event, ViewID::default(), &mut cx, &mut vger)
             }
             winit::event::Event::WindowEvent {
                 event: WindowEvent::CursorMoved { position, .. },
@@ -364,6 +364,7 @@ mod tests {
         })
     }
 
+    /*
     #[test]
     fn test_state3() {
         let mut cx = Context::new();
@@ -383,6 +384,8 @@ mod tests {
         v.print(ViewID::default(), &mut cx);
     }
 
+    */
+    
     fn counter3<B>(count: B) -> impl View
     where
         B: Binding<usize> + Clone + 'static,

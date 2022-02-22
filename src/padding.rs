@@ -15,10 +15,10 @@ where
         println!("}}");
     }
 
-    fn process(&self, event: &Event, id: ViewID, cx: &mut Context) {
+    fn process(&self, event: &Event, id: ViewID, cx: &mut Context, vger: &mut VGER) {
         let mut local_event = event.clone();
         local_event.position -= LocalOffset::new(self.padding, self.padding);
-        self.child.process(&local_event, id.child(0), cx);
+        self.child.process(&local_event, id.child(0), cx, vger);
     }
 
     fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {

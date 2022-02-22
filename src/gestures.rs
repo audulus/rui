@@ -16,8 +16,16 @@ where
         println!("}}");
     }
 
-    fn process(&self, event: &Event, id: ViewID, cx: &mut Context) {
-        
+    fn process(&self, event: &Event, vid: ViewID, cx: &mut Context, vger: &mut VGER) {
+        match &event.kind {
+            EventKind::TouchBegin { id } => {
+                if let Some(_) = self.hittest(vid, event.position, cx, vger)
+                {
+                    (*self.func)();
+                }
+            }
+            _ => (),
+        }
     }
 
     fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {

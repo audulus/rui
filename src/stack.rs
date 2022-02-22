@@ -21,7 +21,7 @@ impl View for Stack {
         println!("}}");
     }
 
-    fn process(&self, event: &Event, id: ViewID, cx: &mut Context) {
+    fn process(&self, event: &Event, id: ViewID, cx: &mut Context, vger: &mut VGER) {
         let mut c: u16 = 0;
         for child in &self.children {
             let child_id = id.child(c);
@@ -34,7 +34,7 @@ impl View for Stack {
             let mut local_event = event.clone();
             local_event.position -= offset;
 
-            (*child).process(&local_event, child_id, cx);
+            (*child).process(&local_event, child_id, cx, vger);
             c += 1;
         }
     }
@@ -185,9 +185,9 @@ where
         println!("}}");
     }
 
-    fn process(&self, event: &Event, id: ViewID, cx: &mut Context) {
-        self.children.0.process(event, id.child(0), cx);
-        self.children.1.process(event, id.child(1), cx);
+    fn process(&self, event: &Event, id: ViewID, cx: &mut Context, vger: &mut VGER) {
+        self.children.0.process(event, id.child(0), cx, vger);
+        self.children.1.process(event, id.child(1), cx, vger);
     }
 
     fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
@@ -234,10 +234,10 @@ where
         println!("}}");
     }
 
-    fn process(&self, event: &Event, id: ViewID, cx: &mut Context) {
-        self.children.0.process(event, id.child(0), cx);
-        self.children.1.process(event, id.child(1), cx);
-        self.children.2.process(event, id.child(2), cx);
+    fn process(&self, event: &Event, id: ViewID, cx: &mut Context, vger: &mut VGER) {
+        self.children.0.process(event, id.child(0), cx, vger);
+        self.children.1.process(event, id.child(1), cx, vger);
+        self.children.2.process(event, id.child(2), cx, vger);
     }
 
     fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {

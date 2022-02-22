@@ -52,10 +52,10 @@ where
         });
     }
 
-    fn process(&self, event: &Event, id: ViewID, cx: &mut Context) {
-        cx.with_state(self.default.clone(), id, |state: State<S>, cx| {
-            (*self.func)(state.clone()).process(event, id.child(0), cx);
-        });
+    fn process(&self, event: &Event, id: ViewID, cx: &mut Context, vger: &mut VGER) {
+        cx.with_state_vger(vger, self.default.clone(), id, |state: State<S>, cx, vger| {
+            (*self.func)(state.clone()).process(event, id.child(0), cx, vger);
+        })
     }
 
     fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
