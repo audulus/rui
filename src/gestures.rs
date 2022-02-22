@@ -6,6 +6,12 @@ pub struct Tap<V: View> {
     func: Box<dyn Fn()>,
 }
 
+impl<V> Tap<V> where V: View {
+    pub fn new<F: Fn() + 'static>(v: V, f: F) -> Self {
+        Self { child: v, func: Box::new(f) }
+    }
+}
+
 impl<V> View for Tap<V>
 where
     V: View,
