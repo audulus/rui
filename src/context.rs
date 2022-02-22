@@ -4,10 +4,12 @@ use std::any::Any;
 use std::collections::HashMap;
 
 pub type LocalSpace = vger::defs::LocalSpace;
+pub type WorldSpace = vger::defs::WorldSpace;
 pub type LocalRect = Rect<f32, LocalSpace>;
 pub type LocalOffset = Vector2D<f32, LocalSpace>;
 pub type LocalSize = Size2D<f32, LocalSpace>;
 pub type LocalPoint = Point2D<f32, LocalSpace>;
+pub type WorldRect = Rect<f32, WorldSpace>;
 
 #[derive(Copy, Clone, Default, Eq, PartialEq, Hash, Debug)]
 pub struct ViewID {
