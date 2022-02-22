@@ -102,3 +102,13 @@ pub fn button<F: Fn() + 'static>(name: &str, f: F) -> Button {
         func: Box::new(f),
     }
 }
+
+pub fn button2<F: Fn() + 'static>(name: &str, f: F) -> impl View {
+    text(&name)
+        .padding(Auto)
+        .tap(f)
+        .background(
+            rectangle(5.0)
+                .color(BUTTON_BACKGROUND_COLOR)
+        )
+}
