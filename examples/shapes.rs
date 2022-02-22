@@ -1,7 +1,7 @@
 use rui::*;
 
 fn main() {
-    rui(vstack! {
+    rui(hstack! {
         circle()
             .color(RED_HIGHLIGHT)
             .padding(Auto);
