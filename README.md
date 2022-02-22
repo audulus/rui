@@ -43,7 +43,7 @@ fn main() {
 
 - Encode UI in types to ensure stable identity.
 - Use immediate mode initially, then optimize to reduce redraw later.
-- Use a [vger-rs](https://github.com/audulus/vger-rs) for rendering.
+- Use [vger-rs](https://github.com/audulus/vger-rs) for rendering.
 
 ## References
 
