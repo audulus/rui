@@ -103,12 +103,14 @@ pub fn button<F: Fn() + 'static>(name: &str, f: F) -> Button {
     }
 }
 
+pub const BUTTON_PADDING: f32 = 5.0;
+
 pub fn button2<F: Fn() + 'static>(name: &str, f: F) -> impl View {
     text(&name)
         .padding(Auto)
-        .tap(f)
         .background(
-            rectangle(5.0)
+            rectangle(BUTTON_PADDING)
                 .color(BUTTON_BACKGROUND_COLOR)
         )
+        .tap(f)
 }
