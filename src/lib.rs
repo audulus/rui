@@ -33,6 +33,9 @@ pub use gestures::*;
 mod background;
 pub use background::*;
 
+mod modifiers;
+pub use modifiers::*;
+
 use futures::executor::block_on;
 use vger::color::*;
 use vger::*;
