@@ -50,8 +50,8 @@ where
         cx: &mut Context,
         vger: &mut VGER,
     ) -> Option<ViewID> {
-        self.child.hittest(
-            id.child(0),
+        self.background.hittest(
+            id.child(1),
             pt,
             cx,
             vger,
