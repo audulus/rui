@@ -11,10 +11,7 @@ fn main() {
             rectangle(5.0)
                 .color(AZURE_HIGHLIGHT)
                 .offset(off)
-                .drag(move |off| { 
-                    println!("dragged on rectangle {:?}", off);
-                    *offset_state.get() = off;
-                })
+                .drag(move |off| *offset_state.get() = off )
                 .padding(Auto)
         })
     });
