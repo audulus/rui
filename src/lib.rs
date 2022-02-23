@@ -305,7 +305,11 @@ pub fn rui(view: impl View + 'static) {
                     (config.height as f32 - position.y as f32) / scale,
                 ]
                 .into();
-                // println!("mouse moved to {:?}", mouse_position);
+                let event = Event {
+                    kind: EventKind::TouchMove { id: 0 },
+                    position: mouse_position,
+                };
+                view.process(&event, ViewID::default(), &mut cx, &mut vger)
             }
             _ => (),
         }
