@@ -59,7 +59,7 @@ fn main() {
 - ✅ padding
 - ✅ offsets
 - ✅ state
-- ❌ zstack
+- ✅ zstack
 - ❌ canvas (GPU vector graphics with vger)
 
 ## References
