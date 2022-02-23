@@ -16,7 +16,9 @@ impl View for Canvas {
     fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
         let rect = cx.layout.entry(id).or_insert(LayoutBox::default()).rect;
 
-        (*self.func)(rect, vger)
+        vger.save();
+        (*self.func)(rect, vger);
+        vger.restore();
     }
 
     fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, _vger: &mut VGER) -> LocalSize {
