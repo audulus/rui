@@ -46,7 +46,7 @@ fn main() {
 
 ![shapes screenshot](screenshots/shapes.png)
 
-canvas for gpu drawing (`cargo run --example shapes`):
+canvas for gpu drawing (`cargo run --example canvas`):
 
 ```rust
 use rui::*;
