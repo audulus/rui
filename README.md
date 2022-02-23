@@ -46,6 +46,35 @@ fn main() {
 
 ![shapes screenshot](screenshots/shapes.png)
 
+canvas for gpu drawing (`cargo run --example shapes`):
+
+```rust
+use rui::*;
+
+fn main() {
+    rui(hstack! {
+        canvas(|rect, vger| {
+            vger.save();
+            vger.translate(rect.center() - LocalPoint::zero());
+
+            let paint = vger.linear_gradient(
+                [-100.0, -100.0].into(),
+                [100.0, 100.0].into(),
+                AZURE_HIGHLIGHT,
+                RED_HIGHLIGHT,
+                0.0,
+            );
+
+            let radius = 100.0;
+            vger.fill_circle(LocalPoint::zero(), radius, paint);
+            vger.restore();
+        })
+    });
+}
+```
+
+![canvas screenshot](screenshots/canvas.png)
+
 - Encode UI in types to ensure stable identity.
 - Use immediate mode initially, then optimize to reduce redraw later.
 - Use [vger-rs](https://github.com/audulus/vger-rs) for rendering.
@@ -60,7 +89,7 @@ fn main() {
 - ✅ offsets
 - ✅ state
 - ✅ zstack
-- ❌ canvas (GPU vector graphics with vger)
+- ✅ canvas (GPU vector graphics with vger)
 
 ## References
 
