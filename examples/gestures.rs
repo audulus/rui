@@ -6,10 +6,15 @@ fn main() {
             .color(RED_HIGHLIGHT)
             .tap(|| { println!("tapped circle") })
             .padding(Auto);
-        state(LocalOffset::zero(), |count: State<LocalOffset>| {
+        state(LocalOffset::zero(), |offset_state: State<LocalOffset>| {
+            let off = *offset_state.get();
             rectangle(5.0)
                 .color(AZURE_HIGHLIGHT)
-                .drag(|offset| { println!("dragged on rectangle {:?}", offset) })
+                .offset(off)
+                .drag(move |off| { 
+                    println!("dragged on rectangle {:?}", off);
+                    *offset_state.get() = off;
+                })
                 .padding(Auto)
         })
     });
