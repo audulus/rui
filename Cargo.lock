@@ -1253,7 +1253,7 @@ checksum = "49874b5167b65d7193b8aba1567f5c7d93d001cafc34600cee003eda787e483f"
 [[package]]
 name = "vger"
 version = "0.1.0"
-source = "git+https://github.com/audulus/vger-rs#184968aa40393e91df248767cc0f5d543b7ca422"
+source = "git+https://github.com/audulus/vger-rs#e76f1383c7394b08a68fa4a7d36bff9f8a81c07f"
 dependencies = [
  "euclid",
  "fontdue",
