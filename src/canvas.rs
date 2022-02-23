@@ -9,7 +9,7 @@ impl View for Canvas {
         println!("canvas");
     }
 
-    fn process(&self, _event: &Event, _id: ViewID, _cx: &mut Context, vger: &mut VGER) {
+    fn process(&self, _event: &Event, _id: ViewID, _cx: &mut Context, _vger: &mut VGER) {
         // do nothing
     }
 
@@ -19,7 +19,7 @@ impl View for Canvas {
         (*self.func)(rect, vger)
     }
 
-    fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
+    fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, _vger: &mut VGER) -> LocalSize {
         cx.layout.insert(
             id,
             LayoutBox {
@@ -32,10 +32,10 @@ impl View for Canvas {
 
     fn hittest(
         &self,
-        id: ViewID,
-        pt: LocalPoint,
-        cx: &mut Context,
-        vger: &mut VGER,
+        _id: ViewID,
+        _pt: LocalPoint,
+        _cx: &mut Context,
+        _vger: &mut VGER,
     ) -> Option<ViewID> {
         None
     }
