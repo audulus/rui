@@ -39,6 +39,9 @@ pub use modifiers::*;
 mod geom;
 pub use geom::*;
 
+mod offset;
+pub use offset::*;
+
 use futures::executor::block_on;
 use vger::color::*;
 use vger::*;
