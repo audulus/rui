@@ -27,6 +27,12 @@ where
             EventKind::TouchBegin { id } => {
                 if let Some(_) = self.hittest(vid, event.position, cx, vger)
                 {
+                    cx.touches[*id] = vid;
+                }
+            },
+            EventKind::TouchEnd { id } => {
+                if cx.touches[*id] == vid {
+                    cx.touches[*id] = ViewID::default();
                     (*self.func)();
                 }
             }
