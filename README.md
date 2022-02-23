@@ -71,3 +71,5 @@ fn main() {
 [Flutter's Rendering Pipeline](https://www.youtube.com/watch?v=UUfXWzp0-DU)
 
 [Static Types in SwiftUI](https://www.objc.io/blog/2019/11/05/static-types-in-swiftui/)
+
+[How Layout Works in SwiftUI](https://www.hackingwithswift.com/books/ios-swiftui/how-layout-works-in-swiftui)
