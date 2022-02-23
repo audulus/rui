@@ -40,3 +40,9 @@ impl View for Canvas {
         None
     }
 }
+
+pub fn canvas<F: Fn(LocalRect, &mut VGER) + 'static>(f: F) -> Canvas {
+    Canvas {
+        func: Box::new(f)
+    }
+}
