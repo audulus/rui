@@ -45,6 +45,18 @@ fn main() {
 - Use immediate mode initially, then optimize to reduce redraw later.
 - Use [vger-rs](https://github.com/audulus/vger-rs) for rendering.
 
+## Status
+
+- ✅ basic shapes: circle, rounded rectangle
+- ✅ basic gestures: tap, drag
+- ✅ hstack/vstack
+- ✅ text
+- ✅ padding
+- ✅ offsets
+- ✅ state
+- ❌ zstack
+- ❌ canvas (GPU vector graphics with vger)
+
 ## References
 
 [Towards principled reactive UI](https://raphlinus.github.io/rust/druid/2020/09/25/principled-reactive-ui.html)
