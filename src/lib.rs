@@ -42,6 +42,9 @@ pub use geom::*;
 mod offset;
 pub use offset::*;
 
+mod canvas;
+pub use canvas::*;
+
 use futures::executor::block_on;
 use vger::color::*;
 use vger::*;
