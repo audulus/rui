@@ -1,4 +1,7 @@
 # rui
+
+![build status](https://github.com/audulus/rui/actions/workflows/rust.yml/badge.svg)
+
 Experimental Rust UI library for Audulus. "rui" is a temporary name. Early days, but some stuff already works.
 
 obligatory Counter (`cargo run --example counter`):
