@@ -5,6 +5,7 @@ pub trait Modifiers: View + Sized {
     fn tap<F: Fn() + 'static>(self, f: F) -> Tap<Self>;
     fn background<BG: View + 'static>(self, background: BG) -> Background<Self, BG>;
     fn geom<F: Fn(WorldRect) + 'static>(self, f: F) -> Geom<Self>;
+    fn drag<F: Fn(LocalOffset) + 'static>(self, f: F) -> Drag<Self>;
 }
 
 impl <V: View + 'static> Modifiers for V {
@@ -19,5 +20,8 @@ impl <V: View + 'static> Modifiers for V {
     }
     fn geom<F: Fn(WorldRect) + 'static>(self, f: F) -> Geom<Self> {
         Geom::new(self, f)
+    }
+    fn drag<F: Fn(LocalOffset) + 'static>(self, f: F) -> Drag<Self> {
+        Drag::new(self, f)
     }
 }
