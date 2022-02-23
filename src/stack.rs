@@ -3,6 +3,7 @@ use crate::*;
 pub enum StackOrientation {
     Horizontal,
     Vertical,
+    Z,
 }
 
 pub struct Stack {
@@ -102,6 +103,14 @@ impl View for Stack {
 
                 LocalSize::new(sz.width, height_sum)
             }
+            StackOrientation::Z => {
+                let mut c: u16 = 0;
+                for child in &self.children {
+                    child.layout(id.child(c), sz, cx, vger);
+                    c += 1;
+                }
+                sz
+            }
         }
     }
 
@@ -161,6 +170,19 @@ macro_rules! vstack {
     ( $( $x:expr );* ) => {
         {
             let mut temp_stack = Stack::new(StackOrientation::Vertical);
+            $(
+                temp_stack.push($x);
+            )*
+            temp_stack
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! zstack {
+    ( $( $x:expr );* ) => {
+        {
+            let mut temp_stack = Stack::new(StackOrientation::Z);
             $(
                 temp_stack.push($x);
             )*
