@@ -8,7 +8,7 @@ fn main() {
             .padding(Auto);
         rectangle(5.0)
             .color(AZURE_HIGHLIGHT)
-            .tap(|| { println!("tapped rectangle") })
+            .drag(|offset| { println!("dragged on rectangle {:?}", offset) })
             .padding(Auto)
     });
 }
