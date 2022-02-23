@@ -2,7 +2,7 @@
 
 ![build status](https://github.com/audulus/rui/actions/workflows/rust.yml/badge.svg)
 
-Experimental Rust UI library for Audulus. "rui" is a temporary name. Early days, but some stuff already works.
+Experimental Rust UI library. "rui" is a temporary name. Early days, but some stuff already works.
 
 rui is immediate mode (there is no retained tree of views), GPU rendered, and has richer layout options than other immediate mode UIs.
 
