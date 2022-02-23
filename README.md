@@ -54,7 +54,6 @@ use rui::*;
 fn main() {
     rui(hstack! {
         canvas(|rect, vger| {
-            vger.save();
             vger.translate(rect.center() - LocalPoint::zero());
 
             let paint = vger.linear_gradient(
@@ -67,7 +66,6 @@ fn main() {
 
             let radius = 100.0;
             vger.fill_circle(LocalPoint::zero(), radius, paint);
-            vger.restore();
         })
     });
 }
