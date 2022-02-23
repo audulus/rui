@@ -37,6 +37,7 @@ pub struct Context {
     state_map: HashMap<ViewID, Box<dyn Any>>,
     pub layout: HashMap<ViewID, LayoutBox>,
     pub vger: Option<VGER>,
+    pub touches: [ViewID; 16],
 }
 
 impl Context {
@@ -45,6 +46,7 @@ impl Context {
             state_map: HashMap::new(),
             layout: HashMap::new(),
             vger: None,
+            touches: [ViewID::default(); 16]
         }
     }
 
