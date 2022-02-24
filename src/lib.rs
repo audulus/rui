@@ -45,6 +45,9 @@ pub use offset::*;
 mod canvas;
 pub use canvas::*;
 
+mod slider;
+pub use slider::*;
+
 use futures::executor::block_on;
 use vger::color::*;
 use vger::*;
