@@ -123,7 +123,8 @@ macro_rules! bind {
     ( $x:expr, $field:ident ) => {
         {
             ValueBinding {
-                func: Box::new(move || { &x.field })
+                get: Box::new(move || { x.field.clone() }),
+                set: Box::new(move |val| { x.field = val} )
             }
         }
     };
