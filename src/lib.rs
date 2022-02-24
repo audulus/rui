@@ -332,7 +332,7 @@ mod tests {
         let s = State::new(0);
         let s2 = s.clone();
         s.set(42);
-        assert_eq!(*s2.get(), 42);
+        assert_eq!(s2.get(), 42);
     }
 
     #[test]
@@ -349,8 +349,9 @@ mod tests {
 
     fn counter0(start: usize) -> impl View {
         state(start, |count: State<usize>| {
-            button(format!("{:?}", *count.get()).as_str(), move || {
-                *count.get() += 1;
+            button(format!("{:?}", count.get()).as_str(), move || {
+                let value = count.get();
+                count.set(value + 1);
             })
         })
     }
@@ -377,14 +378,16 @@ mod tests {
     fn counter(start: usize) -> impl View {
         state(start, |count: State<usize>| {
             let count2 = count.clone();
-            let value_string = format!("value: {:?}", *count.get());
+            let value_string = format!("value: {:?}", count.get());
             vstack! {
                 text(value_string.as_str());
                 button("increment", move || {
-                    *count.get() += 1;
+                    let value = count.get();
+                    count.set(value+1);
                 });
                 button("decrement", move || {
-                    *count2.get() -= 1;
+                    let value = count2.get();
+                    count2.set(value-1);
                 })
             }
         })
@@ -419,10 +422,12 @@ mod tests {
         let count2 = count.clone();
         let mut stack = Stack::new(StackOrientation::Vertical);
         stack.push(button("increment", move || {
-            *count.get() += 1;
+            let value = count.get();
+            count.set(value+1);
         }));
         stack.push(button("decrement", move || {
-            *count2.get() -= 1;
+            let value = count2.get();
+            count2.set(value-1);
         }));
         stack
     }

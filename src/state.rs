@@ -4,10 +4,9 @@ use std::rc::Rc;
 use crate::*;
 
 pub trait Binding<S> {
-    fn get(&self) -> RefMut<'_, S>;
+    fn get(&self) -> S;
+    fn set(&self, value: S);
 }
-
-pub trait AnyState {}
 
 #[derive(Clone)]
 pub struct State<S> {
@@ -20,19 +19,16 @@ impl<S> State<S> {
             value: Rc::new(RefCell::new(value)),
         }
     }
-
-    pub fn set(&self, value: S) {
-        *self.value.borrow_mut() = value;
-    }
 }
 
-impl<S> AnyState for State<S> {}
-
-impl<S> Binding<S> for State<S> {
-    fn get(&self) -> RefMut<'_, S> {
+impl<S> Binding<S> for State<S> where S: Clone {
+    fn get(&self) -> S {
         // Here we can indicate that a state change has
         // been made.
-        self.value.borrow_mut()
+        self.value.borrow().clone()
+    }
+    fn set(&self, value: S) {
+        *self.value.borrow_mut() = value.clone();
     }
 }
 
@@ -108,13 +104,17 @@ pub fn state<S: Clone, V: View, F: Fn(State<S>) -> V + 'static>(
     }
 }
 
-pub struct ValueBinding<'a, S> {
-    func: Box<dyn Fn() -> RefMut<'a, S> >,
+pub struct ValueBinding<S> {
+    get: Box<dyn Fn() -> S >,
+    set: Box<dyn Fn(S)>,
 }
 
-impl<S> Binding<S> for ValueBinding<'_, S> {
-    fn get(&self) -> RefMut<'_, S> {
-        (*self.func)()
+impl<S> Binding<S> for ValueBinding<S> {
+    fn get(&self) -> S {
+        (*self.get)()
+    }
+    fn set(&self, value: S) {
+        (*self.set)(value);
     }
 }
 

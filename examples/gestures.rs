@@ -7,11 +7,11 @@ fn main() {
             .tap(|| { println!("tapped circle") })
             .padding(Auto);
         state(LocalOffset::zero(), |offset_state: State<LocalOffset>| {
-            let off = *offset_state.get();
+            let off = offset_state.get();
             rectangle(5.0)
                 .color(AZURE_HIGHLIGHT.alpha(0.8))
                 .offset(off)
-                .drag(move |off| *offset_state.get() = off )
+                .drag(move |off| offset_state.set(off) )
                 .padding(Auto)
         })
     });
