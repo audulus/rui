@@ -91,6 +91,7 @@ fn main() {
 - ❌ bindings
 - ❌ sliders
 - ❌ knobs
+- ❌ editable text
 
 ## References
 
