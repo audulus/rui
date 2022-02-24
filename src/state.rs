@@ -98,22 +98,6 @@ where
     }
 }
 
-/*
-impl<S, V> StateView<S, V>
-where
-    V: View,
-    S: Clone
-{
-    fn layout(&self, id: ViewID, cx: &mut Context) -> LocalSize {
-
-        cx.with_state(self.default.clone(), id, |state: State<S>, cx| {
-            (*self.func)(state.clone()).layout(id.child(0), cx);
-        });
-
-    }
-}
-*/
-
 pub fn state<S: Clone, V: View, F: Fn(State<S>) -> V + 'static>(
     initial: S,
     f: F,
