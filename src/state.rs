@@ -123,3 +123,13 @@ pub fn state<S: Clone, V: View, F: Fn(State<S>) -> V + 'static>(
         func: Box::new(f),
     }
 }
+
+pub struct ValueBinding<'a, S> {
+    func: Box<dyn Fn() -> RefMut<'a, S> >,
+}
+
+impl<S> Binding<S> for ValueBinding<'_, S> {
+    fn get(&self) -> RefMut<'_, S> {
+        (*self.func)()
+    }
+} 
