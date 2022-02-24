@@ -6,6 +6,8 @@ Experimental Rust UI library, inspired by SwiftUI. "rui" is a temporary name. Ea
 
 rui is immediate mode (there is no retained tree of views), GPU rendered, and has richer layout options than other immediate mode UIs.
 
+## Examples
+
 obligatory Counter (`cargo run --example counter`):
 
 ```Rust
