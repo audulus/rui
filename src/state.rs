@@ -116,4 +116,15 @@ impl<S> Binding<S> for ValueBinding<'_, S> {
     fn get(&self) -> RefMut<'_, S> {
         (*self.func)()
     }
-} 
+}
+
+#[macro_export]
+macro_rules! binding {
+    ( $x:expr, $field:ident ) => {
+        {
+            ValueBinding {
+                func: Box::new(move || { &x.field })
+            }
+        }
+    };
+}
