@@ -40,7 +40,7 @@ where
         cx: &mut Context,
         vger: &mut VGER,
     ) -> Option<ViewID> {
-        self.child.hittest(id.child(0), pt, cx, vger)
+        self.child.hittest(id.child(0), pt - self.offset, cx, vger)
     }
 }
 
