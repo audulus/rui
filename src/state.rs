@@ -119,7 +119,7 @@ impl<S> Binding<S> for ValueBinding<'_, S> {
 }
 
 #[macro_export]
-macro_rules! binding {
+macro_rules! bind {
     ( $x:expr, $field:ident ) => {
         {
             ValueBinding {
