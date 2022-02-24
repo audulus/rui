@@ -105,26 +105,32 @@ pub fn state<S: Clone, V: View, F: Fn(State<S>) -> V + 'static>(
 }
 
 pub struct ValueBinding<S> {
-    get: Box<dyn Fn() -> S >,
-    set: Box<dyn Fn(S)>,
+    pub getf: Box<dyn Fn() -> S >,
+    pub setf: Box<dyn Fn(S)>,
 }
 
 impl<S> Binding<S> for ValueBinding<S> {
     fn get(&self) -> S {
-        (*self.get)()
+        (*self.getf)()
     }
     fn set(&self, value: S) {
-        (*self.set)(value);
+        (*self.setf)(value);
     }
 }
 
 #[macro_export]
 macro_rules! bind {
-    ( $x:expr, $field:ident ) => {
+    ( $state:expr, $field:ident ) => {
         {
+            let state1 = $state.clone();
+            let state2 = $state.clone();
             ValueBinding {
-                get: Box::new(move || { x.field.clone() }),
-                set: Box::new(move |val| { x.field = val} )
+                getf: Box::new(move || { state1.get().$field.clone() }),
+                setf: Box::new(move |val| { 
+                    let mut s = state2.get();
+                    s.$field = val;
+                    state2.set(s);
+                } )
             }
         }
     };

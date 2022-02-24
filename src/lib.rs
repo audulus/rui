@@ -440,4 +440,17 @@ mod tests {
     fn ok_button<F: Fn() + 'static>(f: F) -> impl View {
         button("ok", f)
     }
+
+    #[derive(Clone)]
+    struct BindingTestData {
+        x: usize
+    }
+
+    #[test]
+    fn test_bind() {
+        let s = State::new(BindingTestData{ x: 0 });
+        let b = bind!(s, x);
+        b.set(42);
+        assert_eq!(s.get().x, 42);
+    }
 }
