@@ -91,7 +91,7 @@ fn main() {
 - ✅ state
 - ✅ zstack
 - ✅ canvas (GPU vector graphics with vger)
-- ❌ bindings
+- ✅ bindings
 - ❌ sliders
 - ❌ knobs
 - ❌ editable text
