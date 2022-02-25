@@ -134,6 +134,8 @@ impl View for Stack {
             if let Some(h) = child.hittest(child_id, pt - offset, cx, vger) {
                 hit = Some(h)
             }
+
+            c += 1;
         }
         hit
     }
