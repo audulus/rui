@@ -53,7 +53,7 @@ use vger::color::*;
 use vger::*;
 
 use winit::{
-    event::{self, ElementState, WindowEvent},
+    event::{ElementState, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
     window::WindowBuilder,
 };
