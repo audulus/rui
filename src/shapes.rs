@@ -23,7 +23,7 @@ impl View for Circle {
         println!("circle");
     }
 
-    fn process(&self, _event: &Event, _id: ViewID, _cx: &mut Context, vger: &mut VGER) {
+    fn process(&self, _event: &Event, _id: ViewID, _cx: &mut Context, _vger: &mut VGER) {
         // do nothing
     }
 
@@ -34,7 +34,7 @@ impl View for Circle {
         vger.fill_circle(center, radius, paint);
     }
 
-    fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
+    fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, _vger: &mut VGER) -> LocalSize {
         cx.layout.insert(
             id,
             LayoutBox {
@@ -50,7 +50,7 @@ impl View for Circle {
         id: ViewID,
         pt: LocalPoint,
         cx: &mut Context,
-        vger: &mut VGER,
+        _vger: &mut VGER,
     ) -> Option<ViewID> {
         let (center, radius) = self.geom(id, cx);
 
@@ -91,7 +91,7 @@ impl View for Rectangle {
         println!("rectangle");
     }
 
-    fn process(&self, _event: &Event, _id: ViewID, _cx: &mut Context, vger: &mut VGER) {
+    fn process(&self, _event: &Event, _id: ViewID, _cx: &mut Context, _vger: &mut VGER) {
         // do nothing
     }
 
