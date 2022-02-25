@@ -34,17 +34,17 @@ impl View for EmptyView {
     fn print(&self, _id: ViewID, _cx: &mut Context) {
         println!("EmptyView");
     }
-    fn process(&self, _event: &Event, _id: ViewID, _cx: &mut Context, vger: &mut VGER) {}
-    fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {}
-    fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
+    fn process(&self, _event: &Event, _id: ViewID, _cx: &mut Context, _vger: &mut VGER) {}
+    fn draw(&self, _id: ViewID, _cx: &mut Context, _vger: &mut VGER) {}
+    fn layout(&self, _id: ViewID, _sz: LocalSize, _cx: &mut Context, _vger: &mut VGER) -> LocalSize {
         [0.0, 0.0].into()
     }
     fn hittest(
         &self,
-        id: ViewID,
-        pt: LocalPoint,
-        cx: &mut Context,
-        vger: &mut VGER,
+        _id: ViewID,
+        _pt: LocalPoint,
+        _cx: &mut Context,
+        _vger: &mut VGER,
     ) -> Option<ViewID> {
         None
     }
