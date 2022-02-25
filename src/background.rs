@@ -1,4 +1,3 @@
-
 use crate::*;
 
 pub struct Background<V: View, BG: View> {
@@ -9,7 +8,7 @@ pub struct Background<V: View, BG: View> {
 impl<V, BG> View for Background<V, BG>
 where
     V: View,
-    BG: View
+    BG: View,
 {
     fn print(&self, id: ViewID, cx: &mut Context) {
         println!("Background {{");
@@ -28,18 +27,8 @@ where
     }
 
     fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
-        let child_size = self.child.layout(
-            id.child(0),
-            sz,
-            cx,
-            vger,
-        );
-        self.background.layout(
-            id.child(1),
-            child_size,
-            cx,
-            vger,
-        );
+        let child_size = self.child.layout(id.child(0), sz, cx, vger);
+        self.background.layout(id.child(1), child_size, cx, vger);
         child_size
     }
 
@@ -50,24 +39,16 @@ where
         cx: &mut Context,
         vger: &mut VGER,
     ) -> Option<ViewID> {
-        self.background.hittest(
-            id.child(1),
-            pt,
-            cx,
-            vger,
-        )
+        self.background.hittest(id.child(1), pt, cx, vger)
     }
 }
 
 impl<V, BG> Background<V, BG>
 where
     V: View + 'static,
-    BG: View + 'static
+    BG: View + 'static,
 {
     pub fn new(child: V, background: BG) -> Self {
-        Self {
-            child,
-            background,
-        }
+        Self { child, background }
     }
 }

@@ -417,7 +417,7 @@ mod tests {
     }
 
     */
-    
+
     fn counter3<B>(count: B) -> impl View
     where
         B: Binding<usize> + Clone + 'static,
@@ -426,11 +426,11 @@ mod tests {
         let mut stack = Stack::new(StackOrientation::Vertical);
         stack.push(button("increment", move || {
             let value = count.get();
-            count.set(value+1);
+            count.set(value + 1);
         }));
         stack.push(button("decrement", move || {
             let value = count2.get();
-            count2.set(value-1);
+            count2.set(value - 1);
         }));
         stack
     }
@@ -446,12 +446,12 @@ mod tests {
 
     #[derive(Clone)]
     struct BindingTestData {
-        x: usize
+        x: usize,
     }
 
     #[test]
     fn test_bind() {
-        let s = State::new(BindingTestData{ x: 0 });
+        let s = State::new(BindingTestData { x: 0 });
         let b = bind!(s, x);
         b.set(42);
         assert_eq!(s.get().x, 42);

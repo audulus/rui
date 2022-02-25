@@ -48,7 +48,7 @@ impl Context {
             layout: HashMap::new(),
             vger: None,
             touches: [ViewID::default(); 16],
-            starts: [LocalPoint::zero(); 16]
+            starts: [LocalPoint::zero(); 16],
         }
     }
 

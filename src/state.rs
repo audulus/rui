@@ -21,7 +21,10 @@ impl<S> State<S> {
     }
 }
 
-impl<S> Binding<S> for State<S> where S: Clone {
+impl<S> Binding<S> for State<S>
+where
+    S: Clone,
+{
     fn get(&self) -> S {
         // Here we can indicate that a state change has
         // been made.
@@ -49,9 +52,14 @@ where
     }
 
     fn process(&self, event: &Event, id: ViewID, cx: &mut Context, vger: &mut VGER) {
-        cx.with_state_vger(vger, self.default.clone(), id, |state: State<S>, cx, vger| {
-            (*self.func)(state.clone()).process(event, id.child(0), cx, vger);
-        })
+        cx.with_state_vger(
+            vger,
+            self.default.clone(),
+            id,
+            |state: State<S>, cx, vger| {
+                (*self.func)(state.clone()).process(event, id.child(0), cx, vger);
+            },
+        )
     }
 
     fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
@@ -105,7 +113,7 @@ pub fn state<S: Clone, V: View, F: Fn(State<S>) -> V + 'static>(
 }
 
 pub struct ValueBinding<S> {
-    pub getf: Box<dyn Fn() -> S >,
+    pub getf: Box<dyn Fn() -> S>,
     pub setf: Box<dyn Fn(S)>,
 }
 
@@ -120,18 +128,16 @@ impl<S> Binding<S> for ValueBinding<S> {
 
 #[macro_export]
 macro_rules! bind {
-    ( $state:expr, $field:ident ) => {
-        {
-            let state1 = $state.clone();
-            let state2 = $state.clone();
-            ValueBinding {
-                getf: Box::new(move || { state1.get().$field.clone() }),
-                setf: Box::new(move |val| { 
-                    let mut s = state2.get();
-                    s.$field = val;
-                    state2.set(s);
-                } )
-            }
+    ( $state:expr, $field:ident ) => {{
+        let state1 = $state.clone();
+        let state2 = $state.clone();
+        ValueBinding {
+            getf: Box::new(move || state1.get().$field.clone()),
+            setf: Box::new(move |val| {
+                let mut s = state2.get();
+                s.$field = val;
+                state2.set(s);
+            }),
         }
-    };
+    }};
 }

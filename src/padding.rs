@@ -31,11 +31,11 @@ where
     fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
         let child_size = self.child.layout(
             id.child(0),
-            sz - [2.0*self.padding, 2.0*self.padding].into(),
+            sz - [2.0 * self.padding, 2.0 * self.padding].into(),
             cx,
             vger,
         );
-        child_size + LocalSize::new(2.0*self.padding, 2.0*self.padding)
+        child_size + LocalSize::new(2.0 * self.padding, 2.0 * self.padding)
     }
 
     fn hittest(
@@ -79,7 +79,7 @@ where
             child: child,
             padding: match param {
                 PaddingParam::Auto => 5.0,
-                PaddingParam::Px(px) => px
+                PaddingParam::Px(px) => px,
             },
         }
     }

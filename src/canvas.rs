@@ -44,7 +44,5 @@ impl View for Canvas {
 }
 
 pub fn canvas<F: Fn(LocalRect, &mut VGER) + 'static>(f: F) -> Canvas {
-    Canvas {
-        func: Box::new(f)
-    }
+    Canvas { func: Box::new(f) }
 }

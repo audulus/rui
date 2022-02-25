@@ -1,4 +1,3 @@
-
 use crate::*;
 
 pub struct Offset<V: View> {
@@ -51,7 +50,7 @@ where
     pub fn new(child: V, offset: LocalOffset) -> Self {
         Self {
             child: child,
-            offset
+            offset,
         }
     }
 }

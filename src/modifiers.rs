@@ -9,7 +9,7 @@ pub trait Modifiers: View + Sized {
     fn offset(self, offset: LocalOffset) -> Offset<Self>;
 }
 
-impl <V: View + 'static> Modifiers for V {
+impl<V: View + 'static> Modifiers for V {
     fn padding(self, param: impl Into<PaddingParam>) -> Padding<Self> {
         Padding::new(self, param.into())
     }

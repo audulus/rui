@@ -1,4 +1,3 @@
-
 pub use crate::*;
 
 pub struct Tap<V: View> {
@@ -6,9 +5,15 @@ pub struct Tap<V: View> {
     func: Box<dyn Fn()>,
 }
 
-impl<V> Tap<V> where V: View {
+impl<V> Tap<V>
+where
+    V: View,
+{
     pub fn new<F: Fn() + 'static>(v: V, f: F) -> Self {
-        Self { child: v, func: Box::new(f) }
+        Self {
+            child: v,
+            func: Box::new(f),
+        }
     }
 }
 
@@ -25,11 +30,10 @@ where
     fn process(&self, event: &Event, vid: ViewID, cx: &mut Context, vger: &mut VGER) {
         match &event.kind {
             EventKind::TouchBegin { id } => {
-                if let Some(_) = self.hittest(vid, event.position, cx, vger)
-                {
+                if let Some(_) = self.hittest(vid, event.position, cx, vger) {
                     cx.touches[*id] = vid;
                 }
-            },
+            }
             EventKind::TouchEnd { id } => {
                 if cx.touches[*id] == vid {
                     cx.touches[*id] = ViewID::default();
@@ -64,9 +68,15 @@ pub struct Drag<V: View> {
     func: Box<dyn Fn(LocalOffset)>,
 }
 
-impl<V> Drag<V> where V: View {
+impl<V> Drag<V>
+where
+    V: View,
+{
     pub fn new<F: Fn(LocalOffset) + 'static>(v: V, f: F) -> Self {
-        Self { child: v, func: Box::new(f) }
+        Self {
+            child: v,
+            func: Box::new(f),
+        }
     }
 }
 
@@ -83,17 +93,16 @@ where
     fn process(&self, event: &Event, vid: ViewID, cx: &mut Context, vger: &mut VGER) {
         match &event.kind {
             EventKind::TouchBegin { id } => {
-                if let Some(_) = self.hittest(vid, event.position, cx, vger)
-                {
+                if let Some(_) = self.hittest(vid, event.position, cx, vger) {
                     cx.touches[*id] = vid;
                     cx.starts[*id] = event.position;
                 }
-            },
+            }
             EventKind::TouchMove { id } => {
                 if cx.touches[*id] == vid {
                     (*self.func)(event.position - cx.starts[*id]);
                 }
-            },
+            }
             EventKind::TouchEnd { id } => {
                 if cx.touches[*id] == vid {
                     cx.touches[*id] = ViewID::default();
