@@ -61,7 +61,7 @@ use winit::{
 struct Setup {
     window: winit::window::Window,
     event_loop: EventLoop<()>,
-    instance: wgpu::Instance,
+    // instance: wgpu::Instance,
     size: winit::dpi::PhysicalSize<u32>,
     surface: wgpu::Surface,
     adapter: wgpu::Adapter,
@@ -159,7 +159,7 @@ async fn setup(title: &str) -> Setup {
     Setup {
         window,
         event_loop,
-        instance,
+        // instance,
         size,
         surface,
         adapter,
