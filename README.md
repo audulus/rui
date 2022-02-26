@@ -14,7 +14,7 @@ obligatory Counter (`cargo run --example counter`):
 use rui::*;
 
 fn main() {
-    rui(state(1, |count: State<usize>| {
+    rui(state(1, |count| {
         vstack! {
             text(&format!("{:?}", count.get()))
                 .padding(Auto);
