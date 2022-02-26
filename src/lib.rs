@@ -260,12 +260,12 @@ pub fn rui(view: impl View + 'static) {
                 vger.begin(width, height, scale);
 
                 view.layout(
-                    ViewID::default(),
+                    cx.root_id,
                     [width, height].into(),
                     &mut cx,
                     &mut vger,
                 );
-                view.draw(ViewID::default(), &mut cx, &mut vger);
+                view.draw(cx.root_id, &mut cx, &mut vger);
 
                 let texture_view = frame
                     .texture
@@ -302,7 +302,7 @@ pub fn rui(view: impl View + 'static) {
                         position: mouse_position,
                     },
                 };
-                view.process(&event, ViewID::default(), &mut cx, &mut vger)
+                view.process(&event, cx.root_id, &mut cx, &mut vger)
             }
             winit::event::Event::WindowEvent {
                 event: WindowEvent::CursorMoved { position, .. },
@@ -318,7 +318,7 @@ pub fn rui(view: impl View + 'static) {
                     kind: EventKind::TouchMove { id: 0 },
                     position: mouse_position,
                 };
-                view.process(&event, ViewID::default(), &mut cx, &mut vger)
+                view.process(&event, cx.root_id, &mut cx, &mut vger)
             }
             _ => (),
         }
