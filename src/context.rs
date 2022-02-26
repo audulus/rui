@@ -11,19 +11,20 @@ pub type LocalSize = Size2D<f32, LocalSpace>;
 pub type LocalPoint = Point2D<f32, LocalSpace>;
 pub type WorldRect = Rect<f32, WorldSpace>;
 
+use std::collections::hash_map::DefaultHasher;
+use std::hash::Hasher;
+
 #[derive(Copy, Clone, Default, Eq, PartialEq, Hash, Debug)]
 pub struct ViewID {
-    path: [u16; 32],
-    len: usize,
+    id: u64,
 }
 
 impl ViewID {
     pub fn child(&self, index: u16) -> Self {
-        let mut c = *self;
-        assert!(c.len < 32);
-        c.path[c.len] = index;
-        c.len += 1;
-        c
+        let mut hasher = DefaultHasher::new();
+        hasher.write_u64(self.id);
+        hasher.write_u16(index);
+        ViewID{ id: hasher.finish() }
     }
 }
 
