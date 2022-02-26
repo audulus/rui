@@ -86,7 +86,7 @@ impl View for Button {
         id: ViewID,
         pt: LocalPoint,
         cx: &mut Context,
-        vger: &mut VGER,
+        _vger: &mut VGER,
     ) -> Option<ViewID> {
         if cx.layout.entry(id).or_default().rect.contains(pt) {
             Some(id)
