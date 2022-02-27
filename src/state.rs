@@ -112,17 +112,21 @@ pub fn state<S: Clone, V: View, F: Fn(State<S>) -> V + 'static>(
     }
 }
 
-pub struct Field<S> {
-    pub getf: Box<dyn Fn() -> S>,
-    pub setf: Box<dyn Fn(S)>,
+pub struct Field<Get, Set> {
+    pub getf: Get,
+    pub setf: Set,
 }
 
-impl<S> Binding<S> for Field<S> {
+impl<S, Get, Set> Binding<S> for Field<Get, Set>
+    where 
+      Get: Fn() -> S,
+      Set: Fn(S) 
+{
     fn get(&self) -> S {
-        (*self.getf)()
+        (self.getf)()
     }
     fn set(&self, value: S) {
-        (*self.setf)(value);
+        (self.setf)(value);
     }
 }
 
