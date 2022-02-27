@@ -11,26 +11,26 @@ where
 {
     fn print(&self, id: ViewID, cx: &mut Context) {
         println!("Padding {{");
-        (self.child).print(id.child(0), cx);
+        (self.child).print(id.child(&0), cx);
         println!("}}");
     }
 
     fn process(&self, event: &Event, id: ViewID, cx: &mut Context, vger: &mut VGER) {
         let mut local_event = event.clone();
         local_event.position -= LocalOffset::new(self.padding, self.padding);
-        self.child.process(&local_event, id.child(0), cx, vger);
+        self.child.process(&local_event, id.child(&0), cx, vger);
     }
 
     fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
         vger.save();
         vger.translate([self.padding, self.padding].into());
-        self.child.draw(id.child(0), cx, vger);
+        self.child.draw(id.child(&0), cx, vger);
         vger.restore();
     }
 
     fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
         let child_size = self.child.layout(
-            id.child(0),
+            id.child(&0),
             sz - [2.0 * self.padding, 2.0 * self.padding].into(),
             cx,
             vger,
@@ -46,7 +46,7 @@ where
         vger: &mut VGER,
     ) -> Option<ViewID> {
         self.child.hittest(
-            id.child(0),
+            id.child(&0),
             pt - LocalOffset::new(self.padding, self.padding),
             cx,
             vger,

@@ -22,7 +22,7 @@ where
 {
     fn print(&self, id: ViewID, cx: &mut Context) {
         println!("Tap {{");
-        (self.child).print(id.child(0), cx);
+        (self.child).print(id.child(&0), cx);
         println!("}}");
     }
 
@@ -44,11 +44,11 @@ where
     }
 
     fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
-        self.child.draw(id.child(0), cx, vger)
+        self.child.draw(id.child(&0), cx, vger)
     }
 
     fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
-        self.child.layout(id.child(0), sz, cx, vger)
+        self.child.layout(id.child(&0), sz, cx, vger)
     }
 
     fn hittest(
@@ -58,7 +58,7 @@ where
         cx: &mut Context,
         vger: &mut VGER,
     ) -> Option<ViewID> {
-        self.child.hittest(id.child(0), pt, cx, vger)
+        self.child.hittest(id.child(&0), pt, cx, vger)
     }
 }
 
@@ -90,7 +90,7 @@ where
 {
     fn print(&self, id: ViewID, cx: &mut Context) {
         println!("Drag {{");
-        (self.child).print(id.child(0), cx);
+        (self.child).print(id.child(&0), cx);
         println!("}}");
     }
 
@@ -124,11 +124,11 @@ where
     }
 
     fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
-        self.child.draw(id.child(0), cx, vger)
+        self.child.draw(id.child(&0), cx, vger)
     }
 
     fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
-        self.child.layout(id.child(0), sz, cx, vger)
+        self.child.layout(id.child(&0), sz, cx, vger)
     }
 
     fn hittest(
@@ -138,6 +138,6 @@ where
         cx: &mut Context,
         vger: &mut VGER,
     ) -> Option<ViewID> {
-        self.child.hittest(id.child(0), pt, cx, vger)
+        self.child.hittest(id.child(&0), pt, cx, vger)
     }
 }

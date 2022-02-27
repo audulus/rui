@@ -16,7 +16,7 @@ impl View for Stack {
         println!("Stack {{");
         let mut c: u16 = 0;
         for child in &self.children {
-            (*child).print(id.child(c), cx);
+            (*child).print(id.child(&c), cx);
             c += 1;
         }
         println!("}}");
@@ -25,7 +25,7 @@ impl View for Stack {
     fn process(&self, event: &Event, id: ViewID, cx: &mut Context, vger: &mut VGER) {
         let mut c: u16 = 0;
         for child in &self.children {
-            let child_id = id.child(c);
+            let child_id = id.child(&c);
             let offset = cx
                 .layout
                 .entry(child_id)
@@ -43,7 +43,7 @@ impl View for Stack {
     fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
         let mut c: u16 = 0;
         for child in &self.children {
-            let child_id = id.child(c);
+            let child_id = id.child(&c);
             let offset = cx
                 .layout
                 .entry(child_id)
@@ -71,7 +71,7 @@ impl View for Stack {
                 let mut c: u16 = 0;
                 let mut width_sum = 0.0;
                 for child in &self.children {
-                    let child_id = id.child(c);
+                    let child_id = id.child(&c);
                     let child_size = child.layout(child_id, proposed_child_size, cx, vger);
 
                     cx.layout.entry(child_id).or_default().offset =
@@ -90,7 +90,7 @@ impl View for Stack {
                 let mut y = sz.height;
                 let mut height_sum = 0.0;
                 for child in &self.children {
-                    let child_id = id.child(c);
+                    let child_id = id.child(&c);
                     let child_size = child.layout(child_id, proposed_child_size, cx, vger);
 
                     y -= child_size.height;
@@ -106,7 +106,7 @@ impl View for Stack {
             StackOrientation::Z => {
                 let mut c: u16 = 0;
                 for child in &self.children {
-                    child.layout(id.child(c), sz, cx, vger);
+                    child.layout(id.child(&c), sz, cx, vger);
                     c += 1;
                 }
                 sz
@@ -124,7 +124,7 @@ impl View for Stack {
         let mut c: u16 = 0;
         let mut hit = None;
         for child in &self.children {
-            let child_id = id.child(c);
+            let child_id = id.child(&c);
             let offset = cx
                 .layout
                 .entry(child_id)
@@ -204,19 +204,19 @@ where
 {
     fn print(&self, id: ViewID, cx: &mut Context) {
         println!("Stack {{");
-        self.children.0.print(id.child(0), cx);
-        self.children.1.print(id.child(1), cx);
+        self.children.0.print(id.child(&0), cx);
+        self.children.1.print(id.child(&1), cx);
         println!("}}");
     }
 
     fn process(&self, event: &Event, id: ViewID, cx: &mut Context, vger: &mut VGER) {
-        self.children.0.process(event, id.child(0), cx, vger);
-        self.children.1.process(event, id.child(1), cx, vger);
+        self.children.0.process(event, id.child(&0), cx, vger);
+        self.children.1.process(event, id.child(&1), cx, vger);
     }
 
     fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
-        self.children.0.draw(id.child(0), cx, vger);
-        self.children.1.draw(id.child(1), cx, vger);
+        self.children.0.draw(id.child(&0), cx, vger);
+        self.children.1.draw(id.child(&1), cx, vger);
     }
 
     fn layout(
@@ -258,22 +258,22 @@ where
 {
     fn print(&self, id: ViewID, cx: &mut Context) {
         println!("Stack {{");
-        self.children.0.print(id.child(0), cx);
-        self.children.1.print(id.child(1), cx);
-        self.children.2.print(id.child(2), cx);
+        self.children.0.print(id.child(&0), cx);
+        self.children.1.print(id.child(&1), cx);
+        self.children.2.print(id.child(&2), cx);
         println!("}}");
     }
 
     fn process(&self, event: &Event, id: ViewID, cx: &mut Context, vger: &mut VGER) {
-        self.children.0.process(event, id.child(0), cx, vger);
-        self.children.1.process(event, id.child(1), cx, vger);
-        self.children.2.process(event, id.child(2), cx, vger);
+        self.children.0.process(event, id.child(&0), cx, vger);
+        self.children.1.process(event, id.child(&1), cx, vger);
+        self.children.2.process(event, id.child(&2), cx, vger);
     }
 
     fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
-        self.children.0.draw(id.child(0), cx, vger);
-        self.children.1.draw(id.child(1), cx, vger);
-        self.children.2.draw(id.child(2), cx, vger);
+        self.children.0.draw(id.child(&0), cx, vger);
+        self.children.1.draw(id.child(&1), cx, vger);
+        self.children.2.draw(id.child(&2), cx, vger);
     }
 
     fn layout(

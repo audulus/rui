@@ -21,16 +21,7 @@ pub struct ViewID {
 }
 
 impl ViewID {
-    pub fn child(&self, index: u16) -> Self {
-        let mut hasher = DefaultHasher::new();
-        hasher.write_u64(self.id);
-        hasher.write_u16(index);
-        Self {
-            id: hasher.finish(),
-        }
-    }
-
-    pub fn hash_child<T: Hash>(&self, value: &T) -> Self {
+    pub fn child<T: Hash>(&self, value: &T) -> Self {
         let mut hasher = DefaultHasher::new();
         hasher.write_u64(self.id);
         value.hash(&mut hasher);

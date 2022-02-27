@@ -12,23 +12,23 @@ where
 {
     fn print(&self, id: ViewID, cx: &mut Context) {
         println!("Background {{");
-        (self.child).print(id.child(0), cx);
-        (self.background).print(id.child(1), cx);
+        (self.child).print(id.child(&0), cx);
+        (self.background).print(id.child(&1), cx);
         println!("}}");
     }
 
     fn process(&self, event: &Event, id: ViewID, cx: &mut Context, vger: &mut VGER) {
-        self.child.process(event, id.child(0), cx, vger);
+        self.child.process(event, id.child(&0), cx, vger);
     }
 
     fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
-        self.background.draw(id.child(1), cx, vger);
-        self.child.draw(id.child(0), cx, vger);
+        self.background.draw(id.child(&1), cx, vger);
+        self.child.draw(id.child(&0), cx, vger);
     }
 
     fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
-        let child_size = self.child.layout(id.child(0), sz, cx, vger);
-        self.background.layout(id.child(1), child_size, cx, vger);
+        let child_size = self.child.layout(id.child(&0), sz, cx, vger);
+        self.background.layout(id.child(&1), child_size, cx, vger);
         child_size
     }
 
@@ -39,7 +39,7 @@ where
         cx: &mut Context,
         vger: &mut VGER,
     ) -> Option<ViewID> {
-        self.background.hittest(id.child(1), pt, cx, vger)
+        self.background.hittest(id.child(&1), pt, cx, vger)
     }
 }
 

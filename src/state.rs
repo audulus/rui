@@ -48,7 +48,7 @@ where
 {
     fn print(&self, id: ViewID, cx: &mut Context) {
         cx.with_state(self.default.clone(), id, |state: State<S>, cx| {
-            (self.func)(state.clone()).print(id.child(0), cx);
+            (self.func)(state.clone()).print(id.child(&0), cx);
         });
     }
 
@@ -58,7 +58,7 @@ where
             self.default.clone(),
             id,
             |state: State<S>, cx, vger| {
-                (self.func)(state.clone()).process(event, id.child(0), cx, vger);
+                (self.func)(state.clone()).process(event, id.child(&0), cx, vger);
             },
         )
     }
@@ -69,7 +69,7 @@ where
             self.default.clone(),
             id,
             |state: State<S>, cx, vger| {
-                (self.func)(state.clone()).draw(id.child(0), cx, vger);
+                (self.func)(state.clone()).draw(id.child(&0), cx, vger);
             },
         );
     }
@@ -80,7 +80,7 @@ where
             self.default.clone(),
             id,
             |state: State<S>, cx, vger| {
-                (self.func)(state.clone()).layout(id.child(0), sz, cx, vger)
+                (self.func)(state.clone()).layout(id.child(&0), sz, cx, vger)
             },
         )
     }
@@ -97,7 +97,7 @@ where
             self.default.clone(),
             id,
             |state: State<S>, cx, vger| {
-                (self.func)(state.clone()).hittest(id.child(0), pt, cx, vger)
+                (self.func)(state.clone()).hittest(id.child(&0), pt, cx, vger)
             },
         )
     }
