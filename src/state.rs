@@ -112,12 +112,12 @@ pub fn state<S: Clone, V: View, F: Fn(State<S>) -> V + 'static>(
     }
 }
 
-pub struct ValueBinding<S> {
+pub struct Field<S> {
     pub getf: Box<dyn Fn() -> S>,
     pub setf: Box<dyn Fn(S)>,
 }
 
-impl<S> Binding<S> for ValueBinding<S> {
+impl<S> Binding<S> for Field<S> {
     fn get(&self) -> S {
         (*self.getf)()
     }
@@ -131,7 +131,7 @@ macro_rules! bind {
     ( $state:expr, $field:ident ) => {{
         let state1 = $state.clone();
         let state2 = $state.clone();
-        ValueBinding {
+        Field {
             getf: Box::new(move || state1.get().$field.clone()),
             setf: Box::new(move |val| {
                 let mut s = state2.get();
