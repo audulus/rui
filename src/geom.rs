@@ -1,13 +1,14 @@
 use crate::*;
 
-pub struct Geom<V: View> {
+pub struct Geom<V: View, F: Fn(LocalSize)> {
     child: V,
-    func: Box<dyn Fn(LocalSize)>,
+    func: F,
 }
 
-impl<V> View for Geom<V>
+impl<V, F> View for Geom<V, F>
 where
     V: View,
+    F: Fn(LocalSize)
 {
     fn print(&self, id: ViewID, cx: &mut Context) {
         println!("Geom {{");
@@ -25,7 +26,7 @@ where
 
     fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
         let sz = self.child.layout(id.child(0), sz, cx, vger);
-        (*self.func)(sz);
+        (self.func)(sz);
         sz
     }
 
@@ -40,14 +41,15 @@ where
     }
 }
 
-impl<V> Geom<V>
+impl<V, F> Geom<V, F>
 where
     V: View + 'static,
+    F: Fn(LocalSize) + 'static
 {
-    pub fn new<F: Fn(LocalSize) + 'static>(child: V, f: F) -> Self {
+    pub fn new(child: V, f: F) -> Self {
         Self {
             child: child,
-            func: Box::new(f),
+            func: f,
         }
     }
 }
