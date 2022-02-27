@@ -259,12 +259,7 @@ pub fn rui(view: impl View + 'static) {
 
                 vger.begin(width, height, scale);
 
-                view.layout(
-                    cx.root_id,
-                    [width, height].into(),
-                    &mut cx,
-                    &mut vger,
-                );
+                view.layout(cx.root_id, [width, height].into(), &mut cx, &mut vger);
                 view.draw(cx.root_id, &mut cx, &mut vger);
 
                 let texture_view = frame

@@ -8,20 +8,17 @@ pub struct Tap<V: View, F: Fn()> {
 impl<V, F> Tap<V, F>
 where
     V: View,
-    F: Fn() + 'static
+    F: Fn() + 'static,
 {
     pub fn new(v: V, f: F) -> Self {
-        Self {
-            child: v,
-            func: f,
-        }
+        Self { child: v, func: f }
     }
 }
 
 impl<V, F> View for Tap<V, F>
 where
     V: View,
-    F: Fn() + 'static
+    F: Fn() + 'static,
 {
     fn print(&self, id: ViewID, cx: &mut Context) {
         println!("Tap {{");
@@ -68,7 +65,7 @@ where
 pub enum GestureState {
     Began,
     Changed,
-    Ended
+    Ended,
 }
 
 pub struct Drag<V: View, F: Fn(LocalOffset, GestureState)> {
@@ -82,10 +79,7 @@ where
     F: Fn(LocalOffset, GestureState) + 'static,
 {
     pub fn new(v: V, f: F) -> Self {
-        Self {
-            child: v,
-            func: f,
-        }
+        Self { child: v, func: f }
     }
 }
 
@@ -119,7 +113,10 @@ where
             EventKind::TouchEnd { id } => {
                 if cx.touches[*id] == vid {
                     cx.touches[*id] = ViewID::default();
-                    (self.func)(event.position - cx.previous_position[*id], GestureState::Ended);
+                    (self.func)(
+                        event.position - cx.previous_position[*id],
+                        GestureState::Ended,
+                    );
                 }
             }
             _ => (),

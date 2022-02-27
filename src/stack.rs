@@ -219,7 +219,13 @@ where
         self.children.1.draw(id.child(1), cx, vger);
     }
 
-    fn layout(&self, _id: ViewID, _sz: LocalSize, _cx: &mut Context, _vger: &mut VGER) -> LocalSize {
+    fn layout(
+        &self,
+        _id: ViewID,
+        _sz: LocalSize,
+        _cx: &mut Context,
+        _vger: &mut VGER,
+    ) -> LocalSize {
         // TODO
         [0.0, 0.0].into()
     }
@@ -270,7 +276,13 @@ where
         self.children.2.draw(id.child(2), cx, vger);
     }
 
-    fn layout(&self, _id: ViewID, _sz: LocalSize, _cx: &mut Context, _vger: &mut VGER) -> LocalSize {
+    fn layout(
+        &self,
+        _id: ViewID,
+        _sz: LocalSize,
+        _cx: &mut Context,
+        _vger: &mut VGER,
+    ) -> LocalSize {
         // TODO
         [0.0, 0.0].into()
     }

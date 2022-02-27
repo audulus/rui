@@ -11,7 +11,9 @@ impl<F> Button<F> {
 }
 
 impl<F> View for Button<F>
-    where F: Fn() {
+where
+    F: Fn(),
+{
     fn print(&self, _id: ViewID, _cx: &mut Context) {
         println!("Button({:?})", self.text);
     }
@@ -60,7 +62,12 @@ impl<F> View for Button<F>
                 + LocalOffset::new(Button::<F>::PADDING, Button::<F>::PADDING),
         );
 
-        vger.text(self.text.as_str(), Button::<F>::DEFAULT_SIZE, TEXT_COLOR, None);
+        vger.text(
+            self.text.as_str(),
+            Button::<F>::DEFAULT_SIZE,
+            TEXT_COLOR,
+            None,
+        );
 
         vger.restore();
     }

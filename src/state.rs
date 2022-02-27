@@ -3,7 +3,7 @@ use std::rc::Rc;
 
 use crate::*;
 
-pub trait Binding<S> : Clone {
+pub trait Binding<S>: Clone {
     fn get(&self) -> S;
     fn set(&self, value: S);
 }
@@ -35,7 +35,7 @@ where
     }
 }
 
-pub struct StateView<S: 'static, V: View, F: Fn(State<S>) -> V > {
+pub struct StateView<S: 'static, V: View, F: Fn(State<S>) -> V> {
     default: S,
     func: F,
 }
@@ -120,9 +120,9 @@ pub struct Field<Get, Set> {
 }
 
 impl<S, Get, Set> Binding<S> for Field<Get, Set>
-    where 
-      Get: Fn() -> S + Clone,
-      Set: Fn(S) + Clone
+where
+    Get: Fn() -> S + Clone,
+    Set: Fn(S) + Clone,
 {
     fn get(&self) -> S {
         (self.getf)()

@@ -8,7 +8,7 @@ pub struct Geom<V: View, F: Fn(LocalSize)> {
 impl<V, F> View for Geom<V, F>
 where
     V: View,
-    F: Fn(LocalSize)
+    F: Fn(LocalSize),
 {
     fn print(&self, id: ViewID, cx: &mut Context) {
         println!("Geom {{");
@@ -44,7 +44,7 @@ where
 impl<V, F> Geom<V, F>
 where
     V: View + 'static,
-    F: Fn(LocalSize) + 'static
+    F: Fn(LocalSize) + 'static,
 {
     pub fn new(child: V, f: F) -> Self {
         Self {
