@@ -10,6 +10,7 @@ pub type LocalOffset = Vector2D<f32, LocalSpace>;
 pub type LocalSize = Size2D<f32, LocalSpace>;
 pub type LocalPoint = Point2D<f32, LocalSpace>;
 pub type WorldRect = Rect<f32, WorldSpace>;
+pub type WorldPoint = Point2D<f32, WorldSpace>;
 
 use std::collections::hash_map::DefaultHasher;
 use std::hash::Hasher;
