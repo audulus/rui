@@ -109,3 +109,13 @@ where
         hit
     }
 }
+
+pub fn list<ID: Hash, V: View, F: Fn(&ID) -> V + 'static>(
+    ids: Vec<ID>,
+    f: F,
+) -> List<ID, V, F> {
+    List {
+        ids,
+        func: f,
+    }
+}
