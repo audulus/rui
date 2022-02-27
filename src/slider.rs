@@ -6,6 +6,8 @@ pub fn slider(value: impl Binding<f32> + 'static) -> impl View {
         let value = value.clone();
         circle().offset([x, 0.0].into()).drag(move |off, _state| {
             value.set(value.get() + off.x);
+        }).geom(move |sz| {
+            width.set(sz.width)
         })
     })
 }
