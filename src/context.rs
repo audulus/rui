@@ -25,7 +25,7 @@ impl ViewID {
         let mut hasher = DefaultHasher::new();
         hasher.write_u64(self.id);
         hasher.write_u16(index);
-        ViewID {
+        Self {
             id: hasher.finish(),
         }
     }
@@ -34,7 +34,7 @@ impl ViewID {
         let mut hasher = DefaultHasher::new();
         hasher.write_u64(self.id);
         value.hash(&mut hasher);
-        ViewID {
+        Self {
             id: hasher.finish(),
         }
     }
