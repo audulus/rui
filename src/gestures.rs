@@ -69,26 +69,28 @@ pub enum GestureState {
     Ended
 }
 
-pub struct Drag<V: View> {
+pub struct Drag<V: View, F: Fn(LocalOffset, GestureState)> {
     child: V,
-    func: Box<dyn Fn(LocalOffset, GestureState)>,
+    func: F,
 }
 
-impl<V> Drag<V>
+impl<V, F> Drag<V, F>
 where
     V: View,
+    F: Fn(LocalOffset, GestureState) + 'static,
 {
-    pub fn new<F: Fn(LocalOffset, GestureState) + 'static>(v: V, f: F) -> Self {
+    pub fn new(v: V, f: F) -> Self {
         Self {
             child: v,
-            func: Box::new(f),
+            func: f,
         }
     }
 }
 
-impl<V> View for Drag<V>
+impl<V, F> View for Drag<V, F>
 where
     V: View,
+    F: Fn(LocalOffset, GestureState) + 'static,
 {
     fn print(&self, id: ViewID, cx: &mut Context) {
         println!("Drag {{");
@@ -108,14 +110,14 @@ where
             EventKind::TouchMove { id } => {
                 if cx.touches[*id] == vid {
                     let delta = event.position - cx.previous_position[*id];
-                    (*self.func)(delta, GestureState::Changed);
+                    (self.func)(delta, GestureState::Changed);
                     cx.previous_position[*id] = event.position;
                 }
             }
             EventKind::TouchEnd { id } => {
                 if cx.touches[*id] == vid {
                     cx.touches[*id] = ViewID::default();
-                    (*self.func)(event.position - cx.previous_position[*id], GestureState::Ended);
+                    (self.func)(event.position - cx.previous_position[*id], GestureState::Ended);
                 }
             }
             _ => (),
