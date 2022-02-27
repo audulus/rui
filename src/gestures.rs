@@ -1,25 +1,27 @@
 pub use crate::*;
 
-pub struct Tap<V: View> {
+pub struct Tap<V: View, F: Fn()> {
     child: V,
-    func: Box<dyn Fn()>,
+    func: F,
 }
 
-impl<V> Tap<V>
+impl<V, F> Tap<V, F>
 where
     V: View,
+    F: Fn() + 'static
 {
-    pub fn new<F: Fn() + 'static>(v: V, f: F) -> Self {
+    pub fn new(v: V, f: F) -> Self {
         Self {
             child: v,
-            func: Box::new(f),
+            func: f,
         }
     }
 }
 
-impl<V> View for Tap<V>
+impl<V, F> View for Tap<V, F>
 where
     V: View,
+    F: Fn() + 'static
 {
     fn print(&self, id: ViewID, cx: &mut Context) {
         println!("Tap {{");
@@ -37,7 +39,7 @@ where
             EventKind::TouchEnd { id } => {
                 if cx.touches[*id] == vid {
                     cx.touches[*id] = ViewID::default();
-                    (*self.func)();
+                    (self.func)();
                 }
             }
             _ => (),
