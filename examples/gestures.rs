@@ -6,7 +6,7 @@ fn main() {
             .color(RED_HIGHLIGHT.alpha(0.8))
             .tap(|| { println!("tapped circle") })
             .padding(Auto);
-        state(LocalOffset::zero(), |offset_state: State<LocalOffset>| {
+        state(LocalOffset::zero(), |offset_state| {
             let off = offset_state.get();
             rectangle(5.0)
                 .color(AZURE_HIGHLIGHT.alpha(0.8))
