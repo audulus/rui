@@ -112,6 +112,7 @@ pub fn state<S: Clone, V: View, F: Fn(State<S>) -> V + 'static>(
     }
 }
 
+#[derive(Clone)]
 pub struct Field<Get, Set> {
     pub getf: Get,
     pub setf: Set,
