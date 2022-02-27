@@ -11,7 +11,7 @@ fn main() {
             rectangle(5.0)
                 .color(AZURE_HIGHLIGHT.alpha(0.8))
                 .offset(off)
-                .drag(move |off, state| offset_state.set(off) )
+                .drag(move |delta, _state| offset_state.set(offset_state.get() + delta) )
                 .padding(Auto)
         })
     });

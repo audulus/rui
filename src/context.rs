@@ -40,6 +40,7 @@ pub struct Context {
     pub vger: Option<VGER>,
     pub touches: [ViewID; 16],
     pub starts: [LocalPoint; 16],
+    pub previous_position: [LocalPoint; 16],
     pub root_id: ViewID,
 }
 
@@ -51,6 +52,7 @@ impl Context {
             vger: None,
             touches: [ViewID::default(); 16],
             starts: [LocalPoint::zero(); 16],
+            previous_position: [LocalPoint::zero(); 16],
             root_id: ViewID::default(),
         }
     }

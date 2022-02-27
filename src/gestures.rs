@@ -102,17 +102,20 @@ where
                 if let Some(_) = self.hittest(vid, event.position, cx, vger) {
                     cx.touches[*id] = vid;
                     cx.starts[*id] = event.position;
+                    cx.previous_position[*id] = event.position;
                 }
             }
             EventKind::TouchMove { id } => {
                 if cx.touches[*id] == vid {
-                    (*self.func)(event.position - cx.starts[*id], GestureState::Changed);
+                    let delta = event.position - cx.previous_position[*id];
+                    (*self.func)(delta, GestureState::Changed);
+                    cx.previous_position[*id] = event.position;
                 }
             }
             EventKind::TouchEnd { id } => {
                 if cx.touches[*id] == vid {
                     cx.touches[*id] = ViewID::default();
-                    (*self.func)(event.position - cx.starts[*id], GestureState::Ended);
+                    (*self.func)(event.position - cx.previous_position[*id], GestureState::Ended);
                 }
             }
             _ => (),
