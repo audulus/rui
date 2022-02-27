@@ -15,7 +15,7 @@ impl View for Text {
     fn process(&self, _event: &Event, _id: ViewID, _cx: &mut Context, _vger: &mut VGER) {}
     fn draw(&self, _id: ViewID, _cx: &mut Context, vger: &mut VGER) {
         let origin = vger
-            .text_bounds(self.text.as_str(), Button::DEFAULT_SIZE, None)
+            .text_bounds(self.text.as_str(), Text::DEFAULT_SIZE, None)
             .origin;
 
         vger.save();
@@ -25,7 +25,7 @@ impl View for Text {
     }
     fn layout(&self, id: ViewID, _sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
         let size = vger
-            .text_bounds(self.text.as_str(), Button::DEFAULT_SIZE, None)
+            .text_bounds(self.text.as_str(), Text::DEFAULT_SIZE, None)
             .size;
 
         cx.layout.insert(
