@@ -35,19 +35,20 @@ where
     }
 }
 
-pub struct StateView<S: 'static, V: View> {
+pub struct StateView<S: 'static, V: View, F: Fn(State<S>) -> V > {
     default: S,
-    func: Box<dyn Fn(State<S>) -> V>,
+    func: F,
 }
 
-impl<S, V> View for StateView<S, V>
+impl<S, V, F> View for StateView<S, V, F>
 where
     V: View,
     S: Clone,
+    F: Fn(State<S>) -> V,
 {
     fn print(&self, id: ViewID, cx: &mut Context) {
         cx.with_state(self.default.clone(), id, |state: State<S>, cx| {
-            (*self.func)(state.clone()).print(id.child(0), cx);
+            (self.func)(state.clone()).print(id.child(0), cx);
         });
     }
 
@@ -57,7 +58,7 @@ where
             self.default.clone(),
             id,
             |state: State<S>, cx, vger| {
-                (*self.func)(state.clone()).process(event, id.child(0), cx, vger);
+                (self.func)(state.clone()).process(event, id.child(0), cx, vger);
             },
         )
     }
@@ -68,7 +69,7 @@ where
             self.default.clone(),
             id,
             |state: State<S>, cx, vger| {
-                (*self.func)(state.clone()).draw(id.child(0), cx, vger);
+                (self.func)(state.clone()).draw(id.child(0), cx, vger);
             },
         );
     }
@@ -79,7 +80,7 @@ where
             self.default.clone(),
             id,
             |state: State<S>, cx, vger| {
-                (*self.func)(state.clone()).layout(id.child(0), sz, cx, vger)
+                (self.func)(state.clone()).layout(id.child(0), sz, cx, vger)
             },
         )
     }
@@ -96,7 +97,7 @@ where
             self.default.clone(),
             id,
             |state: State<S>, cx, vger| {
-                (*self.func)(state.clone()).hittest(id.child(0), pt, cx, vger)
+                (self.func)(state.clone()).hittest(id.child(0), pt, cx, vger)
             },
         )
     }
@@ -105,10 +106,10 @@ where
 pub fn state<S: Clone, V: View, F: Fn(State<S>) -> V + 'static>(
     initial: S,
     f: F,
-) -> StateView<S, V> {
+) -> StateView<S, V, F> {
     StateView {
         default: initial,
-        func: Box::new(f),
+        func: f,
     }
 }
 
