@@ -2,7 +2,7 @@ use crate::*;
 
 pub struct Geom<V: View> {
     child: V,
-    func: Box<dyn Fn(WorldRect)>,
+    func: Box<dyn Fn(LocalSize)>,
 }
 
 impl<V> View for Geom<V>
@@ -24,7 +24,9 @@ where
     }
 
     fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
-        self.child.layout(id.child(0), sz, cx, vger)
+        let sz = self.child.layout(id.child(0), sz, cx, vger);
+        (*self.func)(sz);
+        sz
     }
 
     fn hittest(
@@ -42,7 +44,7 @@ impl<V> Geom<V>
 where
     V: View + 'static,
 {
-    pub fn new<F: Fn(WorldRect) + 'static>(child: V, f: F) -> Self {
+    pub fn new<F: Fn(LocalSize) + 'static>(child: V, f: F) -> Self {
         Self {
             child: child,
             func: Box::new(f),
