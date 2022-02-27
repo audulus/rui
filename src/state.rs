@@ -3,7 +3,7 @@ use std::rc::Rc;
 
 use crate::*;
 
-pub trait Binding<S> {
+pub trait Binding<S> : Clone {
     fn get(&self) -> S;
     fn set(&self, value: S);
 }
@@ -120,8 +120,8 @@ pub struct Field<Get, Set> {
 
 impl<S, Get, Set> Binding<S> for Field<Get, Set>
     where 
-      Get: Fn() -> S,
-      Set: Fn(S) 
+      Get: Fn() -> S + Clone,
+      Set: Fn(S) + Clone
 {
     fn get(&self) -> S {
         (self.getf)()
