@@ -138,12 +138,12 @@ macro_rules! bind {
         let state1 = $state.clone();
         let state2 = $state.clone();
         Field {
-            getf: Box::new(move || state1.get().$field.clone()),
-            setf: Box::new(move |val| {
+            getf: move || state1.get().$field.clone(),
+            setf: move |val| {
                 let mut s = state2.get();
                 s.$field = val;
                 state2.set(s);
-            }),
+            },
         }
     }};
 }
