@@ -63,16 +63,22 @@ where
     }
 }
 
+pub enum GestureState {
+    Began,
+    Changed,
+    Ended
+}
+
 pub struct Drag<V: View> {
     child: V,
-    func: Box<dyn Fn(LocalOffset)>,
+    func: Box<dyn Fn(LocalOffset, GestureState)>,
 }
 
 impl<V> Drag<V>
 where
     V: View,
 {
-    pub fn new<F: Fn(LocalOffset) + 'static>(v: V, f: F) -> Self {
+    pub fn new<F: Fn(LocalOffset, GestureState) + 'static>(v: V, f: F) -> Self {
         Self {
             child: v,
             func: Box::new(f),
@@ -100,13 +106,13 @@ where
             }
             EventKind::TouchMove { id } => {
                 if cx.touches[*id] == vid {
-                    (*self.func)(event.position - cx.starts[*id]);
+                    (*self.func)(event.position - cx.starts[*id], GestureState::Changed);
                 }
             }
             EventKind::TouchEnd { id } => {
                 if cx.touches[*id] == vid {
                     cx.touches[*id] = ViewID::default();
-                    (*self.func)(event.position - cx.starts[*id]);
+                    (*self.func)(event.position - cx.starts[*id], GestureState::Ended);
                 }
             }
             _ => (),
