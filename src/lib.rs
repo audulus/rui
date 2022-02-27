@@ -48,6 +48,9 @@ pub use canvas::*;
 mod slider;
 pub use slider::*;
 
+mod list;
+pub use list::*;
+
 use futures::executor::block_on;
 use vger::color::*;
 use vger::*;
