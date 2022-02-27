@@ -1,10 +1,11 @@
 use crate::*;
 
-pub struct Canvas {
-    func: Box<dyn Fn(LocalRect, &mut VGER)>,
+pub struct Canvas<F: Fn(LocalRect, &mut VGER)> {
+    func: F,
 }
 
-impl View for Canvas {
+impl<F> View for Canvas<F>
+   where F: Fn(LocalRect, &mut VGER) {
     fn print(&self, _id: ViewID, _cx: &mut Context) {
         println!("canvas");
     }
@@ -17,7 +18,7 @@ impl View for Canvas {
         let rect = cx.layout.entry(id).or_insert(LayoutBox::default()).rect;
 
         vger.save();
-        (*self.func)(rect, vger);
+        (self.func)(rect, vger);
         vger.restore();
     }
 
@@ -43,6 +44,6 @@ impl View for Canvas {
     }
 }
 
-pub fn canvas<F: Fn(LocalRect, &mut VGER) + 'static>(f: F) -> Canvas {
-    Canvas { func: Box::new(f) }
+pub fn canvas<F: Fn(LocalRect, &mut VGER) + 'static>(f: F) -> Canvas<F> {
+    Canvas { func: f }
 }
