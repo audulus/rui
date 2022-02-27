@@ -23,7 +23,7 @@ where
     }
 
     fn process(&self, event: &Event, id: ViewID, cx: &mut Context, vger: &mut VGER) {
-        let mut c: u16 = 0;
+        let mut c = 0;
         for child in &self.ids {
             let child_id = id.child(&c);
             let offset = cx
@@ -65,7 +65,7 @@ where
         let n = self.ids.len() as f32;
         let proposed_child_size = LocalSize::new(sz.width, sz.height / n);
 
-        let mut c: u16 = 0;
+        let mut c = 0;
         let mut y = sz.height;
         let mut height_sum = 0.0;
         for child in &self.ids {
@@ -90,7 +90,7 @@ where
         cx: &mut Context,
         vger: &mut VGER,
     ) -> Option<ViewID> {
-        let mut c: u16 = 0;
+        let mut c = 0;
         let mut hit = None;
         for child in &self.ids {
             let child_id = id.child(&c);
