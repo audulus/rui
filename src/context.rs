@@ -13,7 +13,7 @@ pub type WorldRect = Rect<f32, WorldSpace>;
 pub type WorldPoint = Point2D<f32, WorldSpace>;
 
 use std::collections::hash_map::DefaultHasher;
-use std::hash::Hasher;
+use std::hash::{Hash, Hasher};
 
 #[derive(Copy, Clone, Default, Eq, PartialEq, Hash, Debug)]
 pub struct ViewID {
@@ -25,6 +25,15 @@ impl ViewID {
         let mut hasher = DefaultHasher::new();
         hasher.write_u64(self.id);
         hasher.write_u16(index);
+        ViewID {
+            id: hasher.finish(),
+        }
+    }
+
+    pub fn hash_child<T: Hash>(&self, value: &T) -> Self {
+        let mut hasher = DefaultHasher::new();
+        hasher.write_u64(self.id);
+        value.hash(&mut hasher);
         ViewID {
             id: hasher.finish(),
         }
