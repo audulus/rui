@@ -1,16 +1,17 @@
 pub use crate::*;
 
-pub struct Button {
+pub struct Button<F> {
     text: String,
-    func: Box<dyn Fn()>,
+    func: F,
 }
 
-impl Button {
+impl<F> Button<F> {
     pub const DEFAULT_SIZE: u32 = 18;
     pub const PADDING: f32 = 4.0;
 }
 
-impl View for Button {
+impl<F> View for Button<F>
+    where F: Fn() {
     fn print(&self, _id: ViewID, _cx: &mut Context) {
         println!("Button({:?})", self.text);
     }
@@ -18,7 +19,7 @@ impl View for Button {
         match &event.kind {
             EventKind::PressButton(name) => {
                 if *name == self.text {
-                    (*self.func)();
+                    (self.func)();
                 }
             }
             EventKind::TouchBegin { id } => {
@@ -29,7 +30,7 @@ impl View for Button {
                     .rect
                     .contains(event.position)
                 {
-                    (*self.func)();
+                    (self.func)();
                 }
             }
             _ => (),
@@ -37,8 +38,8 @@ impl View for Button {
     }
 
     fn draw(&self, _id: ViewID, _cx: &mut Context, vger: &mut VGER) {
-        let bounds = vger.text_bounds(self.text.as_str(), Button::DEFAULT_SIZE, None);
-        let padding = LocalSize::new(Button::PADDING, Button::PADDING);
+        let bounds = vger.text_bounds(self.text.as_str(), Button::<F>::DEFAULT_SIZE, None);
+        let padding = LocalSize::new(Button::<F>::PADDING, Button::<F>::PADDING);
 
         let paint = vger.color_paint(Color {
             r: 0.1,
@@ -56,18 +57,18 @@ impl View for Button {
         vger.save();
         vger.translate(
             -LocalOffset::new(bounds.origin.x, bounds.origin.y)
-                + LocalOffset::new(Button::PADDING, Button::PADDING),
+                + LocalOffset::new(Button::<F>::PADDING, Button::<F>::PADDING),
         );
 
-        vger.text(self.text.as_str(), Button::DEFAULT_SIZE, TEXT_COLOR, None);
+        vger.text(self.text.as_str(), Button::<F>::DEFAULT_SIZE, TEXT_COLOR, None);
 
         vger.restore();
     }
 
     fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
-        let padding = LocalSize::new(Button::PADDING, Button::PADDING);
+        let padding = LocalSize::new(Button::<F>::PADDING, Button::<F>::PADDING);
         let size = vger
-            .text_bounds(self.text.as_str(), Button::DEFAULT_SIZE, None)
+            .text_bounds(self.text.as_str(), Button::<F>::DEFAULT_SIZE, None)
             .size
             + padding * 2.0;
 
@@ -96,10 +97,10 @@ impl View for Button {
     }
 }
 
-pub fn button<F: Fn() + 'static>(name: &str, f: F) -> Button {
+pub fn button<F: Fn() + 'static>(name: &str, f: F) -> Button<F> {
     Button {
         text: String::from(name),
-        func: Box::new(f),
+        func: f,
     }
 }
 
