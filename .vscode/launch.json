@@ -28,10 +28,13 @@
             "name": "Debug list example",
             "cargo": {
                 "args": [
-                    "run",
-                    "--example",
-                    "list",
-                ]
+                    "build",
+                    "--examples",
+                ],
+                "filter": {
+                    "name": "list",
+                    "kind": "example"
+                }
             },
             "args": [],
             "cwd": "${workspaceFolder}"
