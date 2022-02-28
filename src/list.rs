@@ -84,7 +84,7 @@ where
     ) -> Option<ViewID> {
         let mut hit = None;
         for child in &self.ids {
-            let child_id = id.child(&child);
+            let child_id = id.child(child);
             let offset = cx
                 .layout
                 .entry(child_id)
