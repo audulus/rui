@@ -31,11 +31,7 @@
                     "run",
                     "--example",
                     "list",
-                ],
-                "filter": {
-                    "name": "rui",
-                    "kind": "lib"
-                }
+                ]
             },
             "args": [],
             "cwd": "${workspaceFolder}"
