@@ -10,13 +10,12 @@
             "name": "Debug shapes example",
             "cargo": {
                 "args": [
-                    "run",
-                    "--example",
-                    "shapes",
+                    "build",
+                    "--examples",
                 ],
                 "filter": {
-                    "name": "rui",
-                    "kind": "lib"
+                    "name": "shapes",
+                    "kind": "example"
                 }
             },
             "args": [],
