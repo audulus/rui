@@ -7,6 +7,7 @@ pub trait Modifiers: View + Sized {
     fn geom<F: Fn(LocalSize) + 'static>(self, f: F) -> Geom<Self, F>;
     fn drag<F: Fn(LocalOffset, GestureState) + 'static>(self, f: F) -> Drag<Self, F>;
     fn offset(self, offset: LocalOffset) -> Offset<Self>;
+    fn size(self, size: LocalSize) -> Size<Self>;
 }
 
 impl<V: View + 'static> Modifiers for V {
@@ -27,5 +28,8 @@ impl<V: View + 'static> Modifiers for V {
     }
     fn offset(self, offset: LocalOffset) -> Offset<Self> {
         Offset::new(self, offset)
+    }
+    fn size(self, size: LocalSize) -> Size<Self> {
+        Size::new(self, size)
     }
 }
