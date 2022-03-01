@@ -34,7 +34,7 @@ fn main() {
 }
 ```
 
-![counter screenshot](screenshots/counter.png)
+<img src="screenshots/counter.png" alt="counter screenshot" style="width:50%;">
 
 some shapes (`cargo run --example shapes`):
 
@@ -53,7 +53,7 @@ fn main() {
 }
 ```
 
-![shapes screenshot](screenshots/shapes.png)
+<img src="screenshots/shapes.png" alt="shapes screenshot" style="width:50%;">
 
 canvas for gpu drawing (`cargo run --example canvas`):
 
@@ -80,7 +80,7 @@ fn main() {
 }
 ```
 
-![canvas screenshot](screenshots/canvas.png)
+<img src="screenshots/canvas.png" alt="canvas screenshot" style="width:50%;">
 
 - Encode UI in types to ensure stable identity.
 - Use immediate mode initially, then optimize to reduce redraw later.
