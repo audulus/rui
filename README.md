@@ -1,4 +1,6 @@
+<p align="center">
 <img src="rui.png" alt="logo" width="200"/>
+</p>
 
 # rui
 
