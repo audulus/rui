@@ -100,7 +100,7 @@ fn main() {
 - ✅ zstack
 - ✅ canvas (GPU vector graphics with vger)
 - ✅ bindings
-- ❌ for_each
+- ✅ list
 - ❌ sliders
 - ❌ knobs
 - ❌ editable text
