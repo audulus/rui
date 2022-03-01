@@ -51,6 +51,9 @@ pub use slider::*;
 mod list;
 pub use list::*;
 
+mod size;
+pub use size::*;
+
 use futures::executor::block_on;
 use vger::color::*;
 use vger::*;
