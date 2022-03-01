@@ -88,6 +88,10 @@ fn main() {
 - Minimal boilerplate.
 - Good looking.
 
+## Why?
+
+In the long term, I'd like to move Audulus over to Rust. After looking at other available UI options, it seemed best to implement something resembling the existing immediate mode UI system I already have working in Audulus, but better.
+
 ## Status
 
 - ✅ basic shapes: circle, rounded rectangle
