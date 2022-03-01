@@ -80,6 +80,8 @@ fn main() {
 
 <img src="screenshots/canvas.png" alt="canvas screenshot" style="width:50%;">
 
+## Goals
+
 - Encode UI in types to ensure stable identity.
 - Use immediate mode initially, then optimize to reduce redraw later.
 - Use [vger-rs](https://github.com/audulus/vger-rs) for rendering.
