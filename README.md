@@ -113,7 +113,7 @@ In the long term, I'd like to move Audulus over to Rust. After looking at other 
 
 ## FAQ
 
-1. Q: Why don't you use const generics instead of macros for stacks (`hstack`/`vstack`/`zstack`)? They make for a better developer experience. A: The stacks box each of the elements pushed. If `[hvz]stack` took an array, each element would have to be the same type, and the user would have to box them externally, reducing the readiability of their code.
+1. Q: Why don't you use const generics instead of macros for stacks (`hstack`/`vstack`/`zstack`)? They make for a better developer experience. A: The stacks box each of the elements pushed. If `[hvz]stack` took an array, each element would have to be the same type (`Box<dyn View>`), and the user would have to box them externally, reducing the readiability of their code.
 
 ## References
 
