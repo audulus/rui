@@ -142,9 +142,9 @@ impl View for Rectangle {
     }
 }
 
-pub fn rectangle(corner_radius: f32) -> Rectangle {
+pub fn rectangle() -> Rectangle {
     Rectangle {
-        corner_radius,
+        corner_radius: 0.0,
         paint: Paint::Color(Color::CYAN),
     }
 }

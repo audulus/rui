@@ -7,7 +7,8 @@ pub fn slider(value: impl Binding<f32>) -> impl View {
         let value = value.clone();
 
         zstack! {
-            rectangle(2.0).color(BUTTON_BACKGROUND_COLOR);
+            rectangle()
+                .color(BUTTON_BACKGROUND_COLOR);
             circle()
                 .size([20.0, 20.0].into())
                 .offset([x, 0.0].into())
