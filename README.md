@@ -1,3 +1,4 @@
+<img src="rui.png" alt="logo" width="200"/>
 # rui
 
 ![build status](https://github.com/audulus/rui/actions/workflows/rust.yml/badge.svg)
