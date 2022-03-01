@@ -3,7 +3,7 @@ use std::rc::Rc;
 
 use crate::*;
 
-pub trait Binding<S>: Clone {
+pub trait Binding<S>: Clone + 'static {
     fn get(&self) -> S;
     fn set(&self, value: S);
 }
@@ -23,7 +23,7 @@ impl<S> State<S> {
 
 impl<S> Binding<S> for State<S>
 where
-    S: Clone,
+    S: Clone + 'static,
 {
     fn get(&self) -> S {
         // Here we can indicate that a state change has
@@ -121,8 +121,8 @@ pub struct Field<Get, Set> {
 
 impl<S, Get, Set> Binding<S> for Field<Get, Set>
 where
-    Get: Fn() -> S + Clone,
-    Set: Fn(S) + Clone,
+    Get: Fn() -> S + Clone + 'static,
+    Set: Fn(S) + Clone + 'static,
 {
     fn get(&self) -> S {
         (self.getf)()

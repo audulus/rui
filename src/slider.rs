@@ -1,6 +1,6 @@
 use crate::*;
 
-pub fn slider(value: impl Binding<f32> + 'static) -> impl View {
+pub fn slider(value: impl Binding<f32>) -> impl View {
     let x = value.get();
     state(0.0, move |width| {
         let value = value.clone();
