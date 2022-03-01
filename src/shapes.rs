@@ -84,6 +84,13 @@ impl Rectangle {
             paint: Paint::Color(color),
         }
     }
+
+    pub fn corner_radius(self, radius: f32) -> Rectangle {
+        Rectangle {
+            corner_radius: radius,
+            paint: self.paint,
+        }
+    }
 }
 
 impl View for Rectangle {
