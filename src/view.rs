@@ -16,10 +16,20 @@ pub struct Event {
 
 /// Trait for the unit of UI composition.
 pub trait View {
+
+    /// Prints a description of the view for debugging.
     fn print(&self, id: ViewID, cx: &mut Context);
+
+    /// Processes an event.
     fn process(&self, event: &Event, id: ViewID, cx: &mut Context, vger: &mut VGER);
+
+    /// Draws the view using vger.
     fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER);
+
+    /// Lays out subviews and return the size of the view.
     fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize;
+
+    /// Returns the topmost view which the point intersects.
     fn hittest(
         &self,
         id: ViewID,
