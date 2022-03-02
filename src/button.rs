@@ -24,7 +24,7 @@ where
                     (self.func)();
                 }
             }
-            EventKind::TouchBegin { id } => {
+            EventKind::TouchBegin { id: _ } => {
                 if cx
                     .layout
                     .entry(vid)
