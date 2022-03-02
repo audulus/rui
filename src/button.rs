@@ -104,6 +104,7 @@ where
     }
 }
 
+/// Create a button with a label and an action.
 pub fn button<F: Fn() + 'static>(name: &str, f: F) -> Button<F> {
     Button {
         text: String::from(name),
