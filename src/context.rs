@@ -17,7 +17,7 @@ use std::hash::{Hash, Hasher};
 
 /// `ViewID` is a unique identifier for a view. We're using a u64 and hashing
 /// under the assumption there won't be collsions. The underlying u64 is a function
-/// of the path down the tree.
+/// of the path down the view tree.
 #[derive(Copy, Clone, Default, Eq, PartialEq, Hash, Debug)]
 pub struct ViewID {
     id: u64,
