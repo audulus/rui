@@ -12,6 +12,7 @@ pub trait Modifiers: View + Sized {
     fn background<BG: View + 'static>(self, background: BG) -> Background<Self, BG>;
 
     /// Calls a function with the view's geometry after layout runs.
+    /// Currently only the view's size is returned.
     fn geom<F: Fn(LocalSize) + 'static>(self, f: F) -> Geom<Self, F>;
 
     /// Calls a function in response to a drag.
