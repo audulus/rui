@@ -37,13 +37,29 @@ pub struct LayoutBox {
     pub offset: LocalOffset,
 }
 
+/// The Context stores all UI state. A user of the library
+/// shouldn't have to interact with it directly.
 pub struct Context {
+
+    /// Map for `state`.
     state_map: HashMap<ViewID, Box<dyn Any>>,
+
+    /// Layout information for all views.
     pub layout: HashMap<ViewID, LayoutBox>,
+
+    /// GPU renderer.
     pub vger: Option<VGER>,
+
+    /// Which views each touch (or mouse pointer) is interacting with.
     pub touches: [ViewID; 16],
+
+    /// Points at which touches (or click-drags) started.
     pub starts: [LocalPoint; 16],
+
+    /// Previous touch/mouse positions.
     pub previous_position: [LocalPoint; 16],
+
+    /// The root view ID. This should be randomized for security reasons.
     pub root_id: ViewID,
 }
 
