@@ -48,6 +48,7 @@ impl View for Text {
     }
 }
 
+/// Shows a string as a label (not editable).
 pub fn text(name: &str) -> Text {
     Text {
         text: String::from(name),
