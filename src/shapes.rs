@@ -62,6 +62,7 @@ impl View for Circle {
     }
 }
 
+/// Renders a circle which expands to fill available space.
 pub fn circle() -> Circle {
     Circle {
         paint: Paint::Color(Color::CYAN),
@@ -78,6 +79,7 @@ impl Rectangle {
         cx.layout.entry(id).or_insert(LayoutBox::default()).rect
     }
 
+    /// Sets the fill color for the rectangle.
     pub fn color(self, color: Color) -> Rectangle {
         Rectangle {
             corner_radius: self.corner_radius,
@@ -85,6 +87,7 @@ impl Rectangle {
         }
     }
 
+    /// Sets the rectangle's corner radius.
     pub fn corner_radius(self, radius: f32) -> Rectangle {
         Rectangle {
             corner_radius: radius,
@@ -142,6 +145,7 @@ impl View for Rectangle {
     }
 }
 
+/// Renders a rectangle which expands to fill available space.
 pub fn rectangle() -> Rectangle {
     Rectangle {
         corner_radius: 0.0,
