@@ -99,6 +99,7 @@ where
     }
 }
 
+/// Displays a list of items all of which are represented by the same View. See `examples/list.rs`.
 pub fn list<ID: Hash, V: View, F: Fn(&ID) -> V + 'static>(
     ids: Vec<ID>,
     f: F,
