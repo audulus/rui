@@ -107,7 +107,7 @@ where
 ///
 /// For example:
 ///
-/// ```rust
+/// ```no_run
 /// use rui::*;
 /// rui(list(vec![1, 2, 3], |i| {
 ///     hstack! {
