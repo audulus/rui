@@ -108,6 +108,7 @@ where
 /// For example:
 ///
 /// ```rust
+/// use rui::*;
 /// rui(list(vec![1, 2, 3], |i| {
 ///     hstack! {
 ///         circle();
