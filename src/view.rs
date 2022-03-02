@@ -16,7 +16,6 @@ pub struct Event {
 
 /// Trait for the unit of UI composition.
 pub trait View {
-
     /// Prints a description of the view for debugging.
     fn print(&self, id: ViewID, cx: &mut Context);
 

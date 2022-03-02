@@ -1,7 +1,6 @@
 use crate::*;
 
 pub trait Modifiers: View + Sized {
-
     /// Adds space around a view. Can be either `Auto` or `Px(number_of_pixels)`
     fn padding(self, param: impl Into<PaddingParam>) -> Padding<Self>;
 

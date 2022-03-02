@@ -24,12 +24,7 @@ where
     }
 
     fn layout(&self, id: ViewID, _sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
-        self.child.layout(
-            id.child(&0),
-            self.size,
-            cx,
-            vger,
-        );
+        self.child.layout(id.child(&0), self.size, cx, vger);
         self.size
     }
 
@@ -40,12 +35,7 @@ where
         cx: &mut Context,
         vger: &mut VGER,
     ) -> Option<ViewID> {
-        self.child.hittest(
-            id.child(&0),
-            pt,
-            cx,
-            vger,
-        )
+        self.child.hittest(id.child(&0), pt, cx, vger)
     }
 }
 

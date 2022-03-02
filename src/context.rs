@@ -24,7 +24,6 @@ pub struct ViewID {
 }
 
 impl ViewID {
-
     /// Computes the ID for a child using a hashable value. For views
     /// which don't have dynamic children (e.g. `vstack` etc.) the value
     /// will be the integer index of the child. Dynamic
@@ -48,7 +47,6 @@ pub struct LayoutBox {
 /// The Context stores all UI state. A user of the library
 /// shouldn't have to interact with it directly.
 pub struct Context {
-
     /// Map for `state`.
     state_map: HashMap<ViewID, Box<dyn Any>>,
 

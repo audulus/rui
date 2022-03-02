@@ -1,17 +1,17 @@
 use crate::*;
 use std::hash::Hash;
 
-pub struct List<ID: Hash, V:View, F: Fn(&ID) -> V> {
+pub struct List<ID: Hash, V: View, F: Fn(&ID) -> V> {
     ids: Vec<ID>,
     func: F,
 }
 
-impl<ID, V, F> View for List<ID, V, F> 
+impl<ID, V, F> View for List<ID, V, F>
 where
     ID: Hash,
     V: View,
-    F: Fn(&ID) -> V {
-
+    F: Fn(&ID) -> V,
+{
     fn print(&self, id: ViewID, cx: &mut Context) {
         println!("List {{");
         for child in &self.ids {
@@ -100,13 +100,13 @@ where
 }
 
 /// Displays a list of items all of which are represented by the same View. See `examples/list.rs`.
-/// 
+///
 /// `ids` is a Vec of items that implement Hash.
-/// 
+///
 /// `f` is a function called to generate a View for each item.
-/// 
+///
 /// For example:
-/// 
+///
 /// ```rust
 /// rui(list(vec![1, 2, 3], |i| {
 ///     hstack! {
@@ -115,12 +115,6 @@ where
 ///     }
 /// }));
 /// ```
-pub fn list<ID: Hash, V: View, F: Fn(&ID) -> V + 'static>(
-    ids: Vec<ID>,
-    f: F,
-) -> List<ID, V, F> {
-    List {
-        ids,
-        func: f,
-    }
+pub fn list<ID: Hash, V: View, F: Fn(&ID) -> V + 'static>(ids: Vec<ID>, f: F) -> List<ID, V, F> {
+    List { ids, func: f }
 }
