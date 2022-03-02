@@ -14,6 +14,7 @@ pub struct Event {
     pub position: LocalPoint,
 }
 
+/// Trait for the unit of UI composition.
 pub trait View {
     fn print(&self, id: ViewID, cx: &mut Context);
     fn process(&self, event: &Event, id: ViewID, cx: &mut Context, vger: &mut VGER);
