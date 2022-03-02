@@ -101,6 +101,10 @@ where
 
 /// Displays a list of items all of which are represented by the same View. See `examples/list.rs`.
 /// 
+/// `ids` is a Vec of items that implement Hash.
+/// 
+/// `f` is a function called to generate a View for each item.
+/// 
 /// For example:
 /// 
 /// ```rust
@@ -111,10 +115,6 @@ where
 ///     }
 /// }));
 /// ```
-/// 
-/// `ids` is a Vec of items that implement Hash.
-/// 
-/// `f` is a function called to generate a View for each item.
 pub fn list<ID: Hash, V: View, F: Fn(&ID) -> V + 'static>(
     ids: Vec<ID>,
     f: F,
