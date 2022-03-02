@@ -108,7 +108,7 @@ where
 /// For example:
 ///
 /// ```no_run
-/// use rui::*;
+/// # use rui::*;
 /// rui(list(vec![1, 2, 3], |i| {
 ///     hstack! {
 ///         circle();
