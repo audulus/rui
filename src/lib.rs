@@ -174,6 +174,7 @@ async fn setup(title: &str) -> Setup {
     }
 }
 
+/// Call this function to describe your UI.
 pub fn rui(view: impl View + 'static) {
     let setup = block_on(setup("rui"));
     let window = setup.window;
