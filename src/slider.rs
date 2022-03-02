@@ -1,5 +1,6 @@
 use crate::*;
 
+/// Horizontal slider built from other Views.
 pub fn slider(value: impl Binding<f32>) -> impl View {
     state(0.0, move |width| {
         let w = width.get();
