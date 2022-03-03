@@ -156,14 +156,14 @@ impl<VT: ViewTuple> Stack<VT> {
 }
 
 impl<A: View> ViewTuple for (A,) {
-    fn foreach_view<F: FnMut(&dyn View)>(&self, f: &mut F) {
+    fn foreach_view<FN: FnMut(&dyn View)>(&self, f: &mut FN) {
         f(&self.0);
     }
     fn len(&self) -> usize { 1 }
 }
 
 impl<A: View, B: View> ViewTuple for (A,B) {
-    fn foreach_view<F: FnMut(&dyn View)>(&self, f: &mut F) {
+    fn foreach_view<FN: FnMut(&dyn View)>(&self, f: &mut FN) {
         f(&self.0);
         f(&self.1);
     }
@@ -171,7 +171,7 @@ impl<A: View, B: View> ViewTuple for (A,B) {
 }
 
 impl<A: View, B: View, C: View> ViewTuple for (A,B,C) {
-    fn foreach_view<F: FnMut(&dyn View)>(&self, f: &mut F) {
+    fn foreach_view<FN: FnMut(&dyn View)>(&self, f: &mut FN) {
         f(&self.0);
         f(&self.1);
         f(&self.2);
@@ -180,7 +180,7 @@ impl<A: View, B: View, C: View> ViewTuple for (A,B,C) {
 }
 
 impl<A: View, B: View, C: View, D: View> ViewTuple for (A,B,C,D) {
-    fn foreach_view<F: FnMut(&dyn View)>(&self, f: &mut F) {
+    fn foreach_view<FN: FnMut(&dyn View)>(&self, f: &mut FN) {
         f(&self.0);
         f(&self.1);
         f(&self.2);
@@ -190,7 +190,7 @@ impl<A: View, B: View, C: View, D: View> ViewTuple for (A,B,C,D) {
 }
 
 impl<A: View, B: View, C: View, D: View, E: View> ViewTuple for (A,B,C,D,E) {
-    fn foreach_view<F: FnMut(&dyn View)>(&self, f: &mut F) {
+    fn foreach_view<FN: FnMut(&dyn View)>(&self, f: &mut FN) {
         f(&self.0);
         f(&self.1);
         f(&self.2);
@@ -198,6 +198,45 @@ impl<A: View, B: View, C: View, D: View, E: View> ViewTuple for (A,B,C,D,E) {
         f(&self.4);
     }
     fn len(&self) -> usize { 5 }
+}
+
+impl<A: View, B: View, C: View, D: View, E: View, F: View> ViewTuple for (A,B,C,D,E,F) {
+    fn foreach_view<FN: FnMut(&dyn View)>(&self, f: &mut FN) {
+        f(&self.0);
+        f(&self.1);
+        f(&self.2);
+        f(&self.3);
+        f(&self.4);
+        f(&self.5);
+    }
+    fn len(&self) -> usize { 6 }
+}
+
+impl<A: View, B: View, C: View, D: View, E: View, F: View, G: View> ViewTuple for (A,B,C,D,E,F,G) {
+    fn foreach_view<FN: FnMut(&dyn View)>(&self, f: &mut FN) {
+        f(&self.0);
+        f(&self.1);
+        f(&self.2);
+        f(&self.3);
+        f(&self.4);
+        f(&self.5);
+        f(&self.6);
+    }
+    fn len(&self) -> usize { 7 }
+}
+
+impl<A: View, B: View, C: View, D: View, E: View, F: View, G: View, H: View> ViewTuple for (A,B,C,D,E,F,G,H) {
+    fn foreach_view<FN: FnMut(&dyn View)>(&self, f: &mut FN) {
+        f(&self.0);
+        f(&self.1);
+        f(&self.2);
+        f(&self.3);
+        f(&self.4);
+        f(&self.5);
+        f(&self.6);
+        f(&self.7);
+    }
+    fn len(&self) -> usize { 8 }
 }
 
 pub fn hstack<VT: ViewTuple>(children: VT) -> Stack<VT> {
