@@ -16,15 +16,9 @@ fn main() {
                 my_rectangle(),
                 vstack((
                     my_rectangle(),
-                    hstack((
-                        my_rectangle(),
-                        vstack((
-                            my_rectangle(),
-                            my_rectangle()
-                        ))
-                    ))
-                ))
-            ))
-        ))
+                    hstack((my_rectangle(), vstack((my_rectangle(), my_rectangle())))),
+                )),
+            )),
+        )),
     )));
 }

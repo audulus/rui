@@ -107,9 +107,9 @@ where
 /// State allows you to associate some state with a view.
 /// This is what you'll use for a data model, as well as per-view state.
 /// Your state should be efficiently clonable. Use Rc as necessary.
-/// 
+///
 /// `initial` is the initial value for your state.
-/// 
+///
 /// `f` callback which is passed a `State<S>`
 pub fn state<S: Clone, V: View, F: Fn(State<S>) -> V + 'static>(
     initial: S,

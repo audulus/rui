@@ -8,14 +8,13 @@ pub fn slider(value: impl Binding<f32>) -> impl View {
         let value = value.clone();
 
         zstack((
-            rectangle()
-                .color(BUTTON_BACKGROUND_COLOR),
+            rectangle().color(BUTTON_BACKGROUND_COLOR),
             circle()
                 .size([20.0, 20.0])
                 .offset([x, 0.0])
                 .drag(move |off, _state| {
                     value.set(value.get() + off.x / w);
-                })
+                }),
         ))
         .geom(move |sz| width.set(sz.width))
     })

@@ -376,12 +376,12 @@ mod tests {
                 text(value_string.as_str()),
                 button("increment", move || {
                     let value = count.get();
-                    count.set(value+1);
+                    count.set(value + 1);
                 }),
                 button("decrement", move || {
                     let value = count2.get();
-                    count2.set(value-1);
-                })
+                    count2.set(value - 1);
+                }),
             ))
         })
     }
@@ -421,7 +421,7 @@ mod tests {
             button("decrement", move || {
                 let value = count2.get();
                 count2.set(value - 1);
-            })
+            }),
         ))
     }
 
