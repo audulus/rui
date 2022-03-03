@@ -70,8 +70,8 @@ fn main() {
         vger.translate(rect.center() - LocalPoint::zero());
 
         let paint = vger.linear_gradient(
-            [-100.0, -100.0].into(),
-            [100.0, 100.0].into(),
+            [-100.0, -100.0],
+            [100.0, 100.0],
             AZURE_HIGHLIGHT,
             RED_HIGHLIGHT,
             0.0,
