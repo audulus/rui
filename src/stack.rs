@@ -239,14 +239,17 @@ impl<A: View, B: View, C: View, D: View, E: View, F: View, G: View, H: View> Vie
     fn len(&self) -> usize { 8 }
 }
 
+/// Horizontal stack of up to 8 Views in a tuple. Each item can be a different view type.
 pub fn hstack<VT: ViewTuple>(children: VT) -> Stack<VT> {
     Stack::new(StackOrientation::Horizontal, children)
 }
 
+/// Vertical stack of up to 8 Views in a tuple. Each item can be a different view type.
 pub fn vstack<VT: ViewTuple>(children: VT) -> Stack<VT> {
     Stack::new(StackOrientation::Vertical, children)
 }
 
+/// Stack of up to overlaid 8 Views in a tuple. Each item can be a different view type.
 pub fn zstack<VT: ViewTuple>(children: VT) -> Stack<VT> {
     Stack::new(StackOrientation::Z, children)
 }
