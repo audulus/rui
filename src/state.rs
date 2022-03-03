@@ -3,6 +3,7 @@ use std::rc::Rc;
 
 use crate::*;
 
+/// Reads or writes a value owned by a source-of-truth.
 pub trait Binding<S>: Clone + 'static {
     fn get(&self) -> S;
     fn set(&self, value: S);
