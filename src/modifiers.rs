@@ -18,7 +18,7 @@ pub trait Modifiers: View + Sized {
     fn drag<F: Fn(LocalOffset, GestureState) + 'static>(self, f: F) -> Drag<Self, F>;
 
     /// Applies an offset to the view in local space.
-    fn offset(self, offset: LocalOffset) -> Offset<Self>;
+    fn offset<Off: Into<LocalOffset>>(self, offset: Off) -> Offset<Self>;
 
     /// Constrains the size of a view.
     fn size(self, size: LocalSize) -> Size<Self>;
@@ -40,8 +40,8 @@ impl<V: View + 'static> Modifiers for V {
     fn drag<F: Fn(LocalOffset, GestureState) + 'static>(self, f: F) -> Drag<Self, F> {
         Drag::new(self, f)
     }
-    fn offset(self, offset: LocalOffset) -> Offset<Self> {
-        Offset::new(self, offset)
+    fn offset<Off: Into<LocalOffset>>(self, offset: Off) -> Offset<Self> {
+        Offset::new(self, offset.into())
     }
     fn size(self, size: LocalSize) -> Size<Self> {
         Size::new(self, size)
