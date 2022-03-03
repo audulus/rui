@@ -25,15 +25,15 @@ use rui::*;
 
 fn main() {
     rui(state(1, |count| {
-        vstack! {
+        vstack((
             text(&format!("{:?}", count.get()))
-                .padding(Auto);
+                .padding(Auto),
             button("increment", move || {
                 let value = count.get();
                 count.set(value + 1);
             })
                 .padding(Auto)
-        }
+        ))
     }));
 }
 ```
@@ -46,15 +46,15 @@ some shapes (`cargo run --example shapes`):
 use rui::*;
 
 fn main() {
-    rui(vstack! {
+    rui(hstack((
         circle()
             .color(RED_HIGHLIGHT)
-            .padding(Auto);
+            .padding(Auto),
         rectangle()
             .corner_radius(5.0)
             .color(AZURE_HIGHLIGHT)
             .padding(Auto)
-    });
+    )));
 }
 ```
 

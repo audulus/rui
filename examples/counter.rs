@@ -2,14 +2,14 @@ use rui::*;
 
 fn main() {
     rui(state(1, |count| {
-        vstack! {
+        vstack((
             text(&format!("{:?}", count.get()))
-                .padding(Auto);
+                .padding(Auto),
             button("increment", move || {
                 let value = count.get();
                 count.set(value + 1);
             })
                 .padding(Auto)
-        }
+        ))
     }));
 }

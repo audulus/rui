@@ -110,10 +110,10 @@ where
 /// ```no_run
 /// # use rui::*;
 /// rui(list(vec![1, 2, 3], |i| {
-///     hstack! {
-///         circle();
+///     hstack((
+///         circle(),
 ///         text(&format!("{:?}", i))
-///     }
+///     ))
 /// }));
 /// ```
 pub fn list<ID: Hash, V: View, F: Fn(&ID) -> V + 'static>(ids: Vec<ID>, f: F) -> List<ID, V, F> {

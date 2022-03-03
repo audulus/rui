@@ -368,33 +368,21 @@ mod tests {
         v.print(ViewID::default(), &mut cx);
     }
 
-    #[test]
-    fn test_stack() {
-        let mut cx = Context::new();
-        let s = stack2(
-            EmptyView {},
-            button("click me!", || {
-                println!("clicked");
-            }),
-        );
-        s.print(ViewID::default(), &mut cx);
-    }
-
     fn counter(start: usize) -> impl View {
         state(start, |count: State<usize>| {
             let count2 = count.clone();
             let value_string = format!("value: {:?}", count.get());
-            vstack! {
-                text(value_string.as_str());
+            vstack((
+                text(value_string.as_str()),
                 button("increment", move || {
                     let value = count.get();
                     count.set(value+1);
-                });
+                }),
                 button("decrement", move || {
                     let value = count2.get();
                     count2.set(value-1);
                 })
-            }
+            ))
         })
     }
 
@@ -425,16 +413,16 @@ mod tests {
         B: Binding<usize> + Clone + 'static,
     {
         let count2 = count.clone();
-        let mut stack = Stack::new(StackOrientation::Vertical);
-        stack.push(button("increment", move || {
-            let value = count.get();
-            count.set(value + 1);
-        }));
-        stack.push(button("decrement", move || {
-            let value = count2.get();
-            count2.set(value - 1);
-        }));
-        stack
+        vstack((
+            button("increment", move || {
+                let value = count.get();
+                count.set(value + 1);
+            }),
+            button("decrement", move || {
+                let value = count2.get();
+                count2.set(value - 1);
+            })
+        ))
     }
 
     #[test]

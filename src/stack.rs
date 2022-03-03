@@ -1,7 +1,8 @@
 use crate::*;
 
 pub trait ViewTuple {
-    fn foreach_view<F: Fn(&dyn View)>(&self, f: F);
+    fn foreach_view<F: FnMut(&dyn View)>(&self, f: &mut F);
+    fn len(&self) -> usize;
 }
 
 pub enum StackOrientation {
@@ -10,25 +11,25 @@ pub enum StackOrientation {
     Z,
 }
 
-pub struct Stack {
+pub struct Stack<VT: ViewTuple> {
     orientation: StackOrientation,
-    children: Vec<Box<dyn View>>,
+    children: VT,
 }
 
-impl View for Stack {
+impl<VT: ViewTuple> View for Stack<VT> {
     fn print(&self, id: ViewID, cx: &mut Context) {
         println!("Stack {{");
         let mut c: u16 = 0;
-        for child in &self.children {
+        self.children.foreach_view(&mut |child| {
             (*child).print(id.child(&c), cx);
             c += 1;
-        }
+        });
         println!("}}");
     }
 
     fn process(&self, event: &Event, id: ViewID, cx: &mut Context, vger: &mut VGER) {
         let mut c: u16 = 0;
-        for child in &self.children {
+        self.children.foreach_view(&mut |child| {
             let child_id = id.child(&c);
             let offset = cx
                 .layout
@@ -41,12 +42,12 @@ impl View for Stack {
 
             (*child).process(&local_event, child_id, cx, vger);
             c += 1;
-        }
+        })
     }
 
     fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
         let mut c: u16 = 0;
-        for child in &self.children {
+        self.children.foreach_view(&mut |child| {
             let child_id = id.child(&c);
             let offset = cx
                 .layout
@@ -62,7 +63,7 @@ impl View for Stack {
             c += 1;
 
             vger.restore();
-        }
+        })
     }
 
     fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
@@ -74,7 +75,7 @@ impl View for Stack {
 
                 let mut c: u16 = 0;
                 let mut width_sum = 0.0;
-                for child in &self.children {
+                self.children.foreach_view(&mut |child| {
                     let child_id = id.child(&c);
                     let child_size = child.layout(child_id, proposed_child_size, cx, vger);
 
@@ -83,7 +84,7 @@ impl View for Stack {
 
                     width_sum += child_size.width;
                     c += 1;
-                }
+                });
 
                 LocalSize::new(width_sum, sz.height)
             }
@@ -93,7 +94,7 @@ impl View for Stack {
                 let mut c: u16 = 0;
                 let mut y = sz.height;
                 let mut height_sum = 0.0;
-                for child in &self.children {
+                self.children.foreach_view(&mut |child| {
                     let child_id = id.child(&c);
                     let child_size = child.layout(child_id, proposed_child_size, cx, vger);
 
@@ -103,16 +104,16 @@ impl View for Stack {
 
                     height_sum += child_size.height;
                     c += 1;
-                }
+                });
 
                 LocalSize::new(sz.width, height_sum)
             }
             StackOrientation::Z => {
                 let mut c: u16 = 0;
-                for child in &self.children {
+                self.children.foreach_view(&mut |child| {
                     child.layout(id.child(&c), sz, cx, vger);
                     c += 1;
-                }
+                });
                 sz
             }
         }
@@ -127,7 +128,7 @@ impl View for Stack {
     ) -> Option<ViewID> {
         let mut c: u16 = 0;
         let mut hit = None;
-        for child in &self.children {
+        self.children.foreach_view(&mut |child| {
             let child_id = id.child(&c);
             let offset = cx
                 .layout
@@ -140,215 +141,73 @@ impl View for Stack {
             }
 
             c += 1;
-        }
+        });
         hit
     }
 }
 
-impl Stack {
-    pub fn new(orientation: StackOrientation) -> Self {
+impl<VT: ViewTuple> Stack<VT> {
+    pub fn new(orientation: StackOrientation, children: VT) -> Self {
         Self {
             orientation,
-            children: vec![],
+            children
         }
-    }
-
-    pub fn push(&mut self, view: impl View + 'static) {
-        self.children.push(Box::new(view))
     }
 }
 
 impl<A: View> ViewTuple for (A,) {
-    fn foreach_view<F: Fn(&dyn View)>(&self, f: F) {
+    fn foreach_view<F: FnMut(&dyn View)>(&self, f: &mut F) {
         f(&self.0);
     }
+    fn len(&self) -> usize { 1 }
 }
 
 impl<A: View, B: View> ViewTuple for (A,B) {
-    fn foreach_view<F: Fn(&dyn View)>(&self, f: F) {
+    fn foreach_view<F: FnMut(&dyn View)>(&self, f: &mut F) {
         f(&self.0);
         f(&self.1);
     }
+    fn len(&self) -> usize { 2 }
 }
 
 impl<A: View, B: View, C: View> ViewTuple for (A,B,C) {
-    fn foreach_view<F: Fn(&dyn View)>(&self, f: F) {
+    fn foreach_view<F: FnMut(&dyn View)>(&self, f: &mut F) {
         f(&self.0);
         f(&self.1);
         f(&self.2);
     }
+    fn len(&self) -> usize { 3 }
 }
 
 impl<A: View, B: View, C: View, D: View> ViewTuple for (A,B,C,D) {
-    fn foreach_view<F: Fn(&dyn View)>(&self, f: F) {
+    fn foreach_view<F: FnMut(&dyn View)>(&self, f: &mut F) {
         f(&self.0);
         f(&self.1);
         f(&self.2);
         f(&self.3);
     }
+    fn len(&self) -> usize { 4 }
 }
 
 impl<A: View, B: View, C: View, D: View, E: View> ViewTuple for (A,B,C,D,E) {
-    fn foreach_view<F: Fn(&dyn View)>(&self, f: F) {
+    fn foreach_view<F: FnMut(&dyn View)>(&self, f: &mut F) {
         f(&self.0);
         f(&self.1);
         f(&self.2);
         f(&self.3);
         f(&self.4);
     }
+    fn len(&self) -> usize { 5 }
 }
 
-#[macro_export]
-macro_rules! hstack {
-    ( $( $x:expr );* ) => {
-        {
-            let mut temp_stack = Stack::new(StackOrientation::Horizontal);
-            $(
-                temp_stack.push($x);
-            )*
-            temp_stack
-        }
-    };
+pub fn hstack<VT: ViewTuple>(children: VT) -> Stack<VT> {
+    Stack::new(StackOrientation::Horizontal, children)
 }
 
-#[macro_export]
-macro_rules! vstack {
-    ( $( $x:expr );* ) => {
-        {
-            let mut temp_stack = Stack::new(StackOrientation::Vertical);
-            $(
-                temp_stack.push($x);
-            )*
-            temp_stack
-        }
-    };
+pub fn vstack<VT: ViewTuple>(children: VT) -> Stack<VT> {
+    Stack::new(StackOrientation::Vertical, children)
 }
 
-#[macro_export]
-macro_rules! zstack {
-    ( $( $x:expr );* ) => {
-        {
-            let mut temp_stack = Stack::new(StackOrientation::Z);
-            $(
-                temp_stack.push($x);
-            )*
-            temp_stack
-        }
-    };
-}
-
-pub struct Stack2<V0: View, V1: View> {
-    children: (V0, V1),
-}
-
-impl<V0, V1> View for Stack2<V0, V1>
-where
-    V0: View,
-    V1: View,
-{
-    fn print(&self, id: ViewID, cx: &mut Context) {
-        println!("Stack {{");
-        self.children.0.print(id.child(&0), cx);
-        self.children.1.print(id.child(&1), cx);
-        println!("}}");
-    }
-
-    fn process(&self, event: &Event, id: ViewID, cx: &mut Context, vger: &mut VGER) {
-        self.children.0.process(event, id.child(&0), cx, vger);
-        self.children.1.process(event, id.child(&1), cx, vger);
-    }
-
-    fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
-        self.children.0.draw(id.child(&0), cx, vger);
-        self.children.1.draw(id.child(&1), cx, vger);
-    }
-
-    fn layout(
-        &self,
-        _id: ViewID,
-        _sz: LocalSize,
-        _cx: &mut Context,
-        _vger: &mut VGER,
-    ) -> LocalSize {
-        // TODO
-        [0.0, 0.0].into()
-    }
-
-    fn hittest(
-        &self,
-        _id: ViewID,
-        _pt: LocalPoint,
-        _cx: &mut Context,
-        _vger: &mut VGER,
-    ) -> Option<ViewID> {
-        // TODO
-        None
-    }
-}
-
-pub fn stack2(v0: impl View + 'static, v1: impl View + 'static) -> impl View {
-    Stack2 { children: (v0, v1) }
-}
-
-pub struct Stack3<V0: View, V1: View, V2: View> {
-    children: (V0, V1, V2),
-}
-
-impl<V0, V1, V2> View for Stack3<V0, V1, V2>
-where
-    V0: View,
-    V1: View,
-    V2: View,
-{
-    fn print(&self, id: ViewID, cx: &mut Context) {
-        println!("Stack {{");
-        self.children.0.print(id.child(&0), cx);
-        self.children.1.print(id.child(&1), cx);
-        self.children.2.print(id.child(&2), cx);
-        println!("}}");
-    }
-
-    fn process(&self, event: &Event, id: ViewID, cx: &mut Context, vger: &mut VGER) {
-        self.children.0.process(event, id.child(&0), cx, vger);
-        self.children.1.process(event, id.child(&1), cx, vger);
-        self.children.2.process(event, id.child(&2), cx, vger);
-    }
-
-    fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
-        self.children.0.draw(id.child(&0), cx, vger);
-        self.children.1.draw(id.child(&1), cx, vger);
-        self.children.2.draw(id.child(&2), cx, vger);
-    }
-
-    fn layout(
-        &self,
-        _id: ViewID,
-        _sz: LocalSize,
-        _cx: &mut Context,
-        _vger: &mut VGER,
-    ) -> LocalSize {
-        // TODO
-        [0.0, 0.0].into()
-    }
-
-    fn hittest(
-        &self,
-        _id: ViewID,
-        _pt: LocalPoint,
-        _cx: &mut Context,
-        _vger: &mut VGER,
-    ) -> Option<ViewID> {
-        // TODO
-        None
-    }
-}
-
-pub fn stack3(
-    v0: impl View + 'static,
-    v1: impl View + 'static,
-    v2: impl View + 'static,
-) -> impl View {
-    Stack3 {
-        children: (v0, v1, v2),
-    }
+pub fn zstack<VT: ViewTuple>(children: VT) -> Stack<VT> {
+    Stack::new(StackOrientation::Z, children)
 }

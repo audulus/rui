@@ -1,11 +1,11 @@
 use rui::*;
 
 fn main() {
-    rui(hstack! {
+    rui(hstack((
         circle()
             .color(RED_HIGHLIGHT.alpha(0.8))
             .tap(|| { println!("tapped circle") })
-            .padding(Auto);
+            .padding(Auto),
         state(LocalOffset::zero(), |offset_state| {
             let off = offset_state.get();
             rectangle()
@@ -15,5 +15,5 @@ fn main() {
                 .drag(move |delta, _state| offset_state.set(offset_state.get() + delta) )
                 .padding(Auto)
         })
-    });
+    )));
 }

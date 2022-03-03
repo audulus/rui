@@ -8,23 +8,23 @@ fn my_rectangle() -> impl View {
 }
 
 fn main() {
-    rui(hstack! {
-        my_rectangle();
-        vstack! {
-            my_rectangle();
-            hstack! {
-                my_rectangle();
-                vstack! {
-                    my_rectangle();
-                    hstack! {
-                        my_rectangle();
-                        vstack! {
-                            my_rectangle();
+    rui(hstack((
+        my_rectangle(),
+        vstack((
+            my_rectangle(),
+            hstack((
+                my_rectangle(),
+                vstack((
+                    my_rectangle(),
+                    hstack((
+                        my_rectangle(),
+                        vstack((
+                            my_rectangle(),
                             my_rectangle()
-                        }
-                    }
-                }
-            }
-        }
-    });
+                        ))
+                    ))
+                ))
+            ))
+        ))
+    )));
 }
