@@ -1,5 +1,9 @@
 use crate::*;
 
+pub trait ViewTuple {
+    fn foreach_view<F: Fn(&dyn View)>(&self, f: F);
+}
+
 pub enum StackOrientation {
     Horizontal,
     Vertical,
@@ -151,6 +155,46 @@ impl Stack {
 
     pub fn push(&mut self, view: impl View + 'static) {
         self.children.push(Box::new(view))
+    }
+}
+
+impl<A: View> ViewTuple for (A,) {
+    fn foreach_view<F: Fn(&dyn View)>(&self, f: F) {
+        f(&self.0);
+    }
+}
+
+impl<A: View, B: View> ViewTuple for (A,B) {
+    fn foreach_view<F: Fn(&dyn View)>(&self, f: F) {
+        f(&self.0);
+        f(&self.1);
+    }
+}
+
+impl<A: View, B: View, C: View> ViewTuple for (A,B,C) {
+    fn foreach_view<F: Fn(&dyn View)>(&self, f: F) {
+        f(&self.0);
+        f(&self.1);
+        f(&self.2);
+    }
+}
+
+impl<A: View, B: View, C: View, D: View> ViewTuple for (A,B,C,D) {
+    fn foreach_view<F: Fn(&dyn View)>(&self, f: F) {
+        f(&self.0);
+        f(&self.1);
+        f(&self.2);
+        f(&self.3);
+    }
+}
+
+impl<A: View, B: View, C: View, D: View, E: View> ViewTuple for (A,B,C,D,E) {
+    fn foreach_view<F: Fn(&dyn View)>(&self, f: F) {
+        f(&self.0);
+        f(&self.1);
+        f(&self.2);
+        f(&self.3);
+        f(&self.4);
     }
 }
 
