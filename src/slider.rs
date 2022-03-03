@@ -11,7 +11,7 @@ pub fn slider(value: impl Binding<f32>) -> impl View {
             rectangle()
                 .color(BUTTON_BACKGROUND_COLOR);
             circle()
-                .size([20.0, 20.0].into())
+                .size([20.0, 20.0])
                 .offset([x, 0.0])
                 .drag(move |off, _state| {
                     value.set(value.get() + off.x / w);

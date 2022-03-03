@@ -21,7 +21,7 @@ pub trait Modifiers: View + Sized {
     fn offset<Off: Into<LocalOffset>>(self, offset: Off) -> Offset<Self>;
 
     /// Constrains the size of a view.
-    fn size(self, size: LocalSize) -> Size<Self>;
+    fn size<Sz: Into<LocalSize>>(self, size: Sz) -> Size<Self>;
 }
 
 impl<V: View + 'static> Modifiers for V {
@@ -43,7 +43,7 @@ impl<V: View + 'static> Modifiers for V {
     fn offset<Off: Into<LocalOffset>>(self, offset: Off) -> Offset<Self> {
         Offset::new(self, offset.into())
     }
-    fn size(self, size: LocalSize) -> Size<Self> {
-        Size::new(self, size)
+    fn size<Sz: Into<LocalSize>>(self, size: Sz) -> Size<Self> {
+        Size::new(self, size.into())
     }
 }
