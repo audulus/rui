@@ -13,8 +13,8 @@ rui is immediate mode (there is no retained tree of views), GPU rendered, and ha
 [discord server](https://discord.gg/JCVVBU3sCN)
 
 - macOS ✅ 
-- Windows ❌ (https://github.com/audulus/rui/issues/1)
-- Linux ❌ (https://github.com/audulus/rui/issues/2)
+- Windows ✅
+- Linux ✅ 
 
 ## Examples
 
