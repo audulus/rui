@@ -121,6 +121,13 @@ pub const BLACK: Color = Color {
     a: 1.0,
 };
 
+pub const CONTROL_BACKGROUND: Color = Color {
+    r: 0.138,
+    g: 0.138,
+    b: 0.148,
+    a: 1.0
+};
+
 async fn setup(title: &str) -> Setup {
     let event_loop = EventLoop::new();
     let mut builder = winit::window::WindowBuilder::new();
