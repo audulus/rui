@@ -267,6 +267,7 @@ pub fn rui(view: impl View + 'static) {
                 config.width = size.width.max(1);
                 config.height = size.height.max(1);
                 surface.configure(&device, &config);
+                window.request_redraw();
             }
             winit::event::Event::MainEventsCleared => {
                 // Application update code.
@@ -276,7 +277,9 @@ pub fn rui(view: impl View + 'static) {
                 // You only need to call this if you've determined that you need to redraw, in
                 // applications which do not always need to. Applications that redraw continuously
                 // can just render here instead.
-                window.request_redraw();
+                if view.needs_redraw(cx.root_id, &mut cx) {
+                    window.request_redraw();
+                }
             }
             winit::event::Event::RedrawRequested(_) => {
                 // Redraw the application.
