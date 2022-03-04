@@ -33,6 +33,6 @@ pub fn slider(value: impl Binding<f32>) -> impl View {
                 );
             }),
         ))
-        .geom(move |sz| width.set(sz.width))
+        .geom(move |sz| if sz.width != w { width.set(sz.width) })
     })
 }
