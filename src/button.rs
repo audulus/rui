@@ -76,7 +76,7 @@ where
         vger.restore();
     }
 
-    fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
+    fn layout(&self, id: ViewID, _sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
         let padding = LocalSize::new(Button::<F>::PADDING, Button::<F>::PADDING);
         let size = vger
             .text_bounds(self.text.as_str(), Button::<F>::DEFAULT_SIZE, None)
