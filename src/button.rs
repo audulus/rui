@@ -1,4 +1,5 @@
 pub use crate::*;
+use std::fmt;
 
 pub struct Button<F> {
     text: String,
@@ -101,6 +102,14 @@ where
         } else {
             None
         }
+    }
+}
+
+impl<F> fmt::Debug for Button<F> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Button")
+        .field("text", &self.text)
+        .finish()
     }
 }
 
