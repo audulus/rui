@@ -101,6 +101,13 @@ pub const BUTTON_BACKGROUND_COLOR: Color = Color {
     a: 1.0,
 };
 
+pub const CLEAR_COLOR: Color = Color {
+    r: 0.0,
+    g: 0.0,
+    b: 0.0,
+    a: 0.0,
+};
+
 async fn setup(title: &str) -> Setup {
     let event_loop = EventLoop::new();
     let mut builder = winit::window::WindowBuilder::new();
