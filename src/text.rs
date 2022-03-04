@@ -19,7 +19,7 @@ impl View for Text {
             .origin;
 
         vger.save();
-        vger.translate([-origin.x, -origin.y].into());
+        vger.translate([-origin.x, -origin.y]);
         vger.text(self.text.as_str(), Text::DEFAULT_SIZE, TEXT_COLOR, None);
         vger.restore();
     }

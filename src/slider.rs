@@ -27,7 +27,7 @@ pub fn slider(value: impl Binding<f32>) -> impl View {
                 );
                 let paint = vger.color_paint(AZURE_HIGHLIGHT);
                 vger.fill_circle(
-                    [x, c.y].into(),
+                    [x, c.y],
                     SLIDER_THUMB_RADIUS,
                     paint
                 );

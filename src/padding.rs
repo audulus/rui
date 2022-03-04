@@ -23,7 +23,7 @@ where
 
     fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
         vger.save();
-        vger.translate([self.padding, self.padding].into());
+        vger.translate([self.padding, self.padding]);
         self.child.draw(id.child(&0), cx, vger);
         vger.restore();
     }
