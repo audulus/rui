@@ -19,7 +19,7 @@ pub struct Stack<VT: ViewTuple> {
 impl<VT: ViewTuple> View for Stack<VT> {
     fn print(&self, id: ViewID, cx: &mut Context) {
         println!("Stack {{");
-        let mut c: u16 = 0;
+        let mut c = 0;
         self.children.foreach_view(&mut |child| {
             (*child).print(id.child(&c), cx);
             c += 1;
@@ -28,7 +28,7 @@ impl<VT: ViewTuple> View for Stack<VT> {
     }
 
     fn needs_redraw(&self, id: ViewID, cx: &mut Context) -> bool {
-        let mut c: u16 = 0;
+        let mut c = 0;
         let mut r = false;
         self.children.foreach_view(&mut |child| {
             r = r || (*child).needs_redraw(id.child(&c), cx);
@@ -38,7 +38,7 @@ impl<VT: ViewTuple> View for Stack<VT> {
     }
 
     fn process(&self, event: &Event, id: ViewID, cx: &mut Context, vger: &mut VGER) {
-        let mut c: u16 = 0;
+        let mut c = 0;
         self.children.foreach_view(&mut |child| {
             let child_id = id.child(&c);
             let offset = cx
@@ -56,7 +56,7 @@ impl<VT: ViewTuple> View for Stack<VT> {
     }
 
     fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
-        let mut c: u16 = 0;
+        let mut c = 0;
         self.children.foreach_view(&mut |child| {
             let child_id = id.child(&c);
             let offset = cx
@@ -83,7 +83,7 @@ impl<VT: ViewTuple> View for Stack<VT> {
             StackOrientation::Horizontal => {
                 let proposed_child_size = LocalSize::new(sz.width / n, sz.height);
 
-                let mut c: u16 = 0;
+                let mut c = 0;
                 let mut width_sum = 0.0;
                 self.children.foreach_view(&mut |child| {
                     let child_id = id.child(&c);
@@ -101,7 +101,7 @@ impl<VT: ViewTuple> View for Stack<VT> {
             StackOrientation::Vertical => {
                 let proposed_child_size = LocalSize::new(sz.width, sz.height / n);
 
-                let mut c: u16 = 0;
+                let mut c = 0;
                 let mut y = sz.height;
                 let mut height_sum = 0.0;
                 self.children.foreach_view(&mut |child| {
@@ -119,7 +119,7 @@ impl<VT: ViewTuple> View for Stack<VT> {
                 LocalSize::new(sz.width, height_sum)
             }
             StackOrientation::Z => {
-                let mut c: u16 = 0;
+                let mut c = 0;
                 self.children.foreach_view(&mut |child| {
                     child.layout(id.child(&c), sz, cx, vger);
                     c += 1;
@@ -136,7 +136,7 @@ impl<VT: ViewTuple> View for Stack<VT> {
         cx: &mut Context,
         vger: &mut VGER,
     ) -> Option<ViewID> {
-        let mut c: u16 = 0;
+        let mut c = 0;
         let mut hit = None;
         self.children.foreach_view(&mut |child| {
             let child_id = id.child(&c);
