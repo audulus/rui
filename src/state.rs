@@ -40,13 +40,13 @@ where
     S: Clone + 'static,
 {
     fn get(&self) -> S {
-        // Here we can indicate that a state change has
-        // been made.
         self.value.borrow().value.clone()
     }
     fn set(&self, value: S) {
         let mut holder = self.value.borrow_mut();
         holder.value = value.clone();
+
+        // Set dirty so the view tree will be redrawn.
         holder.dirty = true;
     }
 }
