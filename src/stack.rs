@@ -27,6 +27,16 @@ impl<VT: ViewTuple> View for Stack<VT> {
         println!("}}");
     }
 
+    fn needs_redraw(&self, id: ViewID, cx: &mut Context) -> bool {
+        let mut c: u16 = 0;
+        let mut r = false;
+        self.children.foreach_view(&mut |child| {
+            r = r || (*child).needs_redraw(id.child(&c), cx);
+            c += 1;
+        });
+        r
+    }
+
     fn process(&self, event: &Event, id: ViewID, cx: &mut Context, vger: &mut VGER) {
         let mut c: u16 = 0;
         self.children.foreach_view(&mut |child| {

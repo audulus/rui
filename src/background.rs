@@ -17,6 +17,11 @@ where
         println!("}}");
     }
 
+    fn needs_redraw(&self, id: ViewID, cx: &mut Context) -> bool {
+        (self.child).needs_redraw(id.child(&0), cx) ||
+        (self.background).needs_redraw(id.child(&1), cx)
+    }
+
     fn process(&self, event: &Event, id: ViewID, cx: &mut Context, vger: &mut VGER) {
         self.child.process(event, id.child(&0), cx, vger);
     }

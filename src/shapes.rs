@@ -23,6 +23,10 @@ impl View for Circle {
         println!("circle");
     }
 
+    fn needs_redraw(&self, id: ViewID, cx: &mut Context) -> bool {
+        false
+    }
+
     fn process(&self, _event: &Event, _id: ViewID, _cx: &mut Context, _vger: &mut VGER) {
         // do nothing
     }
@@ -99,6 +103,10 @@ impl Rectangle {
 impl View for Rectangle {
     fn print(&self, _id: ViewID, _cx: &mut Context) {
         println!("rectangle");
+    }
+
+    fn needs_redraw(&self, id: ViewID, cx: &mut Context) -> bool {
+        false
     }
 
     fn process(&self, _event: &Event, _id: ViewID, _cx: &mut Context, _vger: &mut VGER) {

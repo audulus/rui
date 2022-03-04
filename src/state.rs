@@ -27,6 +27,12 @@ impl<S> State<S> {
             value: Rc::new(RefCell::new(Holder { value, dirty: false })),
         }
     }
+    pub fn dirty(&self) -> bool {
+        self.value.borrow().dirty
+    }
+    pub fn clear_dirty(&self) {
+        self.value.borrow_mut().dirty = false
+    }
 }
 
 impl<S> Binding<S> for State<S>
@@ -39,7 +45,9 @@ where
         self.value.borrow().value.clone()
     }
     fn set(&self, value: S) {
-        self.value.borrow_mut().value = value.clone();
+        let mut holder = self.value.borrow_mut();
+        holder.value = value.clone();
+        holder.dirty = true;
     }
 }
 
@@ -58,6 +66,17 @@ where
         cx.with_state(self.default.clone(), id, |state: State<S>, cx| {
             (self.func)(state.clone()).print(id.child(&0), cx);
         });
+    }
+
+    fn needs_redraw(&self, id: ViewID, cx: &mut Context) -> bool {
+        cx.with_state(self.default.clone(), id, |state: State<S>, cx| {
+            if state.dirty() {
+                state.clear_dirty();
+                true
+            } else {
+                (self.func)(state.clone()).needs_redraw(id.child(&0), cx)
+            }
+        })
     }
 
     fn process(&self, event: &Event, id: ViewID, cx: &mut Context, vger: &mut VGER) {
