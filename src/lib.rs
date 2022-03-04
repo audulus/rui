@@ -87,6 +87,18 @@ pub const RED_HIGHLIGHT: Color = Color {
     b: 0.384,
     a: 1.0,
 };
+pub const RED_HIGHLIGHT_DARK: Color = Color {
+    r: 0.369,
+    g: 0.145,
+    b: 0.227,
+    a: 1.0
+};
+pub const RED_HIGHLIGHT_BACKGROUND: Color = Color {
+    r: 0.110,
+    g: 0.0,
+    b: 0.043,
+    a: 1.0
+};
 pub const AZURE_HIGHLIGHT: Color = Color {
     r: 0.0,
     g: 0.831,
