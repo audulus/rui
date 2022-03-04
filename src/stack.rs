@@ -269,7 +269,7 @@ pub fn vstack<VT: ViewTuple>(children: VT) -> Stack<VT> {
     Stack::new(StackOrientation::Vertical, children)
 }
 
-/// Stack of up to overlaid 8 Views in a tuple. Each item can be a different view type.
+/// Stack of up to 8 overlaid Views in a tuple. Each item can be a different view type.
 pub fn zstack<VT: ViewTuple>(children: VT) -> Stack<VT> {
     Stack::new(StackOrientation::Z, children)
 }
