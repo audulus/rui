@@ -12,7 +12,7 @@ impl View for Text {
     fn print(&self, _id: ViewID, _cx: &mut Context) {
         println!("Text({:?})", self.text);
     }
-    fn needs_redraw(&self, id: ViewID, cx: &mut Context) -> bool {
+    fn needs_redraw(&self, _id: ViewID, _cx: &mut Context) -> bool {
         false
     }
     fn process(&self, _event: &Event, _id: ViewID, _cx: &mut Context, _vger: &mut VGER) {}
