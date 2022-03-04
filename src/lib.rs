@@ -93,6 +93,12 @@ pub const AZURE_HIGHLIGHT: Color = Color {
     b: 1.0,
     a: 1.0,
 };
+pub const GREEN_HIGHLIGHT: Color = Color {
+    r: 0.231,
+    g: 0.769,
+    b: 0.333,
+    a: 1.0
+};
 
 pub const BUTTON_BACKGROUND_COLOR: Color = Color {
     r: 0.1,
