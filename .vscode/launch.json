@@ -7,6 +7,23 @@
         {
             "type": "lldb",
             "request": "launch",
+            "name": "Debug slider example",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--examples",
+                ],
+                "filter": {
+                    "name": "slider",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
             "name": "Debug shapes example",
             "cargo": {
                 "args": [
