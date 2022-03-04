@@ -9,15 +9,22 @@ pub trait Binding<S>: Clone + 'static {
     fn set(&self, value: S);
 }
 
+struct Holder<S> {
+    value: S,
+
+    /// Has the state changed since the last redraw?
+    dirty: bool
+}
+
 #[derive(Clone)]
 pub struct State<S> {
-    value: Rc<RefCell<S>>,
+    value: Rc<RefCell<Holder<S>>>,
 }
 
 impl<S> State<S> {
     pub fn new(value: S) -> Self {
         Self {
-            value: Rc::new(RefCell::new(value)),
+            value: Rc::new(RefCell::new(Holder { value, dirty: false })),
         }
     }
 }
@@ -29,10 +36,10 @@ where
     fn get(&self) -> S {
         // Here we can indicate that a state change has
         // been made.
-        self.value.borrow().clone()
+        self.value.borrow().value.clone()
     }
     fn set(&self, value: S) {
-        *self.value.borrow_mut() = value.clone();
+        self.value.borrow_mut().value = value.clone();
     }
 }
 
