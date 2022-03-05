@@ -85,6 +85,28 @@ fn main() {
 
 <img src="screenshots/canvas.png" alt="canvas screenshot" style="width:50%;">
 
+slider with a binding (`cargo run --example slider`):
+
+```rust
+use rui::*;
+
+#[derive(Clone)]
+struct MyState {
+    value: f32,
+}
+
+fn main() {
+    rui(state(MyState { value: 0.0 }, |state: State<MyState>| {
+        vstack((
+            text(&format!("value: {:?}", state.get().value)).padding(Auto),
+            hslider(bind!(state, value))
+                .thumb_color(RED_HIGHLIGHT)
+                .padding(Auto),
+        ))
+    }));
+}
+```
+
 ## Goals
 
 - Encode UI in types to ensure stable identity.
