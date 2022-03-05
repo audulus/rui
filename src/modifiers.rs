@@ -48,6 +48,7 @@ impl<V: View + 'static> Modifiers for V {
     }
 }
 
+// Using this depends on https://github.com/rust-lang/rust/issues/63063
 pub trait Body {
     type V: View;
     fn body(&self) -> Self::V;
