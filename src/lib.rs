@@ -57,6 +57,9 @@ pub use size::*;
 mod body;
 pub use body::*;
 
+mod knob;
+pub use knob::*;
+
 use futures::executor::block_on;
 use vger::color::*;
 use vger::*;
