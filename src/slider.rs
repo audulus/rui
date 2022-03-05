@@ -60,6 +60,7 @@ impl<B> HSlider<B> where B:Binding<f32> {
     }
 }
 
+/// Horizontal slider built from other Views.
 pub fn hslider(value: impl Binding<f32>) -> impl View {
     HSlider { value, thumb_color: AZURE_HIGHLIGHT }
 }
