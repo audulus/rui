@@ -9,7 +9,7 @@ fn main() {
     rui(state(MyState { value: 0.0 }, |state: State<MyState>| {
         vstack((
             text(&format!("value: {:?}", state.get().value)).padding(Auto),
-            hslider(bind!(state, value)).padding(Auto),
+            hslider(bind!(state, value)).thumb_color(RED_HIGHLIGHT).padding(Auto),
         ))
     }));
 }

@@ -37,9 +37,9 @@ fn hslider_f(value: impl Binding<f32>, thumb_color: Color) -> impl View {
     })
 }
 
-struct HSlider<B: Binding<f32>> {
+pub struct HSlider<B: Binding<f32>> {
     value: B,
-    thumb_color: Color
+    thumb: Color
 }
 
 impl<B> View for HSlider<B> where B:Binding<f32> {
@@ -49,20 +49,20 @@ impl<B> View for HSlider<B> where B:Binding<f32> {
 impl<B> HSlider<B> where B:Binding<f32> {
 
     fn body(&self) -> impl View {
-        hslider_f(self.value.clone(), self.thumb_color)
+        hslider_f(self.value.clone(), self.thumb)
     }
 
-    fn thunb_color(self, thumb_color: Color) -> Self {
+    pub fn thumb_color(self, thumb_color: Color) -> Self {
         Self {
             value: self.value,
-            thumb_color
+            thumb: thumb_color
         }
     }
 }
 
 /// Horizontal slider built from other Views.
-pub fn hslider(value: impl Binding<f32>) -> impl View {
-    HSlider { value, thumb_color: AZURE_HIGHLIGHT }
+pub fn hslider(value: impl Binding<f32>) -> HSlider<impl Binding<f32>> {
+    HSlider { value, thumb: AZURE_HIGHLIGHT }
 }
 
 /// Vertical slider built from other Views.
