@@ -107,6 +107,8 @@ fn main() {
 }
 ```
 
+<img src="screenshots/slider.png" alt="slider screenshot" style="width:50%;">
+
 ## Goals
 
 - Encode UI in types to ensure stable identity.
