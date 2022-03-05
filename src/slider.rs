@@ -4,7 +4,7 @@ const SLIDER_WIDTH :f32 = 4.0;
 const SLIDER_THUMB_RADIUS : f32 = 10.0;
 
 /// Horizontal slider built from other Views.
-pub fn hslider(value: impl Binding<f32>) -> impl View {
+fn hslider_f(value: impl Binding<f32>, thumb_color: Color) -> impl View {
     state(0.0, move |width| {
         let w = width.get();
         let x = value.get() * w;
@@ -25,7 +25,7 @@ pub fn hslider(value: impl Binding<f32>) -> impl View {
                     0.0,
                     paint
                 );
-                let paint = vger.color_paint(AZURE_HIGHLIGHT);
+                let paint = vger.color_paint(thumb_color);
                 vger.fill_circle(
                     [x, c.y],
                     SLIDER_THUMB_RADIUS,
@@ -49,7 +49,7 @@ impl<B> View for HSlider<B> where B:Binding<f32> {
 impl<B> HSlider<B> where B:Binding<f32> {
 
     fn body(&self) -> impl View {
-        hslider(self.value.clone())
+        hslider_f(self.value.clone(), self.thumb_color)
     }
 
     fn thunb_color(self, thumb_color: Color) -> Self {
@@ -58,6 +58,10 @@ impl<B> HSlider<B> where B:Binding<f32> {
             thumb_color
         }
     }
+}
+
+pub fn hslider(value: impl Binding<f32>) -> impl View {
+    HSlider { value, thumb_color: AZURE_HIGHLIGHT }
 }
 
 /// Vertical slider built from other Views.
