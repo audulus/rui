@@ -68,34 +68,67 @@ pub fn hslider(value: impl Binding<f32>) -> HSlider<impl Binding<f32>> {
     }
 }
 
-/// Vertical slider built from other Views.
-pub fn vslider(value: impl Binding<f32>) -> impl View {
-    state(0.0, move |height| {
-        let h = height.get();
-        let y = value.get() * h;
-        let value = value.clone();
+pub struct VSlider<B: Binding<f32>> {
+    value: B,
+    thumb: Color,
+}
 
-        zstack((
-            rectangle().color(CLEAR_COLOR).drag(move |off, _state| {
-                value.set((value.get() + off.y / h).clamp(0.0, 1.0));
-            }),
-            canvas(move |sz, vger| {
-                let c = sz.center();
-                let paint = vger.color_paint(BUTTON_BACKGROUND_COLOR);
-                vger.fill_rect(
-                    [c.x - SLIDER_WIDTH / 2.0, 0.0].into(),
-                    [c.x + SLIDER_WIDTH / 2.0, sz.height()].into(),
-                    0.0,
-                    paint,
-                );
-                let paint = vger.color_paint(AZURE_HIGHLIGHT);
-                vger.fill_circle([c.x, y], SLIDER_THUMB_RADIUS, paint);
-            }),
-        ))
-        .geom(move |sz| {
-            if sz.height != h {
-                height.set(sz.width)
-            }
+impl<B> View for VSlider<B>
+where
+    B: Binding<f32>,
+{
+    body_view!();
+}
+
+impl<B> VSlider<B>
+where
+    B: Binding<f32>,
+{
+    fn body(&self) -> impl View {
+        let value = self.value.clone();
+        let thumb_color = self.thumb;
+        state(0.0, move |height| {
+            let h = height.get();
+            let y = value.get() * h;
+            let value = value.clone();
+    
+            zstack((
+                rectangle().color(CLEAR_COLOR).drag(move |off, _state| {
+                    value.set((value.get() + off.y / h).clamp(0.0, 1.0));
+                }),
+                canvas(move |sz, vger| {
+                    let c = sz.center();
+                    let paint = vger.color_paint(BUTTON_BACKGROUND_COLOR);
+                    vger.fill_rect(
+                        [c.x - SLIDER_WIDTH / 2.0, 0.0].into(),
+                        [c.x + SLIDER_WIDTH / 2.0, sz.height()].into(),
+                        0.0,
+                        paint,
+                    );
+                    let paint = vger.color_paint(thumb_color);
+                    vger.fill_circle([c.x, y], SLIDER_THUMB_RADIUS, paint);
+                }),
+            ))
+            .geom(move |sz| {
+                if sz.height != h {
+                    height.set(sz.width)
+                }
+            })
         })
-    })
+    }
+
+    pub fn thumb_color(self, thumb_color: Color) -> Self {
+        Self {
+            value: self.value,
+            thumb: thumb_color,
+        }
+    }
+}
+
+/// Horizontal slider built from other Views.
+pub fn vslider(value: impl Binding<f32>) -> VSlider<impl Binding<f32>> {
+    VSlider {
+        value,
+        thumb: AZURE_HIGHLIGHT,
+    }
 }
