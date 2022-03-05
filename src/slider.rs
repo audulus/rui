@@ -37,20 +37,23 @@ pub fn hslider(value: impl Binding<f32>) -> impl View {
     })
 }
 
-struct HSlider<V: View, B: Binding<f32>> {
-    body: V,
+struct HSlider<B: Binding<f32>> {
     value: B,
     thumb_color: Color
 }
 
-impl<V, B> View for HSlider<V, B> where V:View, B:Binding<f32> {
+impl<B> View for HSlider<B> where B:Binding<f32> {
     modifier_view!();
 }
 
-impl<V, B> HSlider<V, B> where V:View, B:Binding<f32> {
+impl<B> HSlider<B> where B:Binding<f32> {
+
+    fn body(&self) -> impl View {
+        hslider(self.value.clone())
+    }
+
     fn thunb_color(self, thumb_color: Color) -> Self {
         Self {
-            body: self.body,
             value: self.value,
             thumb_color
         }
