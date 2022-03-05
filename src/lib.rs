@@ -54,6 +54,9 @@ pub use list::*;
 mod size;
 pub use size::*;
 
+mod body;
+pub use body::*;
+
 use futures::executor::block_on;
 use vger::color::*;
 use vger::*;
