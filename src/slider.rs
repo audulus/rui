@@ -4,7 +4,7 @@ const SLIDER_WIDTH :f32 = 4.0;
 const SLIDER_THUMB_RADIUS : f32 = 10.0;
 
 /// Horizontal slider built from other Views.
-pub fn slider(value: impl Binding<f32>) -> impl View {
+pub fn hslider(value: impl Binding<f32>) -> impl View {
     state(0.0, move |width| {
         let w = width.get();
         let x = value.get() * w;
@@ -34,5 +34,39 @@ pub fn slider(value: impl Binding<f32>) -> impl View {
             }),
         ))
         .geom(move |sz| if sz.width != w { width.set(sz.width) })
+    })
+}
+
+/// Vertical slider built from other Views.
+pub fn vslider(value: impl Binding<f32>) -> impl View {
+    state(0.0, move |height| {
+        let h = height.get();
+        let y = value.get() * h;
+        let value = value.clone();
+
+        zstack((
+            rectangle()
+                .color(CLEAR_COLOR)
+                .drag(move |off, _state| {
+                    value.set( (value.get() + off.y / h).clamp(0.0,1.0));
+                }),
+            canvas(move |sz, vger| {
+                let c = sz.center();
+                let paint = vger.color_paint(BUTTON_BACKGROUND_COLOR);
+                vger.fill_rect(
+                    [c.x-SLIDER_WIDTH/2.0, 0.0].into(),
+                    [c.x+SLIDER_WIDTH/2.0, sz.height()].into(),
+                    0.0,
+                    paint
+                );
+                let paint = vger.color_paint(AZURE_HIGHLIGHT);
+                vger.fill_circle(
+                    [c.x, y],
+                    SLIDER_THUMB_RADIUS,
+                    paint
+                );
+            }),
+        ))
+        .geom(move |sz| if sz.height != h { height.set(sz.width) })
     })
 }
