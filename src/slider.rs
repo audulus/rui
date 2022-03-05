@@ -37,6 +37,26 @@ pub fn hslider(value: impl Binding<f32>) -> impl View {
     })
 }
 
+struct HSlider<V: View, B: Binding<f32>> {
+    body: V,
+    value: B,
+    thumb_color: Color
+}
+
+impl<V, B> View for HSlider<V, B> where V:View, B:Binding<f32> {
+    modifier_view!();
+}
+
+impl<V, B> HSlider<V, B> where V:View, B:Binding<f32> {
+    fn thunb_color(self, thumb_color: Color) -> Self {
+        Self {
+            body: self.body,
+            value: self.value,
+            thumb_color
+        }
+    }
+}
+
 /// Vertical slider built from other Views.
 pub fn vslider(value: impl Binding<f32>) -> impl View {
     state(0.0, move |height| {
