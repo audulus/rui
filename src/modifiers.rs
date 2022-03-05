@@ -90,7 +90,7 @@ where
 }
 
 #[macro_export]
-macro_rules! modifier_view {
+macro_rules! body_view {
     () => {
         fn print(&self, id: ViewID, cx: &mut Context) {
             self.body().print(id, cx)

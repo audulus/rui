@@ -44,7 +44,7 @@ impl<B> View for HSlider<B>
 where
     B: Binding<f32>,
 {
-    modifier_view!();
+    body_view!();
 }
 
 impl<B> HSlider<B>
