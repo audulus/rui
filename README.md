@@ -135,7 +135,7 @@ In the long term, I'd like to move Audulus over to Rust. After looking at other 
 - ✅ canvas (GPU vector graphics with vger)
 - ✅ bindings
 - ✅ list
-- ❌ sliders
+- ✅ sliders
 - ❌ knobs
 - ❌ editable text
 - ❌ layout feedback
