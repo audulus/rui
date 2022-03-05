@@ -6,7 +6,7 @@ struct MyState {
 }
 
 fn main() {
-    rui(state(MyState { value: 0.0 }, |state: State<MyState>| {
+    rui(state(MyState { value: 0.0 }, |state| {
         vstack((
             text(&format!("value: {:?}", state.get().value)).padding(Auto),
             hslider(bind!(state, value))
