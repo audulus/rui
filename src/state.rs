@@ -13,7 +13,7 @@ struct Holder<S> {
     value: S,
 
     /// Has the state changed since the last redraw?
-    dirty: bool
+    dirty: bool,
 }
 
 #[derive(Clone)]
@@ -24,7 +24,10 @@ pub struct State<S> {
 impl<S> State<S> {
     pub fn new(value: S) -> Self {
         Self {
-            value: Rc::new(RefCell::new(Holder { value, dirty: false })),
+            value: Rc::new(RefCell::new(Holder {
+                value,
+                dirty: false,
+            })),
         }
     }
     pub fn dirty(&self) -> bool {

@@ -49,11 +49,14 @@ impl<V: View + 'static> Modifiers for V {
 }
 
 pub trait Body {
-    type V : View;
+    type V: View;
     fn body(&self) -> Self::V;
 }
 
-impl<T> View for T where T: Body {
+impl<T> View for T
+where
+    T: Body,
+{
     fn print(&self, id: ViewID, cx: &mut Context) {
         self.body().print(id, cx)
     }
@@ -91,21 +94,29 @@ macro_rules! modifier_view {
         fn print(&self, id: ViewID, cx: &mut Context) {
             self.body().print(id, cx)
         }
-    
-        fn needs_redraw(&self, id: ViewID, cx: &mut Context) -> bool { self.body().needs_redraw(id, cx) }
-    
+
+        fn needs_redraw(&self, id: ViewID, cx: &mut Context) -> bool {
+            self.body().needs_redraw(id, cx)
+        }
+
         fn process(&self, event: &Event, id: ViewID, cx: &mut Context, vger: &mut VGER) {
             self.body().process(event, id, cx, vger)
         }
-    
+
         fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
             self.body().draw(id, cx, vger)
         }
-    
-        fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
+
+        fn layout(
+            &self,
+            id: ViewID,
+            sz: LocalSize,
+            cx: &mut Context,
+            vger: &mut VGER,
+        ) -> LocalSize {
             self.body().layout(id, sz, cx, vger)
         }
-    
+
         fn hittest(
             &self,
             id: ViewID,
@@ -115,5 +126,5 @@ macro_rules! modifier_view {
         ) -> Option<ViewID> {
             self.body().hittest(id, pt, cx, vger)
         }
-    }
+    };
 }

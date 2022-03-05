@@ -12,7 +12,9 @@ where
         println!("canvas");
     }
 
-    fn needs_redraw(&self, _id: ViewID, _cx: &mut Context) -> bool { false }
+    fn needs_redraw(&self, _id: ViewID, _cx: &mut Context) -> bool {
+        false
+    }
 
     fn process(&self, _event: &Event, _id: ViewID, _cx: &mut Context, _vger: &mut VGER) {
         // do nothing

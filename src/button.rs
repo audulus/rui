@@ -19,8 +19,10 @@ where
         println!("Button({:?})", self.text);
     }
 
-    fn needs_redraw(&self, _id: ViewID, _cx: &mut Context) -> bool { false }
-    
+    fn needs_redraw(&self, _id: ViewID, _cx: &mut Context) -> bool {
+        false
+    }
+
     fn process(&self, event: &Event, vid: ViewID, cx: &mut Context, _vger: &mut VGER) {
         match &event.kind {
             EventKind::PressButton(name) => {
@@ -110,9 +112,7 @@ where
 
 impl<F> fmt::Debug for Button<F> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("Button")
-        .field("text", &self.text)
-        .finish()
+        f.debug_struct("Button").field("text", &self.text).finish()
     }
 }
 

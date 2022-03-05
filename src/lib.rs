@@ -91,13 +91,13 @@ pub const RED_HIGHLIGHT_DARK: Color = Color {
     r: 0.369,
     g: 0.145,
     b: 0.227,
-    a: 1.0
+    a: 1.0,
 };
 pub const RED_HIGHLIGHT_BACKGROUND: Color = Color {
     r: 0.110,
     g: 0.0,
     b: 0.043,
-    a: 1.0
+    a: 1.0,
 };
 pub const AZURE_HIGHLIGHT: Color = Color {
     r: 0.0,
@@ -109,7 +109,7 @@ pub const GREEN_HIGHLIGHT: Color = Color {
     r: 0.231,
     g: 0.769,
     b: 0.333,
-    a: 1.0
+    a: 1.0,
 };
 
 pub const BUTTON_BACKGROUND_COLOR: Color = Color {
@@ -137,7 +137,7 @@ pub const CONTROL_BACKGROUND: Color = Color {
     r: 0.138,
     g: 0.138,
     b: 0.148,
-    a: 1.0
+    a: 1.0,
 };
 
 async fn setup(title: &str) -> Setup {
