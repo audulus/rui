@@ -2,8 +2,8 @@ pub use crate::*;
 
 pub const BUTTON_CORNER_RADIUS: f32 = 5.0;
 
-pub fn button<F: Fn() + 'static>(name: &str, f: F) -> impl View {
-    text(&name)
+pub fn button<F: Fn() + 'static>(view: impl View + 'static, f: F) -> impl View {
+    view
         .padding(Auto)
         .background(
             rectangle()
