@@ -390,7 +390,7 @@ mod tests {
 
     #[test]
     fn test_button() {
-        let _ = button("click me", || {
+        let _ = button(text("click me"), || {
             println!("clicked!");
         });
     }
@@ -402,7 +402,7 @@ mod tests {
 
     fn counter0(start: usize) -> impl View {
         state(start, |count: State<usize>| {
-            button(format!("{:?}", count.get()).as_str(), move || {
+            button(text(&format!("{:?}", count.get())), move || {
                 let value = count.get();
                 count.set(value + 1);
             })
@@ -422,11 +422,11 @@ mod tests {
             let value_string = format!("value: {:?}", count.get());
             vstack((
                 text(value_string.as_str()),
-                button("increment", move || {
+                button(text("increment"), move || {
                     let value = count.get();
                     count.set(value + 1);
                 }),
-                button("decrement", move || {
+                button(text("decrement"), move || {
                     let value = count2.get();
                     count2.set(value - 1);
                 }),
@@ -462,11 +462,11 @@ mod tests {
     {
         let count2 = count.clone();
         vstack((
-            button("increment", move || {
+            button(text("increment"), move || {
                 let value = count.get();
                 count.set(value + 1);
             }),
-            button("decrement", move || {
+            button(text("decrement"), move || {
                 let value = count2.get();
                 count2.set(value - 1);
             }),
@@ -479,7 +479,7 @@ mod tests {
     }
 
     fn ok_button<F: Fn() + 'static>(f: F) -> impl View {
-        button("ok", f)
+        button(text("ok"), f)
     }
 
     #[derive(Clone)]
