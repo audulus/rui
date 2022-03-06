@@ -22,6 +22,9 @@ pub trait Modifiers: View + Sized {
 
     /// Constrains the size of a view.
     fn size<Sz: Into<LocalSize>>(self, size: Sz) -> Size<Self>;
+
+    /// Adds a menu command.
+    fn command<F: Fn() + 'static>(self, name: String, f: F) -> Command<Self, F>;
 }
 
 impl<V: View + 'static> Modifiers for V {
@@ -45,5 +48,8 @@ impl<V: View + 'static> Modifiers for V {
     }
     fn size<Sz: Into<LocalSize>>(self, size: Sz) -> Size<Self> {
         Size::new(self, size.into())
+    }
+    fn command<F: Fn() + 'static>(self, name: String, f: F) -> Command<Self, F> {
+        Command::new(self, name, f)
     }
 }

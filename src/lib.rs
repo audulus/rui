@@ -60,6 +60,9 @@ pub use body::*;
 mod knob;
 pub use knob::*;
 
+mod command;
+pub use command::*;
+
 use futures::executor::block_on;
 use vger::color::*;
 use vger::*;
