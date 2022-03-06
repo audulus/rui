@@ -65,6 +65,7 @@ use vger::color::*;
 use vger::*;
 
 use winit::{
+    event,
     event::{ElementState, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
     window::{WindowBuilder, Window},
@@ -253,14 +254,14 @@ pub fn rui(view: impl View + 'static) {
         *control_flow = ControlFlow::Wait;
 
         match event {
-            winit::event::Event::WindowEvent {
+            event::Event::WindowEvent {
                 event: WindowEvent::CloseRequested,
                 ..
             } => {
                 println!("The close button was pressed; stopping");
                 *control_flow = ControlFlow::Exit
             }
-            winit::event::Event::WindowEvent {
+            event::Event::WindowEvent {
                 event:
                     WindowEvent::Resized(size)
                     | WindowEvent::ScaleFactorChanged {
@@ -275,7 +276,7 @@ pub fn rui(view: impl View + 'static) {
                 surface.configure(&device, &config);
                 window.request_redraw();
             }
-            winit::event::Event::MainEventsCleared => {
+            event::Event::MainEventsCleared => {
                 // Application update code.
 
                 // Queue a RedrawRequested event.
@@ -287,7 +288,7 @@ pub fn rui(view: impl View + 'static) {
                     window.request_redraw();
                 }
             }
-            winit::event::Event::RedrawRequested(_) => {
+            event::Event::RedrawRequested(_) => {
                 // Redraw the application.
                 //
                 // It's preferable for applications that do not render continuously to render in
@@ -338,7 +339,7 @@ pub fn rui(view: impl View + 'static) {
 
                 frame.present();
             }
-            winit::event::Event::WindowEvent {
+            event::Event::WindowEvent {
                 event: WindowEvent::MouseInput { state, .. },
                 ..
             } => {
@@ -354,7 +355,7 @@ pub fn rui(view: impl View + 'static) {
                 };
                 view.process(&event, cx.root_id, &mut cx, &mut vger)
             }
-            winit::event::Event::WindowEvent {
+            event::Event::WindowEvent {
                 event: WindowEvent::CursorMoved { position, .. },
                 ..
             } => {
