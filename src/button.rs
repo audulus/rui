@@ -1,5 +1,4 @@
 pub use crate::*;
-use std::fmt;
 
 pub const BUTTON_CORNER_RADIUS: f32 = 5.0;
 
