@@ -136,7 +136,7 @@ In the long term, I'd like to move Audulus over to Rust. After looking at other 
 - ✅ bindings
 - ✅ list
 - ✅ sliders
-- ❌ knobs
+- ✅ knobs
 - ❌ editable text
 - ❌ layout feedback
 
