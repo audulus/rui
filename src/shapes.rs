@@ -23,7 +23,7 @@ impl View for Circle {
         println!("circle");
     }
 
-    fn needs_redraw(&self, id: ViewID, cx: &mut Context) -> bool {
+    fn needs_redraw(&self, _id: ViewID, _cx: &mut Context) -> bool {
         false
     }
 
@@ -105,7 +105,7 @@ impl View for Rectangle {
         println!("rectangle");
     }
 
-    fn needs_redraw(&self, id: ViewID, cx: &mut Context) -> bool {
+    fn needs_redraw(&self, _id: ViewID, _cx: &mut Context) -> bool {
         false
     }
 
