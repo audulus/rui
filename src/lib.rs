@@ -69,13 +69,14 @@ use winit::{
     event::{ElementState, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
     window::{WindowBuilder, Window},
+    dpi::PhysicalSize,
 };
 
 struct Setup {
     window: Window,
     event_loop: EventLoop<()>,
     // instance: wgpu::Instance,
-    size: winit::dpi::PhysicalSize<u32>,
+    size: PhysicalSize<u32>,
     surface: wgpu::Surface,
     adapter: wgpu::Adapter,
     device: wgpu::Device,
