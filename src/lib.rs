@@ -64,7 +64,7 @@ use futures::executor::block_on;
 use vger::color::*;
 use vger::*;
 
-use winit::{
+use tao::{
     event,
     event::{ElementState, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
@@ -344,17 +344,23 @@ pub fn rui(view: impl View + 'static) {
                 event: WindowEvent::MouseInput { state, .. },
                 ..
             } => {
-                let event = match state {
-                    ElementState::Pressed => view::Event {
-                        kind: EventKind::TouchBegin { id: 0 },
-                        position: mouse_position,
+                match state {
+                    ElementState::Pressed => {
+                        let event = view::Event {
+                            kind: EventKind::TouchBegin { id: 0 },
+                            position: mouse_position,
+                        };
+                        view.process(&event, cx.root_id, &mut cx, &mut vger)
                     },
-                    ElementState::Released => view::Event {
-                        kind: EventKind::TouchEnd { id: 0 },
-                        position: mouse_position,
+                    ElementState::Released => { 
+                        let event = view::Event {
+                            kind: EventKind::TouchEnd { id: 0 },
+                            position: mouse_position,
+                        };
+                        view.process(&event, cx.root_id, &mut cx, &mut vger)
                     },
+                    _ => {}
                 };
-                view.process(&event, cx.root_id, &mut cx, &mut vger)
             }
             event::Event::WindowEvent {
                 event: WindowEvent::CursorMoved { position, .. },
