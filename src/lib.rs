@@ -343,11 +343,11 @@ pub fn rui(view: impl View + 'static) {
                 ..
             } => {
                 let event = match state {
-                    ElementState::Pressed => Event {
+                    ElementState::Pressed => view::Event {
                         kind: EventKind::TouchBegin { id: 0 },
                         position: mouse_position,
                     },
-                    ElementState::Released => Event {
+                    ElementState::Released => view::Event {
                         kind: EventKind::TouchEnd { id: 0 },
                         position: mouse_position,
                     },
@@ -364,7 +364,7 @@ pub fn rui(view: impl View + 'static) {
                     (config.height as f32 - position.y as f32) / scale,
                 ]
                 .into();
-                let event = Event {
+                let event = view::Event {
                     kind: EventKind::TouchMove { id: 0 },
                     position: mouse_position,
                 };
