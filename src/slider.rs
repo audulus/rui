@@ -26,7 +26,7 @@ where
             let w = width.get();
             let x = value.get() * w;
             let value = value.clone();
-    
+
             zstack((
                 rectangle().color(CLEAR_COLOR).drag(move |off, _state| {
                     value.set((value.get() + off.x / w).clamp(0.0, 1.0));
@@ -91,7 +91,7 @@ where
             let h = height.get();
             let y = value.get() * h;
             let value = value.clone();
-    
+
             zstack((
                 rectangle().color(CLEAR_COLOR).drag(move |off, _state| {
                     value.set((value.get() + off.y / h).clamp(0.0, 1.0));

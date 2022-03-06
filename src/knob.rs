@@ -1,20 +1,19 @@
 use crate::*;
 
-const THETA_MIN: f32 = 3.0/2.0 * std::f32::consts::PI;
-const THETA_MAX: f32 = 7.0/2.0 * std::f32::consts::PI;
+const THETA_MIN: f32 = 3.0 / 2.0 * std::f32::consts::PI;
+const THETA_MAX: f32 = 7.0 / 2.0 * std::f32::consts::PI;
 
 fn lerp(x: f32, a: f32, b: f32) -> f32 {
-    (1.0-x)*a + x*b
+    (1.0 - x) * a + x * b
 }
 
 pub fn knob(value: impl Binding<f32>) -> impl View {
-
     let v = value.get();
     let value = value.clone();
 
     zstack((
         circle().color(CLEAR_COLOR).drag(move |off, _state| {
-            value.set((value.get() + (off.x+off.y) / 400.0).clamp(0.0, 1.0));
+            value.set((value.get() + (off.x + off.y) / 400.0).clamp(0.0, 1.0));
         }),
         canvas(move |sz, vger| {
             let c = sz.center();
@@ -23,11 +22,10 @@ pub fn knob(value: impl Binding<f32>) -> impl View {
             let a0 = lerp(v, THETA_MAX, THETA_MIN);
             let a1 = THETA_MAX;
 
-            let theta = -(a0 + a1)/2.0 + std::f32::consts::PI;
-            let ap = (a0 - a1).abs()/2.0;
+            let theta = -(a0 + a1) / 2.0 + std::f32::consts::PI;
+            let ap = (a0 - a1).abs() / 2.0;
 
             vger.stroke_arc(c, r, 2.0, theta, ap, paint);
         }),
     ))
-
 }

@@ -47,4 +47,3 @@ impl<V: View + 'static> Modifiers for V {
         Size::new(self, size.into())
     }
 }
-
