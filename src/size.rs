@@ -11,7 +11,7 @@ where
 {
     fn print(&self, id: ViewID, cx: &mut Context) {
         println!("Size {{");
-        (self.child).print(id.child(&0), cx);
+        self.child.print(id.child(&0), cx);
         println!("}}");
     }
 
