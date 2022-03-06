@@ -8,7 +8,7 @@ pub fn button<F: Fn() + 'static>(name: &str, f: F) -> impl View {
         .background(
             rectangle()
                 .corner_radius(BUTTON_CORNER_RADIUS)
-                .color(BUTTON_BACKGROUND_COLOR),
+                .color(BUTTON_BACKGROUND_COLOR)
         )
         .tap(f)
 }
