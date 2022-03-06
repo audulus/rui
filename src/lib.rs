@@ -67,11 +67,11 @@ use vger::*;
 use winit::{
     event::{ElementState, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
-    window::WindowBuilder,
+    window::{WindowBuilder, Window},
 };
 
 struct Setup {
-    window: winit::window::Window,
+    window: Window,
     event_loop: EventLoop<()>,
     // instance: wgpu::Instance,
     size: winit::dpi::PhysicalSize<u32>,
