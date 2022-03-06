@@ -148,7 +148,7 @@ pub const CONTROL_BACKGROUND: Color = Color {
 
 async fn setup(title: &str) -> Setup {
     let event_loop = EventLoop::new();
-    let mut builder = winit::window::WindowBuilder::new();
+    let mut builder = WindowBuilder::new();
     builder = builder.with_title(title);
     let window = builder.build(&event_loop).unwrap();
 
