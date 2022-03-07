@@ -245,11 +245,10 @@ fn build_menubar(commands: &Vec<String>) -> Menu {
             if let Some(item) = items[v].submenu.iter().find(|x| items[**x].name == name) {
                 v = *item;
             } else {
-                let item = MenuItem2 { name: name.into(), submenu: vec![] };
                 let n = items.len();
                 items[v].submenu.push(n);
                 v = n;
-                items.push(item);
+                items.push(MenuItem2 { name: name.into(), submenu: vec![] });
             }
         }
     }
