@@ -252,7 +252,7 @@ pub fn rui(view: impl View + 'static) {
     let mut cx = Context::new();
     let mut mouse_position = LocalPoint::zero();
 
-    let mut commands = HashSet::new();
+    let mut commands = Vec::new();
 
     event_loop.run(move |event, _, control_flow| {
         // ControlFlow::Poll continuously runs the event loop, even if the OS hasn't
@@ -298,9 +298,8 @@ pub fn rui(view: impl View + 'static) {
                 if view.needs_redraw(cx.root_id, &mut cx) {
 
                     // Have the commands changed?
-                    let mut cmds = Vec::new();
-                    view.commands(cx.root_id, &mut cx, &mut cmds);
-                    let new_commands = HashSet::from_iter(cmds.iter().cloned());
+                    let mut new_commands = Vec::new();
+                    view.commands(cx.root_id, &mut cx, &mut new_commands);
 
                     if new_commands != commands {
                         print!("commands changed");
