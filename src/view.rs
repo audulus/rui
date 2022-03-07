@@ -6,6 +6,7 @@ pub enum EventKind {
     TouchBegin { id: usize },
     TouchMove { id: usize },
     TouchEnd { id: usize },
+    Command(String),
 }
 
 #[derive(Clone, Debug)]
