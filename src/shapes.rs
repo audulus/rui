@@ -122,8 +122,7 @@ impl View for Rectangle {
 
         let paint = self.paint.vger_paint(vger);
         vger.fill_rect(
-            rect.origin,
-            rect.origin + rect.size,
+            rect,
             self.corner_radius,
             paint,
         );

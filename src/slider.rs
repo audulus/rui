@@ -35,8 +35,8 @@ where
                     let c = sz.center();
                     let paint = vger.color_paint(BUTTON_BACKGROUND_COLOR);
                     vger.fill_rect(
-                        [0.0, c.y - SLIDER_WIDTH / 2.0].into(),
-                        [sz.width(), c.y + SLIDER_WIDTH / 2.0].into(),
+                        euclid::rect(0.0, c.y - SLIDER_WIDTH / 2.0,
+                                     sz.width(), SLIDER_WIDTH),
                         0.0,
                         paint,
                     );
@@ -100,8 +100,8 @@ where
                     let c = sz.center();
                     let paint = vger.color_paint(BUTTON_BACKGROUND_COLOR);
                     vger.fill_rect(
-                        [c.x - SLIDER_WIDTH / 2.0, 0.0].into(),
-                        [c.x + SLIDER_WIDTH / 2.0, sz.height()].into(),
+                        euclid::rect(c.x - SLIDER_WIDTH / 2.0, 0.0,
+                                     SLIDER_WIDTH, sz.height()),
                         0.0,
                         paint,
                     );
