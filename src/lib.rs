@@ -77,9 +77,6 @@ use tao::{
 };
 
 struct Setup {
-    window: Window,
-    event_loop: EventLoop<()>,
-    // instance: wgpu::Instance,
     size: PhysicalSize<u32>,
     surface: wgpu::Surface,
     adapter: wgpu::Adapter,
@@ -152,11 +149,7 @@ pub const CONTROL_BACKGROUND: Color = Color {
     a: 1.0,
 };
 
-async fn setup(title: &str) -> Setup {
-    let event_loop = EventLoop::new();
-    let mut builder = WindowBuilder::new();
-    builder = builder.with_title(title);
-    let window = builder.build(&event_loop).unwrap();
+async fn setup(window: &Window) -> Setup {
 
     #[cfg(target_arch = "wasm32")]
     {
@@ -214,9 +207,6 @@ async fn setup(title: &str) -> Setup {
         .expect("Unable to find a suitable GPU adapter!");
 
     Setup {
-        window,
-        event_loop,
-        // instance,
         size,
         surface,
         adapter,
@@ -227,8 +217,13 @@ async fn setup(title: &str) -> Setup {
 
 /// Call this function to describe your UI.
 pub fn rui(view: impl View + 'static) {
-    let setup = block_on(setup("rui"));
-    let window = setup.window;
+
+    let event_loop = EventLoop::new();
+    let mut builder = WindowBuilder::new();
+    builder = builder.with_title("rui");
+    let window = builder.build(&event_loop).unwrap();
+
+    let setup = block_on(setup(&window));
     let surface = setup.surface;
     let device = setup.device;
     let size = setup.size;
@@ -254,7 +249,7 @@ pub fn rui(view: impl View + 'static) {
     let mut cx = Context::new();
     let mut mouse_position = LocalPoint::zero();
 
-    setup.event_loop.run(move |event, _, control_flow| {
+    event_loop.run(move |event, _, control_flow| {
         // ControlFlow::Poll continuously runs the event loop, even if the OS hasn't
         // dispatched any events. This is ideal for games and similar applications.
         // *control_flow = ControlFlow::Poll;
