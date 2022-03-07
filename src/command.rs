@@ -53,7 +53,7 @@ where
         self.child.hittest(id.child(&0), pt, cx, vger)
     }
 
-    fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<String>) {
+    fn commands(&self, _id: ViewID, _cx: &mut Context, cmds: &mut Vec<String>) {
         cmds.push(self.name.clone())
     }
 }

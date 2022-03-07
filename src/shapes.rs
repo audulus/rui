@@ -65,7 +65,7 @@ impl View for Circle {
         }
     }
 
-    fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<String>) {
+    fn commands(&self, _id: ViewID, _cx: &mut Context, _cmds: &mut Vec<String>) {
         // do nothing
     }
 }
@@ -156,7 +156,7 @@ impl View for Rectangle {
         }
     }
 
-    fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<String>) {
+    fn commands(&self, _id: ViewID, _cx: &mut Context, _cmds: &mut Vec<String>) {
         // do nothing
     }
 }
