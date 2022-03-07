@@ -235,7 +235,7 @@ fn make_menu_rec(items: &Vec<MenuItem2>, i: usize) -> Menu {
     menu
 }
 
-fn build_menubar(commands: Vec<String>) -> Menu {
+fn build_menubar(commands: &Vec<String>) -> Menu {
     
     let mut items : Vec<MenuItem2> = vec![MenuItem2 { name: "root".into(), submenu: vec![] }];
 
@@ -341,6 +341,8 @@ pub fn rui(view: impl View + 'static) {
                     if new_commands != commands {
                         print!("commands changed");
                         commands = new_commands;
+
+                        window.set_menu(Some(build_menubar(&commands)));
                     }
 
                     window.request_redraw();
