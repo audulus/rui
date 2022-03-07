@@ -73,6 +73,7 @@ use tao::{
     event_loop::{ControlFlow, EventLoop},
     window::{WindowBuilder, Window},
     dpi::PhysicalSize,
+    menu::{MenuBar as Menu, MenuItem, MenuItemAttributes, MenuType},
 };
 
 struct Setup {
@@ -233,6 +234,12 @@ pub fn rui(view: impl View + 'static) {
     let size = setup.size;
     let adapter = setup.adapter;
     let queue = setup.queue;
+
+    // create main menubar menu
+    let mut menu_bar_menu = Menu::new();
+    let mut first_menu = Menu::new();
+    first_menu.add_native_item(MenuItem::Quit);
+    menu_bar_menu.add_submenu("My app", true, first_menu);
 
     let mut config = wgpu::SurfaceConfiguration {
         usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
