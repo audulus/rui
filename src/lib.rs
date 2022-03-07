@@ -228,7 +228,7 @@ fn make_menu_rec(items: &Vec<MenuItem2>, i: usize) -> Menu {
         if items[*j].submenu.len() > 0 {
             menu.add_submenu(items[*j].name.as_str(), true, make_menu_rec(items, *j));
         } else {
-            menu.add_item(MenuItemAttributes::new("Selected and disabled"));
+            menu.add_item(MenuItemAttributes::new(items[*j].name.as_str()));
         }
     }
 
