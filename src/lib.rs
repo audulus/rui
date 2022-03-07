@@ -66,6 +66,8 @@ pub use command::*;
 use futures::executor::block_on;
 use vger::color::*;
 use vger::*;
+use std::collections::HashSet;
+use std::iter::FromIterator;
 
 use tao::{
     event,
@@ -250,6 +252,8 @@ pub fn rui(view: impl View + 'static) {
     let mut cx = Context::new();
     let mut mouse_position = LocalPoint::zero();
 
+    let mut commands = HashSet::new();
+
     event_loop.run(move |event, _, control_flow| {
         // ControlFlow::Poll continuously runs the event loop, even if the OS hasn't
         // dispatched any events. This is ideal for games and similar applications.
@@ -292,6 +296,17 @@ pub fn rui(view: impl View + 'static) {
                 // applications which do not always need to. Applications that redraw continuously
                 // can just render here instead.
                 if view.needs_redraw(cx.root_id, &mut cx) {
+
+                    // Have the commands changed?
+                    let mut cmds = Vec::new();
+                    view.commands(cx.root_id, &mut cx, &mut cmds);
+                    let new_commands = HashSet::from_iter(cmds.iter().cloned());
+
+                    if new_commands != commands {
+                        print!("commands changed");
+                        commands = new_commands;
+                    }
+
                     window.request_redraw();
                 }
             }
