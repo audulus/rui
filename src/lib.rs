@@ -66,8 +66,6 @@ pub use command::*;
 use futures::executor::block_on;
 use vger::color::*;
 use vger::*;
-use std::collections::HashSet;
-use std::iter::FromIterator;
 
 use tao::{
     event,
@@ -215,6 +213,32 @@ async fn setup(window: &Window) -> Setup {
         device,
         queue,
     }
+}
+
+struct MenuItem2 {
+    name: String,
+    submenu: Vec<usize>,
+}
+
+fn build_menubar(commands: Vec<String>) -> Menu {
+    
+    let menu_bar_menu = Menu::new();
+
+    let mut items : Vec<MenuItem2> = vec![MenuItem2 { name: "root".into(), submenu: vec![] }];
+
+    for command in commands {
+        let mut v = 0;
+        for name in command.split(":") {
+            if let Some(item) = items[v].submenu.iter().find(|x| items[**x].name == name) {
+                v = *item;
+            } else {
+                let item = MenuItem2 { name: name.into(), submenu: vec![] };
+                items.push(item);
+            }
+        }
+    }
+
+    menu_bar_menu
 }
 
 /// Call this function to describe your UI.
