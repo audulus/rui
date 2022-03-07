@@ -246,7 +246,9 @@ fn build_menubar(commands: &Vec<String>) -> Menu {
                 v = *item;
             } else {
                 let item = MenuItem2 { name: name.into(), submenu: vec![] };
-                v = items.len();
+                let n = items.len();
+                items[v].submenu.push(n);
+                v = n;
                 items.push(item);
             }
         }
