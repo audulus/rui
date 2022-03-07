@@ -220,10 +220,23 @@ struct MenuItem2 {
     submenu: Vec<usize>,
 }
 
+fn make_menu_rec(items: &Vec<MenuItem2>, i: usize) -> Menu {
+
+    let mut menu = Menu::new();
+
+    for j in &items[i].submenu {
+        if items[*j].submenu.len() > 0 {
+            menu.add_submenu(items[*j].name.as_str(), true, make_menu_rec(items, *j));
+        } else {
+            menu.add_item(MenuItemAttributes::new("Selected and disabled"));
+        }
+    }
+
+    menu
+}
+
 fn build_menubar(commands: Vec<String>) -> Menu {
     
-    let menu_bar_menu = Menu::new();
-
     let mut items : Vec<MenuItem2> = vec![MenuItem2 { name: "root".into(), submenu: vec![] }];
 
     for command in commands {
@@ -238,7 +251,7 @@ fn build_menubar(commands: Vec<String>) -> Menu {
         }
     }
 
-    menu_bar_menu
+    make_menu_rec(&items, 0)
 }
 
 /// Call this function to describe your UI.
