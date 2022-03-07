@@ -32,6 +32,11 @@ where
     }
 
     fn process(&self, event: &Event, id: ViewID, cx: &mut Context, vger: &mut VGER) {
+        if let EventKind::Command(name) = &event.kind {
+            if *name == self.name {
+                (self.func)();
+            }
+        }
         self.child.process(event, id.child(&0), cx, vger)
     }
 
