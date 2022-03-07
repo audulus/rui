@@ -98,6 +98,22 @@ impl Context {
         }
     }
 
+    pub fn with_state_mut<S: Clone + 'static, R, F: FnMut(State<S>, &mut Self) -> R>(
+        &mut self,
+        default: S,
+        id: ViewID,
+        f: &mut F,
+    ) -> R {
+        let newstate = Box::new(State::new(default));
+        let s = self.state_map.entry(id).or_insert(newstate);
+
+        if let Some(state) = s.downcast_ref::<State<S>>() {
+            f(state.clone(), self)
+        } else {
+            panic!("state has wrong type")
+        }
+    }
+
     pub fn with_state_vger<S: Clone + 'static, R, F: Fn(State<S>, &mut Self, &mut VGER) -> R>(
         &mut self,
         vger: &mut VGER,

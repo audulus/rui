@@ -39,6 +39,10 @@ where
     ) -> Option<ViewID> {
         self.body().hittest(id, pt, cx, vger)
     }
+
+    fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<String>) {
+        self.body().commands(id, cx, cmds);
+    }
 }
 
 #[macro_export]
@@ -78,6 +82,10 @@ macro_rules! body_view {
             vger: &mut VGER,
         ) -> Option<ViewID> {
             self.body().hittest(id, pt, cx, vger)
+        }
+
+        fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<String>) {
+            self.body().commands(id, cx, cmds);
         }
     };
 }

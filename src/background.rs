@@ -46,6 +46,11 @@ where
     ) -> Option<ViewID> {
         self.background.hittest(id.child(&1), pt, cx, vger)
     }
+
+    fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<String>) {
+        self.child.commands(id.child(&0), cx, cmds);
+        self.background.commands(id.child(&1), cx, cmds);
+    }
 }
 
 impl<V, BG> Background<V, BG>

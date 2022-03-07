@@ -64,6 +64,10 @@ impl View for Circle {
             None
         }
     }
+
+    fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<String>) {
+        // do nothing
+    }
 }
 
 /// Renders a circle which expands to fill available space.
@@ -150,6 +154,10 @@ impl View for Rectangle {
         } else {
             None
         }
+    }
+
+    fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<String>) {
+        // do nothing
     }
 }
 

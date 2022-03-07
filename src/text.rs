@@ -49,6 +49,8 @@ impl View for Text {
     ) -> Option<ViewID> {
         None
     }
+
+    fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<String>) { }
 }
 
 /// Shows a string as a label (not editable).

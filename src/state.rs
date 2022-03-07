@@ -131,6 +131,12 @@ where
             },
         )
     }
+
+    fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<String>) {
+        cx.with_state_mut(self.default.clone(), id, &mut |state: State<S>, cx| {
+            (self.func)(state.clone()).commands(id.child(&0), cx, cmds);
+        });
+    }
 }
 
 /// State allows you to associate some state with a view.

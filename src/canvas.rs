@@ -48,6 +48,8 @@ where
     ) -> Option<ViewID> {
         None
     }
+
+    fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<String>) { }
 }
 
 /// Canvas for GPU drawing with VGER. See https://github.com/audulus/vger-rs. Note that canvases cannot be hit tested and thus gestures cannot be attached.

@@ -41,6 +41,10 @@ where
     ) -> Option<ViewID> {
         self.child.hittest(id.child(&0), pt, cx, vger)
     }
+
+    fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<String>) {
+        self.child.commands(id.child(&0), cx, cmds)
+    }
 }
 
 impl<V> Size<V>

@@ -56,6 +56,10 @@ where
             vger,
         )
     }
+
+    fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<String>) {
+        self.child.commands(id.child(&0), cx, cmds)
+    }
 }
 
 pub enum PaddingParam {

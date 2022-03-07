@@ -105,6 +105,13 @@ where
         }
         hit
     }
+
+    fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<String>) {
+        for child in &self.ids {
+            let child_id = id.child(child);
+            ((self.func)(child)).commands(child_id, cx, cmds)
+        }
+    }
 }
 
 /// Displays a list of items all of which are represented by the same View. See `examples/list.rs`.
