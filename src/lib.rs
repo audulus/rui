@@ -261,14 +261,7 @@ pub fn rui(view: impl View + 'static) {
 
     let event_loop = EventLoop::new();
 
-    // create main menubar menu
-    let mut menu_bar_menu = Menu::new();
-    let mut first_menu = Menu::new();
-    first_menu.add_native_item(MenuItem::Quit);
-    menu_bar_menu.add_submenu("rui", true, first_menu);
-
-    let mut builder = WindowBuilder::new();
-    builder = builder.with_title("rui").with_menu(menu_bar_menu);
+    let builder = WindowBuilder::new().with_title("rui");
     let window = builder.build(&event_loop).unwrap();
 
     let setup = block_on(setup(&window));
@@ -292,6 +285,8 @@ pub fn rui(view: impl View + 'static) {
     let mut mouse_position = LocalPoint::zero();
 
     let mut commands = Vec::new();
+    view.commands(cx.root_id, &mut cx, &mut commands);
+    window.set_menu(Some(build_menubar(&commands)));
 
     event_loop.run(move |event, _, control_flow| {
         // ControlFlow::Poll continuously runs the event loop, even if the OS hasn't
