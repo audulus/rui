@@ -227,11 +227,18 @@ fn make_menu_rec(items: &Vec<MenuItem2>, i: usize, command_map: &mut HashMap<tao
     let mut menu = Menu::new();
 
     for j in &items[i].submenu {
+        let name = &items[*j].name;
         if items[*j].submenu.len() > 0 {
-            menu.add_submenu(items[*j].name.as_str(), true, make_menu_rec(items, *j, command_map));
+            menu.add_submenu(name.as_str(), true, make_menu_rec(items, *j, command_map));
         } else {
-            let id = menu.add_item(MenuItemAttributes::new(items[*j].name.as_str())).id();
-            command_map.insert(id, items[*j].command.clone());
+            if name == "Quit" {
+                menu.add_native_item(MenuItem::Quit);
+            } else if name == "About" {
+                menu.add_native_item(MenuItem::About("rui".into()));
+            } else {
+                let id = menu.add_item(MenuItemAttributes::new(name.as_str())).id();
+                command_map.insert(id, items[*j].command.clone());
+            }
         }
     }
 
