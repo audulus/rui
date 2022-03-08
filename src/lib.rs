@@ -66,6 +66,7 @@ pub use command::*;
 use futures::executor::block_on;
 use vger::color::*;
 use vger::*;
+use std::collections::HashMap;
 
 use tao::{
     event,
@@ -221,22 +222,23 @@ struct MenuItem2 {
     command: String,
 }
 
-fn make_menu_rec(items: &Vec<MenuItem2>, i: usize) -> Menu {
+fn make_menu_rec(items: &Vec<MenuItem2>, i: usize, command_map: &mut HashMap<tao::menu::MenuId, String>) -> Menu {
 
     let mut menu = Menu::new();
 
     for j in &items[i].submenu {
         if items[*j].submenu.len() > 0 {
-            menu.add_submenu(items[*j].name.as_str(), true, make_menu_rec(items, *j));
+            menu.add_submenu(items[*j].name.as_str(), true, make_menu_rec(items, *j, command_map));
         } else {
-            menu.add_item(MenuItemAttributes::new(items[*j].name.as_str()));
+            let id = menu.add_item(MenuItemAttributes::new(items[*j].name.as_str())).id();
+            command_map.insert(id, items[*j].command.clone());
         }
     }
 
     menu
 }
 
-fn build_menubar(commands: &Vec<String>) -> Menu {
+fn build_menubar(commands: &Vec<String>, command_map: &mut HashMap<tao::menu::MenuId, String>) -> Menu {
     
     let mut items : Vec<MenuItem2> = vec![MenuItem2 { name: "root".into(), submenu: vec![], command: "".into() }];
 
@@ -254,7 +256,7 @@ fn build_menubar(commands: &Vec<String>) -> Menu {
         }
     }
 
-    make_menu_rec(&items, 0)
+    make_menu_rec(&items, 0, command_map)
 }
 
 /// Call this function to describe your UI.
@@ -287,7 +289,8 @@ pub fn rui(view: impl View + 'static) {
 
     let mut commands = Vec::new();
     view.commands(cx.root_id, &mut cx, &mut commands);
-    window.set_menu(Some(build_menubar(&commands)));
+    let mut command_map = HashMap::new();
+    window.set_menu(Some(build_menubar(&commands, &mut command_map)));
 
     event_loop.run(move |event, _, control_flow| {
         // ControlFlow::Poll continuously runs the event loop, even if the OS hasn't
@@ -340,7 +343,8 @@ pub fn rui(view: impl View + 'static) {
                         print!("commands changed");
                         commands = new_commands;
 
-                        window.set_menu(Some(build_menubar(&commands)));
+                        command_map.clear();
+                        window.set_menu(Some(build_menubar(&commands, &mut command_map)));
                     }
 
                     window.request_redraw();
@@ -441,7 +445,16 @@ pub fn rui(view: impl View + 'static) {
                     origin,
                     ..
             } => {
-                println!("menu event");
+                //println!("menu event");
+
+                if let Some(command) = command_map.get(&menu_id) {
+                    //println!("found command {:?}", command);
+                    let event = view::Event {
+                        kind: EventKind::Command(command.clone()),
+                        position: mouse_position,
+                    };
+                    view.process(&event, cx.root_id, &mut cx, &mut vger)
+                }
             }
             _ => (),
         }
