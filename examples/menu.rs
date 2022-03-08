@@ -12,5 +12,7 @@ fn main() {
             .padding(Auto)
             .command("Edit:Two", || println!("two") )
             .command("Edit:Three", || println!("three") )
+            .command("Custom:Submenu:One", || println!("submenu one") )
+            .command("Custom:Submenu:Two", || println!("submenu two") )
     )));
 }
