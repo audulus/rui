@@ -5,11 +5,13 @@ fn main() {
         circle()
             .color(RED_HIGHLIGHT)
             .padding(Auto)
-            .command("File:Command One", || println!("command one") ),
+            .command("menu:About", || println!("about") )
+            .command("File:New", || println!("new") ),
         rectangle()
             .corner_radius(5.0)
             .color(AZURE_HIGHLIGHT)
             .padding(Auto)
-            .command("Edit:Command Two", || println!("command two") )
+            .command("Edit:Two", || println!("two") )
+            .command("Edit:Three", || println!("three") )
     )));
 }
