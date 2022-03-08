@@ -218,6 +218,7 @@ async fn setup(window: &Window) -> Setup {
 struct MenuItem2 {
     name: String,
     submenu: Vec<usize>,
+    command: String,
 }
 
 fn make_menu_rec(items: &Vec<MenuItem2>, i: usize) -> Menu {
@@ -237,7 +238,7 @@ fn make_menu_rec(items: &Vec<MenuItem2>, i: usize) -> Menu {
 
 fn build_menubar(commands: &Vec<String>) -> Menu {
     
-    let mut items : Vec<MenuItem2> = vec![MenuItem2 { name: "root".into(), submenu: vec![] }];
+    let mut items : Vec<MenuItem2> = vec![MenuItem2 { name: "root".into(), submenu: vec![], command: "".into() }];
 
     for command in commands {
         let mut v = 0;
@@ -248,7 +249,7 @@ fn build_menubar(commands: &Vec<String>) -> Menu {
                 let n = items.len();
                 items[v].submenu.push(n);
                 v = n;
-                items.push(MenuItem2 { name: name.into(), submenu: vec![] });
+                items.push(MenuItem2 { name: name.into(), submenu: vec![], command: command.clone() });
             }
         }
     }
