@@ -264,3 +264,8 @@ impl<F> CommandBase for Command2<F> where F: Fn() {
         self.key
     }
 }
+
+fn command(name: String) -> impl CommandBase {
+    Command2{ name, key: None, func: || {} }
+}
+
