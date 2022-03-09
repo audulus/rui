@@ -268,9 +268,11 @@ impl CommandBase for NullCommand {
 }
 
 impl NullCommand {
+    /// Adds a hotkey to the menu command.
     pub fn hotkey(self, key: KeyCode) -> Self {
         Self { name: self.name, key: Some(key) }
     }
+    /// Adds an action to the menu command.
     pub fn action<F: Fn()>(self, func: F) -> Command2<F> {
         Command2 { name: self.name, key: self.key, func: func }
     }
@@ -295,6 +297,7 @@ impl<F> CommandBase for Command2<F> where F: Fn() {
 }
 
 impl<F> Command2<F> where F: Fn() {
+    /// Adds a hotkey to the menu command.
     pub fn hotkey(self, key: KeyCode) -> Self {
         Self { name: self.name, key: Some(key), func: self.func }
     }
