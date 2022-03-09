@@ -270,7 +270,7 @@ pub fn command<F: Fn()>(name: &str, action: F) -> Command2<F> {
 }
 
 impl<F> Command2<F> where F: Fn() {
-    fn hotkey(self, key: KeyCode) -> Self {
+    pub fn hotkey(self, key: KeyCode) -> Self {
         Self { name: self.name, key: Some(key), func: self.func }
     }
 }
