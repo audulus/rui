@@ -74,7 +74,7 @@ use tao::{
     event_loop::{ControlFlow, EventLoop},
     window::{WindowBuilder, Window},
     dpi::PhysicalSize,
-    menu::{MenuBar as Menu, MenuItem, MenuItemAttributes, MenuType},
+    menu::{MenuBar as Menu, MenuItem, MenuItemAttributes},
     keyboard::ModifiersState,
     accelerator::Accelerator
 };
