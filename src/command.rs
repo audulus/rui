@@ -246,3 +246,21 @@ where
         });
     }
 }
+
+pub struct Command2<F: Fn()> {
+    name: String,
+    key: Option<KeyCode>,
+    func: F,
+}
+
+impl<F> CommandBase for Command2<F> where F: Fn() {
+    fn exec(&self) {
+        (self.func)();
+    }
+    fn name(&self) -> String {
+        self.name.clone()
+    }
+    fn key(&self) -> Option<KeyCode> {
+        self.key
+    }
+}
