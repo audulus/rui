@@ -41,7 +41,7 @@ pub trait View {
         vger: &mut VGER,
     ) -> Option<ViewID>;
 
-    fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<String>);
+    fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<CommandInfo>);
 }
 
 pub struct EmptyView {}
@@ -74,5 +74,5 @@ impl View for EmptyView {
         None
     }
 
-    fn commands(&self, _id: ViewID, _cx: &mut Context, _cmds: &mut Vec<String>) { }
+    fn commands(&self, _id: ViewID, _cx: &mut Context, _cmds: &mut Vec<CommandInfo>) { }
 }

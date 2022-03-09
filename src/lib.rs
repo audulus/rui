@@ -218,10 +218,16 @@ async fn setup(window: &Window) -> Setup {
     }
 }
 
+#[derive(Clone, Eq, PartialEq)]
+pub struct CommandInfo {
+    path: String,
+    key: Option<KeyCode>
+}
+
 struct MenuItem2 {
     name: String,
     submenu: Vec<usize>,
-    command: String,
+    command: CommandInfo,
 }
 
 fn make_menu_rec(items: &Vec<MenuItem2>, i: usize, command_map: &mut HashMap<tao::menu::MenuId, String>) -> Menu {
@@ -241,20 +247,20 @@ fn make_menu_rec(items: &Vec<MenuItem2>, i: usize, command_map: &mut HashMap<tao
             menu.add_submenu(name.as_str(), true, make_menu_rec(items, *j, command_map));
         } else {
             let id = menu.add_item(MenuItemAttributes::new(name.as_str())).id();
-            command_map.insert(id, items[*j].command.clone());
+            command_map.insert(id, items[*j].command.path.clone());
         }
     }
 
     menu
 }
 
-fn build_menubar(commands: &Vec<String>, command_map: &mut HashMap<tao::menu::MenuId, String>) -> Menu {
+fn build_menubar(commands: &Vec<CommandInfo>, command_map: &mut HashMap<tao::menu::MenuId, String>) -> Menu {
     
-    let mut items : Vec<MenuItem2> = vec![MenuItem2 { name: "root".into(), submenu: vec![], command: "".into() }];
+    let mut items : Vec<MenuItem2> = vec![MenuItem2 { name: "root".into(), submenu: vec![], command: CommandInfo { path: "".into(), key: None } }];
 
     for command in commands {
         let mut v = 0;
-        for name in command.split(":") {
+        for name in command.path.split(":") {
             if let Some(item) = items[v].submenu.iter().find(|x| items[**x].name == name) {
                 v = *item;
             } else {

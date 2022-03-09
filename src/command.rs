@@ -59,8 +59,8 @@ where
         self.child.hittest(id.child(&0), pt, cx, vger)
     }
 
-    fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<String>) {
+    fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
         self.child.commands(id.child(&0), cx, cmds);
-        cmds.push(self.name.clone())
+        cmds.push(CommandInfo{ path: self.name.clone(), key: self.key } )
     }
 }

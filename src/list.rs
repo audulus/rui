@@ -106,7 +106,7 @@ where
         hit
     }
 
-    fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<String>) {
+    fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
         for child in &self.ids {
             let child_id = id.child(child);
             ((self.func)(child)).commands(child_id, cx, cmds)

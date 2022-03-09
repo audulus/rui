@@ -40,7 +40,7 @@ where
         self.body().hittest(id, pt, cx, vger)
     }
 
-    fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<String>) {
+    fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
         self.body().commands(id, cx, cmds);
     }
 }
@@ -84,7 +84,7 @@ macro_rules! body_view {
             self.body().hittest(id, pt, cx, vger)
         }
 
-        fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<String>) {
+        fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
             self.body().commands(id, cx, cmds);
         }
     };

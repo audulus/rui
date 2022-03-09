@@ -47,7 +47,7 @@ where
         self.background.hittest(id.child(&1), pt, cx, vger)
     }
 
-    fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<String>) {
+    fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
         self.child.commands(id.child(&0), cx, cmds);
         self.background.commands(id.child(&1), cx, cmds);
     }
