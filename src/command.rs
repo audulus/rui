@@ -252,6 +252,7 @@ pub struct NullCommand {
     key: Option<KeyCode>
 }
 
+/// Specifies a menu command.
 pub fn command(name: &str) -> NullCommand {
     NullCommand{ name: name.into(), key: None }
 }
