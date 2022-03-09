@@ -3,6 +3,7 @@ pub use crate::*;
 pub struct Command<V: View, F: Fn()> {
     child: V,
     name: String,
+    key: Option<KeyCode>,
     func: F,
 }
 
@@ -11,8 +12,8 @@ where
     V: View,
     F: Fn() + 'static,
 {
-    pub fn new(v: V, name: String, f: F) -> Self {
-        Self { child: v, name, func: f }
+    pub fn new(v: V, name: String, key: Option<KeyCode>, f: F) -> Self {
+        Self { child: v, name, key, func: f }
     }
 }
 

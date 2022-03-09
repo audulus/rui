@@ -77,6 +77,8 @@ use tao::{
     menu::{MenuBar as Menu, MenuItem, MenuItemAttributes, MenuType},
 };
 
+pub type KeyCode = tao::keyboard::KeyCode;
+
 struct Setup {
     size: PhysicalSize<u32>,
     surface: wgpu::Surface,

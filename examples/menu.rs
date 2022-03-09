@@ -5,14 +5,14 @@ fn main() {
         circle()
             .color(RED_HIGHLIGHT)
             .padding(Auto)
-            .command("File:New", || println!("new") ),
+            .command("File:New", Some(KeyCode::KeyN), || println!("new") ),
         rectangle()
             .corner_radius(5.0)
             .color(AZURE_HIGHLIGHT)
             .padding(Auto)
-            .command("Edit:Two", || println!("two") )
-            .command("Edit:Three", || println!("three") )
-            .command("Custom:Submenu:One", || println!("submenu one") )
-            .command("Custom:Submenu:Two", || println!("submenu two") )
+            .command("Edit:Two", None, || println!("two") )
+            .command("Edit:Three", None, || println!("three") )
+            .command("Custom:Submenu:One", None, || println!("submenu one") )
+            .command("Custom:Submenu:Two", None, || println!("submenu two") )
     )));
 }
