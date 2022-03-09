@@ -507,15 +507,6 @@ mod tests {
         let _ = state(0, |_s: State<usize>| EmptyView {});
     }
 
-    fn counter0(start: usize) -> impl View {
-        state(start, |count: State<usize>| {
-            button(text(&format!("{:?}", count.get())), move || {
-                let value = count.get();
-                count.set(value + 1);
-            })
-        })
-    }
-
     #[test]
     fn test_state2() {
         let mut cx = Context::new();
@@ -541,28 +532,6 @@ mod tests {
         })
     }
 
-    /*
-    #[test]
-    fn test_state3() {
-        let mut cx = Context::new();
-        let v = counter(42);
-        println!("\"drawing\" the UI");
-        v.print(ViewID::default(), &mut cx);
-        println!("ok, now pressing increment button");
-        v.process(
-            &Event {
-                kind: EventKind::PressButton(String::from("increment")),
-                position: [0.0, 0.0].into(),
-            },
-            ViewID::default(),
-            &mut cx,
-        );
-        println!("\"drawing\" the UI again");
-        v.print(ViewID::default(), &mut cx);
-    }
-
-    */
-
     fn counter3<B>(count: B) -> impl View
     where
         B: Binding<usize> + Clone + 'static,
@@ -583,10 +552,6 @@ mod tests {
     #[test]
     fn test_binding() {
         let _ = state(42, |count: State<usize>| counter3(count));
-    }
-
-    fn ok_button<F: Fn() + 'static>(f: F) -> impl View {
-        button(text("ok"), f)
     }
 
     #[derive(Clone)]
