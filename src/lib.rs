@@ -463,9 +463,7 @@ pub fn rui(view: impl View + 'static) {
                 view.process(&event, cx.root_id, &mut cx, &mut vger)
             },
             event::Event::MenuEvent {
-                    window_id,
                     menu_id,
-                    origin,
                     ..
             } => {
                 //println!("menu event");
