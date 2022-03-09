@@ -244,18 +244,17 @@ fn make_menu_rec(items: &Vec<MenuItem2>, i: usize, command_map: &mut HashMap<tao
     }
 
     for j in &items[i].submenu {
-        let name = &items[*j].name;
-        if items[*j].submenu.len() > 0 {
-            menu.add_submenu(name.as_str(), true, make_menu_rec(items, *j, command_map));
+        let item = &items[*j];
+        if item.submenu.len() > 0 {
+            menu.add_submenu(item.name.as_str(), true, make_menu_rec(items, *j, command_map));
         } else {
-            let key = items[*j].command.key;
-            let mut attrs = MenuItemAttributes::new(name.as_str());
-            if let Some(key) = key {
+            let mut attrs = MenuItemAttributes::new(item.name.as_str());
+            if let Some(key) = item.command.key {
                 let accel = Accelerator::new(ModifiersState::SUPER, key);
                 attrs = attrs.with_accelerators(&accel);
             }
             let id = menu.add_item(attrs).id();
-            command_map.insert(id, items[*j].command.path.clone());
+            command_map.insert(id, item.command.path.clone());
         }
     }
 
