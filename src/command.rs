@@ -265,7 +265,12 @@ impl<F> CommandBase for Command2<F> where F: Fn() {
     }
 }
 
-fn command(name: String) -> impl CommandBase {
-    Command2{ name, key: None, func: || {} }
+fn command<F: Fn()>(name: String, action: F) -> Command2<F> {
+    Command2{ name, key: None, func: action }
 }
 
+impl<F> Command2<F> where F: Fn() {
+    fn hotkey(self, key: KeyCode) -> Self {
+        Self { name: self.name, key: Some(key), func: self.func }
+    }
+}
