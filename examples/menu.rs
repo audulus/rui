@@ -14,5 +14,8 @@ fn main() {
             .command("Edit:Three", None, || println!("three") )
             .command("Custom:Submenu:One", None, || println!("submenu one") )
             .command("Custom:Submenu:Two", None, || println!("submenu two") )
+            .command_group((
+                command("Custom 2:Four", || println!("four") ),
+            ))
     )));
 }
