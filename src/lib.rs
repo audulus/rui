@@ -75,6 +75,8 @@ use tao::{
     window::{WindowBuilder, Window},
     dpi::PhysicalSize,
     menu::{MenuBar as Menu, MenuItem, MenuItemAttributes, MenuType},
+    keyboard::ModifiersState,
+    accelerator::Accelerator
 };
 
 pub type KeyCode = tao::keyboard::KeyCode;
@@ -246,7 +248,13 @@ fn make_menu_rec(items: &Vec<MenuItem2>, i: usize, command_map: &mut HashMap<tao
         if items[*j].submenu.len() > 0 {
             menu.add_submenu(name.as_str(), true, make_menu_rec(items, *j, command_map));
         } else {
-            let id = menu.add_item(MenuItemAttributes::new(name.as_str())).id();
+            let key = items[*j].command.key;
+            let mut attrs = MenuItemAttributes::new(name.as_str());
+            if let Some(key) = key {
+                let accel = Accelerator::new(ModifiersState::SUPER, key);
+                attrs = attrs.with_accelerators(&accel);
+            }
+            let id = menu.add_item(attrs).id();
             command_map.insert(id, items[*j].command.path.clone());
         }
     }
