@@ -265,8 +265,8 @@ impl<F> CommandBase for Command2<F> where F: Fn() {
     }
 }
 
-fn command<F: Fn()>(name: String, action: F) -> Command2<F> {
-    Command2{ name, key: None, func: action }
+pub fn command<F: Fn()>(name: &str, action: F) -> Command2<F> {
+    Command2{ name: name.into(), key: None, func: action }
 }
 
 impl<F> Command2<F> where F: Fn() {
