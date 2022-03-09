@@ -247,6 +247,34 @@ where
     }
 }
 
+pub struct NullCommand {
+    name: String,
+    key: Option<KeyCode>
+}
+
+pub fn command(name: &str) -> NullCommand {
+    NullCommand{ name: name.into(), key: None }
+}
+
+impl CommandBase for NullCommand {
+    fn exec(&self) { }
+    fn name(&self) -> String {
+        self.name.clone()
+    }
+    fn key(&self) -> Option<KeyCode> {
+        None
+    }
+}
+
+impl NullCommand {
+    pub fn hotkey(self, key: KeyCode) -> Self {
+        Self { name: self.name, key: Some(key) }
+    }
+    pub fn action<F: Fn()>(self, func: F) -> Command2<F> {
+        Command2 { name: self.name, key: self.key, func: func }
+    }
+}
+
 pub struct Command2<F: Fn()> {
     name: String,
     key: Option<KeyCode>,
@@ -263,10 +291,6 @@ impl<F> CommandBase for Command2<F> where F: Fn() {
     fn key(&self) -> Option<KeyCode> {
         self.key
     }
-}
-
-pub fn command<F: Fn()>(name: &str, action: F) -> Command2<F> {
-    Command2{ name: name.into(), key: None, func: action }
 }
 
 impl<F> Command2<F> where F: Fn() {

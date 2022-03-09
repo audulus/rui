@@ -15,7 +15,8 @@ fn main() {
             .command("Custom:Submenu:One", None, || println!("submenu one") )
             .command("Custom:Submenu:Two", None, || println!("submenu two") )
             .command_group((
-                command("Custom 2:Four", || println!("four") )
+                command("Custom 2:Four")
+                    .action(|| println!("four"))
                     .hotkey(KeyCode::KeyF),
             ))
     )));
