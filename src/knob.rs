@@ -13,7 +13,7 @@ pub fn knob(value: impl Binding<f32>) -> impl View {
 
     zstack((
         circle().color(CLEAR_COLOR).drag(move |off, _state| {
-            value.set((value.get() + (off.x + off.y) / 400.0).clamp(0.0, 1.0));
+            value.with_mut(|v| *v = (*v + (off.x + off.y) / 400.0).clamp(0.0, 1.0));
         }),
         canvas(move |sz, vger| {
             let c = sz.center();
