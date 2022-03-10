@@ -45,9 +45,7 @@ macro_rules! bind {
         Map {
             getf: move || state1.get().$field.clone(),
             setf: move |val| {
-                let mut s = state2.get();
-                s.$field = val;
-                state2.set(s);
+                state2.with_mut(|v| v.$field = val);
             },
         }
     }};
@@ -59,9 +57,7 @@ macro_rules! bind {
         Map {
             getf: move || state1.get().$field[idx].clone(),
             setf: move |val| {
-                let mut s = state2.get();
-                s.$field[idx] = val;
-                state2.set(s);
+                state2.with_mut(|v| v.$field[idx] = val);
             },
         }
     }};
