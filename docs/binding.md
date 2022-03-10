@@ -23,3 +23,7 @@ then we can use `bind!` to create a control for `value`:
 `hslider(bind!(state, value))`
 
 The `bind!` macro simply creates an implementation of the `Binding` trait with the appropriate get/set functions to get and update `value` inside `MyState`.
+
+If your state has arrays or Vecs you can index into them when creating a `Binding`:
+
+`bind!(state, value[0])`
