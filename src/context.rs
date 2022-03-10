@@ -88,8 +88,7 @@ impl Context {
         id: ViewID,
         f: F,
     ) -> R {
-        let newstate = Box::new(State::new(default));
-        let s = self.state_map.entry(id).or_insert(newstate);
+        let s = self.state_map.entry(id).or_insert_with(|| Box::new(State::new(default)));
 
         if let Some(state) = s.downcast_ref::<State<S>>() {
             f(state.clone(), self)
@@ -104,8 +103,7 @@ impl Context {
         id: ViewID,
         f: &mut F,
     ) -> R {
-        let newstate = Box::new(State::new(default));
-        let s = self.state_map.entry(id).or_insert(newstate);
+        let s = self.state_map.entry(id).or_insert_with(|| Box::new(State::new(default)));
 
         if let Some(state) = s.downcast_ref::<State<S>>() {
             f(state.clone(), self)
@@ -121,8 +119,7 @@ impl Context {
         id: ViewID,
         f: F,
     ) -> R {
-        let newstate = Box::new(State::new(default));
-        let s = self.state_map.entry(id).or_insert(newstate);
+        let s = self.state_map.entry(id).or_insert_with(|| Box::new(State::new(default)));
 
         if let Some(state) = s.downcast_ref::<State<S>>() {
             f(state.clone(), self, vger)
