@@ -9,8 +9,6 @@ pub trait Binding<S>: Clone + 'static {
 }
 ```
 
-Other UI toolkits sometimes call these lenses, which sound scary, but we'll stick with the SwiftUI terminology.
-
 To create a binding for a member of a struct, use the `bind!` macro. Suppose our app state is defined as follows:
 
 ```rust
