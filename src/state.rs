@@ -190,6 +190,20 @@ macro_rules! bind {
             },
         }
     }};
+    ( $state:expr, $field:ident [$index:expr] ) => {{
+        let sref = &$state;
+        let state1 = sref.clone();
+        let state2 = sref.clone();
+        let idx = $index;
+        Field {
+            getf: move || state1.get().$field[idx].clone(),
+            setf: move |val| {
+                let mut s = state2.get();
+                s.$field[idx] = val;
+                state2.set(s);
+            },
+        }
+    }};
     ( $state:expr, [$index:expr] ) => {{
         let sref = &$state;
         let state1 = sref.clone();
