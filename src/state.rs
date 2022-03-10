@@ -178,8 +178,9 @@ where
 #[macro_export]
 macro_rules! bind {
     ( $state:expr, $field:ident ) => {{
-        let state1 = $state.clone();
-        let state2 = $state.clone();
+        let sref = &$state;
+        let state1 = sref.clone();
+        let state2 = sref.clone();
         Field {
             getf: move || state1.get().$field.clone(),
             setf: move |val| {
@@ -189,4 +190,18 @@ macro_rules! bind {
             },
         }
     }};
+    ( $state:expr, [$index:expr] ) => {{
+        let sref = &$state;
+        let state1 = sref.clone();
+        let state2 = sref.clone();
+        let idx = $index;
+        Field {
+            getf: move || state1.get()[idx].clone(),
+            setf: move |val| {
+                let mut s = state2.get();
+                s[idx] = val;
+                state2.set(s);
+            },
+        }
+    }}
 }
