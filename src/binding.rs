@@ -1,10 +1,19 @@
 
 /// Reads or writes a value owned by a source-of-truth.
 pub trait Binding<S>: Clone + 'static {
-    fn get(&self) -> S;
-    fn set(&self, value: S);
+    
     fn with<T, F: Fn(&S) -> T>(&self, f: F) -> T;
     fn with_mut<T, F: Fn(&mut S) -> T>(&self, f: F) -> T;
+
+    fn get(&self) -> S where S:Clone {
+        self.with(|s| s.clone())
+    }
+
+    fn set(&self, value: S) where S:Clone {
+        self.with_mut(move |s| {
+            *s = value.clone()
+        });
+    }
 }
 
 #[derive(Clone)]
@@ -17,21 +26,16 @@ impl<S, Get, Set> Binding<S> for Map<Get, Set>
 where
     Get: Fn() -> S + Clone + 'static,
     Set: Fn(S) + Clone + 'static,
+    S: Clone,
 {
-    fn get(&self) -> S {
-        (self.getf)()
-    }
-    fn set(&self, value: S) {
-        (self.setf)(value);
-    }
     fn with<T, F: Fn(&S) -> T>(&self, f: F) -> T {
-        let v = self.get();
+        let v = (self.getf)();
         f(&v)
     }
     fn with_mut<T, F: Fn(&mut S) -> T>(&self, f: F) -> T {
-        let mut v = self.get();
+        let mut v = (self.getf)();
         let t = f(&mut v);
-        self.set(v);
+        (self.setf)(v);
         t
     }
 }
@@ -78,7 +82,7 @@ macro_rules! bind {
 }
 
 pub fn bind<S, Get, Set>(getf: Get, setf: Set) -> impl Binding<S>
-   where Get: Fn() -> S + Clone + 'static, Set: Fn(S) + Clone + 'static {
+   where Get: Fn() -> S + Clone + 'static, Set: Fn(S) + Clone + 'static, S: Clone {
        Map { getf, setf }
 }
 

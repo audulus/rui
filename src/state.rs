@@ -36,16 +36,6 @@ impl<S> Binding<S> for State<S>
 where
     S: Clone + 'static,
 {
-    fn get(&self) -> S {
-        self.value.borrow().value.clone()
-    }
-    fn set(&self, value: S) {
-        let mut holder = self.value.borrow_mut();
-        holder.value = value;
-
-        // Set dirty so the view tree will be redrawn.
-        holder.dirty = true;
-    }
     fn with<T, F: Fn(&S) -> T>(&self, f: F) -> T {
         f(&self.value.borrow().value)
     }
