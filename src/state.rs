@@ -50,7 +50,9 @@ where
         f(&self.value.borrow().value)
     }
     fn with_mut<T, F: Fn(&mut S) -> T>(&self, f: F) -> T {
-        f(&mut self.value.borrow_mut().value)
+        let mut holder = self.value.borrow_mut();
+        holder.dirty = true;
+        f(&mut holder.value)
     }
 }
 
