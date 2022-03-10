@@ -96,14 +96,6 @@ macro_rules! bind2 {
         }
 
         impl <B> Binding<$type2> for Bnd<B> where B:Binding<$type> {
-            fn get(&self) -> $type2 {
-                self.binding.get().$field.clone()
-            }
-            fn set(&self, value: $type2) {
-                let mut v = self.binding.get();
-                v.$field = value;
-                self.binding.set(v);
-            }
             fn with<T, F: Fn(&$type2) -> T>(&self, f: F) -> T {
                 self.binding.with(|v| {
                     f(&v.$field)
