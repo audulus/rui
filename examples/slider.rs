@@ -2,14 +2,14 @@ use rui::*;
 
 #[derive(Clone)]
 struct MyState {
-    value: f32,
+    value: [f32; 2],
 }
 
 fn main() {
-    rui(state(MyState { value: 0.0 }, |state| {
+    rui(state(MyState { value: [0.0, 0.0] }, |state| {
         vstack((
             text(&format!("value: {:?}", state.get().value)).padding(Auto),
-            hslider(bind!(state, value))
+            hslider(bind!(state, value[0]))
                 .thumb_color(RED_HIGHLIGHT)
                 .padding(Auto),
         ))
