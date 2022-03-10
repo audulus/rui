@@ -81,3 +81,37 @@ pub fn bind<S, Get, Set>(getf: Get, setf: Set) -> impl Binding<S>
    where Get: Fn() -> S + Clone + 'static, Set: Fn(S) + Clone + 'static {
        Map { getf, setf }
 }
+
+#[macro_export]
+macro_rules! bind2 {
+    ( $state:expr, $type:ident, $field:ident, $type2:ident ) => {{
+
+        #[derive(Clone)]
+        struct Bnd<B> {
+            binding: B,
+        }
+
+        impl <B> Binding<$type2> for Bnd<B> where B:Binding<$type> {
+            fn get(&self) -> $type2 {
+                self.binding.get().$field.clone()
+            }
+            fn set(&self, value: $type2) {
+                let mut v = self.binding.get();
+                v.$field = value;
+                self.binding.set(v);
+            }
+            fn with<T, F: Fn(&$type2) -> T>(&self, f: F) -> T {
+                self.binding.with(|v| {
+                    f(&v.$field)
+                })
+            }
+            fn with_mut<T, F: Fn(&mut $type2) -> T>(&self, f: F) -> T {
+                self.binding.with_mut(|v| {
+                    f(&mut v.$field)
+                })
+            }
+        }
+
+        Bnd { binding: $state }
+    }};
+}
