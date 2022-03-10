@@ -94,7 +94,7 @@ where
 
             zstack((
                 rectangle().color(CLEAR_COLOR).drag(move |off, _state| {
-                    value.set((value.get() + off.y / h).clamp(0.0, 1.0));
+                    value.with_mut(|v| *v = (*v + off.y/h).clamp(0.0, 1.0));
                 }),
                 canvas(move |sz, vger| {
                     let c = sz.center();
