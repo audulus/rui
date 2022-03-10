@@ -51,6 +51,7 @@ where
     }
     fn with_mut<T, F: Fn(&mut S) -> T>(&self, f: F) -> T {
         let mut holder = self.value.borrow_mut();
+        // Set dirty so the view tree will be redrawn.
         holder.dirty = true;
         f(&mut holder.value)
     }
