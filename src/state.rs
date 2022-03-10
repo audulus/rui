@@ -8,6 +8,7 @@ pub trait Binding<S>: Clone + 'static {
     fn get(&self) -> S;
     fn set(&self, value: S);
     fn with<T, F: Fn(&S) -> T>(&self, f: F) -> T;
+    fn with_mut<T, F: Fn(&mut S) -> T>(&self, f: F) -> T;
 }
 
 struct Holder<S> {
@@ -55,6 +56,9 @@ where
     }
     fn with<T, F: Fn(&S) -> T>(&self, f: F) -> T {
         f(&self.value.borrow().value)
+    }
+    fn with_mut<T, F: Fn(&mut S) -> T>(&self, f: F) -> T {
+        f(&mut self.value.borrow_mut().value)
     }
 }
 
@@ -179,7 +183,11 @@ where
     }
     fn with<T, F: Fn(&S) -> T>(&self, f: F) -> T {
         let v = self.get();
-        let t = f(&v);
+        f(&v)
+    }
+    fn with_mut<T, F: Fn(&mut S) -> T>(&self, f: F) -> T {
+        let mut v = self.get();
+        let t = f(&mut v);
         self.set(v);
         t
     }
