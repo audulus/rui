@@ -7,6 +7,7 @@ use crate::*;
 pub trait Binding<S>: Clone + 'static {
     fn get(&self) -> S;
     fn set(&self, value: S);
+    fn with<T, F: Fn(&S) -> T>(&self, f: F) -> T;
 }
 
 struct Holder<S> {
@@ -51,6 +52,9 @@ where
 
         // Set dirty so the view tree will be redrawn.
         holder.dirty = true;
+    }
+    fn with<T, F: Fn(&S) -> T>(&self, f: F) -> T {
+        f(&self.value.borrow().value)
     }
 }
 
@@ -172,6 +176,12 @@ where
     }
     fn set(&self, value: S) {
         (self.setf)(value);
+    }
+    fn with<T, F: Fn(&S) -> T>(&self, f: F) -> T {
+        let v = self.get();
+        let t = f(&v);
+        self.set(v);
+        t
     }
 }
 
