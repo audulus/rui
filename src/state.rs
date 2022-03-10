@@ -219,3 +219,8 @@ macro_rules! bind {
         }
     }}
 }
+
+pub fn bind<S, Get, Set>(getf: Get, setf: Set) -> impl Binding<S>
+   where Get: Fn() -> S + Clone + 'static, Set: Fn(S) + Clone + 'static {
+       Field { getf, setf }
+}
