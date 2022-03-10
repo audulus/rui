@@ -3,6 +3,9 @@
 mod view;
 pub use view::*;
 
+mod binding;
+pub use binding::*;
+
 mod state;
 pub use state::*;
 
