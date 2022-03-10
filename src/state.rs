@@ -47,7 +47,7 @@ where
     }
     fn set(&self, value: S) {
         let mut holder = self.value.borrow_mut();
-        holder.value = value.clone();
+        holder.value = value;
 
         // Set dirty so the view tree will be redrawn.
         holder.dirty = true;
