@@ -87,7 +87,7 @@ pub fn bind<S, Get, Set>(getf: Get, setf: Set) -> impl Binding<S>
 }
 
 #[macro_export]
-macro_rules! bind_no_copy {
+macro_rules! bind_no_clone {
     ( $state:expr, $type:ident, $field:ident, $type2:ident ) => {{
 
         #[derive(Clone)]
