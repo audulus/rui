@@ -94,6 +94,7 @@ use tao::{
 use std::env;
 
 pub type KeyCode = tao::keyboard::KeyCode;
+pub type KeyPress = tao::keyboard::Key<'static>;
 
 struct Setup {
     size: PhysicalSize<u32>,
