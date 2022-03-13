@@ -345,7 +345,7 @@ pub fn rui(view: impl View + 'static) {
                     },
                 ..
             } => {
-                println!("Resizing to {:?}", size);
+                // println!("Resizing to {:?}", size);
                 config.width = size.width.max(1);
                 config.height = size.height.max(1);
                 surface.configure(&device, &config);
