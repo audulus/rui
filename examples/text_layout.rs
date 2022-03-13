@@ -9,9 +9,10 @@ fn main() {
 
         vger.translate([0.0, rect.height()]);
 
-        let break_width = Some(448.0);
+        let font_size = 24;
+        let break_width = Some(rect.width());
 
-        let bounds = vger.text_bounds(lorem, 18, break_width);
+        let bounds = vger.text_bounds(lorem, font_size, break_width);
 
         vger.stroke_rect(
             bounds.origin,
@@ -21,15 +22,23 @@ fn main() {
             paint,
         );
 
-        let rects = vger.glyph_positions(lorem, 18, break_width);
+        let rects = vger.glyph_positions(lorem, font_size, break_width);
 
-        let glyph_rect_paint = vger.color_paint(vger::Color::MAGENTA.alpha(0.2));
+        let glyph_rect_paint = vger.color_paint(vger::Color::MAGENTA.alpha(0.1));
 
         for rect in rects {
             vger.fill_rect(rect, 0.0, glyph_rect_paint);
         }
 
-        vger.text(lorem, 18, vger::Color::CYAN, break_width);
+        let line_rects = vger.line_metrics(lorem, font_size, break_width);
+
+        let line_rect_paint = vger.color_paint(RED_HIGHLIGHT.alpha(0.1));
+
+        for rect in line_rects {
+            vger.fill_rect(rect, 0.0, line_rect_paint);
+        }
+
+        vger.text(lorem, font_size, vger::Color::CYAN, break_width);
 
     }).padding(Auto));
 }
