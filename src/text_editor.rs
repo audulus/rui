@@ -23,6 +23,7 @@ pub fn text_editor(text: impl Binding<String>) -> impl View {
     let len = text.get().len();
     state( TextEditorState{ cursor: 0 }, move |state| {
         let text = text.clone();
+        let text2 = text.clone();
         let cursor = state.with(|s| s.cursor);
         canvas(move |rect, vger| {
             vger.translate([0.0, rect.height()]);
@@ -39,6 +40,14 @@ pub fn text_editor(text: impl Binding<String>) -> impl View {
             match k {
                 KeyCode::ArrowLeft => state.with_mut(|s| s.back() ),
                 KeyCode::ArrowRight => state.with_mut(|s| s.fwd(len) ),
+                KeyCode::Backspace => {
+                    if cursor > 0 {
+                        text2.with_mut(|t| { 
+                            t.remove(cursor-1);
+                        });
+                        state.with_mut(|s| s.back() );
+                    }
+                },
                 _ => ()
             }
         })
