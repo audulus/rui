@@ -48,6 +48,18 @@ pub fn text_editor(text: impl Binding<String>) -> impl View {
                         state.with_mut(|s| s.back() );
                     }
                 },
+                KeyPress::Character(c) => {
+                    text2.with_mut(|t| { 
+                        t.insert_str(cursor, c);
+                        state.with_mut(|s| s.cursor += c.len())
+                    });
+                },
+                KeyPress::Space => {
+                    text2.with_mut(|t| { 
+                        t.insert_str(cursor, " ");
+                        state.with_mut(|s| s.cursor += 1)
+                    });
+                },
                 _ => ()
             }
         })
