@@ -21,6 +21,14 @@ fn main() {
             paint,
         );
 
+        let rects = vger.glyph_positions(lorem, 18, break_width);
+
+        let glyph_rect_paint = vger.color_paint(vger::Color::MAGENTA.alpha(0.2));
+
+        for rect in rects {
+            vger.fill_rect(rect, 0.0, glyph_rect_paint);
+        }
+
         vger.text(lorem, 18, vger::Color::CYAN, break_width);
 
     }).padding(Auto));
