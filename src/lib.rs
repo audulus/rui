@@ -72,6 +72,9 @@ pub use colors::*;
 mod key;
 pub use key::*;
 
+mod text_editor;
+pub use text_editor::*;
+
 use futures::executor::block_on;
 use vger::color::*;
 use vger::*;
