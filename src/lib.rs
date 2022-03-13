@@ -82,6 +82,8 @@ use tao::{
     accelerator::Accelerator
 };
 
+use std::env;
+
 pub type KeyCode = tao::keyboard::KeyCode;
 
 struct Setup {
@@ -241,7 +243,12 @@ fn make_menu_rec(items: &Vec<MenuItem2>, i: usize, command_map: &mut HashMap<tao
 
     if i == 0 {
         let mut app_menu = Menu::new();
-        app_menu.add_native_item(MenuItem::About("rui".into()));
+
+        let app_name = match env::current_exe() {
+            Ok(exe_path) => exe_path.file_name().unwrap().to_str().unwrap().to_string(),
+            Err(_) => "rui".to_string(),
+        };
+        app_menu.add_native_item(MenuItem::About(app_name));
         app_menu.add_native_item(MenuItem::Quit);
         menu.add_submenu("rui", true, app_menu);
     }
