@@ -15,11 +15,10 @@ pub fn text_editor(text: impl Binding<String>) -> impl View {
             let s = text.get();
             vger.text(&s, font_size, TEXT_COLOR, break_width);
         }).key(move |k| {
-            if k == KeyCode::ArrowLeft {
-                state.with_mut(|s| s.cursor -= 1)
-            }
-            if k == KeyCode::ArrowRight {
-                state.with_mut(|s| s.cursor += 1)
+            match k {
+                KeyCode::ArrowLeft => state.with_mut(|s| s.cursor -= 1),
+                KeyCode::ArrowRight => state.with_mut(|s| s.cursor += 1),
+                _ => ()
             }
         })
     })
