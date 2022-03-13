@@ -12,8 +12,7 @@ pub fn text_editor(text: impl Binding<String>) -> impl View {
             vger.translate([0.0, rect.height()]);
             let font_size = 18;
             let break_width = Some(rect.width());
-            let s = text.get();
-            vger.text(&s, font_size, TEXT_COLOR, break_width);
+            vger.text(&text.get(), font_size, TEXT_COLOR, break_width);
         }).key(move |k| {
             match k {
                 KeyCode::ArrowLeft => state.with_mut(|s| s.cursor -= 1),
