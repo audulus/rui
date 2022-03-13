@@ -69,6 +69,9 @@ pub use command::*;
 mod colors;
 pub use colors::*;
 
+mod key;
+pub use key::*;
+
 use futures::executor::block_on;
 use vger::color::*;
 use vger::*;
