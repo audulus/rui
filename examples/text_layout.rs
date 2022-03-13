@@ -38,7 +38,7 @@ fn main() {
             vger.fill_rect(rect, 0.0, line_rect_paint);
         }
 
-        vger.text(lorem, font_size, vger::Color::CYAN, break_width);
+        vger.text(lorem, font_size, TEXT_COLOR, break_width);
 
     }).padding(Auto));
 }
