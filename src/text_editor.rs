@@ -28,11 +28,13 @@ pub fn text_editor(text: impl Binding<String>) -> impl View {
             vger.translate([0.0, rect.height()]);
             let font_size = 18;
             let break_width = Some(rect.width());
-            vger.text(&text.get(), font_size, TEXT_COLOR, break_width);
 
             let rects = vger.glyph_positions(&text.get(), font_size, break_width);
-            let glyph_rect_paint = vger.color_paint(vger::Color::MAGENTA.alpha(0.1));
+            let glyph_rect_paint = vger.color_paint(vger::Color::MAGENTA);
             vger.fill_rect(rects[cursor], 0.0, glyph_rect_paint);
+
+            vger.text(&text.get(), font_size, TEXT_COLOR, break_width);
+            
         }).key(move |k| {
             match k {
                 KeyCode::ArrowLeft => state.with_mut(|s| s.back() ),
