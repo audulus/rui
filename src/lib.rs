@@ -422,11 +422,13 @@ pub fn rui(view: impl View + 'static) {
                 event: WindowEvent::KeyboardInput { event, .. },
                 ..
             } => {
-                let event = view::Event {
-                    kind: EventKind::Key(event.physical_key),
-                    position: mouse_position,
-                };
-                view.process(&event, cx.root_id, &mut cx, &mut vger)
+                if event.state == ElementState::Pressed {
+                    let event = view::Event {
+                        kind: EventKind::Key(event.physical_key),
+                        position: mouse_position,
+                    };
+                    view.process(&event, cx.root_id, &mut cx, &mut vger)
+                }
             },
             event::Event::MenuEvent {
                     menu_id,
