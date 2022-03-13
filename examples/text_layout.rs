@@ -23,5 +23,5 @@ fn main() {
 
         vger.text(lorem, 18, vger::Color::CYAN, break_width);
 
-    }));
+    }).padding(Auto));
 }
