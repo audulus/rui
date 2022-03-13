@@ -30,12 +30,12 @@ fn main() {
             vger.fill_rect(rect, 0.0, glyph_rect_paint);
         }
 
-        let line_rects = vger.line_metrics(lorem, font_size, break_width);
+        let lines = vger.line_metrics(lorem, font_size, break_width);
 
         let line_rect_paint = vger.color_paint(RED_HIGHLIGHT.alpha(0.1));
 
-        for rect in line_rects {
-            vger.fill_rect(rect, 0.0, line_rect_paint);
+        for line in lines {
+            vger.fill_rect(line.bounds, 0.0, line_rect_paint);
         }
 
         vger.text(lorem, font_size, TEXT_COLOR, break_width);
