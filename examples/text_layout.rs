@@ -7,9 +7,11 @@ fn main() {
 
         let paint = vger.color_paint(vger::Color::MAGENTA);
 
-        vger.translate([32.0, 256.0]);
+        vger.translate([0.0, rect.height()]);
 
-        let bounds = vger.text_bounds(lorem, 18, Some(448.0));
+        let break_width = Some(448.0);
+
+        let bounds = vger.text_bounds(lorem, 18, break_width);
 
         vger.stroke_rect(
             bounds.origin,
@@ -19,6 +21,7 @@ fn main() {
             paint,
         );
 
-        vger.text(lorem, 18, vger::Color::CYAN, Some(448.0));
+        vger.text(lorem, 18, vger::Color::CYAN, break_width);
+
     }));
 }
