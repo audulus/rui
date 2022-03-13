@@ -28,6 +28,9 @@ pub trait Modifiers: View + Sized {
 
     /// Adds a group of menu commands.
     fn command_group<T: CommandTuple>(self, cmds: T) -> CommandGroup<Self, T>;
+
+    /// Responds to keyboard events
+    fn key<F: Fn(KeyCode) + 'static>(self, f: F) -> Key<Self, F>;
 }
 
 impl<V: View + 'static> Modifiers for V {
@@ -57,5 +60,8 @@ impl<V: View + 'static> Modifiers for V {
     }
     fn command_group<T: CommandTuple>(self, cmds: T) -> CommandGroup<Self, T> {
         CommandGroup::new(self, cmds)
+    }
+    fn key<F: Fn(KeyCode) + 'static>(self, f: F) -> Key<Self, F> {
+        Key::new(self, f)
     }
 }
