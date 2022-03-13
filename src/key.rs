@@ -1,6 +1,6 @@
 pub use crate::*;
 
-pub struct Key<V: View, F: Fn(KeyCode)> {
+pub struct Key<V: View, F: Fn(KeyPress)> {
     child: V,
     func: F,
 }
@@ -8,7 +8,7 @@ pub struct Key<V: View, F: Fn(KeyCode)> {
 impl<V, F> Key<V, F>
 where
     V: View,
-    F: Fn(KeyCode) + 'static,
+    F: Fn(KeyPress) + 'static,
 {
     pub fn new(v: V, f: F) -> Self {
         Self { child: v, func: f }
@@ -18,7 +18,7 @@ where
 impl<V, F> View for Key<V, F>
 where
     V: View,
-    F: Fn(KeyCode) + 'static,
+    F: Fn(KeyPress) + 'static,
 {
     fn print(&self, id: ViewID, cx: &mut Context) {
         println!("Key {{");
@@ -32,8 +32,8 @@ where
 
     fn process(&self, event: &Event, _vid: ViewID, _cx: &mut Context, _vger: &mut VGER) {
         match &event.kind {
-            EventKind::Key(code) => {
-                (self.func)(*code)
+            EventKind::Key(key) => {
+                (self.func)(key.clone())
             }
             _ => (),
         }

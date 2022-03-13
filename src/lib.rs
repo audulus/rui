@@ -425,7 +425,7 @@ pub fn rui(view: impl View + 'static) {
             } => {
                 if event.state == ElementState::Pressed {
                     let event = view::Event {
-                        kind: EventKind::Key(event.physical_key),
+                        kind: EventKind::Key(event.logical_key),
                         position: mouse_position,
                     };
                     view.process(&event, cx.root_id, &mut cx, &mut vger)

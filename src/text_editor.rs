@@ -38,9 +38,9 @@ pub fn text_editor(text: impl Binding<String>) -> impl View {
             
         }).key(move |k| {
             match k {
-                KeyCode::ArrowLeft => state.with_mut(|s| s.back() ),
-                KeyCode::ArrowRight => state.with_mut(|s| s.fwd(len) ),
-                KeyCode::Backspace => {
+                KeyPress::ArrowLeft => state.with_mut(|s| s.back() ),
+                KeyPress::ArrowRight => state.with_mut(|s| s.fwd(len) ),
+                KeyPress::Backspace => {
                     if cursor > 0 {
                         text2.with_mut(|t| { 
                             t.remove(cursor-1);
