@@ -35,8 +35,8 @@ pub fn text_editor(text: impl Binding<String>) -> impl View {
             vger.fill_rect(rects[cursor], 0.0, glyph_rect_paint);
         }).key(move |k| {
             match k {
-                KeyCode::ArrowLeft => state.with_mut(|s| s.fwd(len) ),
-                KeyCode::ArrowRight => state.with_mut(|s| s.back() ),
+                KeyCode::ArrowLeft => state.with_mut(|s| s.back() ),
+                KeyCode::ArrowRight => state.with_mut(|s| s.fwd(len) ),
                 _ => ()
             }
         })
