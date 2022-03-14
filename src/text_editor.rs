@@ -58,25 +58,27 @@ impl TextEditorState {
     }
 
     fn down(&mut self) {
-        let rects = self.glyph_info.borrow().glyph_rects.clone();
+        let info = self.glyph_info.borrow();
+        let rects = &info.glyph_rects;
         let p = rects[self.cursor].center();
         
         let line = self.find_line() + 1;
         if line < self.glyph_info.borrow().lines.len() {
             let metrics = self.glyph_info.borrow().lines[line];
-            self.cursor = self.closest_in_range(p, metrics.glyph_start..metrics.glyph_end, &rects);
+            self.cursor = self.closest_in_range(p, metrics.glyph_start..metrics.glyph_end, rects);
         }
         
     }
 
     fn up(&mut self) {
-        let rects = self.glyph_info.borrow().glyph_rects.clone();
+        let info = self.glyph_info.borrow();
+        let rects = &info.glyph_rects;
         let p = rects[self.cursor].center();
         
         let line = self.find_line();
         if line > 0 {
             let metrics = self.glyph_info.borrow().lines[line-1];
-            self.cursor = self.closest_in_range(p, metrics.glyph_start..metrics.glyph_end, &rects);
+            self.cursor = self.closest_in_range(p, metrics.glyph_start..metrics.glyph_end, rects);
         }
         
     }
