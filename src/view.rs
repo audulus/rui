@@ -7,7 +7,7 @@ pub enum EventKind {
     TouchMove { id: usize },
     TouchEnd { id: usize },
     Command(String),
-    Key(KeyPress),
+    Key(KeyPress, ModifiersState),
 }
 
 #[derive(Clone, Debug)]

@@ -32,7 +32,7 @@ where
 
     fn process(&self, event: &Event, _vid: ViewID, _cx: &mut Context, _vger: &mut VGER) {
         match &event.kind {
-            EventKind::Key(key) => (self.func)(key.clone()),
+            EventKind::Key(key, _) => (self.func)(key.clone()),
             _ => (),
         }
     }
