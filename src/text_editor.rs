@@ -148,6 +148,12 @@ pub fn text_editor(text: impl Binding<String>) -> impl View {
                         state.with_mut(|s| s.cursor += 1)
                     });
                 },
+                KeyPress::Home => {
+                    state.with_mut(|s| s.cursor = 0 )
+                },
+                KeyPress::End => {
+                    state.with_mut(|s| s.cursor = len-1 )
+                }
                 _ => ()
             }
         })
