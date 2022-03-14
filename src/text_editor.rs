@@ -4,12 +4,13 @@ use std::rc::Rc;
 
 
 struct TextEditorGlyphInfo {
-    glyph_rects: Vec<LocalRect>
+    glyph_rects: Vec<LocalRect>,
+    lines: Vec<LineMetrics>,
 }
 
 impl TextEditorGlyphInfo {
     fn new() -> Self {
-        Self { glyph_rects: vec![] }
+        Self { glyph_rects: vec![], lines: vec![] }
     }
 }
 
@@ -58,7 +59,9 @@ pub fn text_editor(text: impl Binding<String>) -> impl View {
             let glyph_rect_paint = vger.color_paint(vger::Color::MAGENTA);
             vger.fill_rect(rects[cursor], 0.0, glyph_rect_paint);
 
+            let lines = vger.line_metrics(&text.get(), font_size, break_width);
             state2.get().glyph_info.borrow_mut().glyph_rects = rects;
+            state2.get().glyph_info.borrow_mut().lines = lines;
 
             vger.text(&text.get(), font_size, TEXT_COLOR, break_width);
             
