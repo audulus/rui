@@ -446,6 +446,12 @@ pub fn rui(view: impl View + 'static) {
                     view.process(&event, cx.root_id, &mut cx, &mut vger)
                 }
             }
+            event::Event::WindowEvent {
+                event: WindowEvent::ModifiersChanged(modifiers),
+                ..
+            } => {
+                println!("modifiers changed: {:?}", modifiers);
+            }
             event::Event::MenuEvent { menu_id, .. } => {
                 //println!("menu event");
 
