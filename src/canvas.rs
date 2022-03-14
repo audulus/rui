@@ -41,12 +41,18 @@ where
 
     fn hittest(
         &self,
-        _id: ViewID,
-        _pt: LocalPoint,
-        _cx: &mut Context,
+        id: ViewID,
+        pt: LocalPoint,
+        cx: &mut Context,
         _vger: &mut VGER,
     ) -> Option<ViewID> {
-        None
+        let rect = cx.layout.entry(id).or_insert(LayoutBox::default()).rect;
+
+        if rect.contains(pt) {
+            Some(id)
+        } else {
+            None
+        }
     }
 
     fn commands(&self, _id: ViewID, _cx: &mut Context, _cmds: &mut Vec<CommandInfo>) {}
