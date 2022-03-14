@@ -288,6 +288,8 @@ pub fn rui(view: impl View + 'static) {
     let mut command_map = HashMap::new();
     window.set_menu(Some(build_menubar(&commands, &mut command_map)));
 
+    let mut modifiers = ModifiersState::default();
+
     event_loop.run(move |event, _, control_flow| {
         // ControlFlow::Poll continuously runs the event loop, even if the OS hasn't
         // dispatched any events. This is ideal for games and similar applications.
@@ -447,9 +449,10 @@ pub fn rui(view: impl View + 'static) {
                 }
             }
             event::Event::WindowEvent {
-                event: WindowEvent::ModifiersChanged(modifiers),
+                event: WindowEvent::ModifiersChanged(mods),
                 ..
             } => {
+                modifiers = mods;
                 println!("modifiers changed: {:?}", modifiers);
             }
             event::Event::MenuEvent { menu_id, .. } => {
