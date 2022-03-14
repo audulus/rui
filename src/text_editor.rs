@@ -32,6 +32,63 @@ impl TextEditorState {
             self.cursor -= 1;
         }
     }
+
+    fn find_line(&self) -> usize {
+        let mut i = 0;
+        for line in &self.glyph_info.borrow().lines {
+            if self.cursor >= line.glyph_start && self.cursor < line.glyph_end {
+                break;
+            }
+            i += 1;
+        }
+        i
+    }
+
+    fn down(&mut self) {
+        let rects = self.glyph_info.borrow().glyph_rects.clone();
+        let p = rects[self.cursor].center();
+        
+        let line = self.find_line() + 1;
+        if line < self.glyph_info.borrow().lines.len() {
+            let metrics = self.glyph_info.borrow().lines[line];
+            
+            let mut d = std::f32::MAX;
+            let mut closest = 0;
+            for i in metrics.glyph_start..metrics.glyph_end {
+                let dp = rects[i].center().distance_to(p);
+                if dp < d {
+                    closest = i;
+                    d = dp;
+                }
+            }
+
+            self.cursor = closest;
+        }
+        
+    }
+
+    fn up(&mut self) {
+        let rects = self.glyph_info.borrow().glyph_rects.clone();
+        let p = rects[self.cursor].center();
+        
+        let line = self.find_line();
+        if line > 0 {
+            let metrics = self.glyph_info.borrow().lines[line-1];
+            
+            let mut d = std::f32::MAX;
+            let mut closest = 0;
+            for i in metrics.glyph_start..metrics.glyph_end {
+                let dp = rects[i].center().distance_to(p);
+                if dp < d {
+                    closest = i;
+                    d = dp;
+                }
+            }
+
+            self.cursor = closest;
+        }
+        
+    }
 }
 
 impl TextEditorState {
@@ -69,6 +126,8 @@ pub fn text_editor(text: impl Binding<String>) -> impl View {
             match k {
                 KeyPress::ArrowLeft => state.with_mut(|s| s.back() ),
                 KeyPress::ArrowRight => state.with_mut(|s| s.fwd(len) ),
+                KeyPress::ArrowUp => state.with_mut(|s| s.up() ),
+                KeyPress::ArrowDown => state.with_mut(|s| s.down() ),
                 KeyPress::Backspace => {
                     if cursor > 0 {
                         text2.with_mut(|t| { 
