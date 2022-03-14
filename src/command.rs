@@ -13,7 +13,12 @@ where
     F: Fn() + 'static,
 {
     pub fn new(v: V, name: String, key: Option<KeyCode>, f: F) -> Self {
-        Self { child: v, name, key, func: f }
+        Self {
+            child: v,
+            name,
+            key,
+            func: f,
+        }
     }
 }
 
@@ -61,7 +66,10 @@ where
 
     fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
         self.child.commands(id.child(&0), cx, cmds);
-        cmds.push(CommandInfo{ path: self.name.clone(), key: self.key } )
+        cmds.push(CommandInfo {
+            path: self.name.clone(),
+            key: self.key,
+        })
     }
 }
 
@@ -118,7 +126,9 @@ impl<A: CommandBase, B: CommandBase, C: CommandBase, D: CommandBase> CommandTupl
     }
 }
 
-impl<A: CommandBase, B: CommandBase, C: CommandBase, D: CommandBase, E: CommandBase> CommandTuple for (A, B, C, D, E) {
+impl<A: CommandBase, B: CommandBase, C: CommandBase, D: CommandBase, E: CommandBase> CommandTuple
+    for (A, B, C, D, E)
+{
     fn foreach_cmd<FN: FnMut(&dyn CommandBase)>(&self, f: &mut FN) {
         f(&self.0);
         f(&self.1);
@@ -131,7 +141,15 @@ impl<A: CommandBase, B: CommandBase, C: CommandBase, D: CommandBase, E: CommandB
     }
 }
 
-impl<A: CommandBase, B: CommandBase, C: CommandBase, D: CommandBase, E: CommandBase, F: CommandBase> CommandTuple for (A, B, C, D, E, F) {
+impl<
+        A: CommandBase,
+        B: CommandBase,
+        C: CommandBase,
+        D: CommandBase,
+        E: CommandBase,
+        F: CommandBase,
+    > CommandTuple for (A, B, C, D, E, F)
+{
     fn foreach_cmd<FN: FnMut(&dyn CommandBase)>(&self, f: &mut FN) {
         f(&self.0);
         f(&self.1);
@@ -145,8 +163,15 @@ impl<A: CommandBase, B: CommandBase, C: CommandBase, D: CommandBase, E: CommandB
     }
 }
 
-impl<A: CommandBase, B: CommandBase, C: CommandBase, D: CommandBase, E: CommandBase, F: CommandBase, G: CommandBase> CommandTuple
-    for (A, B, C, D, E, F, G)
+impl<
+        A: CommandBase,
+        B: CommandBase,
+        C: CommandBase,
+        D: CommandBase,
+        E: CommandBase,
+        F: CommandBase,
+        G: CommandBase,
+    > CommandTuple for (A, B, C, D, E, F, G)
 {
     fn foreach_cmd<FN: FnMut(&dyn CommandBase)>(&self, f: &mut FN) {
         f(&self.0);
@@ -162,8 +187,16 @@ impl<A: CommandBase, B: CommandBase, C: CommandBase, D: CommandBase, E: CommandB
     }
 }
 
-impl<A: CommandBase, B: CommandBase, C: CommandBase, D: CommandBase, E: CommandBase, F: CommandBase, G: CommandBase, H: CommandBase> CommandTuple
-    for (A, B, C, D, E, F, G, H)
+impl<
+        A: CommandBase,
+        B: CommandBase,
+        C: CommandBase,
+        D: CommandBase,
+        E: CommandBase,
+        F: CommandBase,
+        G: CommandBase,
+        H: CommandBase,
+    > CommandTuple for (A, B, C, D, E, F, G, H)
 {
     fn foreach_cmd<FN: FnMut(&dyn CommandBase)>(&self, f: &mut FN) {
         f(&self.0);
@@ -182,7 +215,7 @@ impl<A: CommandBase, B: CommandBase, C: CommandBase, D: CommandBase, E: CommandB
 
 pub struct CommandGroup<V: View, C: CommandTuple> {
     child: V,
-    cmds: C
+    cmds: C,
 }
 
 impl<V, C> CommandGroup<V, C>
@@ -242,23 +275,29 @@ where
     fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
         self.child.commands(id.child(&0), cx, cmds);
         self.cmds.foreach_cmd(&mut |cmd| {
-            cmds.push(CommandInfo{ path: cmd.name().clone(), key: cmd.key() } )
+            cmds.push(CommandInfo {
+                path: cmd.name().clone(),
+                key: cmd.key(),
+            })
         });
     }
 }
 
 pub struct NullCommand {
     name: String,
-    key: Option<KeyCode>
+    key: Option<KeyCode>,
 }
 
 /// Specifies a menu command.
 pub fn command(name: &str) -> NullCommand {
-    NullCommand{ name: name.into(), key: None }
+    NullCommand {
+        name: name.into(),
+        key: None,
+    }
 }
 
 impl CommandBase for NullCommand {
-    fn exec(&self) { }
+    fn exec(&self) {}
     fn name(&self) -> String {
         self.name.clone()
     }
@@ -270,11 +309,18 @@ impl CommandBase for NullCommand {
 impl NullCommand {
     /// Adds a hotkey to the menu command.
     pub fn hotkey(self, key: KeyCode) -> Self {
-        Self { name: self.name, key: Some(key) }
+        Self {
+            name: self.name,
+            key: Some(key),
+        }
     }
     /// Adds an action to the menu command.
     pub fn action<F: Fn()>(self, func: F) -> Command2<F> {
-        Command2 { name: self.name, key: self.key, func: func }
+        Command2 {
+            name: self.name,
+            key: self.key,
+            func: func,
+        }
     }
 }
 
@@ -284,7 +330,10 @@ pub struct Command2<F: Fn()> {
     func: F,
 }
 
-impl<F> CommandBase for Command2<F> where F: Fn() {
+impl<F> CommandBase for Command2<F>
+where
+    F: Fn(),
+{
     fn exec(&self) {
         (self.func)();
     }
@@ -296,9 +345,16 @@ impl<F> CommandBase for Command2<F> where F: Fn() {
     }
 }
 
-impl<F> Command2<F> where F: Fn() {
+impl<F> Command2<F>
+where
+    F: Fn(),
+{
     /// Adds a hotkey to the menu command.
     pub fn hotkey(self, key: KeyCode) -> Self {
-        Self { name: self.name, key: Some(key), func: self.func }
+        Self {
+            name: self.name,
+            key: Some(key),
+            func: self.func,
+        }
     }
 }

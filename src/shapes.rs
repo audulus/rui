@@ -121,11 +121,7 @@ impl View for Rectangle {
         let rect = self.geom(id, cx);
 
         let paint = self.paint.vger_paint(vger);
-        vger.fill_rect(
-            rect,
-            self.corner_radius,
-            paint,
-        );
+        vger.fill_rect(rect, self.corner_radius, paint);
     }
 
     fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, _vger: &mut VGER) -> LocalSize {

@@ -50,7 +50,7 @@ impl View for Text {
         None
     }
 
-    fn commands(&self, _id: ViewID, _cx: &mut Context, _cmds: &mut Vec<CommandInfo>) { }
+    fn commands(&self, _id: ViewID, _cx: &mut Context, _cmds: &mut Vec<CommandInfo>) {}
 }
 
 /// Shows a string as a label (not editable).

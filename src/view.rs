@@ -75,5 +75,5 @@ impl View for EmptyView {
         None
     }
 
-    fn commands(&self, _id: ViewID, _cx: &mut Context, _cmds: &mut Vec<CommandInfo>) { }
+    fn commands(&self, _id: ViewID, _cx: &mut Context, _cmds: &mut Vec<CommandInfo>) {}
 }

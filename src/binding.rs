@@ -1,18 +1,20 @@
-
 /// Reads or writes a value owned by a source-of-truth.
 pub trait Binding<S>: Clone + 'static {
-    
     fn with<T, F: Fn(&S) -> T>(&self, f: F) -> T;
     fn with_mut<T, F: Fn(&mut S) -> T>(&self, f: F) -> T;
 
-    fn get(&self) -> S where S:Clone {
+    fn get(&self) -> S
+    where
+        S: Clone,
+    {
         self.with(|s| s.clone())
     }
 
-    fn set(&self, value: S) where S:Clone {
-        self.with_mut(move |s| {
-            *s = value.clone()
-        });
+    fn set(&self, value: S)
+    where
+        S: Clone,
+    {
+        self.with_mut(move |s| *s = value.clone());
     }
 }
 
@@ -78,33 +80,35 @@ macro_rules! bind {
                 state2.set(s);
             },
         }
-    }}
+    }};
 }
 
 pub fn bind<S, Get, Set>(getf: Get, setf: Set) -> impl Binding<S>
-   where Get: Fn() -> S + Clone + 'static, Set: Fn(S) + Clone + 'static, S: Clone {
-       Map { getf, setf }
+where
+    Get: Fn() -> S + Clone + 'static,
+    Set: Fn(S) + Clone + 'static,
+    S: Clone,
+{
+    Map { getf, setf }
 }
 
 #[macro_export]
 macro_rules! bind_no_clone {
     ( $state:expr, $type:ident, $field:ident, $type2:ident ) => {{
-
         #[derive(Clone)]
         struct Bnd<B> {
             binding: B,
         }
 
-        impl <B> Binding<$type2> for Bnd<B> where B:Binding<$type> {
+        impl<B> Binding<$type2> for Bnd<B>
+        where
+            B: Binding<$type>,
+        {
             fn with<T, F: Fn(&$type2) -> T>(&self, f: F) -> T {
-                self.binding.with(|v| {
-                    f(&v.$field)
-                })
+                self.binding.with(|v| f(&v.$field))
             }
             fn with_mut<T, F: Fn(&mut $type2) -> T>(&self, f: F) -> T {
-                self.binding.with_mut(|v| {
-                    f(&mut v.$field)
-                })
+                self.binding.with_mut(|v| f(&mut v.$field))
             }
         }
 

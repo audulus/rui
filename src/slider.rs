@@ -29,14 +29,13 @@ where
 
             zstack((
                 rectangle().color(CLEAR_COLOR).drag(move |off, _state| {
-                    value.with_mut(|v| *v = (*v + off.x/w).clamp(0.0, 1.0));
+                    value.with_mut(|v| *v = (*v + off.x / w).clamp(0.0, 1.0));
                 }),
                 canvas(move |sz, vger| {
                     let c = sz.center();
                     let paint = vger.color_paint(BUTTON_BACKGROUND_COLOR);
                     vger.fill_rect(
-                        euclid::rect(0.0, c.y - SLIDER_WIDTH / 2.0,
-                                     sz.width(), SLIDER_WIDTH),
+                        euclid::rect(0.0, c.y - SLIDER_WIDTH / 2.0, sz.width(), SLIDER_WIDTH),
                         0.0,
                         paint,
                     );
@@ -94,14 +93,13 @@ where
 
             zstack((
                 rectangle().color(CLEAR_COLOR).drag(move |off, _state| {
-                    value.with_mut(|v| *v = (*v + off.y/h).clamp(0.0, 1.0));
+                    value.with_mut(|v| *v = (*v + off.y / h).clamp(0.0, 1.0));
                 }),
                 canvas(move |sz, vger| {
                     let c = sz.center();
                     let paint = vger.color_paint(BUTTON_BACKGROUND_COLOR);
                     vger.fill_rect(
-                        euclid::rect(c.x - SLIDER_WIDTH / 2.0, 0.0,
-                                     SLIDER_WIDTH, sz.height()),
+                        euclid::rect(c.x - SLIDER_WIDTH / 2.0, 0.0, SLIDER_WIDTH, sz.height()),
                         0.0,
                         paint,
                     );

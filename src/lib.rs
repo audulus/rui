@@ -76,19 +76,19 @@ mod text_editor;
 pub use text_editor::*;
 
 use futures::executor::block_on;
+use std::collections::HashMap;
 use vger::color::*;
 use vger::*;
-use std::collections::HashMap;
 
 use tao::{
+    accelerator::Accelerator,
+    dpi::PhysicalSize,
     event,
     event::{ElementState, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
-    window::{WindowBuilder, Window},
-    dpi::PhysicalSize,
-    menu::{MenuBar as Menu, MenuItem, MenuItemAttributes},
     keyboard::ModifiersState,
-    accelerator::Accelerator
+    menu::{MenuBar as Menu, MenuItem, MenuItemAttributes},
+    window::{Window, WindowBuilder},
 };
 
 use std::env;
@@ -104,10 +104,7 @@ struct Setup {
     queue: wgpu::Queue,
 }
 
-
-
 async fn setup(window: &Window) -> Setup {
-
     #[cfg(target_arch = "wasm32")]
     {
         use winit::platform::web::WindowExtWebSys;
@@ -175,7 +172,7 @@ async fn setup(window: &Window) -> Setup {
 #[derive(Clone, Eq, PartialEq)]
 pub struct CommandInfo {
     path: String,
-    key: Option<KeyCode>
+    key: Option<KeyCode>,
 }
 
 struct MenuItem2 {
@@ -184,8 +181,11 @@ struct MenuItem2 {
     command: CommandInfo,
 }
 
-fn make_menu_rec(items: &Vec<MenuItem2>, i: usize, command_map: &mut HashMap<tao::menu::MenuId, String>) -> Menu {
-
+fn make_menu_rec(
+    items: &Vec<MenuItem2>,
+    i: usize,
+    command_map: &mut HashMap<tao::menu::MenuId, String>,
+) -> Menu {
     let mut menu = Menu::new();
 
     if i == 0 {
@@ -203,7 +203,11 @@ fn make_menu_rec(items: &Vec<MenuItem2>, i: usize, command_map: &mut HashMap<tao
     for j in &items[i].submenu {
         let item = &items[*j];
         if item.submenu.len() > 0 {
-            menu.add_submenu(item.name.as_str(), true, make_menu_rec(items, *j, command_map));
+            menu.add_submenu(
+                item.name.as_str(),
+                true,
+                make_menu_rec(items, *j, command_map),
+            );
         } else {
             let mut attrs = MenuItemAttributes::new(item.name.as_str());
             if let Some(key) = item.command.key {
@@ -218,9 +222,18 @@ fn make_menu_rec(items: &Vec<MenuItem2>, i: usize, command_map: &mut HashMap<tao
     menu
 }
 
-fn build_menubar(commands: &Vec<CommandInfo>, command_map: &mut HashMap<tao::menu::MenuId, String>) -> Menu {
-    
-    let mut items : Vec<MenuItem2> = vec![MenuItem2 { name: "root".into(), submenu: vec![], command: CommandInfo { path: "".into(), key: None } }];
+fn build_menubar(
+    commands: &Vec<CommandInfo>,
+    command_map: &mut HashMap<tao::menu::MenuId, String>,
+) -> Menu {
+    let mut items: Vec<MenuItem2> = vec![MenuItem2 {
+        name: "root".into(),
+        submenu: vec![],
+        command: CommandInfo {
+            path: "".into(),
+            key: None,
+        },
+    }];
 
     for command in commands {
         let mut v = 0;
@@ -231,7 +244,11 @@ fn build_menubar(commands: &Vec<CommandInfo>, command_map: &mut HashMap<tao::men
                 let n = items.len();
                 items[v].submenu.push(n);
                 v = n;
-                items.push(MenuItem2 { name: name.into(), submenu: vec![], command: command.clone() });
+                items.push(MenuItem2 {
+                    name: name.into(),
+                    submenu: vec![],
+                    command: command.clone(),
+                });
             }
         }
     }
@@ -241,7 +258,6 @@ fn build_menubar(commands: &Vec<CommandInfo>, command_map: &mut HashMap<tao::men
 
 /// Call this function to describe your UI.
 pub fn rui(view: impl View + 'static) {
-
     let event_loop = EventLoop::new();
 
     let builder = WindowBuilder::new().with_title("rui");
@@ -314,7 +330,6 @@ pub fn rui(view: impl View + 'static) {
                 // applications which do not always need to. Applications that redraw continuously
                 // can just render here instead.
                 if view.needs_redraw(cx.root_id, &mut cx) {
-
                     // Have the commands changed?
                     let mut new_commands = Vec::new();
                     view.commands(cx.root_id, &mut cx, &mut new_commands);
@@ -392,14 +407,14 @@ pub fn rui(view: impl View + 'static) {
                             position: mouse_position,
                         };
                         view.process(&event, cx.root_id, &mut cx, &mut vger)
-                    },
-                    ElementState::Released => { 
+                    }
+                    ElementState::Released => {
                         let event = view::Event {
                             kind: EventKind::TouchEnd { id: 0 },
                             position: mouse_position,
                         };
                         view.process(&event, cx.root_id, &mut cx, &mut vger)
-                    },
+                    }
                     _ => {}
                 };
             }
@@ -418,7 +433,7 @@ pub fn rui(view: impl View + 'static) {
                     position: mouse_position,
                 };
                 view.process(&event, cx.root_id, &mut cx, &mut vger)
-            },
+            }
             event::Event::WindowEvent {
                 event: WindowEvent::KeyboardInput { event, .. },
                 ..
@@ -430,11 +445,8 @@ pub fn rui(view: impl View + 'static) {
                     };
                     view.process(&event, cx.root_id, &mut cx, &mut vger)
                 }
-            },
-            event::Event::MenuEvent {
-                    menu_id,
-                    ..
-            } => {
+            }
+            event::Event::MenuEvent { menu_id, .. } => {
                 //println!("menu event");
 
                 if let Some(command) = command_map.get(&menu_id) {
