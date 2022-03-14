@@ -67,7 +67,6 @@ impl TextEditorState {
             let metrics = self.glyph_info.borrow().lines[line];
             self.cursor = self.closest_in_range(p, metrics.glyph_start..metrics.glyph_end, rects);
         }
-        
     }
 
     fn up(&mut self) {
@@ -80,7 +79,6 @@ impl TextEditorState {
             let metrics = self.glyph_info.borrow().lines[line-1];
             self.cursor = self.closest_in_range(p, metrics.glyph_start..metrics.glyph_end, rects);
         }
-        
     }
 }
 
