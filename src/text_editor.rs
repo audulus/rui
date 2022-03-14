@@ -44,6 +44,19 @@ impl TextEditorState {
         i
     }
 
+    fn closest_in_range(&self, p: LocalPoint, range: std::ops::Range<usize>, rects: &Vec<LocalRect>) -> usize {
+        let mut d = std::f32::MAX;
+        let mut closest = 0;
+        for i in range {
+            let dp = rects[i].center().distance_to(p);
+            if dp < d {
+                closest = i;
+                d = dp;
+            }
+        }
+        closest
+    }
+
     fn down(&mut self) {
         let rects = self.glyph_info.borrow().glyph_rects.clone();
         let p = rects[self.cursor].center();
@@ -51,18 +64,7 @@ impl TextEditorState {
         let line = self.find_line() + 1;
         if line < self.glyph_info.borrow().lines.len() {
             let metrics = self.glyph_info.borrow().lines[line];
-            
-            let mut d = std::f32::MAX;
-            let mut closest = 0;
-            for i in metrics.glyph_start..metrics.glyph_end {
-                let dp = rects[i].center().distance_to(p);
-                if dp < d {
-                    closest = i;
-                    d = dp;
-                }
-            }
-
-            self.cursor = closest;
+            self.cursor = self.closest_in_range(p, metrics.glyph_start..metrics.glyph_end, &rects);
         }
         
     }
@@ -74,18 +76,7 @@ impl TextEditorState {
         let line = self.find_line();
         if line > 0 {
             let metrics = self.glyph_info.borrow().lines[line-1];
-            
-            let mut d = std::f32::MAX;
-            let mut closest = 0;
-            for i in metrics.glyph_start..metrics.glyph_end {
-                let dp = rects[i].center().distance_to(p);
-                if dp < d {
-                    closest = i;
-                    d = dp;
-                }
-            }
-
-            self.cursor = closest;
+            self.cursor = self.closest_in_range(p, metrics.glyph_start..metrics.glyph_end, &rects);
         }
         
     }
