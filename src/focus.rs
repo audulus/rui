@@ -8,7 +8,7 @@ pub struct Focus<V: View, B: Binding<bool>> {
 impl<V, B> View for Focus<V, B> where V: View, B: Binding<bool> {
 
     fn print(&self, id: ViewID, cx: &mut Context) {
-        self.child.print(id.child(&0), cx)
+        self.child.print(id.child(&0), cx);
         println!(".focus()");
     }
 
