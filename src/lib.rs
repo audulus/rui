@@ -78,6 +78,9 @@ pub use text_editor::*;
 mod focus;
 pub use focus::*;
 
+mod cond;
+pub use cond::*;
+
 use futures::executor::block_on;
 use std::collections::HashMap;
 use vger::color::*;
