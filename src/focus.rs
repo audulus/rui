@@ -17,6 +17,7 @@ impl<V, F> View for Focus<V, F> where V: View, F: Fn(bool) -> V {
             EventKind::TouchBegin { .. } => {
                 if let Some(_) = self.hittest(vid, event.position, cx, vger) {
                     cx.focused_id = Some(vid);
+                    *cx.dirty.borrow_mut() = true;
                 }
             }
             _ => (),
