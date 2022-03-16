@@ -164,8 +164,7 @@ where
                     vger.text(&text.get(), font_size, TEXT_COLOR, break_width);
                 })
                 .key(move |k| {
-                    let text = text2.clone();
-                    state.with_mut(|s| s.key(&k, &text) )
+                    state.with_mut(|s| s.key(&k, &text2) )
                 })
             })
         })
