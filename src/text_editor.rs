@@ -165,7 +165,7 @@ where
                 })
                 .key(move |k| {
                     let text = text2.clone();
-                    state.with_mut(move |s| s.key(&k, &text) )
+                    state.with_mut(|s| s.key(&k, &text) )
                 })
             })
         })
