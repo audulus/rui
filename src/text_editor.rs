@@ -87,6 +87,38 @@ impl TextEditorState {
             self.cursor = self.closest_in_range(p, metrics.glyph_start..metrics.glyph_end, rects);
         }
     }
+
+    fn key(&mut self, k: &KeyPress, text: &impl Binding<String>) {
+        match k {
+            KeyPress::ArrowLeft => self.back(),
+            KeyPress::ArrowRight => self.fwd(text.with(|t| t.len())),
+            KeyPress::ArrowUp => self.up(),
+            KeyPress::ArrowDown => self.down(),
+            KeyPress::Backspace => {
+                if self.cursor > 0 {
+                    text.with_mut(|t| {
+                        t.remove(self.cursor - 1);
+                    });
+                    self.back();
+                }
+            }
+            KeyPress::Character(c) => {
+                text.with_mut(|t| {
+                    t.insert_str(self.cursor, c);
+                });
+                self.cursor += c.len();
+            }
+            KeyPress::Space => {
+                text.with_mut(|t| {
+                    t.insert_str(self.cursor, " ");
+                });
+                self.cursor += 1;
+            }
+            KeyPress::Home => self.cursor = 0,
+            KeyPress::End => self.cursor = text.with(|t| t.len()),
+            _ => (),
+        }
+    }
 }
 
 impl TextEditorState {
@@ -131,34 +163,9 @@ where
         
                     vger.text(&text.get(), font_size, TEXT_COLOR, break_width);
                 })
-                .key(move |k| match k {
-                    KeyPress::ArrowLeft => state.with_mut(|s| s.back()),
-                    KeyPress::ArrowRight => state.with_mut(|s| s.fwd(len)),
-                    KeyPress::ArrowUp => state.with_mut(|s| s.up()),
-                    KeyPress::ArrowDown => state.with_mut(|s| s.down()),
-                    KeyPress::Backspace => {
-                        if cursor > 0 {
-                            text2.with_mut(|t| {
-                                t.remove(cursor - 1);
-                            });
-                            state.with_mut(|s| s.back());
-                        }
-                    }
-                    KeyPress::Character(c) => {
-                        text2.with_mut(|t| {
-                            t.insert_str(cursor, c);
-                            state.with_mut(|s| s.cursor += c.len())
-                        });
-                    }
-                    KeyPress::Space => {
-                        text2.with_mut(|t| {
-                            t.insert_str(cursor, " ");
-                            state.with_mut(|s| s.cursor += 1)
-                        });
-                    }
-                    KeyPress::Home => state.with_mut(|s| s.cursor = 0),
-                    KeyPress::End => state.with_mut(|s| s.cursor = len - 1),
-                    _ => (),
+                .key(move |k| {
+                    let text = text2.clone();
+                    state.with_mut(move |s| s.key(&k, &text) )
                 })
             })
         })
