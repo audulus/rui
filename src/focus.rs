@@ -7,8 +7,9 @@ pub struct Focus<V: View, F: Fn(bool) -> V> {
 impl<V, F> View for Focus<V, F> where V: View, F: Fn(bool) -> V {
 
     fn print(&self, id: ViewID, cx: &mut Context) {
+        println!("focus(");
         (self.func)(Some(id) == cx.focused_id).print(id.child(&0), cx);
-        println!(".focus()");
+        println!(")");
     }
 
     fn needs_redraw(&self, id: ViewID, cx: &mut Context) -> bool {
