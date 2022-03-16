@@ -109,54 +109,57 @@ where
     fn body(&self) -> impl View {
         let text = self.text.clone();
         let len = self.text.get().len();
-        state(TextEditorState::new(), move |state| {
+        focus(move |has_focus| {
             let text = text.clone();
-            let text2 = text.clone();
-            let cursor = state.with(|s| s.cursor);
-            let state2 = state.clone();
-            canvas(move |rect, vger| {
-                vger.translate([0.0, rect.height()]);
-                let font_size = 18;
-                let break_width = Some(rect.width());
-    
-                let rects = vger.glyph_positions(&text.get(), font_size, break_width);
-                let glyph_rect_paint = vger.color_paint(vger::Color::MAGENTA);
-                vger.fill_rect(rects[cursor], 0.0, glyph_rect_paint);
-    
-                let lines = vger.line_metrics(&text.get(), font_size, break_width);
-                state2.get().glyph_info.borrow_mut().glyph_rects = rects;
-                state2.get().glyph_info.borrow_mut().lines = lines;
-    
-                vger.text(&text.get(), font_size, TEXT_COLOR, break_width);
-            })
-            .key(move |k| match k {
-                KeyPress::ArrowLeft => state.with_mut(|s| s.back()),
-                KeyPress::ArrowRight => state.with_mut(|s| s.fwd(len)),
-                KeyPress::ArrowUp => state.with_mut(|s| s.up()),
-                KeyPress::ArrowDown => state.with_mut(|s| s.down()),
-                KeyPress::Backspace => {
-                    if cursor > 0 {
-                        text2.with_mut(|t| {
-                            t.remove(cursor - 1);
-                        });
-                        state.with_mut(|s| s.back());
+            state(TextEditorState::new(), move |state| {
+                let text = text.clone();
+                let text2 = text.clone();
+                let cursor = state.with(|s| s.cursor);
+                let state2 = state.clone();
+                canvas(move |rect, vger| {
+                    vger.translate([0.0, rect.height()]);
+                    let font_size = 18;
+                    let break_width = Some(rect.width());
+        
+                    let rects = vger.glyph_positions(&text.get(), font_size, break_width);
+                    let glyph_rect_paint = vger.color_paint(vger::Color::MAGENTA);
+                    vger.fill_rect(rects[cursor], 0.0, glyph_rect_paint);
+        
+                    let lines = vger.line_metrics(&text.get(), font_size, break_width);
+                    state2.get().glyph_info.borrow_mut().glyph_rects = rects;
+                    state2.get().glyph_info.borrow_mut().lines = lines;
+        
+                    vger.text(&text.get(), font_size, TEXT_COLOR, break_width);
+                })
+                .key(move |k| match k {
+                    KeyPress::ArrowLeft => state.with_mut(|s| s.back()),
+                    KeyPress::ArrowRight => state.with_mut(|s| s.fwd(len)),
+                    KeyPress::ArrowUp => state.with_mut(|s| s.up()),
+                    KeyPress::ArrowDown => state.with_mut(|s| s.down()),
+                    KeyPress::Backspace => {
+                        if cursor > 0 {
+                            text2.with_mut(|t| {
+                                t.remove(cursor - 1);
+                            });
+                            state.with_mut(|s| s.back());
+                        }
                     }
-                }
-                KeyPress::Character(c) => {
-                    text2.with_mut(|t| {
-                        t.insert_str(cursor, c);
-                        state.with_mut(|s| s.cursor += c.len())
-                    });
-                }
-                KeyPress::Space => {
-                    text2.with_mut(|t| {
-                        t.insert_str(cursor, " ");
-                        state.with_mut(|s| s.cursor += 1)
-                    });
-                }
-                KeyPress::Home => state.with_mut(|s| s.cursor = 0),
-                KeyPress::End => state.with_mut(|s| s.cursor = len - 1),
-                _ => (),
+                    KeyPress::Character(c) => {
+                        text2.with_mut(|t| {
+                            t.insert_str(cursor, c);
+                            state.with_mut(|s| s.cursor += c.len())
+                        });
+                    }
+                    KeyPress::Space => {
+                        text2.with_mut(|t| {
+                            t.insert_str(cursor, " ");
+                            state.with_mut(|s| s.cursor += 1)
+                        });
+                    }
+                    KeyPress::Home => state.with_mut(|s| s.cursor = 0),
+                    KeyPress::End => state.with_mut(|s| s.cursor = len - 1),
+                    _ => (),
+                })
             })
         })
     }
