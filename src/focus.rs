@@ -57,3 +57,11 @@ impl<V, F> View for Focus<V, F> where V: View, F: Fn(bool) -> V {
     }
 
 }
+
+pub fn focus<V: View, F: Fn(bool) -> V + 'static>(
+    f: F,
+) -> Focus<V, F> {
+    Focus {
+        func: f,
+    }
+}
