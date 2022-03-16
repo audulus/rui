@@ -1,35 +1,34 @@
 pub use crate::*;
 
-pub struct Focus<V: View, B: Binding<bool>> {
-    child: V,
-    binding: B,
+pub struct Focus<V: View, F: Fn(bool) -> V> {
+    func: F
 }
 
-impl<V, B> View for Focus<V, B> where V: View, B: Binding<bool> {
+impl<V, F> View for Focus<V, F> where V: View, F: Fn(bool) -> V {
 
     fn print(&self, id: ViewID, cx: &mut Context) {
-        self.child.print(id.child(&0), cx);
+        (self.func)(Some(id) == cx.focused_id).print(id.child(&0), cx);
         println!(".focus()");
     }
 
     fn needs_redraw(&self, id: ViewID, cx: &mut Context) -> bool {
-        self.child.needs_redraw(id.child(&0), cx)
+        (self.func)(Some(id) == cx.focused_id).needs_redraw(id.child(&0), cx)
     }
 
     fn process(&self, event: &Event, vid: ViewID, cx: &mut Context, vger: &mut VGER) {
         match &event.kind {
-            EventKind::TouchBegin { id } => {
+            EventKind::TouchBegin { .. } => {
                 if let Some(_) = self.hittest(vid, event.position, cx, vger) {
                     cx.focused_id = Some(vid);
                 }
             }
             _ => (),
         }
-        self.child.process(event, vid.child(&0), cx, vger)
+        (self.func)(Some(vid) == cx.focused_id).process(event, vid.child(&0), cx, vger)
     }
 
     fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
-        self.child.draw(id.child(&0), cx, vger)
+        (self.func)(Some(id) == cx.focused_id).draw(id.child(&0), cx, vger)
     }
 
     fn layout(
@@ -39,7 +38,7 @@ impl<V, B> View for Focus<V, B> where V: View, B: Binding<bool> {
         cx: &mut Context,
         vger: &mut VGER,
     ) -> LocalSize {
-        self.child.layout(id.child(&0), sz, cx, vger)
+        (self.func)(Some(id) == cx.focused_id).layout(id.child(&0), sz, cx, vger)
     }
 
     fn hittest(
@@ -49,11 +48,11 @@ impl<V, B> View for Focus<V, B> where V: View, B: Binding<bool> {
         cx: &mut Context,
         vger: &mut VGER,
     ) -> Option<ViewID> {
-        self.child.hittest(id.child(&0), pt, cx, vger)
+        (self.func)(Some(id) == cx.focused_id).hittest(id.child(&0), pt, cx, vger)
     }
 
     fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
-        self.child.commands(id.child(&0), cx, cmds)
+        (self.func)(Some(id) == cx.focused_id).commands(id.child(&0), cx, cmds)
     }
 
 }
