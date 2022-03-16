@@ -46,6 +46,7 @@ impl<V0, V1> View for Cond<V0, V1> where V0: View, V1: View {
 
 }
 
+/// Switches between views according to a boolean.
 pub fn cond(cond: bool, if_true: impl View, if_false: impl View) -> impl View {
     Cond { cond, if_true, if_false }
 }
