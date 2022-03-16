@@ -26,10 +26,6 @@ where
         println!("}}");
     }
 
-    fn needs_redraw(&self, id: ViewID, cx: &mut Context) -> bool {
-        self.child.needs_redraw(id.child(&0), cx)
-    }
-
     fn process(&self, event: &Event, _vid: ViewID, _cx: &mut Context, _vger: &mut VGER) {
         match &event.kind {
             EventKind::Key(key, _) => (self.func)(key.clone()),

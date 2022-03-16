@@ -15,6 +15,9 @@ pub type WorldPoint = Point2D<f32, WorldSpace>;
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 
+use std::cell::RefCell;
+use std::rc::Rc;
+
 /// `ViewID` is a unique identifier for a view. We're using a u64 and hashing
 /// under the assumption there won't be collsions. The underlying u64 is a function
 /// of the path down the view tree.
@@ -70,6 +73,9 @@ pub struct Context {
 
     /// The view that has the keybord focus.
     pub focused_id: Option<ViewID>,
+
+    /// Did state change?
+    pub dirty: Rc<RefCell<bool>>,
 }
 
 impl Context {
@@ -83,6 +89,7 @@ impl Context {
             previous_position: [LocalPoint::zero(); 16],
             root_id: ViewID::default(),
             focused_id: None,
+            dirty: Rc::new(RefCell::new(false)),
         }
     }
 
@@ -92,10 +99,11 @@ impl Context {
         id: ViewID,
         f: F,
     ) -> R {
+        let d = self.dirty.clone();
         let s = self
             .state_map
             .entry(id)
-            .or_insert_with(|| Box::new(State::new(default)));
+            .or_insert_with(|| Box::new(State::new(default, d)));
 
         if let Some(state) = s.downcast_ref::<State<S>>() {
             f(state.clone(), self)
@@ -110,10 +118,11 @@ impl Context {
         id: ViewID,
         f: &mut F,
     ) -> R {
+        let d = self.dirty.clone();
         let s = self
             .state_map
             .entry(id)
-            .or_insert_with(|| Box::new(State::new(default)));
+            .or_insert_with(|| Box::new(State::new(default, d)));
 
         if let Some(state) = s.downcast_ref::<State<S>>() {
             f(state.clone(), self)
@@ -129,10 +138,11 @@ impl Context {
         id: ViewID,
         f: F,
     ) -> R {
+        let d = self.dirty.clone();
         let s = self
             .state_map
             .entry(id)
-            .or_insert_with(|| Box::new(State::new(default)));
+            .or_insert_with(|| Box::new(State::new(default, d)));
 
         if let Some(state) = s.downcast_ref::<State<S>>() {
             f(state.clone(), self, vger)

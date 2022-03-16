@@ -26,10 +26,6 @@ where
         println!("}}");
     }
 
-    fn needs_redraw(&self, id: ViewID, cx: &mut Context) -> bool {
-        self.child.needs_redraw(id.child(&0), cx)
-    }
-
     fn process(&self, event: &Event, vid: ViewID, cx: &mut Context, vger: &mut VGER) {
         match &event.kind {
             EventKind::TouchBegin { id } => {
@@ -100,10 +96,6 @@ where
         println!("Drag {{");
         (self.child).print(id.child(&0), cx);
         println!("}}");
-    }
-
-    fn needs_redraw(&self, id: ViewID, cx: &mut Context) -> bool {
-        self.child.needs_redraw(id.child(&0), cx)
     }
 
     fn process(&self, event: &Event, vid: ViewID, cx: &mut Context, vger: &mut VGER) {

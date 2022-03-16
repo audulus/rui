@@ -14,10 +14,6 @@ where
         self.body().print(id, cx)
     }
 
-    fn needs_redraw(&self, id: ViewID, cx: &mut Context) -> bool {
-        self.body().needs_redraw(id, cx)
-    }
-
     fn process(&self, event: &Event, id: ViewID, cx: &mut Context, vger: &mut VGER) {
         self.body().process(event, id, cx, vger)
     }
@@ -50,10 +46,6 @@ macro_rules! body_view {
     () => {
         fn print(&self, id: ViewID, cx: &mut Context) {
             self.body().print(id, cx)
-        }
-
-        fn needs_redraw(&self, id: ViewID, cx: &mut Context) -> bool {
-            self.body().needs_redraw(id, cx)
         }
 
         fn process(&self, event: &Event, id: ViewID, cx: &mut Context, vger: &mut VGER) {

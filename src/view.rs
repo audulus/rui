@@ -21,9 +21,6 @@ pub trait View {
     /// Prints a description of the view for debugging.
     fn print(&self, id: ViewID, cx: &mut Context);
 
-    /// Does the view tree need to be redrawn?
-    fn needs_redraw(&self, id: ViewID, cx: &mut Context) -> bool;
-
     /// Processes an event.
     fn process(&self, event: &Event, id: ViewID, cx: &mut Context, vger: &mut VGER);
 
@@ -50,9 +47,6 @@ pub struct EmptyView {}
 impl View for EmptyView {
     fn print(&self, _id: ViewID, _cx: &mut Context) {
         println!("EmptyView");
-    }
-    fn needs_redraw(&self, _id: ViewID, _cx: &mut Context) -> bool {
-        false
     }
     fn process(&self, _event: &Event, _id: ViewID, _cx: &mut Context, _vger: &mut VGER) {}
     fn draw(&self, _id: ViewID, _cx: &mut Context, _vger: &mut VGER) {}

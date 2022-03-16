@@ -12,10 +12,6 @@ impl<V, F> View for Focus<V, F> where V: View, F: Fn(bool) -> V {
         println!(")");
     }
 
-    fn needs_redraw(&self, id: ViewID, cx: &mut Context) -> bool {
-        (self.func)(Some(id) == cx.focused_id).needs_redraw(id.child(&0), cx)
-    }
-
     fn process(&self, event: &Event, vid: ViewID, cx: &mut Context, vger: &mut VGER) {
         match &event.kind {
             EventKind::TouchBegin { .. } => {

@@ -33,10 +33,6 @@ where
         println!("}}");
     }
 
-    fn needs_redraw(&self, id: ViewID, cx: &mut Context) -> bool {
-        self.child.needs_redraw(id.child(&0), cx)
-    }
-
     fn process(&self, event: &Event, id: ViewID, cx: &mut Context, vger: &mut VGER) {
         if let EventKind::Command(name) = &event.kind {
             if *name == self.name {
@@ -237,10 +233,6 @@ where
         println!("Command {{");
         (self.child).print(id.child(&0), cx);
         println!("}}");
-    }
-
-    fn needs_redraw(&self, id: ViewID, cx: &mut Context) -> bool {
-        self.child.needs_redraw(id.child(&0), cx)
     }
 
     fn process(&self, event: &Event, id: ViewID, cx: &mut Context, vger: &mut VGER) {

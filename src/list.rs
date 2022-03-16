@@ -20,14 +20,6 @@ where
         println!("}}");
     }
 
-    fn needs_redraw(&self, id: ViewID, cx: &mut Context) -> bool {
-        let mut r = false;
-        for child in &self.ids {
-            r = r || ((self.func)(child)).needs_redraw(id.child(child), cx);
-        }
-        r
-    }
-
     fn process(&self, event: &Event, id: ViewID, cx: &mut Context, vger: &mut VGER) {
         for child in &self.ids {
             let child_id = id.child(child);

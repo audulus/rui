@@ -15,10 +15,6 @@ where
         println!("}}");
     }
 
-    fn needs_redraw(&self, id: ViewID, cx: &mut Context) -> bool {
-        self.child.needs_redraw(id.child(&0), cx)
-    }
-
     fn process(&self, event: &Event, id: ViewID, cx: &mut Context, vger: &mut VGER) {
         let mut local_event = event.clone();
         local_event.position -= self.offset;

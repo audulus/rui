@@ -7,7 +7,7 @@ struct Holder<S> {
     value: S,
 
     /// Has the state changed since the last redraw?
-    dirty: bool,
+    dirty: Rc<RefCell<bool>>,
 }
 
 #[derive(Clone)]
@@ -16,19 +16,13 @@ pub struct State<S> {
 }
 
 impl<S> State<S> {
-    pub fn new(value: S) -> Self {
+    pub fn new(value: S, dirty: Rc<RefCell<bool>>) -> Self {
         Self {
             value: Rc::new(RefCell::new(Holder {
                 value,
-                dirty: false,
+                dirty,
             })),
         }
-    }
-    pub fn dirty(&self) -> bool {
-        self.value.borrow().dirty
-    }
-    pub fn clear_dirty(&self) {
-        self.value.borrow_mut().dirty = false
     }
 }
 
@@ -42,7 +36,7 @@ where
     fn with_mut<T, F: Fn(&mut S) -> T>(&self, f: F) -> T {
         let mut holder = self.value.borrow_mut();
         // Set dirty so the view tree will be redrawn.
-        holder.dirty = true;
+        *holder.dirty.borrow_mut() = true;
         f(&mut holder.value)
     }
 }
@@ -62,17 +56,6 @@ where
         cx.with_state(self.default.clone(), id, |state: State<S>, cx| {
             (self.func)(state.clone()).print(id.child(&0), cx);
         });
-    }
-
-    fn needs_redraw(&self, id: ViewID, cx: &mut Context) -> bool {
-        cx.with_state(self.default.clone(), id, |state: State<S>, cx| {
-            if state.dirty() {
-                state.clear_dirty();
-                true
-            } else {
-                (self.func)(state.clone()).needs_redraw(id.child(&0), cx)
-            }
-        })
     }
 
     fn process(&self, event: &Event, id: ViewID, cx: &mut Context, vger: &mut VGER) {
