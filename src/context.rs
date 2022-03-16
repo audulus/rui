@@ -67,6 +67,9 @@ pub struct Context {
 
     /// The root view ID. This should be randomized for security reasons.
     pub root_id: ViewID,
+
+    /// The view that has the keybord focus.
+    pub focused_id: Option<ViewID>,
 }
 
 impl Context {
@@ -79,6 +82,7 @@ impl Context {
             starts: [LocalPoint::zero(); 16],
             previous_position: [LocalPoint::zero(); 16],
             root_id: ViewID::default(),
+            focused_id: None,
         }
     }
 
