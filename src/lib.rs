@@ -485,7 +485,7 @@ mod tests {
 
     use super::*;
     use std::cell::RefCell;
-use std::rc::Rc;
+    use std::rc::Rc;
 
     #[test]
     fn test_state_clone() {

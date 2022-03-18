@@ -131,7 +131,7 @@ impl TextEditorState {
 }
 
 pub struct TextEditor<B: Binding<String>> {
-    text: B
+    text: B,
 }
 
 impl<B> TextEditor<B>
@@ -151,16 +151,20 @@ where
                     vger.translate([0.0, rect.height()]);
                     let font_size = 18;
                     let break_width = Some(rect.width());
-        
+
                     let rects = vger.glyph_positions(&text.get(), font_size, break_width);
                     let lines = vger.line_metrics(&text.get(), font_size, break_width);
-        
+
                     vger.text(&text.get(), font_size, TEXT_COLOR, break_width);
 
-                    if has_focus { 
+                    if has_focus {
                         let glyph_rect_paint = vger.color_paint(vger::Color::MAGENTA);
                         let r = rects[cursor];
-                        vger.fill_rect(LocalRect::new(r.origin, [2.0, 20.0].into()), 0.0, glyph_rect_paint);
+                        vger.fill_rect(
+                            LocalRect::new(r.origin, [2.0, 20.0].into()),
+                            0.0,
+                            glyph_rect_paint,
+                        );
                     }
 
                     state2.get().glyph_info.borrow_mut().glyph_rects = rects;
@@ -168,7 +172,7 @@ where
                 })
                 .key(move |k| {
                     if has_focus {
-                        state.with_mut(|s| s.key(&k, &text2) )
+                        state.with_mut(|s| s.key(&k, &text2))
                     }
                 })
             })
@@ -176,10 +180,13 @@ where
     }
 }
 
-impl<B> View for TextEditor<B> where B: Binding<String> {
+impl<B> View for TextEditor<B>
+where
+    B: Binding<String>,
+{
     body_view!();
 }
 
 pub fn text_editor(text: impl Binding<String>) -> impl View {
-    TextEditor{ text: text }
+    TextEditor { text: text }
 }

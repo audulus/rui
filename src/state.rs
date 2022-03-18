@@ -18,10 +18,7 @@ pub struct State<S> {
 impl<S> State<S> {
     pub fn new(value: S, dirty: Rc<RefCell<bool>>) -> Self {
         Self {
-            value: Rc::new(RefCell::new(Holder {
-                value,
-                dirty,
-            })),
+            value: Rc::new(RefCell::new(Holder { value, dirty })),
         }
     }
 }
