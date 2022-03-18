@@ -154,18 +154,18 @@ where
                     let break_width = Some(rect.width());
         
                     let rects = vger.glyph_positions(&text.get(), font_size, break_width);
+                    let lines = vger.line_metrics(&text.get(), font_size, break_width);
+        
+                    vger.text(&text.get(), font_size, TEXT_COLOR, break_width);
 
                     if has_focus { 
                         let glyph_rect_paint = vger.color_paint(vger::Color::MAGENTA);
                         let r = rects[cursor];
                         vger.fill_rect(LocalRect::new(r.origin, [2.0, 20.0].into()), 0.0, glyph_rect_paint);
                     }
-        
-                    let lines = vger.line_metrics(&text.get(), font_size, break_width);
+
                     state2.get().glyph_info.borrow_mut().glyph_rects = rects;
                     state2.get().glyph_info.borrow_mut().lines = lines;
-        
-                    vger.text(&text.get(), font_size, TEXT_COLOR, break_width);
                 })
                 .key(move |k| {
                     if has_focus {
