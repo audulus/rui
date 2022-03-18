@@ -140,7 +140,6 @@ where
 {
     fn body(&self) -> impl View {
         let text = self.text.clone();
-        let len = self.text.get().len();
         focus(move |has_focus| {
             let text = text.clone();
             state(TextEditorState::new(), move |state| {
