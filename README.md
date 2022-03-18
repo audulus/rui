@@ -28,8 +28,7 @@ fn main() {
         vstack((
             text(&format!("{:?}", count.get())).padding(Auto),
             button(text("increment"), move || {
-                let value = count.get();
-                count.set(value + 1);
+                count.with_mut(|x| *x += 1);
             })
             .padding(Auto),
         ))
