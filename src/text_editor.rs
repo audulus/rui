@@ -157,7 +157,8 @@ where
 
                     if has_focus { 
                         let glyph_rect_paint = vger.color_paint(vger::Color::MAGENTA);
-                        vger.fill_rect(rects[cursor], 0.0, glyph_rect_paint);
+                        let r = rects[cursor];
+                        vger.fill_rect(LocalRect::new(r.origin, [2.0, 20.0].into()), 0.0, glyph_rect_paint);
                     }
         
                     let lines = vger.line_metrics(&text.get(), font_size, break_width);
