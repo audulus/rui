@@ -5,6 +5,8 @@ resolver = "2" # What does this do?
 name = "rui"
 description = "Experimental Declarative Rust UI library"
 version = "0.1.0"
+license = "MIT"
+readme = "README.md"
 authors = ["Taylor Holliday <taylor@audulus.com>"]
 edition = "2018"
 
