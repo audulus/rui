@@ -3,6 +3,7 @@ resolver = "2" # What does this do?
 
 [package]
 name = "rui"
+description = "Experimental Declarative Rust UI library"
 version = "0.1.0"
 authors = ["Taylor Holliday <taylor@audulus.com>"]
 edition = "2018"
