@@ -9,7 +9,7 @@ license = "MIT"
 readme = "README.md"
 authors = ["Taylor Holliday <taylor@audulus.com>"]
 keywords = ["ui", "gui", "declarative"]
-categories = ["GUI"]
+categories = ["gui"]
 repository = "https://github.com/audulus/rui"
 edition = "2018"
 
