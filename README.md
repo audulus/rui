@@ -20,7 +20,7 @@ rui is immediate mode (there is no retained tree of views), GPU rendered, and ha
 
 obligatory Counter (`cargo run --example counter`):
 
-```Rust
+```rust
 use rui::*;
 
 fn main() {
