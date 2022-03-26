@@ -2,6 +2,7 @@ use crate::*;
 
 pub struct Text {
     text: String,
+    size: u32,
 }
 
 impl Text {
@@ -15,17 +16,17 @@ impl View for Text {
     fn process(&self, _event: &Event, _id: ViewID, _cx: &mut Context, _vger: &mut VGER) {}
     fn draw(&self, _id: ViewID, _cx: &mut Context, vger: &mut VGER) {
         let origin = vger
-            .text_bounds(self.text.as_str(), Text::DEFAULT_SIZE, None)
+            .text_bounds(self.text.as_str(), self.size, None)
             .origin;
 
         vger.save();
         vger.translate([-origin.x, -origin.y]);
-        vger.text(self.text.as_str(), Text::DEFAULT_SIZE, TEXT_COLOR, None);
+        vger.text(self.text.as_str(), self.size, TEXT_COLOR, None);
         vger.restore();
     }
     fn layout(&self, id: ViewID, _sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
         let size = vger
-            .text_bounds(self.text.as_str(), Text::DEFAULT_SIZE, None)
+            .text_bounds(self.text.as_str(), self.size, None)
             .size;
 
         cx.layout.insert(
@@ -50,9 +51,16 @@ impl View for Text {
     fn commands(&self, _id: ViewID, _cx: &mut Context, _cmds: &mut Vec<CommandInfo>) {}
 }
 
+impl Text {
+    pub fn font_size(self, size: u32) -> Self {
+        Self { text: self.text, size }
+    }
+}
+
 /// Shows a string as a label (not editable).
 pub fn text(name: &str) -> Text {
     Text {
         text: String::from(name),
+        size: Text::DEFAULT_SIZE,
     }
 }
