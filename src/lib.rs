@@ -81,6 +81,9 @@ pub use focus::*;
 mod cond;
 pub use cond::*;
 
+mod toggle;
+pub use toggle::*;
+
 use futures::executor::block_on;
 use std::collections::HashMap;
 use vger::color::*;
