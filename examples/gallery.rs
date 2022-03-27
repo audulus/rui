@@ -18,12 +18,20 @@ fn toggle_example() -> impl View {
     ))
 }
 
+fn text_editor_example() -> impl View {
+    hstack((
+        text("editable text").padding(Auto),
+        state("edit me".to_string(), |txt| text_editor(txt).padding(Auto)),
+    ))
+}
+
 fn main() {
     rui(vstack((
         text("rui widget gallery"),
         slider_example(),
         knob_example(),
         toggle_example(),
+        text_editor_example(),
     ))
     .padding(Auto))
 }
