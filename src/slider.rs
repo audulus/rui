@@ -35,6 +35,12 @@ where
                     0.0,
                     paint,
                 );
+                let paint = vger.color_paint(AZURE_HIGHLIGHT_BACKGROUND);
+                vger.fill_rect(
+                    euclid::rect(0.0, c.y - SLIDER_WIDTH / 2.0, x, SLIDER_WIDTH),
+                    0.0,
+                    paint,
+                );
                 let paint = vger.color_paint(thumb_color);
                 vger.fill_circle([x, c.y], SLIDER_THUMB_RADIUS, paint);
             })
