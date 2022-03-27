@@ -85,39 +85,37 @@ impl<VT: ViewTuple> View for Stack<VT> {
                 let proposed_child_size = LocalSize::new(sz.width / n, sz.height);
 
                 let mut c = 0;
-                let mut width_sum = 0.0;
+                let mut x = 0.0;
                 self.children.foreach_view(&mut |child| {
                     let child_id = id.child(&c);
+                    let child_rect = LocalRect::new([x, 0.0].into(), proposed_child_size);
                     let child_size = child.layout(child_id, proposed_child_size, cx, vger);
 
-                    cx.layout.entry(child_id).or_default().offset =
-                        [width_sum, (sz.height - child_size.height) / 2.0].into();
+                    cx.layout.entry(child_id).or_default().offset = align_h(LocalRect::new(LocalPoint::origin(), child_size), child_rect, HAlignment::Center);
 
-                    width_sum += child_size.width;
+                    x += proposed_child_size.width;
                     c += 1;
                 });
 
-                LocalSize::new(width_sum, sz.height)
+                sz
             }
             StackOrientation::Vertical => {
                 let proposed_child_size = LocalSize::new(sz.width, sz.height / n);
 
                 let mut c = 0;
                 let mut y = sz.height;
-                let mut height_sum = 0.0;
                 self.children.foreach_view(&mut |child| {
                     let child_id = id.child(&c);
+                    let child_rect = LocalRect::new([0.0, y - proposed_child_size.height].into(), proposed_child_size);
                     let child_size = child.layout(child_id, proposed_child_size, cx, vger);
 
-                    y -= child_size.height;
-                    cx.layout.entry(child_id).or_default().offset =
-                        [(sz.width - child_size.width) / 2.0, y].into();
+                    y -= proposed_child_size.height;
+                    cx.layout.entry(child_id).or_default().offset = align_v(LocalRect::new(LocalPoint::origin(), child_size), child_rect, VAlignment::Middle);
 
-                    height_sum += child_size.height;
                     c += 1;
                 });
 
-                LocalSize::new(sz.width, height_sum)
+                sz
             }
             StackOrientation::Z => {
                 let mut c = 0;
