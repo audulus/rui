@@ -1,26 +1,32 @@
 use rui::*;
 
 fn slider_example() -> impl View {
-    hstack((text("slider").padding(Auto), state(0.5, |s| hslider(s))))
+    hstack((caption("slider"), state(0.5, |s| hslider(s))))
+}
+
+fn caption(s: &str) -> impl View {
+    text(s)
+    .font_size(12)
+    .padding(Auto)
 }
 
 fn knob_example() -> impl View {
     hstack((
-        text("knob").padding(Auto),
+        caption("knob"),
         state(0.5, |s| knob(s).size([30.0, 30.0]).padding(Auto)),
     ))
 }
 
 fn toggle_example() -> impl View {
     hstack((
-        text("toggle").padding(Auto),
+        caption("toggle"),
         state(false, |b| toggle(b).size([30.0, 30.0]).padding(Auto)),
     ))
 }
 
 fn text_editor_example() -> impl View {
     hstack((
-        text("editable text").padding(Auto),
+        caption("editable text"),
         state("edit me".to_string(), |txt| text_editor(txt).padding(Auto)),
     ))
 }
