@@ -1,11 +1,6 @@
 use crate::*;
 
-pub const TEXT_COLOR: Color = Color {
-    r: 0.839,
-    g: 0.839,
-    b: 0.839,
-    a: 1.0,
-};
+pub const TEXT_COLOR: Color = Color::hex_const("#D6D6D6");
 pub const RED_HIGHLIGHT: Color = Color {
     r: 1.0,
     g: 0.0,
@@ -24,30 +19,10 @@ pub const RED_HIGHLIGHT_BACKGROUND: Color = Color {
     b: 0.043,
     a: 1.0,
 };
-pub const AZURE_HIGHLIGHT: Color = Color {
-    r: 0.0,
-    g: 0.831,
-    b: 1.0,
-    a: 1.0,
-};
-pub const AZURE_HIGHLIGHT_DARK: Color = Color {
-    r: 0.051,
-    g: 0.439,
-    b: 0.510,
-    a: 1.0,
-};
-pub const AZURE_HIGHLIGHT_BACKGROUND: Color = Color {
-    r: 0.0,
-    g: 0.059,
-    b: 0.078,
-    a: 1.0,
-};
-pub const GREEN_HIGHLIGHT: Color = Color {
-    r: 0.231,
-    g: 0.769,
-    b: 0.333,
-    a: 1.0,
-};
+pub const AZURE_HIGHLIGHT: Color = Color::hex_const("#00D4FF");
+pub const AZURE_HIGHLIGHT_DARK: Color = Color::hex_const("#009BBA");
+pub const AZURE_HIGHLIGHT_BACKGROUND: Color = Color::hex_const("#000F14");
+pub const GREEN_HIGHLIGHT: Color = Color::hex_const("#3BC455");
 
 pub const BUTTON_BACKGROUND_COLOR: Color = Color {
     r: 0.1,
@@ -83,9 +58,5 @@ pub const MEDIUM_GRAY: Color = Color {
     a: 1.0,
 };
 
-pub const GROOVES: Color = Color {
-    r: 0.145,
-    g: 0.165,
-    b: 0.169,
-    a: 1.0,
-};
+pub const GROOVES: Color = Color::hex_const("#252A2B");
+pub const GROOVES_DARK: Color = Color::hex_const("#0D0D0D");
