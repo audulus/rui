@@ -1,17 +1,17 @@
 use crate::*;
 
 pub enum HAlignment {
-    Left,
+    Leading,
     Center,
-    Right,
+    Trailing,
 }
 
 pub fn align_h(child: LocalRect, parent: LocalRect, align: HAlignment) -> LocalOffset {
     let c_off = parent.center() - child.center();
     match align {
-        HAlignment::Left => [parent.min_x() - child.min_x(), c_off.y].into(),
+        HAlignment::Leading => [parent.min_x() - child.min_x(), c_off.y].into(),
         HAlignment::Center => c_off,
-        HAlignment::Right => [parent.max_x() - child.max_x(), c_off.y].into(),
+        HAlignment::Trailing => [parent.max_x() - child.max_x(), c_off.y].into(),
     }
 }
 
@@ -34,9 +34,9 @@ pub fn align(child: LocalRect, parent: LocalRect, halign: HAlignment, valign: VA
     let c_off = parent.center() - child.center();
     LocalOffset::new(
         match halign {
-            HAlignment::Left => parent.min_x() - child.min_x(),
+            HAlignment::Leading => parent.min_x() - child.min_x(),
             HAlignment::Center => c_off.x,
-            HAlignment::Right => parent.max_x() - child.max_x()
+            HAlignment::Trailing => parent.max_x() - child.max_x()
         },
         match valign {
             VAlignment::Top => parent.max_y() - child.max_y(),
@@ -64,11 +64,11 @@ mod tests {
         assert_eq!(off.x, 4.5);
         assert_eq!(off.y, 4.5);
 
-        let off = align_h(rect([0.0,0.0], [1.0,1.0]), parent, HAlignment::Left);
+        let off = align_h(rect([0.0,0.0], [1.0,1.0]), parent, HAlignment::Leading);
         assert_eq!(off.x, 0.0);
         assert_eq!(off.y, 4.5);
 
-        let off = align_h(rect([0.0,0.0], [1.0,1.0]), parent, HAlignment::Right);
+        let off = align_h(rect([0.0,0.0], [1.0,1.0]), parent, HAlignment::Trailing);
         assert_eq!(off.x, 9.0);
         assert_eq!(off.y, 4.5);
 
@@ -101,7 +101,7 @@ mod tests {
         assert_eq!(off.x, 4.5);
         assert_eq!(off.y, 4.5);
 
-        let off = align(rect([0.0,0.0], [1.0,1.0]), parent, HAlignment::Left, VAlignment::Bottom);
+        let off = align(rect([0.0,0.0], [1.0,1.0]), parent, HAlignment::Leading, VAlignment::Bottom);
         assert_eq!(off.x, 0.0);
         assert_eq!(off.y, 0.0);
     }
