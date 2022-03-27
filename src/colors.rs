@@ -1,24 +1,9 @@
 use crate::*;
 
 pub const TEXT_COLOR: Color = Color::hex_const("#D6D6D6");
-pub const RED_HIGHLIGHT: Color = Color {
-    r: 1.0,
-    g: 0.0,
-    b: 0.384,
-    a: 1.0,
-};
-pub const RED_HIGHLIGHT_DARK: Color = Color {
-    r: 0.369,
-    g: 0.145,
-    b: 0.227,
-    a: 1.0,
-};
-pub const RED_HIGHLIGHT_BACKGROUND: Color = Color {
-    r: 0.110,
-    g: 0.0,
-    b: 0.043,
-    a: 1.0,
-};
+pub const RED_HIGHLIGHT: Color = Color::hex_const("#FF0062");
+pub const RED_HIGHLIGHT_DARK: Color = Color::hex_const("#A60040");
+pub const RED_HIGHLIGHT_BACKGROUND: Color = Color::hex_const("#1C000B");
 pub const AZURE_HIGHLIGHT: Color = Color::hex_const("#00D4FF");
 pub const AZURE_HIGHLIGHT_DARK: Color = Color::hex_const("#009BBA");
 pub const AZURE_HIGHLIGHT_BACKGROUND: Color = Color::hex_const("#000F14");
