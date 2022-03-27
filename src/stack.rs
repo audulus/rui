@@ -64,7 +64,13 @@ impl<VT: ViewTuple> View for Stack<VT> {
 
             if DEBUG_LAYOUT {
                 let paint = vger.color_paint(CONTROL_BACKGROUND);
-                vger.stroke_rect(layout_box.rect.min(), layout_box.rect.max(), 0.0, 1.0, paint);
+                vger.stroke_rect(
+                    layout_box.rect.min(),
+                    layout_box.rect.max(),
+                    0.0,
+                    1.0,
+                    paint,
+                );
             }
 
             vger.restore();
