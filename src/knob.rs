@@ -18,6 +18,11 @@ pub fn knob(value: impl Binding<f32>) -> impl View {
         canvas(move |sz, vger| {
             let c = sz.center();
             let r = sz.width().min(sz.height()) / 2.0;
+
+            let paint = vger.color_paint(CONTROL_BACKGROUND);
+
+            vger.stroke_arc(c, r, 2.0, 0.0, std::f32::consts::PI, paint);
+
             let paint = vger.color_paint(AZURE_HIGHLIGHT);
             let a0 = lerp(v, THETA_MAX, THETA_MIN);
             let a1 = THETA_MAX;
