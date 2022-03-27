@@ -84,6 +84,9 @@ pub use cond::*;
 mod toggle;
 pub use toggle::*;
 
+mod align;
+pub use align::*;
+
 use futures::executor::block_on;
 use std::collections::HashMap;
 use vger::color::*;
