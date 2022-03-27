@@ -41,7 +41,7 @@ impl ViewID {
     }
 }
 
-pub const DEBUG_LAYOUT: bool = true;
+pub const DEBUG_LAYOUT: bool = false;
 
 #[derive(Copy, Clone, Default, PartialEq, Debug)]
 pub struct LayoutBox {
