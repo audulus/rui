@@ -49,18 +49,23 @@ impl<VT: ViewTuple> View for Stack<VT> {
         let mut c = 0;
         self.children.foreach_view(&mut |child| {
             let child_id = id.child(&c);
-            let offset = cx
+            let layout_box = cx
                 .layout
                 .entry(child_id)
                 .or_insert(LayoutBox::default())
-                .offset;
+                .clone();
 
             vger.save();
 
-            vger.translate(offset);
+            vger.translate(layout_box.offset);
 
             (*child).draw(child_id, cx, vger);
             c += 1;
+
+            if DEBUG_LAYOUT {
+                let paint = vger.color_paint(CONTROL_BACKGROUND);
+                vger.stroke_rect(layout_box.rect.min(), layout_box.rect.max(), 0.0, 1.0, paint);
+            }
 
             vger.restore();
         })
