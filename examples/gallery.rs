@@ -1,5 +1,9 @@
 use rui::*;
 
+fn button_example() -> impl View {
+    hstack((caption("button"), button(text("press me"), || println!("pressed"))))
+}
+
 fn slider_example() -> impl View {
     hstack((caption("slider"), state(0.5, |s| hslider(s))))
 }
@@ -34,6 +38,7 @@ fn text_editor_example() -> impl View {
 fn main() {
     rui(vstack((
         text("rui widget gallery"),
+        button_example(),
         slider_example(),
         knob_example(),
         toggle_example(),
