@@ -82,3 +82,10 @@ pub const MEDIUM_GRAY: Color = Color {
     b: 0.533,
     a: 1.0,
 };
+
+pub const GROOVES: Color = Color {
+    r: 0.145,
+    g: 0.165,
+    b: 0.169,
+    a: 1.0,
+};
