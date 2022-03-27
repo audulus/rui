@@ -107,6 +107,10 @@ fn main() {
 
 <img src="screenshots/slider.png" alt="slider screenshot" style="width:50%;">
 
+widget gallery (`cargo run --example gallery`):
+
+<img src="screenshots/gallery.png" alt="widgets gallery screenshot" style="width:50%;">
+
 ## Goals
 
 - Encode UI in types to ensure stable identity.
