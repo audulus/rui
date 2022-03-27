@@ -22,7 +22,13 @@ where
                     cx.focused_id = Some(vid);
                     *cx.dirty.borrow_mut() = true;
                 }
-            }
+            },
+            EventKind::Key(KeyPress::Escape, _) => {
+                if cx.focused_id == Some(vid) {
+                    cx.focused_id = None;
+                    *cx.dirty.borrow_mut() = true;
+                }
+            },
             _ => (),
         }
         (self.func)(Some(vid) == cx.focused_id).process(event, vid.child(&0), cx, vger)
