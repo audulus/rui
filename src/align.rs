@@ -30,6 +30,22 @@ pub fn align_v(child: LocalRect, parent: LocalRect, align: VAlignment) -> LocalO
     }
 }
 
+pub fn align(child: LocalRect, parent: LocalRect, halign: HAlignment, valign: VAlignment) -> LocalOffset {
+    let c_off = parent.center() - child.center();
+    LocalOffset::new(
+        match halign {
+            HAlignment::Left => parent.min_x() - child.min_x(),
+            HAlignment::Center => c_off.x,
+            HAlignment::Right => parent.max_x() - child.max_x()
+        },
+        match valign {
+            VAlignment::Top => parent.max_y() - child.max_y(),
+            VAlignment::Middle => c_off.y,
+            VAlignment::Bottom => parent.min_y() - child.min_y(),
+        }
+    )
+}
+
 #[cfg(test)]
 mod tests {
 
@@ -75,6 +91,19 @@ mod tests {
         assert_eq!(off.x, 4.5);
         assert_eq!(off.y, 9.0);
 
+    }
+
+    #[test]
+    fn test_align() {
+        let parent = rect([0.0,0.0], [10.0,10.0]);
+
+        let off = align(rect([0.0,0.0], [1.0,1.0]), parent, HAlignment::Center, VAlignment::Middle);
+        assert_eq!(off.x, 4.5);
+        assert_eq!(off.y, 4.5);
+
+        let off = align(rect([0.0,0.0], [1.0,1.0]), parent, HAlignment::Left, VAlignment::Bottom);
+        assert_eq!(off.x, 0.0);
+        assert_eq!(off.y, 0.0);
     }
 
 }
