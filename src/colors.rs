@@ -30,6 +30,18 @@ pub const AZURE_HIGHLIGHT: Color = Color {
     b: 1.0,
     a: 1.0,
 };
+pub const AZURE_HIGHLIGHT_DARK: Color = Color {
+    r: 0.051,
+    g: 0.439,
+    b: 0.510,
+    a: 1.0,
+};
+pub const AZURE_HIGHLIGHT_BACKGROUND: Color = Color {
+    r: 0.0,
+    g: 0.059,
+    b: 0.078,
+    a: 1.0,
+};
 pub const GREEN_HIGHLIGHT: Color = Color {
     r: 0.231,
     g: 0.769,
@@ -62,5 +74,11 @@ pub const CONTROL_BACKGROUND: Color = Color {
     r: 0.138,
     g: 0.138,
     b: 0.148,
+    a: 1.0,
+};
+pub const MEDIUM_GRAY: Color = Color {
+    r: 0.533,
+    g: 0.533,
+    b: 0.533,
     a: 1.0,
 };
