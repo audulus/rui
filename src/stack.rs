@@ -146,8 +146,11 @@ impl<VT: ViewTuple> View for Stack<VT> {
     }
 
     fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
-        self.children
-            .foreach_view(&mut |child| child.commands(id, cx, cmds))
+        let mut c = 0;
+        self.children.foreach_view(&mut |child| {
+            child.commands(id.child(&c), cx, cmds);
+            c += 1;
+        });
     }
 }
 
