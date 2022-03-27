@@ -7,6 +7,23 @@
         {
             "type": "lldb",
             "request": "launch",
+            "name": "Debug gallery example",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--examples",
+                ],
+                "filter": {
+                    "name": "gallery",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
             "name": "Debug text_editor example",
             "cargo": {
                 "args": [
