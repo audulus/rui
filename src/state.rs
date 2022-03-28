@@ -10,6 +10,7 @@ struct Holder<S> {
     dirty: Rc<RefCell<bool>>,
 }
 
+/// Contains application state. Application state is created using `state`.
 #[derive(Clone)]
 pub struct State<S> {
     value: Rc<RefCell<Holder<S>>>,
