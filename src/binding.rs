@@ -128,7 +128,7 @@ macro_rules! bind_no_clone {
     }};
 }
 
-// WIP. Attempting again to creating nice bindings without mutation.
+// WIP. Attempting again to creating nice bindings without cloning.
 #[derive(Clone)]
 struct Bnd2<B, L, T1> {
     binding: B,
