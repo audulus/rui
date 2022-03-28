@@ -159,17 +159,15 @@ where
 
 
 #[derive(Clone)]
-pub struct Bnd3<L, Lmut, T> {
+pub struct Bnd3<L, Lmut> {
     pub lens: L,
     pub lens_mut: Lmut,
-    pub phantom: std::marker::PhantomData<T>,
 }
 
-impl<S, T1, L, Lmut> Binding<S> for Bnd3<L, Lmut, T1>
+impl<S, L, Lmut> Binding<S> for Bnd3<L, Lmut>
 where
     L: Fn(&dyn FnMut(&S)) + Clone + 'static,
-    Lmut: Fn(&dyn FnMut(&mut S)) + Clone + 'static,
-    T1: Clone + 'static,
+    Lmut: Fn(&dyn FnMut(&mut S)) + Clone + 'static
 {
     fn with<T, F: Fn(&S) -> T>(&self, f: F) -> T {
         let mut t = None;
