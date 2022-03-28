@@ -16,7 +16,7 @@ use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 use std::sync::{Arc, Mutex};
 
-use tao::event_loop::{EventLoop, EventLoopProxy};
+use tao::event_loop::EventLoopProxy;
 
 /// `ViewID` is a unique identifier for a view. We're using a u64 and hashing
 /// under the assumption there won't be collsions. The underlying u64 is a function
@@ -52,7 +52,7 @@ pub struct LayoutBox {
 // This could use a better name.
 pub struct Dirty {
     pub dirty: bool,
-    pub event_loop_proxy: EventLoopProxy<()>
+    pub event_loop_proxy: Option<EventLoopProxy<()>>
 }
 
 /// The Context stores all UI state. A user of the library
@@ -87,7 +87,7 @@ pub struct Context {
 }
 
 impl Context {
-    pub fn new(event_loop: &EventLoop<()>) -> Self {
+    pub fn new(event_loop_proxy: Option<EventLoopProxy<()>>) -> Self {
         Self {
             state_map: HashMap::new(),
             layout: HashMap::new(),
@@ -97,7 +97,7 @@ impl Context {
             previous_position: [LocalPoint::zero(); 16],
             root_id: ViewID::default(),
             focused_id: None,
-            dirty: Arc::new(Mutex::new(Dirty{ dirty: false, event_loop_proxy: event_loop.create_proxy() })),
+            dirty: Arc::new(Mutex::new(Dirty{ dirty: false, event_loop_proxy })),
         }
     }
 

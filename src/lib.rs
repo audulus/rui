@@ -292,7 +292,7 @@ pub fn rui(view: impl View + 'static) {
     surface.configure(&device, &config);
 
     let mut vger = VGER::new(&device, wgpu::TextureFormat::Bgra8UnormSrgb);
-    let mut cx = Context::new(&event_loop);
+    let mut cx = Context::new(Some(event_loop.create_proxy()));
     let mut mouse_position = LocalPoint::zero();
 
     let mut commands = Vec::new();
@@ -494,8 +494,7 @@ mod tests {
 
     #[test]
     fn test_state_clone() {
-        let event_loop = EventLoop::new();
-        let d = Arc::new(Mutex::new(Dirty{ dirty: false, event_loop_proxy: event_loop.create_proxy() }));
+        let d = Arc::new(Mutex::new(Dirty{ dirty: false, event_loop_proxy: None }));
         let s = State::new(0, d);
         let s2 = s.clone();
         s.set(42);
@@ -516,8 +515,7 @@ mod tests {
 
     #[test]
     fn test_state2() {
-        let event_loop = EventLoop::new();
-        let mut cx = Context::new(&event_loop);
+        let mut cx = Context::new(None);
         let v = counter(42);
         v.print(ViewID::default(), &mut cx);
     }
@@ -569,8 +567,7 @@ mod tests {
 
     #[test]
     fn test_bind() {
-        let event_loop = EventLoop::new();
-        let dirty = Arc::new(Mutex::new(Dirty{ dirty: false, event_loop_proxy: event_loop.create_proxy() }));
+        let dirty = Arc::new(Mutex::new(Dirty{ dirty: false, event_loop_proxy: None }));
         let s = State::new(BindingTestData { x: 0 }, dirty);
         let b = bind!(s, x);
         b.set(42);
