@@ -11,8 +11,6 @@ pub trait Binding<S>: Clone + 'static {
     }
 
     fn set(&self, value: S)
-    where
-        S: Clone,
     {
         self.with_mut(move |s| *s = value);
     }
