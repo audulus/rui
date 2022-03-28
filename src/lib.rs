@@ -335,6 +335,9 @@ pub fn rui(view: impl View + 'static) {
                 surface.configure(&device, &config);
                 window.request_redraw();
             }
+            event::Event::UserEvent(_) => {
+                println!("received user event");
+            }
             event::Event::MainEventsCleared => {
                 // Application update code.
 
