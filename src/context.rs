@@ -55,6 +55,12 @@ pub struct Dirty {
     pub event_loop_proxy: Option<EventLoopProxy<()>>
 }
 
+impl Dirty {
+    pub fn new(event_loop_proxy: Option<EventLoopProxy<()>>) -> Self {
+        Dirty{ dirty: false, event_loop_proxy }
+    }
+}
+
 /// The Context stores all UI state. A user of the library
 /// shouldn't have to interact with it directly.
 pub struct Context {
@@ -97,7 +103,7 @@ impl Context {
             previous_position: [LocalPoint::zero(); 16],
             root_id: ViewID::default(),
             focused_id: None,
-            dirty: Arc::new(Mutex::new(Dirty{ dirty: false, event_loop_proxy })),
+            dirty: Arc::new(Mutex::new(Dirty::new(event_loop_proxy))),
         }
     }
 
