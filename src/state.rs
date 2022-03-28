@@ -34,7 +34,16 @@ where
         let mut holder = self.value.lock().unwrap();
         // Set dirty so the view tree will be redrawn.
         holder.dirty.lock().unwrap().dirty = true;
-        f(&mut holder.value)
+        let t = f(&mut holder.value);
+
+        // Wake up the event loop.
+        if let Some(proxy) = &holder.dirty.lock().unwrap().event_loop_proxy {
+            if let Err(err) = proxy.send_event( () ) {
+                println!("error waking up event loop: {:?}", err);
+            }
+        }
+
+        t
     }
 }
 
