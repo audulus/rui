@@ -16,6 +16,8 @@ use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 use std::sync::{Arc, Mutex};
 
+use tao::event_loop::EventLoopProxy;
+
 /// `ViewID` is a unique identifier for a view. We're using a u64 and hashing
 /// under the assumption there won't be collsions. The underlying u64 is a function
 /// of the path down the view tree.
@@ -45,6 +47,12 @@ pub const DEBUG_LAYOUT: bool = false;
 pub struct LayoutBox {
     pub rect: LocalRect,
     pub offset: LocalOffset,
+}
+
+// This could use a better name.
+pub struct Dirty {
+    pub dirty: bool,
+    pub event_loop_proxy: EventLoopProxy<()>
 }
 
 /// The Context stores all UI state. A user of the library
