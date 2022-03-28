@@ -1,5 +1,6 @@
 use crate::*;
 
+/// Struct for the `background` modifier.
 pub struct Background<V: View, BG: View> {
     child: V,
     background: BG,

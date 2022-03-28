@@ -130,6 +130,7 @@ impl TextEditorState {
     }
 }
 
+/// Struct for `text_editor`.
 pub struct TextEditor<B: Binding<String>> {
     text: B,
 }

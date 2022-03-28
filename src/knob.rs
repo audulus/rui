@@ -7,6 +7,7 @@ fn lerp(x: f32, a: f32, b: f32) -> f32 {
     (1.0 - x) * a + x * b
 }
 
+/// Knob for controlling a 0 to 1 floating point parameter.
 pub fn knob(value: impl Binding<f32>) -> impl View {
     let v = value.get();
     let value = value.clone();

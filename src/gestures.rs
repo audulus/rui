@@ -1,5 +1,6 @@
 pub use crate::*;
 
+/// Struct for the `tap` gesture.
 pub struct Tap<V: View, F: Fn()> {
     child: V,
     func: F,
@@ -72,6 +73,7 @@ pub enum GestureState {
     Ended,
 }
 
+/// Struct for the `drag` gesture.
 pub struct Drag<V: View, F: Fn(LocalOffset, GestureState)> {
     child: V,
     func: F,

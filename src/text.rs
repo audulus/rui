@@ -1,5 +1,6 @@
 use crate::*;
 
+/// Struct for `text`.
 pub struct Text {
     text: String,
     size: u32,

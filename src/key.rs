@@ -1,5 +1,6 @@
 pub use crate::*;
 
+/// Struct for the `key` modifier.
 pub struct Key<V: View, F: Fn(KeyPress)> {
     child: V,
     func: F,

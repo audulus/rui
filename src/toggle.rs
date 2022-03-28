@@ -1,5 +1,6 @@
 use crate::*;
 
+/// Toggle switch.
 pub fn toggle(state: impl Binding<bool>) -> impl View {
     let b = state.get();
     zstack((

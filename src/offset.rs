@@ -1,5 +1,6 @@
 use crate::*;
 
+/// Struct for the `offset` modifier.
 pub struct Offset<V: View> {
     child: V,
     offset: LocalOffset,

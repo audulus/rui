@@ -1,5 +1,6 @@
 use crate::*;
 
+/// Struct for the `padding` modifier.
 pub struct Padding<V: View> {
     child: V,
     padding: f32,
