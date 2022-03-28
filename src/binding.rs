@@ -157,3 +157,47 @@ where
     }
 }
 
+
+#[derive(Clone)]
+pub struct Bnd3<B, L, Lmut, T> {
+    pub binding: B,
+    pub lens: L,
+    pub lens_mut: Lmut,
+    pub phantom: std::marker::PhantomData<T>,
+}
+
+impl<S, T1, B, L, Lmut> Binding<S> for Bnd3<B, L, Lmut, T1>
+where
+    B: Binding<T1>,
+    L: Fn(&T1, &dyn FnMut(&S)) + Clone + 'static,
+    Lmut: Fn(&mut T1, &dyn FnMut(&mut S)) + Clone + 'static,
+    T1: Clone + 'static,
+{
+    fn with<T, F: Fn(&S) -> T>(&self, f: F) -> T {
+        self.binding.with(|v| {
+            let mut t = None;
+            (self.lens)(v, &|vv| t = Some(f(vv)));
+            t.unwrap()
+        })
+    }
+    fn with_mut<T, F: Fn(&mut S) -> T>(&self, f: F) -> T {
+        self.binding.with_mut(|v| {
+            let mut t = None;
+            (self.lens_mut)(v, &|vv| t = Some(f(vv)));
+            t.unwrap()
+        })
+    }
+}
+
+#[macro_export]
+macro_rules! bind2 {
+    ( $state:expr, $field:ident ) => {{
+        let sref = &$state;
+        Bnd3 {
+            binding: sref.clone(),
+            lens: |x, f| f(x.$field),
+            lens_mut: |x, f| f(x.$field),
+            phantom: std::marker::PhantomData
+        }
+    }};
+}
