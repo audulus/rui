@@ -129,3 +129,29 @@ macro_rules! bind_no_clone {
         Bnd { binding: $state }
     }};
 }
+
+// WIP. Attempting again to creating nice bindings without mutation.
+#[derive(Clone)]
+struct Bnd2<B, L> {
+    binding: B,
+    lens: L
+}
+
+pub trait Lens<T: ?Sized, U: ?Sized> {
+    fn with<V, F: FnOnce(&U) -> V>(&self, data: &T, f: F) -> V;
+    fn with_mut<V, F: FnOnce(&mut U) -> V>(&self, data: &mut T, f: F) -> V;
+}
+
+impl<B, T0, L> Binding<T0> for Bnd2<B, L>
+where
+    B: Binding<f32>,
+    L: Lens<f32, T0> + Clone + 'static
+{
+    fn with<T, F: Fn(&T0) -> T>(&self, f: F) -> T {
+        self.binding.with(|v| self.lens.with(v, |vv| f(vv)))
+    }
+    fn with_mut<T, F: Fn(&mut T0) -> T>(&self, f: F) -> T {
+        self.binding.with_mut(|v| self.lens.with_mut(v, |vv| f(vv)))
+    }
+}
+
