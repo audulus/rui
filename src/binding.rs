@@ -190,7 +190,6 @@ macro_rules! bind2 {
         Bnd3 {
             lens: move |f| state1.with(|x| f(x.$field)),
             lens_mut: move |f| state2.with_mut(|x| f(x.$field)),
-            phantom: std::marker::PhantomData
         }
     }};
 }
