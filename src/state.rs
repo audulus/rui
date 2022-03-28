@@ -28,10 +28,10 @@ impl<S> Binding<S> for State<S>
 where
     S: Clone + 'static,
 {
-    fn with<T, F: Fn(&S) -> T>(&self, f: F) -> T {
+    fn with<T, F: FnOnce(&S) -> T>(&self, f: F) -> T {
         f(&self.value.borrow().value)
     }
-    fn with_mut<T, F: Fn(&mut S) -> T>(&self, f: F) -> T {
+    fn with_mut<T, F: FnOnce(&mut S) -> T>(&self, f: F) -> T {
         let mut holder = self.value.borrow_mut();
         // Set dirty so the view tree will be redrawn.
         *holder.dirty.borrow_mut() = true;

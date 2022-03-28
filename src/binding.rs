@@ -1,7 +1,7 @@
 /// Reads or writes a value owned by a source-of-truth.
 pub trait Binding<S>: Clone + 'static {
-    fn with<T, F: Fn(&S) -> T>(&self, f: F) -> T;
-    fn with_mut<T, F: Fn(&mut S) -> T>(&self, f: F) -> T;
+    fn with<T, F: FnOnce(&S) -> T>(&self, f: F) -> T;
+    fn with_mut<T, F: FnOnce(&mut S) -> T>(&self, f: F) -> T;
 
     fn get(&self) -> S
     where
@@ -14,7 +14,7 @@ pub trait Binding<S>: Clone + 'static {
     where
         S: Clone,
     {
-        self.with_mut(move |s| *s = value.clone());
+        self.with_mut(move |s| *s = value);
     }
 }
 
@@ -30,11 +30,11 @@ where
     Set: Fn(S) + Clone + 'static,
     S: Clone,
 {
-    fn with<T, F: Fn(&S) -> T>(&self, f: F) -> T {
+    fn with<T, F: FnOnce(&S) -> T>(&self, f: F) -> T {
         let v = (self.getf)();
         f(&v)
     }
-    fn with_mut<T, F: Fn(&mut S) -> T>(&self, f: F) -> T {
+    fn with_mut<T, F: FnOnce(&mut S) -> T>(&self, f: F) -> T {
         let mut v = (self.getf)();
         let t = f(&mut v);
         (self.setf)(v);
@@ -118,10 +118,10 @@ macro_rules! bind_no_clone {
         where
             B: Binding<$type>,
         {
-            fn with<T, F: Fn(&$type2) -> T>(&self, f: F) -> T {
+            fn with<T, F: FnOnce(&$type2) -> T>(&self, f: F) -> T {
                 self.binding.with(|v| f(&v.$field))
             }
-            fn with_mut<T, F: Fn(&mut $type2) -> T>(&self, f: F) -> T {
+            fn with_mut<T, F: FnOnce(&mut $type2) -> T>(&self, f: F) -> T {
                 self.binding.with_mut(|v| f(&mut v.$field))
             }
         }
@@ -149,10 +149,10 @@ where
     L: Lens<T1, T0> + Clone + 'static,
     T1: Clone + 'static
 {
-    fn with<T, F: Fn(&T0) -> T>(&self, f: F) -> T {
+    fn with<T, F: FnOnce(&T0) -> T>(&self, f: F) -> T {
         self.binding.with(|v| self.lens.with(v, |vv| f(vv)))
     }
-    fn with_mut<T, F: Fn(&mut T0) -> T>(&self, f: F) -> T {
+    fn with_mut<T, F: FnOnce(&mut T0) -> T>(&self, f: F) -> T {
         self.binding.with_mut(|v| self.lens.with_mut(v, |vv| f(vv)))
     }
 }
@@ -166,15 +166,15 @@ pub struct Bnd3<L, Lmut> {
 
 impl<S, L, Lmut> Binding<S> for Bnd3<L, Lmut>
 where
-    L: Fn(&dyn FnMut(&S)) + Clone + 'static,
-    Lmut: Fn(&dyn FnMut(&mut S)) + Clone + 'static
+    L: Fn(&dyn FnOnce(&S)) + Clone + 'static,
+    Lmut: Fn(&dyn FnOnce(&mut S)) + Clone + 'static
 {
-    fn with<T, F: Fn(&S) -> T>(&self, f: F) -> T {
+    fn with<T, F: FnOnce(&S) -> T>(&self, f: F) -> T {
         let mut t = None;
         (self.lens)(&|v| t = Some(f(v)));
         t.unwrap()
     }
-    fn with_mut<T, F: Fn(&mut S) -> T>(&self, f: F) -> T {
+    fn with_mut<T, F: FnOnce(&mut S) -> T>(&self, f: F) -> T {
         let mut t = None;
         (self.lens_mut)(&|v| t = Some(f(v)));
         t.unwrap()
