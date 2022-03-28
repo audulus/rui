@@ -12,7 +12,7 @@ fn main() {
 
                     thread::spawn(move || {
                         thread::sleep(time::Duration::from_secs(2));
-                        s2.with_mut(|s| *s = "task complete".to_string());
+                        s2.set("task complete".to_string());
                     });
                 }),
                 text(&txt)
