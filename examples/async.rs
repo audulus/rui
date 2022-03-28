@@ -1,5 +1,5 @@
 use rui::*;
-use std::thread;
+use std::{thread, time};
 
 fn main() {
     rui(
@@ -13,6 +13,10 @@ fn main() {
                     thread::spawn(|| {
                         // thread code
                         println!("inside task");
+
+                        thread::sleep(time::Duration::from_secs(2));
+
+                        println!("task finished");
                     });
                 }),
                 text(&txt)
