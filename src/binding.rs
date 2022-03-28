@@ -159,33 +159,27 @@ where
 
 
 #[derive(Clone)]
-pub struct Bnd3<B, L, Lmut, T> {
-    pub binding: B,
+pub struct Bnd3<L, Lmut, T> {
     pub lens: L,
     pub lens_mut: Lmut,
     pub phantom: std::marker::PhantomData<T>,
 }
 
-impl<S, T1, B, L, Lmut> Binding<S> for Bnd3<B, L, Lmut, T1>
+impl<S, T1, L, Lmut> Binding<S> for Bnd3<L, Lmut, T1>
 where
-    B: Binding<T1>,
-    L: Fn(&T1, &dyn FnMut(&S)) + Clone + 'static,
-    Lmut: Fn(&mut T1, &dyn FnMut(&mut S)) + Clone + 'static,
+    L: Fn(&dyn FnMut(&S)) + Clone + 'static,
+    Lmut: Fn(&dyn FnMut(&mut S)) + Clone + 'static,
     T1: Clone + 'static,
 {
     fn with<T, F: Fn(&S) -> T>(&self, f: F) -> T {
-        self.binding.with(|v| {
-            let mut t = None;
-            (self.lens)(v, &|vv| t = Some(f(vv)));
-            t.unwrap()
-        })
+        let mut t = None;
+        (self.lens)(&|v| t = Some(f(v)));
+        t.unwrap()
     }
     fn with_mut<T, F: Fn(&mut S) -> T>(&self, f: F) -> T {
-        self.binding.with_mut(|v| {
-            let mut t = None;
-            (self.lens_mut)(v, &|vv| t = Some(f(vv)));
-            t.unwrap()
-        })
+        let mut t = None;
+        (self.lens_mut)(&|v| t = Some(f(v)));
+        t.unwrap()
     }
 }
 
@@ -193,10 +187,11 @@ where
 macro_rules! bind2 {
     ( $state:expr, $field:ident ) => {{
         let sref = &$state;
+        let state1 = sref.clone();
+        let state2 = sref.clone();
         Bnd3 {
-            binding: sref.clone(),
-            lens: |x, f| f(x.$field),
-            lens_mut: |x, f| f(x.$field),
+            lens: move |f| state1.with(|x| f(x.$field)),
+            lens_mut: move |f| state2.with_mut(|x| f(x.$field)),
             phantom: std::marker::PhantomData
         }
     }};
