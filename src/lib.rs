@@ -494,7 +494,7 @@ mod tests {
 
     #[test]
     fn test_state_clone() {
-        let d = Arc::new(Mutex::new(Dirty{ dirty: false, event_loop_proxy: None }));
+        let d = Arc::new(Mutex::new(Dirty::new(None)));
         let s = State::new(0, d);
         let s2 = s.clone();
         s.set(42);
@@ -567,7 +567,7 @@ mod tests {
 
     #[test]
     fn test_bind() {
-        let dirty = Arc::new(Mutex::new(Dirty{ dirty: false, event_loop_proxy: None }));
+        let dirty = Arc::new(Mutex::new(Dirty::new(None)));
         let s = State::new(BindingTestData { x: 0 }, dirty);
         let b = bind!(s, x);
         b.set(42);
