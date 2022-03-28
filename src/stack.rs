@@ -1,5 +1,6 @@
 use crate::*;
 
+/// Allows rui to iterate over a tuple of `Views`.
 pub trait ViewTuple {
     fn foreach_view<F: FnMut(&dyn View)>(&self, f: &mut F);
     fn len(&self) -> usize;
