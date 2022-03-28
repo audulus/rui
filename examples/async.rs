@@ -12,13 +12,9 @@ fn main() {
                     let s2 = s.clone();
 
                     thread::spawn(move || {
-                        // thread code
                         println!("inside task");
-
                         thread::sleep(time::Duration::from_secs(2));
-
                         println!("task finished");
-
                         s2.with_mut(|s| *s = "task complete".to_string());
                     });
                 }),
