@@ -42,6 +42,16 @@ where
     }
 }
 
+/// Constructs a new binding from a binding and an expression.
+/// 
+/// For example `bind(b, x)` will create a binding to
+/// a member x inside b.
+/// 
+/// `bind(b, [i])` will create a binding to the ith array
+/// element in b.
+/// 
+/// `bind(b, x[i])` will create a binding to the ith array
+/// element of member x in b.
 #[macro_export]
 macro_rules! bind {
     ( $state:expr, $field:ident ) => {{
@@ -92,6 +102,10 @@ where
     Map { getf, setf }
 }
 
+/// Similar to `bind!` but avoids cloning. Requres both the type
+/// of the binding and the type of the field to be passed in.
+/// 
+/// For example: `bind_no_clone!(state, MyState, value, f32)`
 #[macro_export]
 macro_rules! bind_no_clone {
     ( $state:expr, $type:ident, $field:ident, $type2:ident ) => {{
