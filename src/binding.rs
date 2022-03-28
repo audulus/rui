@@ -69,7 +69,7 @@ macro_rules! bind {
         let state2 = sref.clone();
         let idx = $index;
         Map {
-            getf: move || state1.get().$field[idx].clone(),
+            getf: move || state1.with(|v| v.$field[idx].clone()),
             setf: move |val| {
                 state2.with_mut(|v| v.$field[idx] = val);
             },
