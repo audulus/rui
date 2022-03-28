@@ -38,7 +38,7 @@ where
     }
 }
 
-pub struct StateView<S: 'static, V: View, F: Fn(State<S>) -> V> {
+struct StateView<S: 'static, V: View, F: Fn(State<S>) -> V> {
     default: S,
     func: F,
 }
@@ -119,10 +119,10 @@ where
 /// `initial` is the initial value for your state.
 ///
 /// `f` callback which is passed a `State<S>`
-pub fn state<S: Clone, V: View, F: Fn(State<S>) -> V + 'static>(
+pub fn state<S: Clone + 'static, V: View + 'static, F: Fn(State<S>) -> V + 'static>(
     initial: S,
     f: F,
-) -> StateView<S, V, F> {
+) -> impl View + 'static {
     StateView {
         default: initial,
         func: f,
