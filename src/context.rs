@@ -83,7 +83,7 @@ pub struct Context {
     pub focused_id: Option<ViewID>,
 
     /// Did state change?
-    pub dirty: Arc<Mutex<bool>>,
+    pub dirty: Arc<Mutex<Dirty>>,
 }
 
 impl Context {
@@ -97,7 +97,7 @@ impl Context {
             previous_position: [LocalPoint::zero(); 16],
             root_id: ViewID::default(),
             focused_id: None,
-            dirty: Arc::new(Mutex::new(false)),
+            dirty: Arc::new(Mutex::new(Dirty{ dirty: false, event_loop_proxy: event_loop.create_proxy() })),
         }
     }
 

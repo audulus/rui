@@ -6,7 +6,7 @@ struct Holder<S> {
     value: S,
 
     /// Has the state changed since the last redraw?
-    dirty: Arc<Mutex<bool>>,
+    dirty: Arc<Mutex<Dirty>>,
 }
 
 /// Contains application state. Application state is created using `state`.
@@ -16,7 +16,7 @@ pub struct State<S> {
 }
 
 impl<S> State<S> {
-    pub fn new(value: S, dirty: Arc<Mutex<bool>>) -> Self {
+    pub fn new(value: S, dirty: Arc<Mutex<Dirty>>) -> Self {
         Self {
             value: Arc::new(Mutex::new(Holder { value, dirty })),
         }
@@ -33,7 +33,7 @@ where
     fn with_mut<T, F: FnOnce(&mut S) -> T>(&self, f: F) -> T {
         let mut holder = self.value.lock().unwrap();
         // Set dirty so the view tree will be redrawn.
-        *holder.dirty.lock().unwrap() = true;
+        holder.dirty.lock().unwrap().dirty = true;
         f(&mut holder.value)
     }
 }

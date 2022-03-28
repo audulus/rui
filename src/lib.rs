@@ -343,7 +343,7 @@ pub fn rui(view: impl View + 'static) {
                 // You only need to call this if you've determined that you need to redraw, in
                 // applications which do not always need to. Applications that redraw continuously
                 // can just render here instead.
-                if *cx.dirty.lock().unwrap() {
+                if cx.dirty.lock().unwrap().dirty {
                     // Have the commands changed?
                     let mut new_commands = Vec::new();
                     view.commands(cx.root_id, &mut cx, &mut new_commands);
@@ -358,7 +358,7 @@ pub fn rui(view: impl View + 'static) {
 
                     window.request_redraw();
 
-                    *cx.dirty.lock().unwrap() = false;
+                    cx.dirty.lock().unwrap().dirty = false;
                 }
             }
             event::Event::RedrawRequested(_) => {
@@ -568,7 +568,8 @@ mod tests {
 
     #[test]
     fn test_bind() {
-        let dirty = Arc::new(Mutex::new(false));
+        let event_loop = EventLoop::new();
+        let dirty = Arc::new(Mutex::new(Dirty{ dirty: false, event_loop_proxy: event_loop.create_proxy() }));
         let s = State::new(BindingTestData { x: 0 }, dirty);
         let b = bind!(s, x);
         b.set(42);
