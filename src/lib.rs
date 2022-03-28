@@ -343,7 +343,7 @@ pub fn rui(view: impl View + 'static) {
                 // You only need to call this if you've determined that you need to redraw, in
                 // applications which do not always need to. Applications that redraw continuously
                 // can just render here instead.
-                if *cx.dirty.borrow() {
+                if *cx.dirty.lock().unwrap() {
                     // Have the commands changed?
                     let mut new_commands = Vec::new();
                     view.commands(cx.root_id, &mut cx, &mut new_commands);
@@ -358,7 +358,7 @@ pub fn rui(view: impl View + 'static) {
 
                     window.request_redraw();
 
-                    *cx.dirty.borrow_mut() = false;
+                    *cx.dirty.lock().unwrap() = false;
                 }
             }
             event::Event::RedrawRequested(_) => {
@@ -490,12 +490,11 @@ pub fn rui(view: impl View + 'static) {
 mod tests {
 
     use super::*;
-    use std::cell::RefCell;
-    use std::rc::Rc;
+    use std::sync::{Arc, Mutex};
 
     #[test]
     fn test_state_clone() {
-        let d = Rc::new(RefCell::new(false));
+        let d = Arc::new(Mutex::new(false));
         let s = State::new(0, d);
         let s2 = s.clone();
         s.set(42);
@@ -568,7 +567,7 @@ mod tests {
 
     #[test]
     fn test_bind() {
-        let dirty = Rc::new(RefCell::new(false));
+        let dirty = Arc::new(Mutex::new(false));
         let s = State::new(BindingTestData { x: 0 }, dirty);
         let b = bind!(s, x);
         b.set(42);

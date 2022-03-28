@@ -14,9 +14,7 @@ pub type WorldPoint = Point2D<f32, WorldSpace>;
 
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
-
-use std::cell::RefCell;
-use std::rc::Rc;
+use std::sync::{Arc, Mutex};
 
 /// `ViewID` is a unique identifier for a view. We're using a u64 and hashing
 /// under the assumption there won't be collsions. The underlying u64 is a function
@@ -77,7 +75,7 @@ pub struct Context {
     pub focused_id: Option<ViewID>,
 
     /// Did state change?
-    pub dirty: Rc<RefCell<bool>>,
+    pub dirty: Arc<Mutex<bool>>,
 }
 
 impl Context {
@@ -91,7 +89,7 @@ impl Context {
             previous_position: [LocalPoint::zero(); 16],
             root_id: ViewID::default(),
             focused_id: None,
-            dirty: Rc::new(RefCell::new(false)),
+            dirty: Arc::new(Mutex::new(false)),
         }
     }
 

@@ -20,13 +20,13 @@ where
             EventKind::TouchBegin { .. } => {
                 if let Some(_) = self.hittest(vid, event.position, cx, vger) {
                     cx.focused_id = Some(vid);
-                    *cx.dirty.borrow_mut() = true;
+                    *cx.dirty.lock().unwrap() = true;
                 }
             },
             EventKind::Key(KeyPress::Escape, _) => {
                 if cx.focused_id == Some(vid) {
                     cx.focused_id = None;
-                    *cx.dirty.borrow_mut() = true;
+                    *cx.dirty.lock().unwrap() = true;
                 }
             },
             _ => (),

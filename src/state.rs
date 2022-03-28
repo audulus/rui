@@ -1,5 +1,6 @@
 use std::cell::RefCell;
 use std::rc::Rc;
+use std::sync::{Arc, Mutex};
 
 use crate::*;
 
@@ -7,7 +8,7 @@ struct Holder<S> {
     value: S,
 
     /// Has the state changed since the last redraw?
-    dirty: Rc<RefCell<bool>>,
+    dirty: Arc<Mutex<bool>>,
 }
 
 /// Contains application state. Application state is created using `state`.
@@ -17,7 +18,7 @@ pub struct State<S> {
 }
 
 impl<S> State<S> {
-    pub fn new(value: S, dirty: Rc<RefCell<bool>>) -> Self {
+    pub fn new(value: S, dirty: Arc<Mutex<bool>>) -> Self {
         Self {
             value: Rc::new(RefCell::new(Holder { value, dirty })),
         }
@@ -34,7 +35,7 @@ where
     fn with_mut<T, F: FnOnce(&mut S) -> T>(&self, f: F) -> T {
         let mut holder = self.value.borrow_mut();
         // Set dirty so the view tree will be redrawn.
-        *holder.dirty.borrow_mut() = true;
+        *holder.dirty.lock().unwrap() = true;
         f(&mut holder.value)
     }
 }
