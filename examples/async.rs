@@ -7,7 +7,7 @@ fn main() {
             let txt = s.get();
             hstack((
                 button(text("press to begin"), move || {
-                    s.with_mut(|s| *s = "task started".to_string());
+                    s.set("task started".to_string());
                     let s2 = s.clone();
 
                     thread::spawn(move || {
