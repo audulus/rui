@@ -132,9 +132,10 @@ macro_rules! bind_no_clone {
 
 // WIP. Attempting again to creating nice bindings without mutation.
 #[derive(Clone)]
-struct Bnd2<B, L> {
+struct Bnd2<B, L, T1> {
     binding: B,
-    lens: L
+    lens: L,
+    phantom: std::marker::PhantomData<T1>,
 }
 
 pub trait Lens<T: ?Sized, U: ?Sized> {
@@ -142,10 +143,11 @@ pub trait Lens<T: ?Sized, U: ?Sized> {
     fn with_mut<V, F: FnOnce(&mut U) -> V>(&self, data: &mut T, f: F) -> V;
 }
 
-impl<B, T0, L> Binding<T0> for Bnd2<B, L>
+impl<B, T0, T1, L> Binding<T0> for Bnd2<B, L, T1>
 where
-    B: Binding<f32>,
-    L: Lens<f32, T0> + Clone + 'static
+    B: Binding<T1>,
+    L: Lens<T1, T0> + Clone + 'static,
+    T1: Clone + 'static
 {
     fn with<T, F: Fn(&T0) -> T>(&self, f: F) -> T {
         self.binding.with(|v| self.lens.with(v, |vv| f(vv)))
