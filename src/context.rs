@@ -16,7 +16,7 @@ use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 use std::sync::{Arc, Mutex};
 
-use tao::event_loop::EventLoopProxy;
+use tao::event_loop::{EventLoop, EventLoopProxy};
 
 /// `ViewID` is a unique identifier for a view. We're using a u64 and hashing
 /// under the assumption there won't be collsions. The underlying u64 is a function
@@ -87,7 +87,7 @@ pub struct Context {
 }
 
 impl Context {
-    pub fn new() -> Self {
+    pub fn new(event_loop: &EventLoop<()>) -> Self {
         Self {
             state_map: HashMap::new(),
             layout: HashMap::new(),

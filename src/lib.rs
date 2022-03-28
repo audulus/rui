@@ -292,7 +292,7 @@ pub fn rui(view: impl View + 'static) {
     surface.configure(&device, &config);
 
     let mut vger = VGER::new(&device, wgpu::TextureFormat::Bgra8UnormSrgb);
-    let mut cx = Context::new();
+    let mut cx = Context::new(&event_loop);
     let mut mouse_position = LocalPoint::zero();
 
     let mut commands = Vec::new();
@@ -515,7 +515,8 @@ mod tests {
 
     #[test]
     fn test_state2() {
-        let mut cx = Context::new();
+        let event_loop = EventLoop::new();
+        let mut cx = Context::new(&event_loop);
         let v = counter(42);
         v.print(ViewID::default(), &mut cx);
     }
