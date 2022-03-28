@@ -494,7 +494,8 @@ mod tests {
 
     #[test]
     fn test_state_clone() {
-        let d = Arc::new(Mutex::new(false));
+        let event_loop = EventLoop::new();
+        let d = Arc::new(Mutex::new(Dirty{ dirty: false, event_loop_proxy: event_loop.create_proxy() }));
         let s = State::new(0, d);
         let s2 = s.clone();
         s.set(42);
