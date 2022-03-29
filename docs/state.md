@@ -1,6 +1,6 @@
 # State
 
-`State` holds your app's data model. The `state` function attaches state to a particular position in the view tree. For example:
+`State` holds your app's data model. The `state` function attaches state to a particular position ([`ViewID`](internals.md)) in the view tree. For example:
 
 ```rust
 state(0.0, |my_state: State<f32>| {
