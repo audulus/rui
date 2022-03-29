@@ -11,7 +11,7 @@ state(0.0, |my_state: State<f32>| {
 `State` implements `Binding`, so it has `get` and `set` functions, and can be passed directly to views.
 Typically though, you'd use the `bind!` macro to create a `Binding` to something inside your state, and then pass that to a view.
 
-The type held by `State` must implement `Clone`, but it should also be inexpensive to clone. Use `Rc` as necessary to avoid cloning
+The type held by `State` must implement `Clone`, and do so inexpensively. Use `Rc` as necessary to avoid cloning
 pieces of your data model. Consider using [immutable data structures](https://crates.io/crates/im) for your data model.
 
 `State` uses `Arc/Mutex` internally and can be used from any thread. See [`examples/async.rs`](../examples/async.rs).
