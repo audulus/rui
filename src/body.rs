@@ -1,15 +1,10 @@
 use crate::*;
 
 // Using this depends on https://github.com/rust-lang/rust/issues/63063
-pub trait Body {
+pub trait Body: View {
     type V: View;
     fn body(&self) -> Self::V;
-}
 
-impl<T> View for T
-where
-    T: Body,
-{
     fn print(&self, id: ViewID, cx: &mut Context) {
         self.body().print(id, cx)
     }
