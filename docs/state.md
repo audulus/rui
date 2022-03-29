@@ -13,3 +13,5 @@ Typically though, you'd use the `bind!` macro to create a `Binding` to something
 
 The type held by `State` must implement `Clone`, but it should also be inexpensive to clone. Use `Rc` as necessary to avoid cloning
 pieces of your data model. Consider using [immutable data structures](https://crates.io/crates/im) for your data model.
+
+`State` uses `Arc/Mutex` internally and can be used from any thread. See [`examples/async.rs`](../examples/async.rs).
