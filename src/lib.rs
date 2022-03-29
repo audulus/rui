@@ -268,7 +268,7 @@ fn build_menubar(
     make_menu_rec(&items, 0, command_map)
 }
 
-/// Call this function to describe your UI.
+/// Call this function to run your UI.
 pub fn rui(view: impl View + 'static) {
     let event_loop = EventLoop::new();
 
