@@ -7,10 +7,9 @@ fn main() {
             let txt = s.get();
             hstack((
                 button(text("press to begin"), move || {
-                    s.set("task started".to_string());
                     let s2 = s.clone();
-
                     thread::spawn(move || {
+                        s2.set("task started".to_string());
                         thread::sleep(time::Duration::from_secs(2));
                         s2.set("task complete".to_string());
                     });
