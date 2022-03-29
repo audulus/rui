@@ -8,7 +8,7 @@ state(0.0, |my_state: State<f32>| {
 })
 ```
 
-`State` implements `Binding`, so it has `get` and `set` functions, and can be passed directly to views.
+`State` implements [`Binding`](binding.md), so it has `get` and `set` functions, and can be passed directly to views.
 Typically though, you'd use the `bind!` macro to create a `Binding` to something inside your state, and then pass that to a view.
 
 The type held by `State` must implement `Clone`, and do so inexpensively. Use `Rc` as necessary to avoid cloning
