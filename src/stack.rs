@@ -162,6 +162,14 @@ impl<VT: ViewTuple> View for Stack<VT> {
             c += 1;
         });
     }
+
+    fn mark(&self, id: ViewID, cx: &mut Context) {
+        let mut c = 0;
+        self.children.foreach_view(&mut |child| {
+            child.mark(id.child(&c), cx);
+            c += 1;
+        });
+    }
 }
 
 impl<VT: ViewTuple> Stack<VT> {

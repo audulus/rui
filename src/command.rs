@@ -67,6 +67,8 @@ where
             key: self.key,
         })
     }
+
+    fn mark(&self, id: ViewID, cx: &mut Context) {}
 }
 
 pub trait CommandBase {
@@ -272,6 +274,10 @@ where
                 key: cmd.key(),
             })
         });
+    }
+
+    fn mark(&self, id: ViewID, cx: &mut Context) {
+        self.child.mark(id.child(&0), cx)
     }
 }
 

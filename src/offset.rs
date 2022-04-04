@@ -46,6 +46,10 @@ where
     fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
         self.child.commands(id.child(&0), cx, cmds)
     }
+
+    fn mark(&self, id: ViewID, cx: &mut Context) {
+        self.child.mark(id.child(&0), cx)
+    }
 }
 
 impl<V> Offset<V>

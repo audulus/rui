@@ -74,5 +74,9 @@ macro_rules! body_view {
         fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
             self.body().commands(id, cx, cmds);
         }
+
+        fn mark(&self, id: ViewID, cx: &mut Context) {
+            self.body().mark(id, cx)
+        }
     };
 }

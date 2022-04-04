@@ -53,6 +53,8 @@ where
     }
 
     fn commands(&self, _id: ViewID, _cx: &mut Context, _cmds: &mut Vec<CommandInfo>) {}
+
+    fn mark(&self, id: ViewID, cx: &mut Context) {}
 }
 
 /// Canvas for GPU drawing with VGER. See https://github.com/audulus/vger-rs. Note that canvases cannot be hit tested and thus gestures cannot be attached.

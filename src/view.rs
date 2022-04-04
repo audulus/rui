@@ -41,6 +41,9 @@ pub trait View {
 
     /// Accumulates information about menu bar commands.
     fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<CommandInfo>);
+
+    /// Mark pass for garbage collection.
+    fn mark(&self, id: ViewID, cx: &mut Context);
 }
 
 pub struct EmptyView {}
@@ -71,4 +74,6 @@ impl View for EmptyView {
     }
 
     fn commands(&self, _id: ViewID, _cx: &mut Context, _cmds: &mut Vec<CommandInfo>) {}
+
+    fn mark(&self, id: ViewID, cx: &mut Context) {}
 }

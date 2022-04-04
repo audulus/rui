@@ -47,6 +47,11 @@ where
         self.child.commands(id.child(&0), cx, cmds);
         self.background.commands(id.child(&1), cx, cmds);
     }
+
+    fn mark(&self, id: ViewID, cx: &mut Context) {
+        self.child.mark(id.child(&0), cx);
+        self.background.mark(id.child(&1), cx);
+    }
 }
 
 impl<V, BG> Background<V, BG>

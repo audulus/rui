@@ -65,6 +65,14 @@ where
             self.if_false.commands(id.child(&1), cx, cmds)
         }
     }
+
+    fn mark(&self, id: ViewID, cx: &mut Context) {
+        if self.cond {
+            self.if_true.mark(id.child(&0), cx)
+        } else {
+            self.if_false.mark(id.child(&1), cx)
+        }
+    }
 }
 
 /// Switches between views according to a boolean.

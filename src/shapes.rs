@@ -65,6 +65,10 @@ impl View for Circle {
     fn commands(&self, _id: ViewID, _cx: &mut Context, _cmds: &mut Vec<CommandInfo>) {
         // do nothing
     }
+
+    fn mark(&self, id: ViewID, cx: &mut Context) {
+        // do nothing
+    }
 }
 
 /// Renders a circle which expands to fill available space.
@@ -146,6 +150,10 @@ impl View for Rectangle {
     }
 
     fn commands(&self, _id: ViewID, _cx: &mut Context, _cmds: &mut Vec<CommandInfo>) {
+        // do nothing
+    }
+
+    fn mark(&self, id: ViewID, cx: &mut Context) {
         // do nothing
     }
 }

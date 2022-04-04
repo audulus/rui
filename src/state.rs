@@ -25,6 +25,10 @@ impl<S> State<S> {
             value: Arc::new(Mutex::new(Holder { value, dirty, mark: false })),
         }
     }
+
+    pub fn mark(&self) {
+        self.value.lock().unwrap().mark = true;
+    }
 }
 
 impl<S> AnyState for State<S> where S: 'static {
@@ -133,6 +137,13 @@ where
     fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
         cx.with_state_mut(self.default.clone(), id, &mut |state: State<S>, cx| {
             (self.func)(state.clone()).commands(id.child(&0), cx, cmds);
+        });
+    }
+
+    fn mark(&self, id: ViewID, cx: &mut Context) {
+        cx.with_state(self.default.clone(), id, |state: State<S>, cx| {
+            state.mark();
+            (self.func)(state.clone()).mark(id.child(&0), cx);
         });
     }
 }

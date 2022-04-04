@@ -104,6 +104,12 @@ where
             ((self.func)(child)).commands(child_id, cx, cmds)
         }
     }
+
+    fn mark(&self, id: ViewID, cx: &mut Context) {
+        for child in &self.ids {
+            ((self.func)(child)).mark(id.child(child), cx)
+        }
+    }
 }
 
 /// Displays a list of items all of which are represented by the same View. See `examples/list.rs`.
