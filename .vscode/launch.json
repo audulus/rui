@@ -109,6 +109,23 @@
         {
             "type": "lldb",
             "request": "launch",
+            "name": "Debug basic example",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--examples",
+                ],
+                "filter": {
+                    "name": "basic",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
             "name": "Debug unit tests in library 'rui'",
             "cargo": {
                 "args": [
