@@ -54,7 +54,7 @@ where
 
     fn commands(&self, _id: ViewID, _cx: &mut Context, _cmds: &mut Vec<CommandInfo>) {}
 
-    fn gc(&self, id: ViewID, cx: &mut Context, map: &mut StateMap) {}
+    fn gc(&self, _id: ViewID, _cx: &mut Context, _map: &mut StateMap) {}
 }
 
 /// Canvas for GPU drawing with VGER. See https://github.com/audulus/vger-rs.
