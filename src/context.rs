@@ -61,6 +61,7 @@ impl Dirty {
     }
 }
 
+/// Enables garbage collection of State
 pub trait AnyState {
     fn as_any(&self) -> &dyn Any;
     fn clear_mark(&mut self);
