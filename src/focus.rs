@@ -56,8 +56,8 @@ where
         (self.func)(Some(id) == cx.focused_id).commands(id.child(&0), cx, cmds)
     }
 
-    fn mark(&self, id: ViewID, cx: &mut Context) {
-        (self.func)(Some(id) == cx.focused_id).mark(id.child(&0), cx)
+    fn gc(&self, id: ViewID, cx: &mut Context, map: &mut StateMap) {
+        (self.func)(Some(id) == cx.focused_id).gc(id.child(&0), cx, map)
     }
 }
 

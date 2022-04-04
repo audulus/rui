@@ -66,7 +66,7 @@ impl View for Circle {
         // do nothing
     }
 
-    fn mark(&self, id: ViewID, cx: &mut Context) {
+    fn gc(&self, id: ViewID, cx: &mut Context, map: &mut StateMap) {
         // do nothing
     }
 }
@@ -153,7 +153,7 @@ impl View for Rectangle {
         // do nothing
     }
 
-    fn mark(&self, id: ViewID, cx: &mut Context) {
+    fn gc(&self, id: ViewID, cx: &mut Context, map: &mut StateMap) {
         // do nothing
     }
 }

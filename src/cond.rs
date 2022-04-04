@@ -66,11 +66,11 @@ where
         }
     }
 
-    fn mark(&self, id: ViewID, cx: &mut Context) {
+    fn gc(&self, id: ViewID, cx: &mut Context, map: &mut StateMap) {
         if self.cond {
-            self.if_true.mark(id.child(&0), cx)
+            self.if_true.gc(id.child(&0), cx, map)
         } else {
-            self.if_false.mark(id.child(&1), cx)
+            self.if_false.gc(id.child(&1), cx, map)
         }
     }
 }

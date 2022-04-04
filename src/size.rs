@@ -43,8 +43,8 @@ where
         self.child.commands(id.child(&0), cx, cmds)
     }
 
-    fn mark(&self, id: ViewID, cx: &mut Context) {
-        self.child.mark(id.child(&0), cx)
+    fn gc(&self, id: ViewID, cx: &mut Context, map: &mut StateMap) {
+        self.child.gc(id.child(&0), cx, map)
     }
 }
 

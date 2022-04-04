@@ -75,8 +75,8 @@ macro_rules! body_view {
             self.body().commands(id, cx, cmds);
         }
 
-        fn mark(&self, id: ViewID, cx: &mut Context) {
-            self.body().mark(id, cx)
+        fn gc(&self, id: ViewID, cx: &mut Context, map: &mut StateMap) {
+            self.body().gc(id, cx, map)
         }
     };
 }

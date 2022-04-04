@@ -140,10 +140,10 @@ where
         });
     }
 
-    fn mark(&self, id: ViewID, cx: &mut Context) {
-        cx.with_state(self.default.clone(), id, |state: State<S>, cx| {
-            state.mark();
-            (self.func)(state.clone()).mark(id.child(&0), cx);
+    fn gc(&self, id: ViewID, cx: &mut Context, map: &mut StateMap) {
+        cx.with_state_gc(map, self.default.clone(), id, |state: State<S>, cx, map| {
+            map.insert(id, Box::new(state.clone()));
+            (self.func)(state.clone()).gc(id.child(&0), cx, map);
         });
     }
 }

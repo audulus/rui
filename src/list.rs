@@ -105,9 +105,9 @@ where
         }
     }
 
-    fn mark(&self, id: ViewID, cx: &mut Context) {
+    fn gc(&self, id: ViewID, cx: &mut Context, map: &mut StateMap) {
         for child in &self.ids {
-            ((self.func)(child)).mark(id.child(child), cx)
+            ((self.func)(child)).gc(id.child(child), cx, map)
         }
     }
 }

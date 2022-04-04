@@ -48,9 +48,9 @@ where
         self.background.commands(id.child(&1), cx, cmds);
     }
 
-    fn mark(&self, id: ViewID, cx: &mut Context) {
-        self.child.mark(id.child(&0), cx);
-        self.background.mark(id.child(&1), cx);
+    fn gc(&self, id: ViewID, cx: &mut Context, map: &mut StateMap) {
+        self.child.gc(id.child(&0), cx, map);
+        self.background.gc(id.child(&1), cx, map);
     }
 }
 

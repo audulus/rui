@@ -360,9 +360,10 @@ pub fn rui(view: impl View + 'static) {
                     }
 
                     // Clean up state.
-                    cx.clear_state_marks();
-                    view.mark(cx.root_id, &mut cx);
-                    cx.sweep();
+                    let mut new_map = StateMap::new();
+                    view.gc(cx.root_id, &mut cx, &mut new_map);
+                    println!("collected {} states", cx.state_map.len() - new_map.len());
+                    cx.state_map = new_map;
 
                     window.request_redraw();
 

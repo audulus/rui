@@ -163,10 +163,10 @@ impl<VT: ViewTuple> View for Stack<VT> {
         });
     }
 
-    fn mark(&self, id: ViewID, cx: &mut Context) {
+    fn gc(&self, id: ViewID, cx: &mut Context, map: &mut StateMap) {
         let mut c = 0;
         self.children.foreach_view(&mut |child| {
-            child.mark(id.child(&c), cx);
+            child.gc(id.child(&c), cx, map);
             c += 1;
         });
     }
