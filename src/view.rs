@@ -39,6 +39,7 @@ pub trait View {
         vger: &mut VGER,
     ) -> Option<ViewID>;
 
+    /// Accumulates information about menu bar commands.
     fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<CommandInfo>);
 }
 
