@@ -68,7 +68,9 @@ where
         })
     }
 
-    fn gc(&self, id: ViewID, cx: &mut Context, map: &mut StateMap) {}
+    fn gc(&self, id: ViewID, cx: &mut Context, map: &mut StateMap) {
+        self.child.gc(id.child(&0), cx, map);
+    }
 }
 
 pub trait CommandBase {
