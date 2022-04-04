@@ -74,11 +74,13 @@ pub trait AnyState {
     fn is_marked(&self) -> bool;
 }
 
+pub type StateMap = HashMap<ViewID, Box<dyn AnyState>>;
+
 /// The Context stores all UI state. A user of the library
 /// shouldn't have to interact with it directly.
 pub struct Context {
     /// Map for `state`.
-    state_map: HashMap<ViewID, Box<dyn AnyState>>,
+    state_map: StateMap,
 
     /// Layout information for all views.
     pub layout: HashMap<ViewID, LayoutBox>,
@@ -173,6 +175,26 @@ impl Context {
 
         if let Some(state) = s.as_any().downcast_ref::<State<S>>() {
             f(state.clone(), self, vger)
+        } else {
+            panic!("state has wrong type")
+        }
+    }
+
+    pub fn with_state_gc<S: Clone + 'static, R, F: Fn(State<S>, &mut Self, &mut StateMap) -> R>(
+        &mut self,
+        map: &mut StateMap,
+        default: S,
+        id: ViewID,
+        f: F,
+    ) -> R {
+        let d = self.dirty.clone();
+        let s = self
+            .state_map
+            .entry(id)
+            .or_insert_with(|| Box::new(State::new(default, d)));
+
+        if let Some(state) = s.as_any().downcast_ref::<State<S>>() {
+            f(state.clone(), self, map)
         } else {
             panic!("state has wrong type")
         }
