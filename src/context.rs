@@ -61,11 +61,17 @@ impl Dirty {
     }
 }
 
+pub trait AnyState {
+    fn as_any(&self) -> &dyn Any;
+    fn clear_mark(&mut self);
+    fn is_marked(&self) -> bool;
+}
+
 /// The Context stores all UI state. A user of the library
 /// shouldn't have to interact with it directly.
 pub struct Context {
     /// Map for `state`.
-    state_map: HashMap<ViewID, Box<dyn Any>>,
+    state_map: HashMap<ViewID, Box<dyn AnyState>>,
 
     /// Layout information for all views.
     pub layout: HashMap<ViewID, LayoutBox>,
@@ -119,7 +125,7 @@ impl Context {
             .entry(id)
             .or_insert_with(|| Box::new(State::new(default, d)));
 
-        if let Some(state) = s.downcast_ref::<State<S>>() {
+        if let Some(state) = s.as_any().downcast_ref::<State<S>>() {
             f(state.clone(), self)
         } else {
             panic!("state has wrong type")
@@ -138,7 +144,7 @@ impl Context {
             .entry(id)
             .or_insert_with(|| Box::new(State::new(default, d)));
 
-        if let Some(state) = s.downcast_ref::<State<S>>() {
+        if let Some(state) = s.as_any().downcast_ref::<State<S>>() {
             f(state.clone(), self)
         } else {
             panic!("state has wrong type")
@@ -158,10 +164,16 @@ impl Context {
             .entry(id)
             .or_insert_with(|| Box::new(State::new(default, d)));
 
-        if let Some(state) = s.downcast_ref::<State<S>>() {
+        if let Some(state) = s.as_any().downcast_ref::<State<S>>() {
             f(state.clone(), self, vger)
         } else {
             panic!("state has wrong type")
+        }
+    }
+
+    pub fn clear_state_marks(&mut self) {
+        for (_,v) in &mut self.state_map {
+            v.clear_mark()
         }
     }
 }

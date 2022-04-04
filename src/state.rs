@@ -1,4 +1,5 @@
 use std::sync::{Arc, Mutex};
+use std::any::Any;
 
 use crate::*;
 
@@ -7,6 +8,9 @@ struct Holder<S> {
 
     /// Has the state changed since the last redraw?
     dirty: Arc<Mutex<Dirty>>,
+
+    /// Garbage collection.
+    mark: bool
 }
 
 /// Contains application state. Application state is created using `state`.
@@ -18,8 +22,20 @@ pub struct State<S> {
 impl<S> State<S> {
     pub fn new(value: S, dirty: Arc<Mutex<Dirty>>) -> Self {
         Self {
-            value: Arc::new(Mutex::new(Holder { value, dirty })),
+            value: Arc::new(Mutex::new(Holder { value, dirty, mark: false })),
         }
+    }
+}
+
+impl<S> AnyState for State<S> where S: 'static {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+    fn clear_mark(&mut self) {
+        self.value.lock().unwrap().mark = false;
+    }
+    fn is_marked(&self) -> bool {
+        self.value.lock().unwrap().mark
     }
 }
 
