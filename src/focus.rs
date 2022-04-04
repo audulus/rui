@@ -56,7 +56,9 @@ where
         (self.func)(Some(id) == cx.focused_id).commands(id.child(&0), cx, cmds)
     }
 
-    fn mark(&self, id: ViewID, cx: &mut Context) {}
+    fn mark(&self, id: ViewID, cx: &mut Context) {
+        (self.func)(Some(id) == cx.focused_id).mark(id.child(&0), cx)
+    }
 }
 
 /// Calls calls a function with true if the view subtree returned
