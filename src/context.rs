@@ -185,6 +185,8 @@ impl Context {
     }
 
     pub fn sweep(&mut self) {
-        self.state_map.retain(|_,v| v.is_marked())
+        let n = self.state_map.len();
+        self.state_map.retain(|_,v| v.is_marked());
+        println!("swept {} states", n - self.state_map.len());
     }
 }
