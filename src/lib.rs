@@ -359,6 +359,11 @@ pub fn rui(view: impl View + 'static) {
                         window.set_menu(Some(build_menubar(&commands, &mut command_map)));
                     }
 
+                    // Clean up state.
+                    cx.clear_state_marks();
+                    view.mark(cx.root_id, &mut cx);
+                    cx.sweep();
+
                     window.request_redraw();
 
                     cx.dirty.lock().unwrap().dirty = false;
