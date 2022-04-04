@@ -176,4 +176,8 @@ impl Context {
             v.clear_mark()
         }
     }
+
+    pub fn sweep(&mut self) {
+        self.state_map.retain(|_,v| v.is_marked())
+    }
 }
