@@ -61,17 +61,10 @@ impl Dirty {
     }
 }
 
-/// Enables garbage collection of State
+/// Restricts what we can store in a StateMap (instead of just using Any)
 pub trait AnyState {
-
     /// So we can downcast.
     fn as_any(&self) -> &dyn Any;
-
-    /// Clear the mark bit.
-    fn clear_mark(&mut self);
-
-    /// Is the mark bit set?
-    fn is_marked(&self) -> bool;
 }
 
 pub type StateMap = HashMap<ViewID, Box<dyn AnyState>>;
@@ -198,17 +191,5 @@ impl Context {
         } else {
             panic!("state has wrong type")
         }
-    }
-
-    pub fn clear_state_marks(&mut self) {
-        for (_,v) in &mut self.state_map {
-            v.clear_mark()
-        }
-    }
-
-    pub fn sweep(&mut self) {
-        let n = self.state_map.len();
-        self.state_map.retain(|_,v| v.is_marked());
-        println!("swept {} states", n - self.state_map.len());
     }
 }
