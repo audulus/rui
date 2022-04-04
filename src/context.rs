@@ -63,8 +63,14 @@ impl Dirty {
 
 /// Enables garbage collection of State
 pub trait AnyState {
+
+    /// So we can downcast.
     fn as_any(&self) -> &dyn Any;
+
+    /// Clear the mark bit.
     fn clear_mark(&mut self);
+
+    /// Is the mark bit set?
     fn is_marked(&self) -> bool;
 }
 
