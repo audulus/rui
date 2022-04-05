@@ -157,3 +157,25 @@ pub fn state<S: Clone + 'static, V: View + 'static, F: Fn(State<S>) -> V + 'stat
         func: f,
     }
 }
+
+#[cfg(test)]
+mod tests {
+
+    use super::*;
+    use std::sync::{Arc, Mutex};
+
+    #[test]
+    fn test_state() {
+        let _ = state(0, |_s: State<usize>| EmptyView {});
+    }
+
+    #[test]
+    fn test_state_clone() {
+        let d = Arc::new(Mutex::new(Dirty::new(None)));
+        let s = State::new(0, d);
+        let s2 = s.clone();
+        s.set(42);
+        assert_eq!(s2.get(), 42);
+    }
+
+}

@@ -521,24 +521,10 @@ mod tests {
     use std::sync::{Arc, Mutex};
 
     #[test]
-    fn test_state_clone() {
-        let d = Arc::new(Mutex::new(Dirty::new(None)));
-        let s = State::new(0, d);
-        let s2 = s.clone();
-        s.set(42);
-        assert_eq!(s2.get(), 42);
-    }
-
-    #[test]
     fn test_button() {
         let _ = button(text("click me"), || {
             println!("clicked!");
         });
-    }
-
-    #[test]
-    fn test_state() {
-        let _ = state(0, |_s: State<usize>| EmptyView {});
     }
 
     #[test]
