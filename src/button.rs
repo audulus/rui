@@ -1,4 +1,5 @@
 pub use crate::*;
+use accesskit::Role;
 
 pub const BUTTON_CORNER_RADIUS: f32 = 5.0;
 
@@ -11,4 +12,5 @@ pub fn button<F: Fn() + 'static>(view: impl View + 'static, f: F) -> impl View {
                 .color(BUTTON_BACKGROUND_COLOR),
         )
         .tap(f)
+        .role(Role::Button)
 }
