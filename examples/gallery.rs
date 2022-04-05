@@ -46,6 +46,5 @@ fn main() {
     ))
     .padding(Auto)
     .window_title("rui widget gallery")
-    .fullscreen()
     )
 }
