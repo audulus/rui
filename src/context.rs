@@ -96,7 +96,7 @@ pub struct Context {
     pub root_id: ViewID,
 
     /// The view that has the keybord focus.
-    pub focused_id: Option<ViewID>,
+    pub(crate) focused_id: Option<ViewID>,
 
     /// Did state change?
     pub(crate) dirty: Arc<Mutex<Dirty>>,
