@@ -90,6 +90,9 @@ pub use align::*;
 mod role;
 pub use role::*;
 
+mod window;
+pub use window::*;
+
 use futures::executor::block_on;
 use std::collections::HashMap;
 use vger::color::*;

@@ -103,6 +103,9 @@ pub struct Context {
 
     /// The tao window
     pub window: Window,
+
+    /// The current title of the window
+    pub window_title: String
 }
 
 impl Context {
@@ -116,7 +119,8 @@ impl Context {
             root_id: ViewID::default(),
             focused_id: None,
             dirty: Arc::new(Mutex::new(Dirty::new(event_loop_proxy))),
-            window
+            window,
+            window_title: "rui".into()
         }
     }
 

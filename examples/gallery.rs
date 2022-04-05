@@ -44,5 +44,7 @@ fn main() {
         toggle_example(),
         text_editor_example(),
     ))
-    .padding(Auto))
+    .padding(Auto)
+    .window_title("rui widget gallery".into())
+    )
 }
