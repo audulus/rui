@@ -84,13 +84,13 @@ pub struct Context {
     pub(crate) layout: HashMap<ViewID, LayoutBox>,
 
     /// Which views each touch (or mouse pointer) is interacting with.
-    pub touches: [ViewID; 16],
+    pub(crate) touches: [ViewID; 16],
 
     /// Points at which touches (or click-drags) started.
-    pub starts: [LocalPoint; 16],
+    pub(crate) starts: [LocalPoint; 16],
 
     /// Previous touch/mouse positions.
-    pub previous_position: [LocalPoint; 16],
+    pub(crate) previous_position: [LocalPoint; 16],
 
     /// The root view ID. This should be randomized for security reasons.
     pub(crate) root_id: ViewID,
