@@ -368,6 +368,14 @@ pub fn rui(view: impl View + 'static) {
                     println!("collected {} states", cx.state_map.len() - new_map.len());
                     cx.state_map = new_map;
 
+                    // Get a new accesskit tree.
+                    let mut nodes = vec![];
+                    view.access(cx.root_id, &mut cx, &mut nodes);
+                    println!("access nodes:");
+                    for node in &nodes {
+                        println!("  id: {:?}, role: {:?}, children: {:?}", node.id, node.role, node.children);
+                    }
+
                     window.request_redraw();
 
                     cx.dirty.lock().unwrap().dirty = false;
