@@ -82,9 +82,6 @@ pub struct Context {
     /// Layout information for all views.
     pub layout: HashMap<ViewID, LayoutBox>,
 
-    /// GPU renderer.
-    pub vger: Option<VGER>,
-
     /// Which views each touch (or mouse pointer) is interacting with.
     pub touches: [ViewID; 16],
 
@@ -109,7 +106,6 @@ impl Context {
         Self {
             state_map: HashMap::new(),
             layout: HashMap::new(),
-            vger: None,
             touches: [ViewID::default(); 16],
             starts: [LocalPoint::zero(); 16],
             previous_position: [LocalPoint::zero(); 16],
