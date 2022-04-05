@@ -102,10 +102,10 @@ pub struct Context {
     pub dirty: Arc<Mutex<Dirty>>,
 
     /// The tao window
-    pub window: Window,
+    pub(crate) window: Window,
 
     /// The current title of the window
-    pub window_title: String
+    pub(crate) window_title: String
 }
 
 impl Context {
