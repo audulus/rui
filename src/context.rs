@@ -49,7 +49,7 @@ impl ViewID {
 pub const DEBUG_LAYOUT: bool = false;
 
 #[derive(Copy, Clone, Default, PartialEq, Debug)]
-pub struct LayoutBox {
+pub(crate) struct LayoutBox {
     pub rect: LocalRect,
     pub offset: LocalOffset,
 }
@@ -81,7 +81,7 @@ pub struct Context {
     pub state_map: StateMap,
 
     /// Layout information for all views.
-    pub layout: HashMap<ViewID, LayoutBox>,
+    pub(crate) layout: HashMap<ViewID, LayoutBox>,
 
     /// Which views each touch (or mouse pointer) is interacting with.
     pub touches: [ViewID; 16],
