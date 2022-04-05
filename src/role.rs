@@ -1,15 +1,15 @@
-use accesskit::Role;
 use crate::*;
+use accesskit::Role;
 
 /// Struct for the `role` modifier.
 pub struct RoleView<V: View> {
     child: V,
-    role: Role
+    role: Role,
 }
 
 impl<V> RoleView<V>
 where
-    V: View
+    V: View,
 {
     pub fn new(v: V, role: Role) -> Self {
         Self { child: v, role }
@@ -44,12 +44,7 @@ where
         cx: &mut Context,
         vger: &mut VGER,
     ) -> Option<ViewID> {
-        self.child.hittest(
-            id.child(&0),
-            pt,
-            cx,
-            vger,
-        )
+        self.child.hittest(id.child(&0), pt, cx, vger)
     }
 
     fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
@@ -60,18 +55,21 @@ where
         self.child.gc(id.child(&0), cx, map)
     }
 
-    fn access(&self, id: ViewID, cx: &mut Context, nodes: &mut Vec<accesskit::Node>) -> Option<accesskit::NodeId> {
+    fn access(
+        &self,
+        id: ViewID,
+        cx: &mut Context,
+        nodes: &mut Vec<accesskit::Node>,
+    ) -> Option<accesskit::NodeId> {
         let child_aid = self.child.access(id.child(&0), cx, nodes);
         let aid = id.access_id();
-        nodes.push(
-            accesskit::Node {
-                children: match child_aid {
-                    Some(cid) => vec![cid],
-                    None => vec![]
-                },
-                ..accesskit::Node::new(aid, self.role)
-            }
-        );
+        nodes.push(accesskit::Node {
+            children: match child_aid {
+                Some(cid) => vec![cid],
+                None => vec![],
+            },
+            ..accesskit::Node::new(aid, self.role)
+        });
         Some(aid)
     }
 }

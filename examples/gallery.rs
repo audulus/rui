@@ -1,7 +1,10 @@
 use rui::*;
 
 fn button_example() -> impl View {
-    hstack((caption("button"), button(text("press me"), || println!("pressed"))))
+    hstack((
+        caption("button"),
+        button(text("press me"), || println!("pressed")),
+    ))
 }
 
 fn slider_example() -> impl View {
@@ -9,9 +12,7 @@ fn slider_example() -> impl View {
 }
 
 fn caption(s: &str) -> impl View {
-    text(s)
-    .font_size(12)
-    .padding(Auto)
+    text(s).font_size(12).padding(Auto)
 }
 
 fn knob_example() -> impl View {
@@ -45,6 +46,5 @@ fn main() {
         text_editor_example(),
     ))
     .padding(Auto)
-    .window_title("rui widget gallery")
-    )
+    .window_title("rui widget gallery"))
 }

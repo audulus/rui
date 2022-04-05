@@ -1,5 +1,5 @@
-use std::sync::{Arc, Mutex};
 use std::any::Any;
+use std::sync::{Arc, Mutex};
 
 use crate::*;
 
@@ -24,7 +24,10 @@ impl<S> State<S> {
     }
 }
 
-impl<S> AnyState for State<S> where S: 'static {
+impl<S> AnyState for State<S>
+where
+    S: 'static,
+{
     fn as_any(&self) -> &dyn Any {
         self
     }
@@ -45,7 +48,7 @@ where
 
         // Wake up the event loop.
         if let Some(proxy) = &holder.dirty.lock().unwrap().event_loop_proxy {
-            if let Err(err) = proxy.send_event( () ) {
+            if let Err(err) = proxy.send_event(()) {
                 println!("error waking up event loop: {:?}", err);
             }
         }
@@ -134,10 +137,18 @@ where
         });
     }
 
-    fn access(&self, id: ViewID, cx: &mut Context, nodes: &mut Vec<accesskit::Node>) -> Option<accesskit::NodeId> {
-        cx.with_state_aux(self.default.clone(), id, nodes, |state: State<S>, cx, nodes| {
-            (self.func)(state.clone()).access(id.child(&0), cx, nodes)
-        })
+    fn access(
+        &self,
+        id: ViewID,
+        cx: &mut Context,
+        nodes: &mut Vec<accesskit::Node>,
+    ) -> Option<accesskit::NodeId> {
+        cx.with_state_aux(
+            self.default.clone(),
+            id,
+            nodes,
+            |state: State<S>, cx, nodes| (self.func)(state.clone()).access(id.child(&0), cx, nodes),
+        )
     }
 }
 
@@ -179,5 +190,4 @@ mod tests {
         s.set(42);
         assert_eq!(s2.get(), 42);
     }
-
 }

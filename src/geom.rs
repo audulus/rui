@@ -44,17 +44,27 @@ where
     fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
         self.child.commands(id.child(&0), cx, cmds)
     }
-    
+
     fn gc(&self, id: ViewID, cx: &mut Context, map: &mut StateMap) {
         self.child.gc(id.child(&0), cx, map)
     }
 
-    fn access(&self, id: ViewID, cx: &mut Context, nodes: &mut Vec<accesskit::Node>) -> Option<accesskit::NodeId> {
+    fn access(
+        &self,
+        id: ViewID,
+        cx: &mut Context,
+        nodes: &mut Vec<accesskit::Node>,
+    ) -> Option<accesskit::NodeId> {
         self.child.access(id.child(&0), cx, nodes)
     }
 }
 
-impl<V, F> crate::view::private::Sealed for Geom<V, F> where V: View, F: Fn(LocalSize), {}
+impl<V, F> crate::view::private::Sealed for Geom<V, F>
+where
+    V: View,
+    F: Fn(LocalSize),
+{
+}
 
 impl<V, F> Geom<V, F>
 where

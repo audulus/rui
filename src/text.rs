@@ -51,11 +51,14 @@ impl View for Text {
         // do nothing
     }
 
-    fn access(&self, id: ViewID, _cx: &mut Context, nodes: &mut Vec<accesskit::Node>) -> Option<accesskit::NodeId> {
+    fn access(
+        &self,
+        id: ViewID,
+        _cx: &mut Context,
+        nodes: &mut Vec<accesskit::Node>,
+    ) -> Option<accesskit::NodeId> {
         let aid = id.access_id();
-        nodes.push(
-            accesskit::Node::new(aid, accesskit::Role::LabelText)
-        );
+        nodes.push(accesskit::Node::new(aid, accesskit::Role::LabelText));
         Some(aid)
     }
 }

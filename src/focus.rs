@@ -22,13 +22,13 @@ where
                     cx.focused_id = Some(vid);
                     cx.dirty.lock().unwrap().dirty = true;
                 }
-            },
+            }
             EventKind::Key(KeyPress::Escape, _) => {
                 if cx.focused_id == Some(vid) {
                     cx.focused_id = None;
                     cx.dirty.lock().unwrap().dirty = true;
                 }
-            },
+            }
             _ => (),
         }
         (self.func)(Some(vid) == cx.focused_id).process(event, vid.child(&0), cx, vger)
@@ -60,12 +60,22 @@ where
         (self.func)(Some(id) == cx.focused_id).gc(id.child(&0), cx, map)
     }
 
-    fn access(&self, id: ViewID, cx: &mut Context, nodes: &mut Vec<accesskit::Node>) -> Option<accesskit::NodeId> {
+    fn access(
+        &self,
+        id: ViewID,
+        cx: &mut Context,
+        nodes: &mut Vec<accesskit::Node>,
+    ) -> Option<accesskit::NodeId> {
         (self.func)(Some(id) == cx.focused_id).access(id.child(&0), cx, nodes)
     }
 }
 
-impl<V, F> crate::view::private::Sealed for Focus<V, F> where V: View, F: Fn(bool) -> V, {}
+impl<V, F> crate::view::private::Sealed for Focus<V, F>
+where
+    V: View,
+    F: Fn(bool) -> V,
+{
+}
 
 /// Calls calls a function with true if the view subtree returned
 /// by the function has the keyboard focus.

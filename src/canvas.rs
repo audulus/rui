@@ -56,7 +56,14 @@ where
 
     fn gc(&self, _id: ViewID, _cx: &mut Context, _map: &mut StateMap) {}
 
-    fn access(&self, _id: ViewID, _cx: &mut Context, _nodes: &mut Vec<accesskit::Node>) -> Option<accesskit::NodeId> { None }
+    fn access(
+        &self,
+        _id: ViewID,
+        _cx: &mut Context,
+        _nodes: &mut Vec<accesskit::Node>,
+    ) -> Option<accesskit::NodeId> {
+        None
+    }
 }
 
 /// Canvas for GPU drawing with VGER. See https://github.com/audulus/vger-rs.

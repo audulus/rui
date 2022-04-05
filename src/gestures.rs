@@ -70,12 +70,22 @@ where
         self.child.gc(id.child(&0), cx, map)
     }
 
-    fn access(&self, id: ViewID, cx: &mut Context, nodes: &mut Vec<accesskit::Node>) -> Option<accesskit::NodeId> {
+    fn access(
+        &self,
+        id: ViewID,
+        cx: &mut Context,
+        nodes: &mut Vec<accesskit::Node>,
+    ) -> Option<accesskit::NodeId> {
         self.child.access(id.child(&0), cx, nodes)
     }
 }
 
-impl<V, F> crate::view::private::Sealed for Tap<V, F> where V: View, F: Fn() + 'static, {}
+impl<V, F> crate::view::private::Sealed for Tap<V, F>
+where
+    V: View,
+    F: Fn() + 'static,
+{
+}
 
 pub enum GestureState {
     Began,
@@ -165,9 +175,19 @@ where
         self.child.gc(id.child(&0), cx, map)
     }
 
-    fn access(&self, id: ViewID, cx: &mut Context, nodes: &mut Vec<accesskit::Node>) -> Option<accesskit::NodeId> {
+    fn access(
+        &self,
+        id: ViewID,
+        cx: &mut Context,
+        nodes: &mut Vec<accesskit::Node>,
+    ) -> Option<accesskit::NodeId> {
         self.child.access(id.child(&0), cx, nodes)
     }
 }
 
-impl<V, F> crate::view::private::Sealed for Drag<V, F> where V: View, F: Fn(LocalOffset, GestureState) + 'static, {}
+impl<V, F> crate::view::private::Sealed for Drag<V, F>
+where
+    V: View,
+    F: Fn(LocalOffset, GestureState) + 'static,
+{
+}

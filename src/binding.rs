@@ -10,8 +10,7 @@ pub trait Binding<S>: Clone + 'static {
         self.with(|s| s.clone())
     }
 
-    fn set(&self, value: S)
-    {
+    fn set(&self, value: S) {
         self.with_mut(move |s| *s = value);
     }
 }
@@ -41,13 +40,13 @@ where
 }
 
 /// Constructs a new binding from a binding and an expression.
-/// 
+///
 /// For example `bind(b, x)` will create a binding to
 /// a member x inside b.
-/// 
+///
 /// `bind(b, [i])` will create a binding to the ith array
 /// element in b.
-/// 
+///
 /// `bind(b, x[i])` will create a binding to the ith array
 /// element of member x in b.
 #[macro_export]
@@ -100,7 +99,7 @@ where
 
 /// Similar to `bind!` but avoids cloning. Requres both the type
 /// of the binding and the type of the field to be passed in.
-/// 
+///
 /// For example: `bind_no_clone!(state, MyState, value, f32)`
 #[macro_export]
 macro_rules! bind_no_clone {
@@ -143,7 +142,7 @@ impl<B, T0, T1, L> Binding<T0> for Bnd2<B, L, T1>
 where
     B: Binding<T1>,
     L: Lens<T1, T0> + Clone + 'static,
-    T1: Clone + 'static
+    T1: Clone + 'static,
 {
     fn with<T, F: FnOnce(&T0) -> T>(&self, f: F) -> T {
         self.binding.with(|v| self.lens.with(v, |vv| f(vv)))
@@ -152,7 +151,6 @@ where
         self.binding.with_mut(|v| self.lens.with_mut(v, |vv| f(vv)))
     }
 }
-
 
 #[derive(Clone)]
 pub struct Bnd3<L, Lmut> {
@@ -163,7 +161,7 @@ pub struct Bnd3<L, Lmut> {
 impl<S, L, Lmut> Binding<S> for Bnd3<L, Lmut>
 where
     L: Fn(&dyn FnOnce(&S)) + Clone + 'static,
-    Lmut: Fn(&dyn FnOnce(&mut S)) + Clone + 'static
+    Lmut: Fn(&dyn FnOnce(&mut S)) + Clone + 'static,
 {
     fn with<T, F: FnOnce(&S) -> T>(&self, f: F) -> T {
         let mut t = None;

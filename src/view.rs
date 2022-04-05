@@ -46,7 +46,12 @@ pub trait View: private::Sealed {
     fn gc(&self, id: ViewID, cx: &mut Context, map: &mut StateMap);
 
     /// Builds an AccessKit tree. The node ID for the subtree is returned. All generated nodes are accumulated.
-    fn access(&self, id: ViewID, cx: &mut Context, nodes: &mut Vec<accesskit::Node>) -> Option<accesskit::NodeId>;
+    fn access(
+        &self,
+        id: ViewID,
+        cx: &mut Context,
+        nodes: &mut Vec<accesskit::Node>,
+    ) -> Option<accesskit::NodeId>;
 }
 
 // See https://rust-lang.github.io/api-guidelines/future-proofing.html
@@ -85,7 +90,14 @@ impl View for EmptyView {
 
     fn gc(&self, _id: ViewID, _cx: &mut Context, _map: &mut StateMap) {}
 
-    fn access(&self, _id: ViewID, _cx: &mut Context, _nodes: &mut Vec<accesskit::Node>) -> Option<accesskit::NodeId> { None }
+    fn access(
+        &self,
+        _id: ViewID,
+        _cx: &mut Context,
+        _nodes: &mut Vec<accesskit::Node>,
+    ) -> Option<accesskit::NodeId> {
+        None
+    }
 }
 
 impl crate::view::private::Sealed for EmptyView {}

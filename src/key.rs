@@ -60,9 +60,19 @@ where
         self.child.gc(id.child(&0), cx, map)
     }
 
-    fn access(&self, id: ViewID, cx: &mut Context, nodes: &mut Vec<accesskit::Node>) -> Option<accesskit::NodeId> {
+    fn access(
+        &self,
+        id: ViewID,
+        cx: &mut Context,
+        nodes: &mut Vec<accesskit::Node>,
+    ) -> Option<accesskit::NodeId> {
         self.child.access(id.child(&0), cx, nodes)
     }
 }
 
-impl<V, F> crate::view::private::Sealed for Key<V, F> where V: View, F: Fn(KeyPress) + 'static, {}
+impl<V, F> crate::view::private::Sealed for Key<V, F>
+where
+    V: View,
+    F: Fn(KeyPress) + 'static,
+{
+}

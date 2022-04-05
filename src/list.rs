@@ -111,7 +111,12 @@ where
         }
     }
 
-    fn access(&self, id: ViewID, cx: &mut Context, nodes: &mut Vec<accesskit::Node>) -> Option<accesskit::NodeId> {
+    fn access(
+        &self,
+        id: ViewID,
+        cx: &mut Context,
+        nodes: &mut Vec<accesskit::Node>,
+    ) -> Option<accesskit::NodeId> {
         let mut node = accesskit::Node::new(id.access_id(), accesskit::Role::List);
         for child in &self.ids {
             if let Some(i) = ((self.func)(child)).access(id.child(child), cx, nodes) {
@@ -123,7 +128,13 @@ where
     }
 }
 
-impl<ID, V, F> crate::view::private::Sealed for List<ID, V, F> where ID: Hash, V: View, F: Fn(&ID) -> V, {}
+impl<ID, V, F> crate::view::private::Sealed for List<ID, V, F>
+where
+    ID: Hash,
+    V: View,
+    F: Fn(&ID) -> V,
+{
+}
 
 /// Displays a list of items all of which are represented by the same View. See `examples/list.rs`.
 ///

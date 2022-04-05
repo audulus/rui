@@ -3,15 +3,18 @@ use crate::*;
 /// Struct for the `window_title` modifier.
 pub struct TitleView<V> {
     child: V,
-    title: String
+    title: String,
 }
 
 impl<V> TitleView<V>
 where
-    V: View
+    V: View,
 {
     pub fn new(v: V, title: &str) -> Self {
-        Self { child: v, title: title.into() }
+        Self {
+            child: v,
+            title: title.into(),
+        }
     }
 }
 
@@ -47,12 +50,7 @@ where
         cx: &mut Context,
         vger: &mut VGER,
     ) -> Option<ViewID> {
-        self.child.hittest(
-            id.child(&0),
-            pt,
-            cx,
-            vger,
-        )
+        self.child.hittest(id.child(&0), pt, cx, vger)
     }
 
     fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
@@ -63,7 +61,12 @@ where
         self.child.gc(id.child(&0), cx, map)
     }
 
-    fn access(&self, id: ViewID, cx: &mut Context, nodes: &mut Vec<accesskit::Node>) -> Option<accesskit::NodeId> {
+    fn access(
+        &self,
+        id: ViewID,
+        cx: &mut Context,
+        nodes: &mut Vec<accesskit::Node>,
+    ) -> Option<accesskit::NodeId> {
         self.child.access(id.child(&0), cx, nodes)
     }
 }
@@ -72,12 +75,12 @@ impl<V> crate::view::private::Sealed for TitleView<V> {}
 
 /// Struct for the `fullscreen` modifier.
 pub struct FullscreenView<V> {
-    child: V
+    child: V,
 }
 
 impl<V> FullscreenView<V>
 where
-    V: View
+    V: View,
 {
     pub fn new(v: V) -> Self {
         Self { child: v }
@@ -99,7 +102,8 @@ where
 
     fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
         self.child.draw(id.child(&0), cx, vger);
-        cx.window.set_fullscreen(Some(tao::window::Fullscreen::Borderless(None)))
+        cx.window
+            .set_fullscreen(Some(tao::window::Fullscreen::Borderless(None)))
     }
 
     fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
@@ -113,12 +117,7 @@ where
         cx: &mut Context,
         vger: &mut VGER,
     ) -> Option<ViewID> {
-        self.child.hittest(
-            id.child(&0),
-            pt,
-            cx,
-            vger,
-        )
+        self.child.hittest(id.child(&0), pt, cx, vger)
     }
 
     fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
@@ -129,7 +128,12 @@ where
         self.child.gc(id.child(&0), cx, map)
     }
 
-    fn access(&self, id: ViewID, cx: &mut Context, nodes: &mut Vec<accesskit::Node>) -> Option<accesskit::NodeId> {
+    fn access(
+        &self,
+        id: ViewID,
+        cx: &mut Context,
+        nodes: &mut Vec<accesskit::Node>,
+    ) -> Option<accesskit::NodeId> {
         self.child.access(id.child(&0), cx, nodes)
     }
 }

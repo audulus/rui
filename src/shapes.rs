@@ -70,7 +70,12 @@ impl View for Circle {
         // do nothing
     }
 
-    fn access(&self, _id: ViewID, _cx: &mut Context, _nodes: &mut Vec<accesskit::Node>) -> Option<accesskit::NodeId> {
+    fn access(
+        &self,
+        _id: ViewID,
+        _cx: &mut Context,
+        _nodes: &mut Vec<accesskit::Node>,
+    ) -> Option<accesskit::NodeId> {
         None
     }
 }
@@ -163,7 +168,12 @@ impl View for Rectangle {
         // do nothing
     }
 
-    fn access(&self, _id: ViewID, _cx: &mut Context, _nodes: &mut Vec<accesskit::Node>) -> Option<accesskit::NodeId> {
+    fn access(
+        &self,
+        _id: ViewID,
+        _cx: &mut Context,
+        _nodes: &mut Vec<accesskit::Node>,
+    ) -> Option<accesskit::NodeId> {
         None
     }
 }

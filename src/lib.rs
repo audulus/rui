@@ -304,7 +304,8 @@ pub fn rui(view: impl View + 'static) {
     let mut commands = Vec::new();
     view.commands(cx.root_id, &mut cx, &mut commands);
     let mut command_map = HashMap::new();
-    cx.window.set_menu(Some(build_menubar(&commands, &mut command_map)));
+    cx.window
+        .set_menu(Some(build_menubar(&commands, &mut command_map)));
 
     let mut modifiers = ModifiersState::default();
 
@@ -364,7 +365,8 @@ pub fn rui(view: impl View + 'static) {
                         commands = new_commands;
 
                         command_map.clear();
-                        cx.window.set_menu(Some(build_menubar(&commands, &mut command_map)));
+                        cx.window
+                            .set_menu(Some(build_menubar(&commands, &mut command_map)));
                     }
 
                     // Clean up state.
@@ -380,7 +382,10 @@ pub fn rui(view: impl View + 'static) {
                     if nodes != access_nodes {
                         println!("access nodes:");
                         for node in &nodes {
-                            println!("  id: {:?}, role: {:?}, children: {:?}", node.id, node.role, node.children);
+                            println!(
+                                "  id: {:?}, role: {:?}, children: {:?}",
+                                node.id, node.role, node.children
+                            );
                         }
                         access_nodes = nodes;
                     } else {
@@ -575,5 +580,4 @@ mod tests {
     fn test_binding() {
         let _ = state(42, |count: State<usize>| counter3(count));
     }
-
 }

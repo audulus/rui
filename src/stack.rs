@@ -92,7 +92,11 @@ impl<VT: ViewTuple> View for Stack<VT> {
                     let child_rect = LocalRect::new([x, 0.0].into(), proposed_child_size);
                     let child_size = child.layout(child_id, proposed_child_size, cx, vger);
 
-                    cx.layout.entry(child_id).or_default().offset = align_h(LocalRect::new(LocalPoint::origin(), child_size), child_rect, HAlignment::Center);
+                    cx.layout.entry(child_id).or_default().offset = align_h(
+                        LocalRect::new(LocalPoint::origin(), child_size),
+                        child_rect,
+                        HAlignment::Center,
+                    );
 
                     x += proposed_child_size.width;
                     c += 1;
@@ -107,11 +111,18 @@ impl<VT: ViewTuple> View for Stack<VT> {
                 let mut y = sz.height;
                 self.children.foreach_view(&mut |child| {
                     let child_id = id.child(&c);
-                    let child_rect = LocalRect::new([0.0, y - proposed_child_size.height].into(), proposed_child_size);
+                    let child_rect = LocalRect::new(
+                        [0.0, y - proposed_child_size.height].into(),
+                        proposed_child_size,
+                    );
                     let child_size = child.layout(child_id, proposed_child_size, cx, vger);
 
                     y -= proposed_child_size.height;
-                    cx.layout.entry(child_id).or_default().offset = align_v(LocalRect::new(LocalPoint::origin(), child_size), child_rect, VAlignment::Middle);
+                    cx.layout.entry(child_id).or_default().offset = align_v(
+                        LocalRect::new(LocalPoint::origin(), child_size),
+                        child_rect,
+                        VAlignment::Middle,
+                    );
 
                     c += 1;
                 });
@@ -171,13 +182,18 @@ impl<VT: ViewTuple> View for Stack<VT> {
         });
     }
 
-    fn access(&self, id: ViewID, cx: &mut Context, nodes: &mut Vec<accesskit::Node>) -> Option<accesskit::NodeId> {
+    fn access(
+        &self,
+        id: ViewID,
+        cx: &mut Context,
+        nodes: &mut Vec<accesskit::Node>,
+    ) -> Option<accesskit::NodeId> {
         let mut c = 0;
         let mut node = accesskit::Node::new(id.access_id(), accesskit::Role::List);
         self.children.foreach_view(&mut |child| {
             match child.access(id.child(&c), cx, nodes) {
                 Some(id) => node.children.push(id),
-                None => ()
+                None => (),
             };
             c += 1;
         });
@@ -195,7 +211,7 @@ impl<VT: ViewTuple> Stack<VT> {
     }
 }
 
-impl<VT> crate::view::private::Sealed for Stack<VT> where VT: ViewTuple, {}
+impl<VT> crate::view::private::Sealed for Stack<VT> where VT: ViewTuple {}
 
 impl<A: View> ViewTuple for (A,) {
     fn foreach_view<FN: FnMut(&dyn View)>(&self, f: &mut FN) {

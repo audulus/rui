@@ -57,12 +57,15 @@ pub(crate) struct LayoutBox {
 // This could use a better name.
 pub struct Dirty {
     pub dirty: bool,
-    pub event_loop_proxy: Option<EventLoopProxy<()>>
+    pub event_loop_proxy: Option<EventLoopProxy<()>>,
 }
 
 impl Dirty {
     pub fn new(event_loop_proxy: Option<EventLoopProxy<()>>) -> Self {
-        Dirty{ dirty: false, event_loop_proxy }
+        Dirty {
+            dirty: false,
+            event_loop_proxy,
+        }
     }
 }
 
@@ -105,7 +108,7 @@ pub struct Context {
     pub(crate) window: Window,
 
     /// The current title of the window
-    pub(crate) window_title: String
+    pub(crate) window_title: String,
 }
 
 impl Context {
@@ -120,7 +123,7 @@ impl Context {
             focused_id: None,
             dirty: Arc::new(Mutex::new(Dirty::new(event_loop_proxy))),
             window,
-            window_title: "rui".into()
+            window_title: "rui".into(),
         }
     }
 

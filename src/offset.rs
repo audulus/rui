@@ -50,8 +50,13 @@ where
     fn gc(&self, id: ViewID, cx: &mut Context, map: &mut StateMap) {
         self.child.gc(id.child(&0), cx, map)
     }
-    
-    fn access(&self, id: ViewID, cx: &mut Context, nodes: &mut Vec<accesskit::Node>) -> Option<accesskit::NodeId> {
+
+    fn access(
+        &self,
+        id: ViewID,
+        cx: &mut Context,
+        nodes: &mut Vec<accesskit::Node>,
+    ) -> Option<accesskit::NodeId> {
         self.child.access(id.child(&0), cx, nodes)
     }
 }
@@ -68,4 +73,4 @@ where
     }
 }
 
-impl<V> crate::view::private::Sealed for Offset<V> where V: View, {}
+impl<V> crate::view::private::Sealed for Offset<V> where V: View {}

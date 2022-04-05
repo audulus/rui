@@ -74,7 +74,12 @@ where
         }
     }
 
-    fn access(&self, id: ViewID, cx: &mut Context, nodes: &mut Vec<accesskit::Node>) -> Option<accesskit::NodeId> {
+    fn access(
+        &self,
+        id: ViewID,
+        cx: &mut Context,
+        nodes: &mut Vec<accesskit::Node>,
+    ) -> Option<accesskit::NodeId> {
         if self.cond {
             self.if_true.access(id.child(&0), cx, nodes)
         } else {
@@ -83,7 +88,12 @@ where
     }
 }
 
-impl<V0, V1> crate::view::private::Sealed for Cond<V0, V1> where V0: View, V1: View {}
+impl<V0, V1> crate::view::private::Sealed for Cond<V0, V1>
+where
+    V0: View,
+    V1: View,
+{
+}
 
 /// Switches between views according to a boolean.
 pub fn cond(cond: bool, if_true: impl View, if_false: impl View) -> impl View {

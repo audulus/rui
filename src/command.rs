@@ -72,13 +72,23 @@ where
         self.child.gc(id.child(&0), cx, map);
     }
 
-    fn access(&self, _id: ViewID, _cx: &mut Context, _nodes: &mut Vec<accesskit::Node>) -> Option<accesskit::NodeId> {
+    fn access(
+        &self,
+        _id: ViewID,
+        _cx: &mut Context,
+        _nodes: &mut Vec<accesskit::Node>,
+    ) -> Option<accesskit::NodeId> {
         // XXX: how does accesskit handle menu commands?
         None
     }
 }
 
-impl<V, F> crate::view::private::Sealed for Command<V, F> where V: View, F: Fn() + 'static, {}
+impl<V, F> crate::view::private::Sealed for Command<V, F>
+where
+    V: View,
+    F: Fn() + 'static,
+{
+}
 
 pub trait CommandBase {
     fn exec(&self);
@@ -289,7 +299,12 @@ where
         self.child.gc(id.child(&0), cx, map)
     }
 
-    fn access(&self, id: ViewID, cx: &mut Context, nodes: &mut Vec<accesskit::Node>) -> Option<accesskit::NodeId> {
+    fn access(
+        &self,
+        id: ViewID,
+        cx: &mut Context,
+        nodes: &mut Vec<accesskit::Node>,
+    ) -> Option<accesskit::NodeId> {
         self.child.access(id.child(&0), cx, nodes)
     }
 }

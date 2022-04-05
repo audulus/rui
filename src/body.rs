@@ -79,7 +79,12 @@ macro_rules! body_view {
             self.body().gc(id, cx, map)
         }
 
-        fn access(&self, id: ViewID, cx: &mut Context, nodes: &mut Vec<accesskit::Node>) -> Option<accesskit::NodeId> {
+        fn access(
+            &self,
+            id: ViewID,
+            cx: &mut Context,
+            nodes: &mut Vec<accesskit::Node>,
+        ) -> Option<accesskit::NodeId> {
             self.body().access(id, cx, nodes)
         }
     };
