@@ -52,6 +52,12 @@ where
         self.child.gc(id.child(&0), cx, map);
         self.background.gc(id.child(&1), cx, map);
     }
+
+    fn access(&self, id: ViewID, cx: &mut Context, nodes: &mut Vec<accesskit::Node>) -> Option<accesskit::NodeId> {
+        // XXX: if we were to create a node here, what role would it be?
+        //      could print a warning if there is an node produced by background.
+        self.child.access(id.child(&0), cx, nodes)
+    }
 }
 
 impl<V, BG> Background<V, BG>

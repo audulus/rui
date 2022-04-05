@@ -69,6 +69,10 @@ impl View for Circle {
     fn gc(&self, _id: ViewID, _cx: &mut Context, _map: &mut StateMap) {
         // do nothing
     }
+
+    fn access(&self, _id: ViewID, _cx: &mut Context, _nodes: &mut Vec<accesskit::Node>) -> Option<accesskit::NodeId> {
+        None
+    }
 }
 
 /// Renders a circle which expands to fill available space.
@@ -155,6 +159,10 @@ impl View for Rectangle {
 
     fn gc(&self, _id: ViewID, _cx: &mut Context, _map: &mut StateMap) {
         // do nothing
+    }
+
+    fn access(&self, _id: ViewID, _cx: &mut Context, _nodes: &mut Vec<accesskit::Node>) -> Option<accesskit::NodeId> {
+        None
     }
 }
 

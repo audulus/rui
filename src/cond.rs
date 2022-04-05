@@ -73,6 +73,14 @@ where
             self.if_false.gc(id.child(&1), cx, map)
         }
     }
+
+    fn access(&self, id: ViewID, cx: &mut Context, nodes: &mut Vec<accesskit::Node>) -> Option<accesskit::NodeId> {
+        if self.cond {
+            self.if_true.access(id.child(&0), cx, nodes)
+        } else {
+            self.if_false.access(id.child(&1), cx, nodes)
+        }
+    }
 }
 
 /// Switches between views according to a boolean.

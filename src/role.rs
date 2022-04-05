@@ -59,4 +59,19 @@ where
     fn gc(&self, id: ViewID, cx: &mut Context, map: &mut StateMap) {
         self.child.gc(id.child(&0), cx, map)
     }
+
+    fn access(&self, id: ViewID, cx: &mut Context, nodes: &mut Vec<accesskit::Node>) -> Option<accesskit::NodeId> {
+        let child_aid = self.child.access(id.child(&0), cx, nodes);
+        let aid = id.access_id();
+        nodes.push(
+            accesskit::Node {
+                children: match child_aid {
+                    Some(cid) => vec![cid],
+                    None => vec![]
+                },
+                ..accesskit::Node::new(aid, self.role)
+            }
+        );
+        Some(aid)
+    }
 }

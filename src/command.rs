@@ -71,6 +71,11 @@ where
     fn gc(&self, id: ViewID, cx: &mut Context, map: &mut StateMap) {
         self.child.gc(id.child(&0), cx, map);
     }
+
+    fn access(&self, _id: ViewID, _cx: &mut Context, _nodes: &mut Vec<accesskit::Node>) -> Option<accesskit::NodeId> {
+        // XXX: how does accesskit handle menu commands?
+        None
+    }
 }
 
 pub trait CommandBase {
@@ -280,6 +285,10 @@ where
 
     fn gc(&self, id: ViewID, cx: &mut Context, map: &mut StateMap) {
         self.child.gc(id.child(&0), cx, map)
+    }
+
+    fn access(&self, id: ViewID, cx: &mut Context, nodes: &mut Vec<accesskit::Node>) -> Option<accesskit::NodeId> {
+        self.child.access(id.child(&0), cx, nodes)
     }
 }
 

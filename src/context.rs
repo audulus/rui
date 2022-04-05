@@ -39,6 +39,10 @@ impl ViewID {
             id: hasher.finish(),
         }
     }
+
+    pub fn access_id(&self) -> accesskit::NodeId {
+        accesskit::NodeId(std::num::NonZeroU64::new(self.id).unwrap())
+    }
 }
 
 pub const DEBUG_LAYOUT: bool = false;
@@ -188,6 +192,26 @@ impl Context {
 
         if let Some(state) = s.as_any().downcast_ref::<State<S>>() {
             f(state.clone(), self, map)
+        } else {
+            panic!("state has wrong type")
+        }
+    }
+
+    pub fn with_state_access<S: Clone + 'static, R, F: Fn(State<S>, &mut Self, &mut Vec<accesskit::Node>) -> R>(
+        &mut self,
+        nodes: &mut Vec<accesskit::Node>,
+        default: S,
+        id: ViewID,
+        f: F,
+    ) -> R {
+        let d = self.dirty.clone();
+        let s = self
+            .state_map
+            .entry(id)
+            .or_insert_with(|| Box::new(State::new(default, d)));
+
+        if let Some(state) = s.as_any().downcast_ref::<State<S>>() {
+            f(state.clone(), self, nodes)
         } else {
             panic!("state has wrong type")
         }

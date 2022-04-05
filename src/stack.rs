@@ -170,6 +170,20 @@ impl<VT: ViewTuple> View for Stack<VT> {
             c += 1;
         });
     }
+
+    fn access(&self, id: ViewID, cx: &mut Context, nodes: &mut Vec<accesskit::Node>) -> Option<accesskit::NodeId> {
+        let mut c = 0;
+        let mut node = accesskit::Node::new(id.access_id(), accesskit::Role::List);
+        self.children.foreach_view(&mut |child| {
+            match child.access(id.child(&c), cx, nodes) {
+                Some(id) => node.children.push(id),
+                None => ()
+            };
+            c += 1;
+        });
+        nodes.push(node);
+        Some(id.access_id())
+    }
 }
 
 impl<VT: ViewTuple> Stack<VT> {

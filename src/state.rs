@@ -133,6 +133,12 @@ where
             (self.func)(state.clone()).gc(id.child(&0), cx, map);
         });
     }
+
+    fn access(&self, id: ViewID, cx: &mut Context, nodes: &mut Vec<accesskit::Node>) -> Option<accesskit::NodeId> {
+        cx.with_state_access(nodes, self.default.clone(), id, |state: State<S>, cx, nodes| {
+            (self.func)(state.clone()).access(id.child(&0), cx, nodes)
+        })
+    }
 }
 
 /// State allows you to associate some state with a view.

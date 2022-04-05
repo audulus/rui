@@ -52,7 +52,7 @@ where
             .drag(move |off, _state| {
                 value.with_mut(|v| *v = (*v + off.x / w).clamp(0.0, 1.0));
             })
-        })
+        }).role(accesskit::Role::Slider)
     }
 
     pub fn thumb_color(self, thumb_color: Color) -> Self {

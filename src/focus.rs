@@ -59,6 +59,10 @@ where
     fn gc(&self, id: ViewID, cx: &mut Context, map: &mut StateMap) {
         (self.func)(Some(id) == cx.focused_id).gc(id.child(&0), cx, map)
     }
+
+    fn access(&self, id: ViewID, cx: &mut Context, nodes: &mut Vec<accesskit::Node>) -> Option<accesskit::NodeId> {
+        (self.func)(Some(id) == cx.focused_id).access(id.child(&0), cx, nodes)
+    }
 }
 
 /// Calls calls a function with true if the view subtree returned

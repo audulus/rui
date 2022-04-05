@@ -110,6 +110,17 @@ where
             ((self.func)(child)).gc(id.child(child), cx, map)
         }
     }
+
+    fn access(&self, id: ViewID, cx: &mut Context, nodes: &mut Vec<accesskit::Node>) -> Option<accesskit::NodeId> {
+        let mut node = accesskit::Node::new(id.access_id(), accesskit::Role::List);
+        for child in &self.ids {
+            if let Some(i) = ((self.func)(child)).access(id.child(child), cx, nodes) {
+                node.children.push(i)
+            }
+        }
+        nodes.push(node);
+        Some(id.access_id())
+    }
 }
 
 /// Displays a list of items all of which are represented by the same View. See `examples/list.rs`.
