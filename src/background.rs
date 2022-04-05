@@ -69,3 +69,5 @@ where
         Self { child, background }
     }
 }
+
+impl<V: View, BG: View> crate::view::private::Sealed for Background<V, BG> {}

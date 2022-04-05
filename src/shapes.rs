@@ -75,6 +75,8 @@ impl View for Circle {
     }
 }
 
+impl crate::view::private::Sealed for Circle {}
+
 /// Renders a circle which expands to fill available space.
 pub fn circle() -> Circle {
     Circle {
@@ -165,6 +167,8 @@ impl View for Rectangle {
         None
     }
 }
+
+impl crate::view::private::Sealed for Rectangle {}
 
 /// Renders a rectangle which expands to fill available space.
 pub fn rectangle() -> Rectangle {

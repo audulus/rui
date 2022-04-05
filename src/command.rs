@@ -78,6 +78,8 @@ where
     }
 }
 
+impl<V, F> crate::view::private::Sealed for Command<V, F> where V: View, F: Fn() + 'static, {}
+
 pub trait CommandBase {
     fn exec(&self);
     fn name(&self) -> String;
@@ -218,7 +220,7 @@ impl<
     }
 }
 
-pub struct CommandGroup<V: View, C: CommandTuple> {
+pub struct CommandGroup<V, C> {
     child: V,
     cmds: C,
 }
@@ -291,6 +293,8 @@ where
         self.child.access(id.child(&0), cx, nodes)
     }
 }
+
+impl<V, C> crate::view::private::Sealed for CommandGroup<V, C> {}
 
 pub struct NullCommand {
     name: String,

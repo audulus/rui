@@ -131,7 +131,7 @@ impl TextEditorState {
 }
 
 /// Struct for `text_editor`.
-pub struct TextEditor<B: Binding<String>> {
+pub struct TextEditor<B> {
     text: B,
 }
 
@@ -187,6 +187,8 @@ where
 {
     body_view!();
 }
+
+impl<B> crate::view::private::Sealed for TextEditor<B> {}
 
 pub fn text_editor(text: impl Binding<String>) -> impl View {
     TextEditor { text: text }

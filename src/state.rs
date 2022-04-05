@@ -54,15 +54,15 @@ where
     }
 }
 
-struct StateView<S: 'static, V: View, F: Fn(State<S>) -> V> {
+struct StateView<S, F> {
     default: S,
     func: F,
 }
 
-impl<S, V, F> View for StateView<S, V, F>
+impl<S, V, F> View for StateView<S, F>
 where
     V: View,
-    S: Clone,
+    S: Clone + 'static,
     F: Fn(State<S>) -> V,
 {
     fn print(&self, id: ViewID, cx: &mut Context) {
@@ -140,6 +140,8 @@ where
         })
     }
 }
+
+impl<S, F> crate::view::private::Sealed for StateView<S, F> {}
 
 /// State allows you to associate some state with a view.
 /// This is what you'll use for a data model, as well as per-view state.

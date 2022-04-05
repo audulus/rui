@@ -123,6 +123,8 @@ where
     }
 }
 
+impl<ID, V, F> crate::view::private::Sealed for List<ID, V, F> where ID: Hash, V: View, F: Fn(&ID) -> V, {}
+
 /// Displays a list of items all of which are represented by the same View. See `examples/list.rs`.
 ///
 /// `ids` is a Vec of items that implement Hash.

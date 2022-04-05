@@ -97,3 +97,5 @@ where
         }
     }
 }
+
+impl<V> crate::view::private::Sealed for Padding<V> where V: View {}

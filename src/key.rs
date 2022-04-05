@@ -64,3 +64,5 @@ where
         self.child.access(id.child(&0), cx, nodes)
     }
 }
+
+impl<V, F> crate::view::private::Sealed for Key<V, F> where V: View, F: Fn(KeyPress) + 'static, {}

@@ -67,3 +67,5 @@ where
         }
     }
 }
+
+impl<V> crate::view::private::Sealed for Offset<V> where V: View, {}

@@ -17,7 +17,7 @@ pub struct Event {
 }
 
 /// Trait for the unit of UI composition.
-pub trait View {
+pub trait View: private::Sealed {
     /// Prints a description of the view for debugging.
     fn print(&self, id: ViewID, cx: &mut Context);
 
@@ -47,6 +47,11 @@ pub trait View {
 
     /// Builds an AccessKit tree. The node ID for the subtree is returned. All generated nodes are accumulated.
     fn access(&self, id: ViewID, cx: &mut Context, nodes: &mut Vec<accesskit::Node>) -> Option<accesskit::NodeId>;
+}
+
+// See https://rust-lang.github.io/api-guidelines/future-proofing.html
+pub(crate) mod private {
+    pub trait Sealed {}
 }
 
 pub struct EmptyView {}
@@ -82,3 +87,5 @@ impl View for EmptyView {
 
     fn access(&self, _id: ViewID, _cx: &mut Context, _nodes: &mut Vec<accesskit::Node>) -> Option<accesskit::NodeId> { None }
 }
+
+impl crate::view::private::Sealed for EmptyView {}

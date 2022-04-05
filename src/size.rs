@@ -52,6 +52,8 @@ where
     }
 }
 
+impl<V> crate::view::private::Sealed for Size<V> where V: View {}
+
 impl<V> Size<V>
 where
     V: View + 'static,

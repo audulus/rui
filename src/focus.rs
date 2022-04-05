@@ -65,6 +65,8 @@ where
     }
 }
 
+impl<V, F> crate::view::private::Sealed for Focus<V, F> where V: View, F: Fn(bool) -> V, {}
+
 /// Calls calls a function with true if the view subtree returned
 /// by the function has the keyboard focus.
 pub fn focus<V: View, F: Fn(bool) -> V + 'static>(f: F) -> Focus<V, F> {

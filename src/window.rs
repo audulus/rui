@@ -1,7 +1,7 @@
 use crate::*;
 
 /// Struct for the `window_title` modifier.
-pub struct TitleView<V: View> {
+pub struct TitleView<V> {
     child: V,
     title: String
 }
@@ -68,8 +68,10 @@ where
     }
 }
 
+impl<V> crate::view::private::Sealed for TitleView<V> {}
+
 /// Struct for the `fullscreen` modifier.
-pub struct FullscreenView<V: View> {
+pub struct FullscreenView<V> {
     child: V
 }
 
@@ -131,3 +133,5 @@ where
         self.child.access(id.child(&0), cx, nodes)
     }
 }
+
+impl<V> crate::view::private::Sealed for FullscreenView<V> {}

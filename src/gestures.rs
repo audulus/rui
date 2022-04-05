@@ -75,6 +75,8 @@ where
     }
 }
 
+impl<V, F> crate::view::private::Sealed for Tap<V, F> where V: View, F: Fn() + 'static, {}
+
 pub enum GestureState {
     Began,
     Changed,
@@ -167,3 +169,5 @@ where
         self.child.access(id.child(&0), cx, nodes)
     }
 }
+
+impl<V, F> crate::view::private::Sealed for Drag<V, F> where V: View, F: Fn(LocalOffset, GestureState) + 'static, {}

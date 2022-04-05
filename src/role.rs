@@ -75,3 +75,5 @@ where
         Some(aid)
     }
 }
+
+impl<V> crate::view::private::Sealed for RoleView<V> where V: View {}
