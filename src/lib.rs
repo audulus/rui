@@ -305,6 +305,8 @@ pub fn rui(view: impl View + 'static) {
 
     let mut modifiers = ModifiersState::default();
 
+    let mut access_nodes = vec![];
+
     event_loop.run(move |event, _, control_flow| {
         // ControlFlow::Poll continuously runs the event loop, even if the OS hasn't
         // dispatched any events. This is ideal for games and similar applications.
@@ -371,9 +373,15 @@ pub fn rui(view: impl View + 'static) {
                     // Get a new accesskit tree.
                     let mut nodes = vec![];
                     view.access(cx.root_id, &mut cx, &mut nodes);
-                    println!("access nodes:");
-                    for node in &nodes {
-                        println!("  id: {:?}, role: {:?}, children: {:?}", node.id, node.role, node.children);
+
+                    if nodes != access_nodes {
+                        println!("access nodes:");
+                        for node in &nodes {
+                            println!("  id: {:?}, role: {:?}, children: {:?}", node.id, node.role, node.children);
+                        }
+                        access_nodes = nodes;
+                    } else {
+                        println!("access nodes unchanged");
                     }
 
                     window.request_redraw();
