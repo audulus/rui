@@ -99,7 +99,7 @@ pub struct Context {
     pub focused_id: Option<ViewID>,
 
     /// Did state change?
-    pub dirty: Arc<Mutex<Dirty>>,
+    pub(crate) dirty: Arc<Mutex<Dirty>>,
 
     /// The tao window
     pub(crate) window: Window,
