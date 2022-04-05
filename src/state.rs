@@ -72,10 +72,10 @@ where
     }
 
     fn process(&self, event: &Event, id: ViewID, cx: &mut Context, vger: &mut VGER) {
-        cx.with_state_vger(
-            vger,
+        cx.with_state_aux(
             self.default.clone(),
             id,
+            vger,
             |state: State<S>, cx, vger| {
                 (self.func)(state.clone()).process(event, id.child(&0), cx, vger);
             },
@@ -83,10 +83,10 @@ where
     }
 
     fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
-        cx.with_state_vger(
-            vger,
+        cx.with_state_aux(
             self.default.clone(),
             id,
+            vger,
             |state: State<S>, cx, vger| {
                 (self.func)(state.clone()).draw(id.child(&0), cx, vger);
             },
@@ -94,10 +94,10 @@ where
     }
 
     fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
-        cx.with_state_vger(
-            vger,
+        cx.with_state_aux(
             self.default.clone(),
             id,
+            vger,
             |state: State<S>, cx, vger| {
                 (self.func)(state.clone()).layout(id.child(&0), sz, cx, vger)
             },
@@ -111,10 +111,10 @@ where
         cx: &mut Context,
         vger: &mut VGER,
     ) -> Option<ViewID> {
-        cx.with_state_vger(
-            vger,
+        cx.with_state_aux(
             self.default.clone(),
             id,
+            vger,
             |state: State<S>, cx, vger| {
                 (self.func)(state.clone()).hittest(id.child(&0), pt, cx, vger)
             },
@@ -128,14 +128,14 @@ where
     }
 
     fn gc(&self, id: ViewID, cx: &mut Context, map: &mut StateMap) {
-        cx.with_state_gc(map, self.default.clone(), id, |state: State<S>, cx, map| {
+        cx.with_state_aux(self.default.clone(), id, map, |state: State<S>, cx, map| {
             map.insert(id, Box::new(state.clone()));
             (self.func)(state.clone()).gc(id.child(&0), cx, map);
         });
     }
 
     fn access(&self, id: ViewID, cx: &mut Context, nodes: &mut Vec<accesskit::Node>) -> Option<accesskit::NodeId> {
-        cx.with_state_access(nodes, self.default.clone(), id, |state: State<S>, cx, nodes| {
+        cx.with_state_aux(self.default.clone(), id, nodes, |state: State<S>, cx, nodes| {
             (self.func)(state.clone()).access(id.child(&0), cx, nodes)
         })
     }

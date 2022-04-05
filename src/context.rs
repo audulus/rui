@@ -157,11 +157,11 @@ impl Context {
         }
     }
 
-    pub fn with_state_vger<S: Clone + 'static, R, F: Fn(State<S>, &mut Self, &mut VGER) -> R>(
+    pub fn with_state_aux<S: Clone + 'static, T, R, F: Fn(State<S>, &mut Self, &mut T) -> R>(
         &mut self,
-        vger: &mut VGER,
         default: S,
         id: ViewID,
+        aux: &mut T,
         f: F,
     ) -> R {
         let d = self.dirty.clone();
@@ -171,47 +171,7 @@ impl Context {
             .or_insert_with(|| Box::new(State::new(default, d)));
 
         if let Some(state) = s.as_any().downcast_ref::<State<S>>() {
-            f(state.clone(), self, vger)
-        } else {
-            panic!("state has wrong type")
-        }
-    }
-
-    pub fn with_state_gc<S: Clone + 'static, R, F: Fn(State<S>, &mut Self, &mut StateMap) -> R>(
-        &mut self,
-        map: &mut StateMap,
-        default: S,
-        id: ViewID,
-        f: F,
-    ) -> R {
-        let d = self.dirty.clone();
-        let s = self
-            .state_map
-            .entry(id)
-            .or_insert_with(|| Box::new(State::new(default, d)));
-
-        if let Some(state) = s.as_any().downcast_ref::<State<S>>() {
-            f(state.clone(), self, map)
-        } else {
-            panic!("state has wrong type")
-        }
-    }
-
-    pub fn with_state_access<S: Clone + 'static, R, F: Fn(State<S>, &mut Self, &mut Vec<accesskit::Node>) -> R>(
-        &mut self,
-        nodes: &mut Vec<accesskit::Node>,
-        default: S,
-        id: ViewID,
-        f: F,
-    ) -> R {
-        let d = self.dirty.clone();
-        let s = self
-            .state_map
-            .entry(id)
-            .or_insert_with(|| Box::new(State::new(default, d)));
-
-        if let Some(state) = s.as_any().downcast_ref::<State<S>>() {
-            f(state.clone(), self, nodes)
+            f(state.clone(), self, aux)
         } else {
             panic!("state has wrong type")
         }
