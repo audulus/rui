@@ -78,7 +78,7 @@ pub type StateMap = HashMap<ViewID, Box<dyn AnyState>>;
 /// shouldn't have to interact with it directly.
 pub struct Context {
     /// Map for `state`.
-    pub state_map: StateMap,
+    pub(crate) state_map: StateMap,
 
     /// Layout information for all views.
     pub(crate) layout: HashMap<ViewID, LayoutBox>,
