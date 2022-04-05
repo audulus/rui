@@ -189,3 +189,25 @@ macro_rules! bind2 {
         }
     }};
 }
+
+#[cfg(test)]
+mod tests {
+
+    use super::*;
+    use crate::*;
+    use std::sync::{Arc, Mutex};
+
+    #[derive(Clone)]
+    struct BindingTestData {
+        x: usize,
+    }
+
+    #[test]
+    fn test_bind() {
+        let dirty = Arc::new(Mutex::new(Dirty::new(None)));
+        let s = State::new(BindingTestData { x: 0 }, dirty);
+        let b = bind!(s, x);
+        b.set(42);
+        assert_eq!(s.get().x, 42);
+    }
+}

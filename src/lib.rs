@@ -518,7 +518,6 @@ pub fn rui(view: impl View + 'static) {
 mod tests {
 
     use super::*;
-    use std::sync::{Arc, Mutex};
 
     #[test]
     fn test_button() {
@@ -574,17 +573,4 @@ mod tests {
         let _ = state(42, |count: State<usize>| counter3(count));
     }
 
-    #[derive(Clone)]
-    struct BindingTestData {
-        x: usize,
-    }
-
-    #[test]
-    fn test_bind() {
-        let dirty = Arc::new(Mutex::new(Dirty::new(None)));
-        let s = State::new(BindingTestData { x: 0 }, dirty);
-        let b = bind!(s, x);
-        b.set(42);
-        assert_eq!(s.get().x, 42);
-    }
 }
