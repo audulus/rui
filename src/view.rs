@@ -42,7 +42,7 @@ pub trait View {
     /// Accumulates information about menu bar commands.
     fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<CommandInfo>);
 
-    /// Mark pass for garbage collection.
+    /// Copies state currently in use to a new StateMap (the rest are dropped).
     fn gc(&self, id: ViewID, cx: &mut Context, map: &mut StateMap);
 }
 
