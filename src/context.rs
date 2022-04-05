@@ -17,6 +17,7 @@ use std::hash::{Hash, Hasher};
 use std::sync::{Arc, Mutex};
 
 use tao::event_loop::EventLoopProxy;
+use tao::window::Window;
 
 /// `ViewID` is a unique identifier for a view. We're using a u64 and hashing
 /// under the assumption there won't be collsions. The underlying u64 is a function
@@ -99,10 +100,13 @@ pub struct Context {
 
     /// Did state change?
     pub dirty: Arc<Mutex<Dirty>>,
+
+    /// The tao window
+    pub window: Window,
 }
 
 impl Context {
-    pub fn new(event_loop_proxy: Option<EventLoopProxy<()>>) -> Self {
+    pub fn new(event_loop_proxy: Option<EventLoopProxy<()>>, window: Window) -> Self {
         Self {
             state_map: HashMap::new(),
             layout: HashMap::new(),
@@ -112,6 +116,7 @@ impl Context {
             root_id: ViewID::default(),
             focused_id: None,
             dirty: Arc::new(Mutex::new(Dirty::new(event_loop_proxy))),
+            window
         }
     }
 
