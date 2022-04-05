@@ -39,6 +39,9 @@ pub trait Modifiers: View + Sized {
 
     /// Specify the title of the window.
     fn window_title(self, title: &str) -> TitleView<Self>;
+
+    /// Make the window full screen.
+    fn fullscreen(self) -> FullscreenView<Self>;
 }
 
 impl<V: View + 'static> Modifiers for V {
@@ -82,5 +85,8 @@ impl<V: View + 'static> Modifiers for V {
     }
     fn window_title(self, title: &str) -> TitleView<Self> {
         TitleView::new(self, title)
+    }
+    fn fullscreen(self) -> FullscreenView<Self> {
+        FullscreenView::new(self)
     }
 }
