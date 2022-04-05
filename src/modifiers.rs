@@ -38,7 +38,7 @@ pub trait Modifiers: View + Sized {
     fn role(self, role: Role) -> RoleView<Self>;
 
     /// Specify the title of the window.
-    fn window_title(self, title: String) -> TitleView<Self>;
+    fn window_title(self, title: &str) -> TitleView<Self>;
 }
 
 impl<V: View + 'static> Modifiers for V {
@@ -80,7 +80,7 @@ impl<V: View + 'static> Modifiers for V {
     fn role(self, role: Role) -> RoleView<Self> {
         RoleView::new(self, role)
     }
-    fn window_title(self, title: String) -> TitleView<Self> {
+    fn window_title(self, title: &str) -> TitleView<Self> {
         TitleView::new(self, title)
     }
 }

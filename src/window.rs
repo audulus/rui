@@ -10,8 +10,8 @@ impl<V> TitleView<V>
 where
     V: View
 {
-    pub fn new(v: V, title: String) -> Self {
-        Self { child: v, title }
+    pub fn new(v: V, title: &str) -> Self {
+        Self { child: v, title: title.into() }
     }
 }
 

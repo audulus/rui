@@ -45,6 +45,6 @@ fn main() {
         text_editor_example(),
     ))
     .padding(Auto)
-    .window_title("rui widget gallery".into())
+    .window_title("rui widget gallery")
     )
 }
