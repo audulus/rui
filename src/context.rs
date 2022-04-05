@@ -93,7 +93,7 @@ pub struct Context {
     pub previous_position: [LocalPoint; 16],
 
     /// The root view ID. This should be randomized for security reasons.
-    pub root_id: ViewID,
+    pub(crate) root_id: ViewID,
 
     /// The view that has the keybord focus.
     pub(crate) focused_id: Option<ViewID>,
