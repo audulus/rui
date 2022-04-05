@@ -79,6 +79,6 @@ where
 
 /// Calls calls a function with true if the view subtree returned
 /// by the function has the keyboard focus.
-pub fn focus<V: View, F: Fn(bool) -> V + 'static>(f: F) -> Focus<V, F> {
+pub fn focus<V: View, F: Fn(bool) -> V + 'static>(f: F) -> impl View {
     Focus { func: f }
 }
