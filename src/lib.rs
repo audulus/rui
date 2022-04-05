@@ -87,6 +87,9 @@ pub use toggle::*;
 mod align;
 pub use align::*;
 
+mod role;
+pub use role::*;
+
 use futures::executor::block_on;
 use std::collections::HashMap;
 use vger::color::*;

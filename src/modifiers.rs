@@ -1,4 +1,5 @@
 use crate::*;
+use accesskit::Role;
 
 pub trait Modifiers: View + Sized {
     /// Adds space around a view. Can be either `Auto` or `Px(number_of_pixels)`
@@ -32,6 +33,9 @@ pub trait Modifiers: View + Sized {
 
     /// Responds to keyboard events
     fn key<F: Fn(KeyPress) + 'static>(self, f: F) -> Key<Self, F>;
+
+    /// Specify an accessiblity role.
+    fn role(self, role: Role) -> RoleView<Self>;
 }
 
 impl<V: View + 'static> Modifiers for V {
@@ -69,5 +73,8 @@ impl<V: View + 'static> Modifiers for V {
     }
     fn key<F: Fn(KeyPress) + 'static>(self, f: F) -> Key<Self, F> {
         Key::new(self, f)
+    }
+    fn role(self, role: Role) -> RoleView<Self> {
+        RoleView::new(self, role)
     }
 }
