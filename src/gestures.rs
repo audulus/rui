@@ -80,12 +80,7 @@ where
     }
 }
 
-impl<V, F> crate::view::private::Sealed for Tap<V, F>
-where
-    V: View,
-    F: Fn() + 'static,
-{
-}
+impl<V, F> crate::view::private::Sealed for Tap<V, F> {}
 
 pub enum GestureState {
     Began,
@@ -94,7 +89,7 @@ pub enum GestureState {
 }
 
 /// Struct for the `drag` gesture.
-pub struct Drag<V: View, F: Fn(LocalOffset, GestureState)> {
+pub struct Drag<V, F> {
     child: V,
     func: F,
 }
@@ -185,9 +180,4 @@ where
     }
 }
 
-impl<V, F> crate::view::private::Sealed for Drag<V, F>
-where
-    V: View,
-    F: Fn(LocalOffset, GestureState) + 'static,
-{
-}
+impl<V, F> crate::view::private::Sealed for Drag<V, F> {}
