@@ -70,4 +70,4 @@ where
     }
 }
 
-impl<V, F> crate::private::Sealed for Key<V, F> {}
+impl<V, F> private::Sealed for Key<V, F> {}

@@ -64,7 +64,7 @@ where
     }
 }
 
-impl<B> crate::private::Sealed for HSlider<B> {}
+impl<B> private::Sealed for HSlider<B> {}
 
 /// Horizontal slider built from other Views.
 pub fn hslider(value: impl Binding<f32>) -> HSlider<impl Binding<f32>> {
@@ -128,7 +128,7 @@ where
     }
 }
 
-impl<B> crate::private::Sealed for VSlider<B> {}
+impl<B> private::Sealed for VSlider<B> {}
 
 /// Horizontal slider built from other Views.
 pub fn vslider(value: impl Binding<f32>) -> VSlider<impl Binding<f32>> {

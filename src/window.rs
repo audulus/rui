@@ -71,7 +71,7 @@ where
     }
 }
 
-impl<V> crate::private::Sealed for TitleView<V> {}
+impl<V> private::Sealed for TitleView<V> {}
 
 /// Struct for the `fullscreen` modifier.
 pub struct FullscreenView<V> {
@@ -138,4 +138,4 @@ where
     }
 }
 
-impl<V> crate::private::Sealed for FullscreenView<V> {}
+impl<V> private::Sealed for FullscreenView<V> {}

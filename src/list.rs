@@ -128,7 +128,7 @@ where
     }
 }
 
-impl<ID, F> crate::private::Sealed for List<ID, F> {}
+impl<ID, F> private::Sealed for List<ID, F> {}
 
 /// Displays a list of items all of which are represented by the same View. See `examples/list.rs`.
 ///

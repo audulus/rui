@@ -188,7 +188,7 @@ where
     body_view!();
 }
 
-impl<B> crate::private::Sealed for TextEditor<B> {}
+impl<B> private::Sealed for TextEditor<B> {}
 
 pub fn text_editor(text: impl Binding<String>) -> impl View {
     TextEditor { text: text }

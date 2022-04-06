@@ -75,4 +75,4 @@ where
     }
 }
 
-impl<V, BG> crate::private::Sealed for Background<V, BG> {}
+impl<V, BG> private::Sealed for Background<V, BG> {}

@@ -71,4 +71,4 @@ pub fn canvas<F: Fn(LocalRect, &mut VGER) + 'static>(f: F) -> impl View {
     Canvas { func: f }
 }
 
-impl<F> crate::private::Sealed for Canvas<F> {}
+impl<F> private::Sealed for Canvas<F> {}

@@ -95,4 +95,4 @@ impl View for EmptyView {
     }
 }
 
-impl crate::private::Sealed for EmptyView {}
+impl private::Sealed for EmptyView {}

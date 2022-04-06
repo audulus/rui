@@ -80,7 +80,7 @@ where
     }
 }
 
-impl<V, F> crate::private::Sealed for Tap<V, F> {}
+impl<V, F> private::Sealed for Tap<V, F> {}
 
 pub enum GestureState {
     Began,
@@ -180,4 +180,4 @@ where
     }
 }
 
-impl<V, F> crate::private::Sealed for Drag<V, F> {}
+impl<V, F> private::Sealed for Drag<V, F> {}

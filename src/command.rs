@@ -83,7 +83,7 @@ where
     }
 }
 
-impl<V, F> crate::private::Sealed for Command<V, F>
+impl<V, F> private::Sealed for Command<V, F>
 where
     V: View,
     F: Fn() + 'static,
@@ -309,7 +309,7 @@ where
     }
 }
 
-impl<V, C> crate::private::Sealed for CommandGroup<V, C> {}
+impl<V, C> private::Sealed for CommandGroup<V, C> {}
 
 pub struct NullCommand {
     name: String,

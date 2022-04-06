@@ -80,7 +80,7 @@ impl View for Circle {
     }
 }
 
-impl crate::private::Sealed for Circle {}
+impl private::Sealed for Circle {}
 
 /// Renders a circle which expands to fill available space.
 pub fn circle() -> Circle {
@@ -178,7 +178,7 @@ impl View for Rectangle {
     }
 }
 
-impl crate::private::Sealed for Rectangle {}
+impl private::Sealed for Rectangle {}
 
 /// Renders a rectangle which expands to fill available space.
 pub fn rectangle() -> Rectangle {

@@ -152,7 +152,7 @@ where
     }
 }
 
-impl<S, F> crate::private::Sealed for StateView<S, F> {}
+impl<S, F> private::Sealed for StateView<S, F> {}
 
 /// State allows you to associate some state with a view.
 /// This is what you'll use for a data model, as well as per-view state.
