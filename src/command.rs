@@ -1,6 +1,6 @@
 pub use crate::*;
 
-pub struct Command<V: View, F: Fn()> {
+pub struct Command<V, F> {
     child: V,
     name: String,
     key: Option<KeyCode>,
