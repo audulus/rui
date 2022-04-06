@@ -3,7 +3,7 @@ use crate::*;
 const SLIDER_WIDTH: f32 = 4.0;
 const SLIDER_THUMB_RADIUS: f32 = 10.0;
 
-pub struct HSlider<B: Binding<f32>> {
+pub struct HSlider<B> {
     value: B,
     thumb: Color,
 }
@@ -64,7 +64,7 @@ where
     }
 }
 
-impl<B> crate::view::private::Sealed for HSlider<B> where B: Binding<f32> {}
+impl<B> crate::view::private::Sealed for HSlider<B> {}
 
 /// Horizontal slider built from other Views.
 pub fn hslider(value: impl Binding<f32>) -> HSlider<impl Binding<f32>> {
@@ -128,7 +128,7 @@ where
     }
 }
 
-impl<B> crate::view::private::Sealed for VSlider<B> where B: Binding<f32> {}
+impl<B> crate::view::private::Sealed for VSlider<B> {}
 
 /// Horizontal slider built from other Views.
 pub fn vslider(value: impl Binding<f32>) -> VSlider<impl Binding<f32>> {
