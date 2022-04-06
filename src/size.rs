@@ -1,7 +1,7 @@
 use crate::*;
 
 /// Struct for the `size` modifier.
-pub struct Size<V: View> {
+pub struct Size<V> {
     child: V,
     size: LocalSize,
 }
