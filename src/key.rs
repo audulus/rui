@@ -70,9 +70,4 @@ where
     }
 }
 
-impl<V, F> crate::view::private::Sealed for Key<V, F>
-where
-    V: View,
-    F: Fn(KeyPress) + 'static,
-{
-}
+impl<V, F> crate::view::private::Sealed for Key<V, F> {}
