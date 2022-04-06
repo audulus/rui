@@ -1,7 +1,7 @@
 pub use crate::*;
 
 /// Struct for the `key` modifier.
-pub struct Key<V: View, F: Fn(KeyPress)> {
+pub struct Key<V, F> {
     child: V,
     func: F,
 }
