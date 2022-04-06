@@ -1,7 +1,7 @@
 use crate::*;
 
 /// Struct for the `geom` modifier.
-pub struct Geom<V: View, F: Fn(LocalSize)> {
+pub struct Geom<V, F> {
     child: V,
     func: F,
 }
