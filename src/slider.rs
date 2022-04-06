@@ -74,7 +74,7 @@ pub fn hslider(value: impl Binding<f32>) -> HSlider<impl Binding<f32>> {
     }
 }
 
-pub struct VSlider<B: Binding<f32>> {
+pub struct VSlider<B> {
     value: B,
     thumb: Color,
 }
