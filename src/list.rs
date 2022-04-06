@@ -1,12 +1,12 @@
 use crate::*;
 use std::hash::Hash;
 
-pub struct List<ID: Hash, V: View, F: Fn(&ID) -> V> {
+pub struct List<ID, F> {
     ids: Vec<ID>,
     func: F,
 }
 
-impl<ID, V, F> View for List<ID, V, F>
+impl<ID, V, F> View for List<ID, F>
 where
     ID: Hash,
     V: View,
@@ -128,7 +128,7 @@ where
     }
 }
 
-impl<ID, V, F> crate::view::private::Sealed for List<ID, V, F>
+impl<ID, V, F> crate::view::private::Sealed for List<ID, F>
 where
     ID: Hash,
     V: View,
@@ -153,6 +153,6 @@ where
 ///     ))
 /// }));
 /// ```
-pub fn list<ID: Hash, V: View, F: Fn(&ID) -> V + 'static>(ids: Vec<ID>, f: F) -> List<ID, V, F> {
+pub fn list<ID: Hash, V: View, F: Fn(&ID) -> V + 'static>(ids: Vec<ID>, f: F) -> List<ID, F> {
     List { ids, func: f }
 }
