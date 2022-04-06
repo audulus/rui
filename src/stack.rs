@@ -12,7 +12,7 @@ pub enum StackOrientation {
     Z,
 }
 
-struct Stack<VT: ViewTuple> {
+struct Stack<VT> {
     orientation: StackOrientation,
     children: VT,
 }
