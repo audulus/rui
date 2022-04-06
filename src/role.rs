@@ -2,7 +2,7 @@ use crate::*;
 use accesskit::Role;
 
 /// Struct for the `role` modifier.
-pub struct RoleView<V: View> {
+pub struct RoleView<V> {
     child: V,
     role: Role,
 }
