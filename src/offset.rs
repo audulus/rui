@@ -73,4 +73,4 @@ where
     }
 }
 
-impl<V> crate::view::private::Sealed for Offset<V> {}
+impl<V> crate::private::Sealed for Offset<V> {}

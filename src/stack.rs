@@ -211,7 +211,7 @@ impl<VT: ViewTuple> Stack<VT> {
     }
 }
 
-impl<VT> crate::view::private::Sealed for Stack<VT> {}
+impl<VT> crate::private::Sealed for Stack<VT> {}
 
 impl<A: View> ViewTuple for (A,) {
     fn foreach_view<FN: FnMut(&dyn View)>(&self, f: &mut FN) {

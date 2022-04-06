@@ -59,7 +59,7 @@ where
     }
 }
 
-impl<V, F> crate::view::private::Sealed for Geom<V, F> {}
+impl<V, F> crate::private::Sealed for Geom<V, F> {}
 
 impl<V, F> Geom<V, F>
 where

@@ -103,4 +103,4 @@ where
     }
 }
 
-impl<V> crate::view::private::Sealed for Padding<V> {}
+impl<V> crate::private::Sealed for Padding<V> {}

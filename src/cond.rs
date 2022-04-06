@@ -88,7 +88,7 @@ where
     }
 }
 
-impl<V0, V1> crate::view::private::Sealed for Cond<V0, V1> {}
+impl<V0, V1> crate::private::Sealed for Cond<V0, V1> {}
 
 /// Switches between views according to a boolean.
 pub fn cond(cond: bool, if_true: impl View, if_false: impl View) -> impl View {

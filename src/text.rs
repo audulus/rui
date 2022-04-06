@@ -72,7 +72,7 @@ impl Text {
     }
 }
 
-impl crate::view::private::Sealed for Text {}
+impl crate::private::Sealed for Text {}
 
 /// Shows a string as a label (not editable).
 pub fn text(name: &str) -> Text {

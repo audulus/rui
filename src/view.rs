@@ -54,11 +54,6 @@ pub trait View: private::Sealed {
     ) -> Option<accesskit::NodeId>;
 }
 
-// See https://rust-lang.github.io/api-guidelines/future-proofing.html
-pub(crate) mod private {
-    pub trait Sealed {}
-}
-
 pub struct EmptyView {}
 
 impl View for EmptyView {
@@ -100,4 +95,4 @@ impl View for EmptyView {
     }
 }
 
-impl crate::view::private::Sealed for EmptyView {}
+impl crate::private::Sealed for EmptyView {}

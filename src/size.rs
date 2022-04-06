@@ -57,7 +57,7 @@ where
     }
 }
 
-impl<V> crate::view::private::Sealed for Size<V> {}
+impl<V> crate::private::Sealed for Size<V> {}
 
 impl<V> Size<V>
 where

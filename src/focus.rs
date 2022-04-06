@@ -70,7 +70,7 @@ where
     }
 }
 
-impl<F> crate::view::private::Sealed for Focus<F> {}
+impl<F> crate::private::Sealed for Focus<F> {}
 
 /// Calls calls a function with true if the view subtree returned
 /// by the function has the keyboard focus.

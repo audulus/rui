@@ -74,4 +74,4 @@ where
     }
 }
 
-impl<V> crate::view::private::Sealed for RoleView<V> {}
+impl<V> crate::private::Sealed for RoleView<V> {}
