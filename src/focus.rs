@@ -1,10 +1,10 @@
 pub use crate::*;
 
-pub struct Focus<V: View, F: Fn(bool) -> V> {
+pub struct Focus<F> {
     func: F,
 }
 
-impl<V, F> View for Focus<V, F>
+impl<V, F> View for Focus<F>
 where
     V: View,
     F: Fn(bool) -> V,
@@ -70,7 +70,7 @@ where
     }
 }
 
-impl<V, F> crate::view::private::Sealed for Focus<V, F>
+impl<V, F> crate::view::private::Sealed for Focus<F>
 where
     V: View,
     F: Fn(bool) -> V,
