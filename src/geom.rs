@@ -59,12 +59,7 @@ where
     }
 }
 
-impl<V, F> crate::view::private::Sealed for Geom<V, F>
-where
-    V: View,
-    F: Fn(LocalSize),
-{
-}
+impl<V, F> crate::view::private::Sealed for Geom<V, F> {}
 
 impl<V, F> Geom<V, F>
 where
