@@ -1,7 +1,7 @@
 use crate::*;
 
 /// Struct for `canvas`
-pub struct Canvas<F: Fn(LocalRect, &mut VGER)> {
+pub struct Canvas<F> {
     func: F,
 }
 
