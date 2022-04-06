@@ -1,7 +1,7 @@
 use crate::*;
 
 /// Struct for `cond`
-pub struct Cond<V0: View, V1: View> {
+pub struct Cond<V0, V1> {
     cond: bool,
     if_true: V0,
     if_false: V1,
