@@ -1,7 +1,7 @@
 use crate::*;
 
 /// Struct for the `padding` modifier.
-pub struct Padding<V: View> {
+pub struct Padding<V> {
     child: V,
     padding: f32,
 }
