@@ -1,7 +1,7 @@
 pub use crate::*;
 
 /// Struct for the `tap` gesture.
-pub struct Tap<V: View, F: Fn()> {
+pub struct Tap<V, F> {
     child: V,
     func: F,
 }
