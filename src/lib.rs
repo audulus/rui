@@ -350,7 +350,7 @@ pub fn rui(view: impl View + 'static) {
                 cx.window.request_redraw();
             }
             event::Event::UserEvent(_) => {
-                println!("received user event");
+                // println!("received user event");
             }
             event::Event::MainEventsCleared => {
                 // Application update code.
@@ -377,7 +377,7 @@ pub fn rui(view: impl View + 'static) {
                     // Clean up state.
                     let mut new_map = StateMap::new();
                     view.gc(cx.root_id, &mut cx, &mut new_map);
-                    println!("collected {} states", cx.state_map.len() - new_map.len());
+                    // println!("collected {} states", cx.state_map.len() - new_map.len());
                     cx.state_map = new_map;
 
                     // Get a new accesskit tree.
@@ -394,7 +394,7 @@ pub fn rui(view: impl View + 'static) {
                         }
                         access_nodes = nodes;
                     } else {
-                        println!("access nodes unchanged");
+                        // println!("access nodes unchanged");
                     }
 
                     cx.window.request_redraw();
