@@ -1,7 +1,7 @@
 use rui::*;
 
 fn main() {
-    rui(state(1, |count| {
+    rui(state(|| 1, |count| {
         vstack((
             text(&format!("{:?}", count.get())).padding(Auto),
             button(text("increment"), move || {

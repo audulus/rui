@@ -2,7 +2,7 @@ use rui::*;
 use std::{thread, time};
 
 fn main() {
-    rui(state("task not started".to_string(), |s| {
+    rui(state(|| "task not started".to_string(), |s| {
         let txt = s.get();
         hstack((
             button(text("press to begin"), move || {

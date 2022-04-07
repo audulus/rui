@@ -57,26 +57,27 @@ where
     }
 }
 
-struct StateView<S, F> {
-    default: S,
+struct StateView<D, F> {
+    default: D,
     func: F,
 }
 
-impl<S, V, F> View for StateView<S, F>
+impl<S, V, D, F> View for StateView<D, F>
 where
     V: View,
     S: Clone + 'static,
+    D: Fn() -> S,
     F: Fn(State<S>) -> V,
 {
     fn print(&self, id: ViewID, cx: &mut Context) {
-        cx.with_state(self.default.clone(), id, |state: State<S>, cx| {
+        cx.with_state(&self.default, id, |state: State<S>, cx| {
             (self.func)(state.clone()).print(id.child(&0), cx);
         });
     }
 
     fn process(&self, event: &Event, id: ViewID, cx: &mut Context, vger: &mut VGER) {
         cx.with_state_aux(
-            self.default.clone(),
+            &self.default,
             id,
             vger,
             |state: State<S>, cx, vger| {
@@ -87,7 +88,7 @@ where
 
     fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
         cx.with_state_aux(
-            self.default.clone(),
+            &self.default,
             id,
             vger,
             |state: State<S>, cx, vger| {
@@ -98,7 +99,7 @@ where
 
     fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
         cx.with_state_aux(
-            self.default.clone(),
+            &self.default,
             id,
             vger,
             |state: State<S>, cx, vger| {
@@ -115,7 +116,7 @@ where
         vger: &mut VGER,
     ) -> Option<ViewID> {
         cx.with_state_aux(
-            self.default.clone(),
+            &self.default,
             id,
             vger,
             |state: State<S>, cx, vger| {
@@ -125,13 +126,13 @@ where
     }
 
     fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
-        cx.with_state_mut(self.default.clone(), id, &mut |state: State<S>, cx| {
+        cx.with_state_mut(&self.default, id, &mut |state: State<S>, cx| {
             (self.func)(state.clone()).commands(id.child(&0), cx, cmds);
         });
     }
 
     fn gc(&self, id: ViewID, cx: &mut Context, map: &mut StateMap) {
-        cx.with_state_aux(self.default.clone(), id, map, |state: State<S>, cx, map| {
+        cx.with_state_aux(&self.default, id, map, |state: State<S>, cx, map| {
             map.insert(id, Box::new(state.clone()));
             (self.func)(state.clone()).gc(id.child(&0), cx, map);
         });
@@ -144,7 +145,7 @@ where
         nodes: &mut Vec<accesskit::Node>,
     ) -> Option<accesskit::NodeId> {
         cx.with_state_aux(
-            self.default.clone(),
+            &self.default,
             id,
             nodes,
             |state: State<S>, cx, nodes| (self.func)(state.clone()).access(id.child(&0), cx, nodes),
@@ -161,8 +162,8 @@ impl<S, F> private::Sealed for StateView<S, F> {}
 /// `initial` is the initial value for your state.
 ///
 /// `f` callback which is passed a `State<S>`
-pub fn state<S: Clone + 'static, V: View + 'static, F: Fn(State<S>) -> V + 'static>(
-    initial: S,
+pub fn state<S: Clone + 'static, V: View + 'static, D: Fn() -> S + 'static, F: Fn(State<S>) -> V + 'static>(
+    initial: D,
     f: F,
 ) -> impl View + 'static {
     StateView {

@@ -22,7 +22,7 @@ where
     fn body(&self) -> impl View {
         let value = self.value.clone();
         let thumb_color = self.thumb;
-        state(0.0, move |width| {
+        state(|| 0.0, move |width| {
             let w = width.get();
             let x = value.get() * w;
             let value = value.clone();
@@ -93,7 +93,7 @@ where
     fn body(&self) -> impl View {
         let value = self.value.clone();
         let thumb_color = self.thumb;
-        state(0.0, move |height| {
+        state(|| 0.0, move |height| {
             let h = height.get();
             let y = value.get() * h;
             let value = value.clone();

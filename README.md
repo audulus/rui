@@ -24,7 +24,7 @@ obligatory Counter (`cargo run --example counter`):
 use rui::*;
 
 fn main() {
-    rui(state(1, |count| {
+    rui(state(|| 1, |count| {
         vstack((
             text(&format!("{:?}", count.get())).padding(Auto),
             button(text("increment"), move || {
@@ -94,7 +94,7 @@ struct MyState {
 }
 
 fn main() {
-    rui(state(MyState { value: 0.0 }, |state| {
+    rui(state(|| MyState { value: 0.0 }, |state| {
         vstack((
             text(&format!("value: {:?}", state.get().value)).padding(Auto),
             hslider(bind!(state, value))

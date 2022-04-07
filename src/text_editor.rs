@@ -143,7 +143,7 @@ where
         let text = self.text.clone();
         focus(move |has_focus| {
             let text = text.clone();
-            state(TextEditorState::new(), move |state| {
+            state(|| TextEditorState::new(), move |state| {
                 let text = text.clone();
                 let text2 = text.clone();
                 let cursor = state.with(|s| s.cursor);

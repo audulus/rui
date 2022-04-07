@@ -127,9 +127,9 @@ impl Context {
         }
     }
 
-    pub fn with_state<S: Clone + 'static, R, F: Fn(State<S>, &mut Self) -> R>(
+    pub fn with_state<S: Clone + 'static, R, D: Fn() -> S, F: Fn(State<S>, &mut Self) -> R>(
         &mut self,
-        default: S,
+        default: &D,
         id: ViewID,
         f: F,
     ) -> R {
@@ -137,7 +137,7 @@ impl Context {
         let s = self
             .state_map
             .entry(id)
-            .or_insert_with(|| Box::new(State::new(default, d)));
+            .or_insert_with(|| Box::new(State::new(default(), d)));
 
         if let Some(state) = s.as_any().downcast_ref::<State<S>>() {
             f(state.clone(), self)
@@ -146,9 +146,9 @@ impl Context {
         }
     }
 
-    pub fn with_state_mut<S: Clone + 'static, R, F: FnMut(State<S>, &mut Self) -> R>(
+    pub fn with_state_mut<S: Clone + 'static, R, D: Fn() -> S, F: FnMut(State<S>, &mut Self) -> R>(
         &mut self,
-        default: S,
+        default: &D,
         id: ViewID,
         f: &mut F,
     ) -> R {
@@ -156,7 +156,7 @@ impl Context {
         let s = self
             .state_map
             .entry(id)
-            .or_insert_with(|| Box::new(State::new(default, d)));
+            .or_insert_with(|| Box::new(State::new(default(), d)));
 
         if let Some(state) = s.as_any().downcast_ref::<State<S>>() {
             f(state.clone(), self)
@@ -165,9 +165,9 @@ impl Context {
         }
     }
 
-    pub fn with_state_aux<S: Clone + 'static, T, R, F: Fn(State<S>, &mut Self, &mut T) -> R>(
+    pub fn with_state_aux<S: Clone + 'static, T, R, D: Fn() -> S, F: Fn(State<S>, &mut Self, &mut T) -> R>(
         &mut self,
-        default: S,
+        default: &D,
         id: ViewID,
         aux: &mut T,
         f: F,
@@ -176,7 +176,7 @@ impl Context {
         let s = self
             .state_map
             .entry(id)
-            .or_insert_with(|| Box::new(State::new(default, d)));
+            .or_insert_with(|| Box::new(State::new(default(), d)));
 
         if let Some(state) = s.as_any().downcast_ref::<State<S>>() {
             f(state.clone(), self, aux)
