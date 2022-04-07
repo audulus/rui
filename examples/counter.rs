@@ -5,7 +5,7 @@ fn main() {
         || 1,
         |count| {
             vstack((
-                text(&format!("{:?}", count.get())).padding(Auto),
+                text(&format!("{}", count.get())).padding(Auto),
                 button(text("increment"), move || {
                     count.with_mut(|x| *x += 1);
                 })
