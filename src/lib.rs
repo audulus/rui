@@ -547,7 +547,7 @@ mod tests {
     // }
 
     fn counter(start: usize) -> impl View {
-        state(start, |count: State<usize>| {
+        state(move || start, |count: State<usize>| {
             let count2 = count.clone();
             let value_string = format!("value: {:?}", count.get());
             vstack((
@@ -583,6 +583,6 @@ mod tests {
 
     #[test]
     fn test_binding() {
-        let _ = state(42, |count: State<usize>| counter3(count));
+        let _ = state(|| 42, |count: State<usize>| counter3(count));
     }
 }
