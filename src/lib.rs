@@ -508,7 +508,7 @@ pub fn rui(view: impl View + 'static) {
                 ..
             } => {
                 modifiers = mods;
-                println!("modifiers changed: {:?}", modifiers);
+                // println!("modifiers changed: {:?}", modifiers);
             }
             event::Event::MenuEvent { menu_id, .. } => {
                 //println!("menu event");
