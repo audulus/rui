@@ -143,40 +143,43 @@ where
         let text = self.text.clone();
         focus(move |has_focus| {
             let text = text.clone();
-            state(|| TextEditorState::new(), move |state| {
-                let text = text.clone();
-                let text2 = text.clone();
-                let cursor = state.with(|s| s.cursor);
-                let state2 = state.clone();
-                canvas(move |rect, vger| {
-                    vger.translate([0.0, rect.height()]);
-                    let font_size = 18;
-                    let break_width = Some(rect.width());
+            state(
+                || TextEditorState::new(),
+                move |state| {
+                    let text = text.clone();
+                    let text2 = text.clone();
+                    let cursor = state.with(|s| s.cursor);
+                    let state2 = state.clone();
+                    canvas(move |rect, vger| {
+                        vger.translate([0.0, rect.height()]);
+                        let font_size = 18;
+                        let break_width = Some(rect.width());
 
-                    let rects = vger.glyph_positions(&text.get(), font_size, break_width);
-                    let lines = vger.line_metrics(&text.get(), font_size, break_width);
+                        let rects = vger.glyph_positions(&text.get(), font_size, break_width);
+                        let lines = vger.line_metrics(&text.get(), font_size, break_width);
 
-                    vger.text(&text.get(), font_size, TEXT_COLOR, break_width);
+                        vger.text(&text.get(), font_size, TEXT_COLOR, break_width);
 
-                    if has_focus {
-                        let glyph_rect_paint = vger.color_paint(vger::Color::MAGENTA);
-                        let r = rects[cursor];
-                        vger.fill_rect(
-                            LocalRect::new(r.origin, [2.0, 20.0].into()),
-                            0.0,
-                            glyph_rect_paint,
-                        );
-                    }
+                        if has_focus {
+                            let glyph_rect_paint = vger.color_paint(vger::Color::MAGENTA);
+                            let r = rects[cursor];
+                            vger.fill_rect(
+                                LocalRect::new(r.origin, [2.0, 20.0].into()),
+                                0.0,
+                                glyph_rect_paint,
+                            );
+                        }
 
-                    state2.get().glyph_info.borrow_mut().glyph_rects = rects;
-                    state2.get().glyph_info.borrow_mut().lines = lines;
-                })
-                .key(move |k| {
-                    if has_focus {
-                        state.with_mut(|s| s.key(&k, &text2))
-                    }
-                })
-            })
+                        state2.get().glyph_info.borrow_mut().glyph_rects = rects;
+                        state2.get().glyph_info.borrow_mut().lines = lines;
+                    })
+                    .key(move |k| {
+                        if has_focus {
+                            state.with_mut(|s| s.key(&k, &text2))
+                        }
+                    })
+                },
+            )
         })
     }
 }

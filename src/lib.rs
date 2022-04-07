@@ -547,21 +547,24 @@ mod tests {
     // }
 
     fn counter(start: usize) -> impl View {
-        state(move || start, |count: State<usize>| {
-            let count2 = count.clone();
-            let value_string = format!("value: {:?}", count.get());
-            vstack((
-                text(value_string.as_str()),
-                button(text("increment"), move || {
-                    let value = count.get();
-                    count.set(value + 1);
-                }),
-                button(text("decrement"), move || {
-                    let value = count2.get();
-                    count2.set(value - 1);
-                }),
-            ))
-        })
+        state(
+            move || start,
+            |count: State<usize>| {
+                let count2 = count.clone();
+                let value_string = format!("value: {:?}", count.get());
+                vstack((
+                    text(value_string.as_str()),
+                    button(text("increment"), move || {
+                        let value = count.get();
+                        count.set(value + 1);
+                    }),
+                    button(text("decrement"), move || {
+                        let value = count2.get();
+                        count2.set(value - 1);
+                    }),
+                ))
+            },
+        )
     }
 
     fn counter3<B>(count: B) -> impl View

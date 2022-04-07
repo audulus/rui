@@ -146,7 +146,12 @@ impl Context {
         }
     }
 
-    pub fn with_state_mut<S: Clone + 'static, R, D: Fn() -> S, F: FnMut(State<S>, &mut Self) -> R>(
+    pub fn with_state_mut<
+        S: Clone + 'static,
+        R,
+        D: Fn() -> S,
+        F: FnMut(State<S>, &mut Self) -> R,
+    >(
         &mut self,
         default: &D,
         id: ViewID,
@@ -165,7 +170,13 @@ impl Context {
         }
     }
 
-    pub fn with_state_aux<S: Clone + 'static, T, R, D: Fn() -> S, F: Fn(State<S>, &mut Self, &mut T) -> R>(
+    pub fn with_state_aux<
+        S: Clone + 'static,
+        T,
+        R,
+        D: Fn() -> S,
+        F: Fn(State<S>, &mut Self, &mut T) -> R,
+    >(
         &mut self,
         default: &D,
         id: ViewID,

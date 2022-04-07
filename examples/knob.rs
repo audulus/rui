@@ -6,10 +6,13 @@ struct MyState {
 }
 
 fn main() {
-    rui(state(|| MyState { value: 0.0 }, |state| {
-        vstack((
-            text(&format!("value: {:?}", state.get().value)).padding(Auto),
-            knob(bind_no_clone!(state, MyState, value, f32)).padding(Auto),
-        ))
-    }));
+    rui(state(
+        || MyState { value: 0.0 },
+        |state| {
+            vstack((
+                text(&format!("value: {:?}", state.get().value)).padding(Auto),
+                knob(bind_no_clone!(state, MyState, value, f32)).padding(Auto),
+            ))
+        },
+    ));
 }

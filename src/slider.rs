@@ -22,37 +22,40 @@ where
     fn body(&self) -> impl View {
         let value = self.value.clone();
         let thumb_color = self.thumb;
-        state(|| 0.0, move |width| {
-            let w = width.get();
-            let x = value.get() * w;
-            let value = value.clone();
+        state(
+            || 0.0,
+            move |width| {
+                let w = width.get();
+                let x = value.get() * w;
+                let value = value.clone();
 
-            canvas(move |sz, vger| {
-                let c = sz.center();
-                let paint = vger.color_paint(BUTTON_BACKGROUND_COLOR);
-                vger.fill_rect(
-                    euclid::rect(0.0, c.y - SLIDER_WIDTH / 2.0, sz.width(), SLIDER_WIDTH),
-                    0.0,
-                    paint,
-                );
-                let paint = vger.color_paint(AZURE_HIGHLIGHT_BACKGROUND);
-                vger.fill_rect(
-                    euclid::rect(0.0, c.y - SLIDER_WIDTH / 2.0, x, SLIDER_WIDTH),
-                    0.0,
-                    paint,
-                );
-                let paint = vger.color_paint(thumb_color);
-                vger.fill_circle([x, c.y], SLIDER_THUMB_RADIUS, paint);
-            })
-            .geom(move |sz| {
-                if sz.width != w {
-                    width.set(sz.width)
-                }
-            })
-            .drag(move |off, _state| {
-                value.with_mut(|v| *v = (*v + off.x / w).clamp(0.0, 1.0));
-            })
-        })
+                canvas(move |sz, vger| {
+                    let c = sz.center();
+                    let paint = vger.color_paint(BUTTON_BACKGROUND_COLOR);
+                    vger.fill_rect(
+                        euclid::rect(0.0, c.y - SLIDER_WIDTH / 2.0, sz.width(), SLIDER_WIDTH),
+                        0.0,
+                        paint,
+                    );
+                    let paint = vger.color_paint(AZURE_HIGHLIGHT_BACKGROUND);
+                    vger.fill_rect(
+                        euclid::rect(0.0, c.y - SLIDER_WIDTH / 2.0, x, SLIDER_WIDTH),
+                        0.0,
+                        paint,
+                    );
+                    let paint = vger.color_paint(thumb_color);
+                    vger.fill_circle([x, c.y], SLIDER_THUMB_RADIUS, paint);
+                })
+                .geom(move |sz| {
+                    if sz.width != w {
+                        width.set(sz.width)
+                    }
+                })
+                .drag(move |off, _state| {
+                    value.with_mut(|v| *v = (*v + off.x / w).clamp(0.0, 1.0));
+                })
+            },
+        )
         .role(accesskit::Role::Slider)
     }
 
@@ -93,31 +96,34 @@ where
     fn body(&self) -> impl View {
         let value = self.value.clone();
         let thumb_color = self.thumb;
-        state(|| 0.0, move |height| {
-            let h = height.get();
-            let y = value.get() * h;
-            let value = value.clone();
+        state(
+            || 0.0,
+            move |height| {
+                let h = height.get();
+                let y = value.get() * h;
+                let value = value.clone();
 
-            canvas(move |sz, vger| {
-                let c = sz.center();
-                let paint = vger.color_paint(BUTTON_BACKGROUND_COLOR);
-                vger.fill_rect(
-                    euclid::rect(c.x - SLIDER_WIDTH / 2.0, 0.0, SLIDER_WIDTH, sz.height()),
-                    0.0,
-                    paint,
-                );
-                let paint = vger.color_paint(thumb_color);
-                vger.fill_circle([c.x, y], SLIDER_THUMB_RADIUS, paint);
-            })
-            .geom(move |sz| {
-                if sz.height != h {
-                    height.set(sz.width)
-                }
-            })
-            .drag(move |off, _state| {
-                value.with_mut(|v| *v = (*v + off.y / h).clamp(0.0, 1.0));
-            })
-        })
+                canvas(move |sz, vger| {
+                    let c = sz.center();
+                    let paint = vger.color_paint(BUTTON_BACKGROUND_COLOR);
+                    vger.fill_rect(
+                        euclid::rect(c.x - SLIDER_WIDTH / 2.0, 0.0, SLIDER_WIDTH, sz.height()),
+                        0.0,
+                        paint,
+                    );
+                    let paint = vger.color_paint(thumb_color);
+                    vger.fill_circle([c.x, y], SLIDER_THUMB_RADIUS, paint);
+                })
+                .geom(move |sz| {
+                    if sz.height != h {
+                        height.set(sz.width)
+                    }
+                })
+                .drag(move |off, _state| {
+                    value.with_mut(|v| *v = (*v + off.y / h).clamp(0.0, 1.0));
+                })
+            },
+        )
     }
 
     pub fn thumb_color(self, thumb_color: Color) -> Self {
