@@ -127,6 +127,20 @@ impl Context {
         }
     }
 
+    pub fn get_state<S: Clone + 'static, D: Fn() -> S>(&mut self, id: ViewID, default: &D) -> State<S> {
+        let d = self.dirty.clone();
+        let s = self
+            .state_map
+            .entry(id)
+            .or_insert_with(|| Box::new(State::new(default(), d)));
+
+        if let Some(state) = s.as_any().downcast_ref::<State<S>>() {
+            state.clone()
+        } else {
+            panic!("state has wrong type")
+        }
+    }
+
     pub fn with_state<S: Clone + 'static, R, D: Fn() -> S, F: Fn(State<S>, &mut Self) -> R>(
         &mut self,
         default: &D,
