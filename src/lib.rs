@@ -9,6 +9,9 @@ pub use binding::*;
 mod state;
 pub use state::*;
 
+mod gstate;
+pub use gstate::*;
+
 mod text;
 pub use text::*;
 
@@ -110,6 +113,9 @@ use tao::{
 };
 
 use std::env;
+
+#[macro_use]
+extern crate lazy_static;
 
 // See https://rust-lang.github.io/api-guidelines/future-proofing.html
 pub(crate) mod private {
