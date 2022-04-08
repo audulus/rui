@@ -1,26 +1,10 @@
 pub use crate::*;
-use std::cell::RefCell;
-use std::rc::Rc;
-
-#[derive(Clone)]
-struct TextEditorGlyphInfo {
-    glyph_rects: Vec<LocalRect>,
-    lines: Vec<LineMetrics>,
-}
-
-impl TextEditorGlyphInfo {
-    fn new() -> Self {
-        Self {
-            glyph_rects: vec![],
-            lines: vec![],
-        }
-    }
-}
 
 #[derive(Clone)]
 struct TextEditorState {
     cursor: usize,
-    glyph_info: TextEditorGlyphInfo,
+    glyph_rects: Vec<LocalRect>,
+    lines: Vec<LineMetrics>,
 }
 
 impl TextEditorState {
@@ -38,7 +22,7 @@ impl TextEditorState {
 
     fn find_line(&self) -> usize {
         let mut i = 0;
-        for line in &self.glyph_info.lines {
+        for line in &self.lines {
             if self.cursor >= line.glyph_start && self.cursor < line.glyph_end {
                 break;
             }
@@ -66,24 +50,22 @@ impl TextEditorState {
     }
 
     fn down(&mut self) {
-        let rects = &self.glyph_info.glyph_rects;
-        let p = rects[self.cursor].center();
+        let p = self.glyph_rects[self.cursor].center();
 
         let line = self.find_line() + 1;
-        if line < self.glyph_info.lines.len() {
-            let metrics = self.glyph_info.lines[line];
-            self.cursor = self.closest_in_range(p, metrics.glyph_start..metrics.glyph_end, rects);
+        if line < self.lines.len() {
+            let metrics = self.lines[line];
+            self.cursor = self.closest_in_range(p, metrics.glyph_start..metrics.glyph_end, &self.glyph_rects);
         }
     }
 
     fn up(&mut self) {
-        let rects = &self.glyph_info.glyph_rects;
-        let p = rects[self.cursor].center();
+        let p = self.glyph_rects[self.cursor].center();
 
         let line = self.find_line();
         if line > 0 {
-            let metrics = self.glyph_info.lines[line - 1];
-            self.cursor = self.closest_in_range(p, metrics.glyph_start..metrics.glyph_end, rects);
+            let metrics = self.lines[line - 1];
+            self.cursor = self.closest_in_range(p, metrics.glyph_start..metrics.glyph_end, &self.glyph_rects);
         }
     }
 
@@ -124,7 +106,8 @@ impl TextEditorState {
     fn new() -> Self {
         Self {
             cursor: 0,
-            glyph_info: TextEditorGlyphInfo::new(),
+            glyph_rects: vec![],
+            lines: vec![],
         }
     }
 }
@@ -169,7 +152,7 @@ where
                             );
                         }
 
-                        state2.with_mut(|s| { s.glyph_info.glyph_rects = rects; s.glyph_info.lines = lines; });
+                        state2.with_mut(|s| { s.glyph_rects = rects; s.lines = lines; });
                     })
                     .key(move |k| {
                         if has_focus {
