@@ -432,6 +432,11 @@ pub fn rui(view: impl View + 'static) {
                 view.layout(cx.root_id, [width, height].into(), &mut cx, &mut vger);
                 view.draw(cx.root_id, &mut cx, &mut vger);
 
+                // After rendering, clearly the dirty flag in case rendering
+                // updated some state (for example, saving off geometric information
+                // when drawing with Canvas).
+                cx.dirty.lock().unwrap().dirty = false;
+
                 let texture_view = frame
                     .texture
                     .create_view(&wgpu::TextureViewDescriptor::default());
