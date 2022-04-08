@@ -24,7 +24,7 @@ use tao::window::Window;
 /// of the path down the view tree.
 #[derive(Copy, Clone, Default, Eq, PartialEq, Hash, Debug)]
 pub struct ViewID {
-    id: u64,
+    pub id: u64,
 }
 
 impl ViewID {
@@ -119,7 +119,7 @@ impl Context {
             touches: [ViewID::default(); 16],
             starts: [LocalPoint::zero(); 16],
             previous_position: [LocalPoint::zero(); 16],
-            root_id: ViewID::default(),
+            root_id: ViewID { id: 1 },
             focused_id: None,
             dirty: Arc::new(Mutex::new(Dirty::new(event_loop_proxy))),
             window,
