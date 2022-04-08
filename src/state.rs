@@ -194,18 +194,21 @@ where
     }
 
     fn process(&self, event: &Event, id: ViewID, cx: &mut Context, vger: &mut VGER) {
-        let mut s = (self.default)();
-        (self.func)(&mut s).process(event, id.child(&0), cx, vger);
+        cx.get_state(id, &self.default).with_mut(|x|
+            (self.func)(x).process(event, id.child(&0), cx, vger)
+        )
     }
 
     fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
-        let mut s = (self.default)();
-        (self.func)(&mut s).draw(id.child(&0), cx, vger);
+        cx.get_state(id, &self.default).with_mut(|x|
+            (self.func)(x).draw(id.child(&0), cx, vger)
+        )
     }
 
     fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
-        let mut s = (self.default)();
-        (self.func)(&mut s).layout(id.child(&0), sz, cx, vger)
+        cx.get_state(id, &self.default).with_mut(|x|
+            (self.func)(x).layout(id.child(&0), sz, cx, vger)
+        )
     }
 
     fn hittest(
@@ -215,13 +218,15 @@ where
         cx: &mut Context,
         vger: &mut VGER,
     ) -> Option<ViewID> {
-        let mut s = (self.default)();
-        (self.func)(&mut s).hittest(id.child(&0), pt, cx, vger)
+        cx.get_state(id, &self.default).with_mut(|x|
+            (self.func)(x).hittest(id.child(&0), pt, cx, vger)
+        )
     }
 
     fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
-        let mut s = (self.default)();
-        (self.func)(&mut s).commands(id.child(&0), cx, cmds);
+        cx.get_state(id, &self.default).with_mut(|x|
+            (self.func)(x).commands(id.child(&0), cx, cmds)
+        )
     }
 
     fn gc(&self, id: ViewID, cx: &mut Context, map: &mut StateMap) {
@@ -237,8 +242,9 @@ where
         cx: &mut Context,
         nodes: &mut Vec<accesskit::Node>,
     ) -> Option<accesskit::NodeId> {
-        let mut s = (self.default)();
-        (self.func)(&mut s).access(id.child(&0), cx, nodes)
+        cx.get_state(id, &self.default).with_mut(|x|
+            (self.func)(x).access(id.child(&0), cx, nodes)
+        )
     }
 }
 
