@@ -174,3 +174,86 @@ mod tests {
         assert_eq!(s2.get(), 42);
     }
 }
+
+struct StateView2<D, F> {
+    default: D,
+    func: F,
+}
+
+impl<S, V, D, F> View for StateView2<D, F>
+where
+    V: View,
+    S: Clone + 'static,
+    D: Fn() -> S,
+    F: Fn(&mut S) -> V,
+{
+    fn print(&self, id: ViewID, cx: &mut Context) {
+        let mut s = (self.default)();
+        (self.func)(&mut s).print(id.child(&0), cx);
+    }
+
+    fn process(&self, event: &Event, id: ViewID, cx: &mut Context, vger: &mut VGER) {
+        let mut s = (self.default)();
+        (self.func)(&mut s).process(event, id.child(&0), cx, vger);
+    }
+
+    fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
+        let mut s = (self.default)();
+        (self.func)(&mut s).draw(id.child(&0), cx, vger);
+    }
+
+    fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
+        let mut s = (self.default)();
+        (self.func)(&mut s).layout(id.child(&0), sz, cx, vger)
+    }
+
+    fn hittest(
+        &self,
+        id: ViewID,
+        pt: LocalPoint,
+        cx: &mut Context,
+        vger: &mut VGER,
+    ) -> Option<ViewID> {
+        let mut s = (self.default)();
+        (self.func)(&mut s).hittest(id.child(&0), pt, cx, vger)
+    }
+
+    fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
+        let mut s = (self.default)();
+        (self.func)(&mut s).commands(id.child(&0), cx, cmds);
+    }
+
+    fn gc(&self, id: ViewID, cx: &mut Context, map: &mut StateMap) {
+        // cx.with_state_aux(&self.default, id, map, |state: State<S>, cx, map| {
+        //     map.insert(id, Box::new(state.clone()));
+        //     (self.func)(state.clone()).gc(id.child(&0), cx, map);
+        // });
+    }
+
+    fn access(
+        &self,
+        id: ViewID,
+        cx: &mut Context,
+        nodes: &mut Vec<accesskit::Node>,
+    ) -> Option<accesskit::NodeId> {
+        let mut s = (self.default)();
+        (self.func)(&mut s).access(id.child(&0), cx, nodes)
+    }
+}
+
+impl<S, F> private::Sealed for StateView2<S, F> {}
+
+pub fn state2<
+    S: Clone + 'static,
+    V: View + 'static,
+    D: Fn() -> S + 'static,
+    F: Fn(&mut S) -> V + 'static,
+>(
+    initial: D,
+    f: F,
+) -> impl View + 'static {
+    StateView2 {
+        default: initial,
+        func: f
+    }
+}
