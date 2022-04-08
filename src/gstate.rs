@@ -24,7 +24,7 @@ where
         map.insert(id, Box::new(value));
         Self {
             id,
-            phantom: std::marker::PhantomData::default()
+            phantom: Default::default()
         }
     }
 }
