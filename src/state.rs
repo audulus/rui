@@ -188,8 +188,9 @@ where
     F: Fn(&mut S) -> V,
 {
     fn print(&self, id: ViewID, cx: &mut Context) {
-        let mut s = (self.default)();
-        (self.func)(&mut s).print(id.child(&0), cx);
+        cx.get_state(id, &self.default).with_mut(|x|
+            (self.func)(x).print(id.child(&0), cx)
+        )
     }
 
     fn process(&self, event: &Event, id: ViewID, cx: &mut Context, vger: &mut VGER) {
