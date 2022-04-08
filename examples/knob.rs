@@ -9,9 +9,12 @@ fn main() {
     rui(state(
         || MyState { value: 0.0 },
         |state| {
+            let value = state.get().value;
             vstack((
-                text(&format!("value: {:?}", state.get().value)).padding(Auto),
-                knob(bind_no_clone!(state, MyState, value, f32)).padding(Auto),
+                text(&format!("value: {}", value)).padding(Auto),
+                knob2(value, 
+                      move |v| state.with_mut(|x| x.value = v))
+                .padding(Auto),
             ))
         },
     ));
