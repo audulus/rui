@@ -9,7 +9,7 @@ lazy_static! {
     static ref GLOBAL_STATE_MAP: Mutex<HashMap<ViewID, Box<dyn Any + Send>>> = Mutex::new(HashMap::new());
 }
 
-static GLOBAL_EVENT_LOOP_PROXY: Option<EventLoopProxy<()>> = None;
+pub(crate) static GLOBAL_EVENT_LOOP_PROXY: Option<EventLoopProxy<()>> = None;
 
 /// Contains application state.
 #[derive(Clone, Copy)]
