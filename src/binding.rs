@@ -202,8 +202,7 @@ mod tests {
 
     #[test]
     fn test_bind() {
-        let dirty = Arc::new(Mutex::new(Dirty::new(None)));
-        let s = State::new(BindingTestData { x: 0 }, dirty);
+        let s = State::new(BindingTestData { x: 0 }, None);
         let b = bind!(s, x);
         b.set(42);
         assert_eq!(s.get().x, 42);

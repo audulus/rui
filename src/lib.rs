@@ -366,7 +366,7 @@ pub fn rui(view: impl View + 'static) {
                 // You only need to call this if you've determined that you need to redraw, in
                 // applications which do not always need to. Applications that redraw continuously
                 // can just render here instead.
-                if cx.dirty.lock().unwrap().dirty {
+                if is_state_dirty() {
                     // Have the commands changed?
                     let mut new_commands = Vec::new();
                     view.commands(cx.root_id, &mut cx, &mut new_commands);
@@ -405,7 +405,7 @@ pub fn rui(view: impl View + 'static) {
 
                     cx.window.request_redraw();
 
-                    cx.dirty.lock().unwrap().dirty = false;
+                    clear_state_dirty();
                 }
             }
             event::Event::RedrawRequested(_) => {
@@ -441,7 +441,7 @@ pub fn rui(view: impl View + 'static) {
                 // After rendering, clearly the dirty flag in case rendering
                 // updated some state (for example, saving off geometric information
                 // when drawing with Canvas).
-                cx.dirty.lock().unwrap().dirty = false;
+                clear_state_dirty();
 
                 let texture_view = frame
                     .texture

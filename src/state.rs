@@ -10,11 +10,16 @@ pub(crate) fn is_state_dirty() -> bool {
     STATE_DIRTY.load(Ordering::Relaxed)
 }
 
+pub(crate) fn set_state_dirty() {
+    STATE_DIRTY.store(true, Ordering::Relaxed);
+}
+
+pub(crate) fn clear_state_dirty() {
+    STATE_DIRTY.store(false, Ordering::Relaxed);
+}
+
 struct Holder<S> {
     value: S,
-
-    /// Has the state changed since the last redraw?
-    dirty: Arc<Mutex<Dirty>>,
 }
 
 /// Contains application state. Application state is created using `state`.
@@ -25,10 +30,10 @@ pub struct State<S> {
 }
 
 impl<S> State<S> {
-    pub fn new(value: S, dirty: Arc<Mutex<Dirty>>) -> Self {
+    pub fn new(value: S, event_loop_proxy: Option<EventLoopProxy<()>>) -> Self {
         Self {
-            value: Arc::new(Mutex::new(Holder { value, dirty })),
-            event_loop_proxy: None
+            value: Arc::new(Mutex::new(Holder { value })),
+            event_loop_proxy,
         }
     }
 }
@@ -52,16 +57,8 @@ where
     fn with_mut<T, F: FnOnce(&mut S) -> T>(&self, f: F) -> T {
         let mut holder = self.value.lock().unwrap();
         // Set dirty so the view tree will be redrawn.
-        holder.dirty.lock().unwrap().dirty = true;
-        STATE_DIRTY.store(false, Ordering::Relaxed);
+        set_state_dirty();
         let t = f(&mut holder.value);
-
-        // Wake up the event loop.
-        if let Some(proxy) = &holder.dirty.lock().unwrap().event_loop_proxy {
-            if let Err(err) = proxy.send_event(()) {
-                println!("error waking up event loop: {:?}", err);
-            }
-        }
 
         // Wake up the event loop.
         if let Some(proxy) = &self.event_loop_proxy {
@@ -196,8 +193,7 @@ mod tests {
 
     #[test]
     fn test_state_clone() {
-        let d = Arc::new(Mutex::new(Dirty::new(None)));
-        let s = State::new(0, d);
+        let s = State::new(0, None);
         let s2 = s.clone();
         s.set(42);
         assert_eq!(s2.get(), 42);

@@ -54,21 +54,6 @@ pub(crate) struct LayoutBox {
     pub offset: LocalOffset,
 }
 
-// This could use a better name.
-pub struct Dirty {
-    pub dirty: bool,
-    pub event_loop_proxy: Option<EventLoopProxy<()>>,
-}
-
-impl Dirty {
-    pub fn new(event_loop_proxy: Option<EventLoopProxy<()>>) -> Self {
-        Dirty {
-            dirty: false,
-            event_loop_proxy,
-        }
-    }
-}
-
 /// Restricts what we can store in a StateMap (instead of just using Any)
 pub trait AnyState {
     /// So we can downcast.
@@ -101,14 +86,14 @@ pub struct Context {
     /// The view that has the keybord focus.
     pub(crate) focused_id: Option<ViewID>,
 
-    /// Did state change?
-    pub(crate) dirty: Arc<Mutex<Dirty>>,
-
     /// The tao window
     pub(crate) window: Window,
 
     /// The current title of the window
     pub(crate) window_title: String,
+
+    /// Allows us to wake up the event loop.
+    pub(crate) event_loop_proxy: Option<EventLoopProxy<()>>,
 }
 
 impl Context {
@@ -121,18 +106,18 @@ impl Context {
             previous_position: [LocalPoint::zero(); 16],
             root_id: ViewID { id: 1 },
             focused_id: None,
-            dirty: Arc::new(Mutex::new(Dirty::new(event_loop_proxy))),
             window,
             window_title: "rui".into(),
+            event_loop_proxy,
         }
     }
 
     pub fn get_state<S: Clone + 'static, D: Fn() -> S>(&mut self, id: ViewID, default: &D) -> State<S> {
-        let d = self.dirty.clone();
+        let proxy = self.event_loop_proxy.clone();
         let s = self
             .state_map
             .entry(id)
-            .or_insert_with(|| Box::new(State::new(default(), d)));
+            .or_insert_with(|| Box::new(State::new(default(), proxy)));
 
         if let Some(state) = s.as_any().downcast_ref::<State<S>>() {
             state.clone()
