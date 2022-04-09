@@ -1,7 +1,7 @@
 use std::any::Any;
 use std::sync::{Arc, Mutex};
 use std::sync::atomic::{AtomicBool, Ordering};
-
+use tao::event_loop::EventLoopProxy;
 use crate::*;
 
 static STATE_DIRTY: AtomicBool = AtomicBool::new(false);
@@ -21,12 +21,14 @@ struct Holder<S> {
 #[derive(Clone)]
 pub struct State<S> {
     value: Arc<Mutex<Holder<S>>>,
+    event_loop_proxy: Option<EventLoopProxy<()>>,
 }
 
 impl<S> State<S> {
     pub fn new(value: S, dirty: Arc<Mutex<Dirty>>) -> Self {
         Self {
             value: Arc::new(Mutex::new(Holder { value, dirty })),
+            event_loop_proxy: None
         }
     }
 }
@@ -56,6 +58,13 @@ where
 
         // Wake up the event loop.
         if let Some(proxy) = &holder.dirty.lock().unwrap().event_loop_proxy {
+            if let Err(err) = proxy.send_event(()) {
+                println!("error waking up event loop: {:?}", err);
+            }
+        }
+
+        // Wake up the event loop.
+        if let Some(proxy) = &self.event_loop_proxy {
             if let Err(err) = proxy.send_event(()) {
                 println!("error waking up event loop: {:?}", err);
             }
