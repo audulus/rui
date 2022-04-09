@@ -193,7 +193,6 @@ mod tests {
 
     use super::*;
     use crate::*;
-    use std::sync::{Arc, Mutex};
 
     #[derive(Clone)]
     struct BindingTestData {
