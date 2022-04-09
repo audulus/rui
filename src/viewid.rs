@@ -1,0 +1,29 @@
+use std::collections::hash_map::DefaultHasher;
+use std::hash::{Hash, Hasher};
+
+/// `ViewID` is a unique identifier for a view. We're using a u64 and hashing
+/// under the assumption there won't be collsions. The underlying u64 is a function
+/// of the path down the view tree.
+#[derive(Copy, Clone, Default, Eq, PartialEq, Hash, Debug)]
+pub struct ViewID {
+    pub id: u64,
+}
+
+impl ViewID {
+    /// Computes the ID for a child using a hashable value. For views
+    /// which don't have dynamic children (e.g. `vstack` etc.) the value
+    /// will be the integer index of the child. Dynamic
+    /// views (e.g. `list`) will hash an item identifier.
+    pub fn child<T: Hash>(&self, value: &T) -> Self {
+        let mut hasher = DefaultHasher::new();
+        hasher.write_u64(self.id);
+        value.hash(&mut hasher);
+        Self {
+            id: hasher.finish(),
+        }
+    }
+
+    pub fn access_id(&self) -> accesskit::NodeId {
+        accesskit::NodeId(std::num::NonZeroU64::new(self.id).unwrap())
+    }
+}

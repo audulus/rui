@@ -3,6 +3,9 @@
 mod view;
 pub use view::*;
 
+mod viewid;
+pub use viewid::*;
+
 mod event;
 pub use event::*;
 
