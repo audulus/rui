@@ -35,7 +35,7 @@ where
 
 impl<S> Binding<S> for GState<S>
 where
-    S: Clone + Send + Default + 'static,
+    S: Clone + Send + 'static,
 {
     fn with<T, F: FnOnce(&S) -> T>(&self, f: F) -> T {
         let map = GLOBAL_STATE_MAP.lock().unwrap();
