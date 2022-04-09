@@ -70,17 +70,14 @@ where
     }
 
     fn process(&self, event: &Event, id: ViewID, cx: &mut Context, vger: &mut VGER) {
-        let s = cx.get_state(id, &self.default);
         (self.func)(GState::new(id)).process(event, id.child(&0), cx, vger);
     }
 
     fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
-        let s = cx.get_state(id, &self.default);
         (self.func)(GState::new(id)).draw(id.child(&0), cx, vger);
     }
 
     fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
-        let s = cx.get_state(id, &self.default);
         (self.func)(GState::new(id)).layout(id.child(&0), sz, cx, vger)
     }
 
