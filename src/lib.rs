@@ -3,6 +3,9 @@
 mod view;
 pub use view::*;
 
+mod event;
+pub use event::*;
+
 mod binding;
 pub use binding::*;
 
@@ -104,7 +107,6 @@ use vger::*;
 use tao::{
     accelerator::Accelerator,
     dpi::PhysicalSize,
-    event,
     event::{ElementState, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
     keyboard::ModifiersState,
@@ -333,14 +335,14 @@ pub fn rui(view: impl View + 'static) {
         *control_flow = ControlFlow::Wait;
 
         match event {
-            event::Event::WindowEvent {
+            tao::event::Event::WindowEvent {
                 event: WindowEvent::CloseRequested,
                 ..
             } => {
                 println!("The close button was pressed; stopping");
                 *control_flow = ControlFlow::Exit
             }
-            event::Event::WindowEvent {
+            tao::event::Event::WindowEvent {
                 event:
                     WindowEvent::Resized(size)
                     | WindowEvent::ScaleFactorChanged {
@@ -355,10 +357,10 @@ pub fn rui(view: impl View + 'static) {
                 surface.configure(&device, &config);
                 cx.window.request_redraw();
             }
-            event::Event::UserEvent(_) => {
+            tao::event::Event::UserEvent(_) => {
                 // println!("received user event");
             }
-            event::Event::MainEventsCleared => {
+            tao::event::Event::MainEventsCleared => {
                 // Application update code.
 
                 // Queue a RedrawRequested event.
@@ -408,7 +410,7 @@ pub fn rui(view: impl View + 'static) {
                     clear_state_dirty();
                 }
             }
-            event::Event::RedrawRequested(_) => {
+            tao::event::Event::RedrawRequested(_) => {
                 // Redraw the application.
                 //
                 // It's preferable for applications that do not render continuously to render in
@@ -464,20 +466,20 @@ pub fn rui(view: impl View + 'static) {
 
                 frame.present();
             }
-            event::Event::WindowEvent {
+            tao::event::Event::WindowEvent {
                 event: WindowEvent::MouseInput { state, .. },
                 ..
             } => {
                 match state {
                     ElementState::Pressed => {
-                        let event = view::Event {
+                        let event = Event {
                             kind: EventKind::TouchBegin { id: 0 },
                             position: mouse_position,
                         };
                         view.process(&event, cx.root_id, &mut cx, &mut vger)
                     }
                     ElementState::Released => {
-                        let event = view::Event {
+                        let event = Event {
                             kind: EventKind::TouchEnd { id: 0 },
                             position: mouse_position,
                         };
@@ -486,7 +488,7 @@ pub fn rui(view: impl View + 'static) {
                     _ => {}
                 };
             }
-            event::Event::WindowEvent {
+            tao::event::Event::WindowEvent {
                 event: WindowEvent::CursorMoved { position, .. },
                 ..
             } => {
@@ -496,37 +498,37 @@ pub fn rui(view: impl View + 'static) {
                     (config.height as f32 - position.y as f32) / scale,
                 ]
                 .into();
-                let event = view::Event {
+                let event = Event {
                     kind: EventKind::TouchMove { id: 0 },
                     position: mouse_position,
                 };
                 view.process(&event, cx.root_id, &mut cx, &mut vger)
             }
-            event::Event::WindowEvent {
+            tao::event::Event::WindowEvent {
                 event: WindowEvent::KeyboardInput { event, .. },
                 ..
             } => {
                 if event.state == ElementState::Pressed {
-                    let event = view::Event {
+                    let event = Event {
                         kind: EventKind::Key(event.logical_key, modifiers),
                         position: mouse_position,
                     };
                     view.process(&event, cx.root_id, &mut cx, &mut vger)
                 }
             }
-            event::Event::WindowEvent {
+            tao::event::Event::WindowEvent {
                 event: WindowEvent::ModifiersChanged(mods),
                 ..
             } => {
                 modifiers = mods;
                 // println!("modifiers changed: {:?}", modifiers);
             }
-            event::Event::MenuEvent { menu_id, .. } => {
+            tao::event::Event::MenuEvent { menu_id, .. } => {
                 //println!("menu event");
 
                 if let Some(command) = command_map.get(&menu_id) {
                     //println!("found command {:?}", command);
-                    let event = view::Event {
+                    let event = Event {
                         kind: EventKind::Command(command.clone()),
                         position: mouse_position,
                     };

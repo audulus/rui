@@ -1,21 +1,5 @@
 use crate::*;
 
-#[derive(Clone, Debug)]
-pub enum EventKind {
-    PressButton(String),
-    TouchBegin { id: usize },
-    TouchMove { id: usize },
-    TouchEnd { id: usize },
-    Command(String),
-    Key(KeyPress, ModifiersState),
-}
-
-#[derive(Clone, Debug)]
-pub struct Event {
-    pub kind: EventKind,
-    pub position: LocalPoint,
-}
-
 /// Trait for the unit of UI composition.
 pub trait View: private::Sealed {
     /// Prints a description of the view for debugging.
