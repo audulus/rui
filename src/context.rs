@@ -56,7 +56,7 @@ pub struct Context {
     pub(crate) focused_id: Option<ViewID>,
 
     /// The tao window
-    pub(crate) window: Window,
+    pub(crate) window: Option<Window>,
 
     /// The current title of the window
     pub(crate) window_title: String,
@@ -66,7 +66,7 @@ pub struct Context {
 }
 
 impl Context {
-    pub fn new(event_loop_proxy: Option<EventLoopProxy<()>>, window: Window) -> Self {
+    pub fn new(event_loop_proxy: Option<EventLoopProxy<()>>, window: Option<Window>) -> Self {
         Self {
             state_map: HashMap::new(),
             layout: HashMap::new(),

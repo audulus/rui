@@ -35,7 +35,7 @@ where
         self.child.draw(id.child(&0), cx, vger);
         if cx.window_title != self.title {
             cx.window_title = self.title.clone();
-            cx.window.set_title(&self.title)
+            cx.window.as_ref().unwrap().set_title(&self.title)
         }
     }
 
@@ -103,6 +103,8 @@ where
     fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
         self.child.draw(id.child(&0), cx, vger);
         cx.window
+            .as_ref()
+            .unwrap()
             .set_fullscreen(Some(tao::window::Fullscreen::Borderless(None)))
     }
 

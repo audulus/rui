@@ -316,13 +316,15 @@ pub fn rui(view: impl View + 'static) {
     *GLOBAL_EVENT_LOOP_PROXY.lock().unwrap() = Some(event_loop.create_proxy());
 
     let mut vger = VGER::new(&device, wgpu::TextureFormat::Bgra8UnormSrgb);
-    let mut cx = Context::new(Some(event_loop.create_proxy()), window);
+    let mut cx = Context::new(Some(event_loop.create_proxy()), Some(window));
     let mut mouse_position = LocalPoint::zero();
 
     let mut commands = Vec::new();
     view.commands(cx.root_id, &mut cx, &mut commands);
     let mut command_map = HashMap::new();
     cx.window
+        .as_ref()
+        .unwrap()
         .set_menu(Some(build_menubar(&commands, &mut command_map)));
 
     let mut modifiers = ModifiersState::default();
@@ -360,7 +362,7 @@ pub fn rui(view: impl View + 'static) {
                 config.width = size.width.max(1);
                 config.height = size.height.max(1);
                 surface.configure(&device, &config);
-                cx.window.request_redraw();
+                cx.window.as_ref().unwrap().request_redraw();
             }
             tao::event::Event::UserEvent(_) => {
                 // println!("received user event");
@@ -383,7 +385,7 @@ pub fn rui(view: impl View + 'static) {
                         commands = new_commands;
 
                         command_map.clear();
-                        cx.window
+                        cx.window.as_ref().unwrap()
                             .set_menu(Some(build_menubar(&commands, &mut command_map)));
                     }
 
@@ -410,7 +412,7 @@ pub fn rui(view: impl View + 'static) {
                         // println!("access nodes unchanged");
                     }
 
-                    cx.window.request_redraw();
+                    cx.window.as_ref().unwrap().request_redraw();
 
                     clear_state_dirty();
                 }
@@ -434,8 +436,8 @@ pub fn rui(view: impl View + 'static) {
                     }
                 };
 
-                let window_size = cx.window.inner_size();
-                let scale = cx.window.scale_factor() as f32;
+                let window_size = cx.window.as_ref().unwrap().inner_size();
+                let scale = cx.window.as_ref().unwrap().scale_factor() as f32;
                 // println!("window_size: {:?}", window_size);
                 let width = window_size.width as f32 / scale;
                 let height = window_size.height as f32 / scale;
@@ -497,7 +499,7 @@ pub fn rui(view: impl View + 'static) {
                 event: WindowEvent::CursorMoved { position, .. },
                 ..
             } => {
-                let scale = cx.window.scale_factor() as f32;
+                let scale = cx.window.as_ref().unwrap().scale_factor() as f32;
                 mouse_position = [
                     position.x as f32 / scale,
                     (config.height as f32 - position.y as f32) / scale,
@@ -557,12 +559,12 @@ mod tests {
         });
     }
 
-    // #[test]
-    // fn test_state2() {
-    //     let mut cx = Context::new(None);
-    //     let v = counter(42);
-    //     v.print(ViewID::default(), &mut cx);
-    // }
+    #[test]
+    fn test_state2() {
+        let mut cx = Context::new(None, None);
+        let v = counter(42);
+        v.print(ViewID::default(), &mut cx);
+    }
 
     fn counter(start: usize) -> impl View {
         state(
