@@ -1,12 +1,12 @@
 use rui::*;
 
 fn main() {
-    rui(state(
+    rui(state2(
         || 1,
         |count| {
             vstack((
-                text(&format!("{}", count.get())).padding(Auto),
-                circle().tap2(move || count.with_mut(|x| *x += 1))
+                text(&format!("{}", *count)).padding(Auto),
+                circle().tap2(|| println!("tapped"))
                 .padding(Auto),
             ))
         },
