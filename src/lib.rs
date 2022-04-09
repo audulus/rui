@@ -568,7 +568,7 @@ mod tests {
     fn counter(start: usize) -> impl View {
         state(
             move || start,
-            |count: State<usize>| {
+            |count| {
                 let count2 = count.clone();
                 let value_string = format!("value: {:?}", count.get());
                 vstack((
