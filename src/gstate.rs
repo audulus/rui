@@ -38,9 +38,8 @@ where
     S: Clone + Send + Default + 'static,
 {
     fn with<T, F: FnOnce(&S) -> T>(&self, f: F) -> T {
-        let mut map = GLOBAL_STATE_MAP.lock().unwrap();
-        let s = map.entry(self.id)
-                   .or_insert_with(|| Box::new(S::default()));
+        let map = GLOBAL_STATE_MAP.lock().unwrap();
+        let s = &map[&self.id];
         if let Some(state) = s.downcast_ref::<S>() {
             f(&state)
         } else {
