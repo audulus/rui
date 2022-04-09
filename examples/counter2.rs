@@ -10,6 +10,10 @@ fn main() {
                     count.with_mut(|x| *x += 1);
                 })
                 .padding(Auto),
+                button(text("decrement"), move || {
+                    count.with_mut(|x| *x -= 1);
+                })
+                .padding(Auto),
             ))
         },
     ));
