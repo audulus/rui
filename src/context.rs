@@ -14,7 +14,6 @@ pub type WorldPoint = Point2D<f32, WorldSpace>;
 
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
-use std::sync::{Arc, Mutex};
 
 use tao::event_loop::EventLoopProxy;
 use tao::window::Window;
