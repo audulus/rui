@@ -48,8 +48,7 @@ where
     }
     fn with_mut<T, F: FnOnce(&mut S) -> T>(&self, f: F) -> T {
         let mut map = GLOBAL_STATE_MAP.lock().unwrap();
-        let s = map.entry(self.id)
-                       .or_insert_with(|| Box::new(S::default()));
+        let s = &mut map.get_mut(&self.id).unwrap();
         set_state_dirty();
         let t = if let Some(mut state) = s.downcast_mut::<S>() {
             f(&mut state)
