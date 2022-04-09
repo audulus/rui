@@ -444,13 +444,12 @@ pub fn rui(view: impl View + 'static) {
 
                 vger.begin(width, height, scale);
 
+                // Disable dirtying the state during layout and rendering
+                // to avoid constantly re-rendering if some state is saved.
+                ENABLE_DIRTY.with(|enable| *enable.borrow_mut() = false);
                 view.layout(cx.root_id, [width, height].into(), &mut cx, &mut vger);
                 view.draw(cx.root_id, &mut cx, &mut vger);
-
-                // After rendering, clearly the dirty flag in case rendering
-                // updated some state (for example, saving off geometric information
-                // when drawing with Canvas).
-                clear_state_dirty();
+                ENABLE_DIRTY.with(|enable| *enable.borrow_mut() = true);
 
                 let texture_view = frame
                     .texture
