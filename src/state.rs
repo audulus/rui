@@ -182,9 +182,7 @@ pub fn state<
 
 #[cfg(test)]
 mod tests {
-
     use super::*;
-    use std::sync::{Arc, Mutex};
 
     #[test]
     fn test_state() {
