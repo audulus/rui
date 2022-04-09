@@ -603,6 +603,6 @@ mod tests {
 
     #[test]
     fn test_binding() {
-        let _ = state(|| 42, |count: State<usize>| counter3(count));
+        let _ = state(|| 42, |count| counter3(count));
     }
 }
