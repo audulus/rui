@@ -574,12 +574,10 @@ mod tests {
                 vstack((
                     text(value_string.as_str()),
                     button(text("increment"), move || {
-                        let value = count.get();
-                        count.set(value + 1);
+                        count.with_mut(|value| *value += 1);
                     }),
                     button(text("decrement"), move || {
-                        let value = count2.get();
-                        count2.set(value - 1);
+                        count2.with_mut(|value| *value += 1);
                     }),
                 ))
             },
