@@ -1,5 +1,6 @@
 use std::any::Any;
 use std::sync::Mutex;
+use tao::event_loop::EventLoopProxy;
 
 use crate::*;
 
@@ -7,6 +8,8 @@ lazy_static! {
     /// Blasphemy!
     static ref GLOBAL_STATE_MAP: Mutex<HashMap<ViewID, Box<dyn Any + Send>>> = Mutex::new(HashMap::new());
 }
+
+static GLOBAL_EVENT_LOOP_PROXY: Option<EventLoopProxy<()>> = None;
 
 /// Contains application state.
 #[derive(Clone, Copy)]
