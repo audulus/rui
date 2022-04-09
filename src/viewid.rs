@@ -23,6 +23,8 @@ impl ViewID {
         }
     }
 
+    /// Returns the corresponding AccessKit ID. We're assuming
+    /// the underlying ID isn't zero.
     pub fn access_id(&self) -> accesskit::NodeId {
         accesskit::NodeId(std::num::NonZeroU64::new(self.id).unwrap())
     }
