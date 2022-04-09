@@ -52,11 +52,20 @@ where
         let s = map.entry(self.id)
                        .or_insert_with(|| Box::new(S::default()));
         set_state_dirty();
-        if let Some(mut state) = s.downcast_mut::<S>() {
+        let t = if let Some(mut state) = s.downcast_mut::<S>() {
             f(&mut state)
         } else {
             panic!("state has wrong type")
+        };
+
+        // Wake up the event loop.
+        if let Some(proxy) = &GLOBAL_EVENT_LOOP_PROXY {
+            if let Err(err) = proxy.send_event(()) {
+                println!("error waking up event loop: {:?}", err);
+            }
         }
+
+        t
     }
 }
 
