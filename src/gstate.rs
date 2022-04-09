@@ -19,7 +19,10 @@ impl<S> GState<S>
 where 
     S: Send + 'static
 {
-    pub fn new(id: ViewID) -> Self {
+    pub fn new(id: ViewID, default: &impl Fn() -> S) -> Self {
+        let mut map = GLOBAL_STATE_MAP.lock().unwrap();
+        map.entry(id)
+                   .or_insert_with(|| Box::new(default()));
         Self {
             id,
             phantom: Default::default()
@@ -66,19 +69,19 @@ where
     F: Fn(GState<S>) -> V,
 {
     fn print(&self, id: ViewID, cx: &mut Context) {
-        (self.func)(GState::new(id)).print(id.child(&0), cx);
+        (self.func)(GState::new(id, &self.default)).print(id.child(&0), cx);
     }
 
     fn process(&self, event: &Event, id: ViewID, cx: &mut Context, vger: &mut VGER) {
-        (self.func)(GState::new(id)).process(event, id.child(&0), cx, vger);
+        (self.func)(GState::new(id, &self.default)).process(event, id.child(&0), cx, vger);
     }
 
     fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
-        (self.func)(GState::new(id)).draw(id.child(&0), cx, vger);
+        (self.func)(GState::new(id, &self.default)).draw(id.child(&0), cx, vger);
     }
 
     fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
-        (self.func)(GState::new(id)).layout(id.child(&0), sz, cx, vger)
+        (self.func)(GState::new(id, &self.default)).layout(id.child(&0), sz, cx, vger)
     }
 
     fn hittest(
@@ -88,15 +91,15 @@ where
         cx: &mut Context,
         vger: &mut VGER,
     ) -> Option<ViewID> {
-        (self.func)(GState::new(id)).hittest(id.child(&0), pt, cx, vger)
+        (self.func)(GState::new(id, &self.default)).hittest(id.child(&0), pt, cx, vger)
     }
 
     fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
-        (self.func)(GState::new(id)).commands(id.child(&0), cx, cmds);
+        (self.func)(GState::new(id, &self.default)).commands(id.child(&0), cx, cmds);
     }
 
     fn gc(&self, id: ViewID, cx: &mut Context, map: &mut StateMap) {
-        (self.func)(GState::new(id)).gc(id.child(&0), cx, map);
+        (self.func)(GState::new(id, &self.default)).gc(id.child(&0), cx, map);
     }
 
     fn access(
@@ -105,7 +108,7 @@ where
         cx: &mut Context,
         nodes: &mut Vec<accesskit::Node>,
     ) -> Option<accesskit::NodeId> {
-        (self.func)(GState::new(id)).access(id.child(&0), cx, nodes)
+        (self.func)(GState::new(id, &self.default)).access(id.child(&0), cx, nodes)
     }
 }
 
