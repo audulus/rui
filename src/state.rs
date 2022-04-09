@@ -6,6 +6,10 @@ use crate::*;
 
 static STATE_DIRTY: AtomicBool = AtomicBool::new(false);
 
+pub(crate) fn is_state_dirty() -> bool {
+    STATE_DIRTY.load(Ordering::Relaxed)
+}
+
 struct Holder<S> {
     value: S,
 
