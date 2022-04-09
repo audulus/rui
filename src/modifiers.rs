@@ -9,7 +9,7 @@ pub trait Modifiers: View + Sized {
     fn tap<F: Fn() + 'static>(self, f: F) -> Tap<Self, F>;
 
     
-    fn tap2<F: Fn()>(self, f: F) -> Tap2<Self, F>;
+    fn tap2<F: FnMut()>(self, f: F) -> Tap2<Self, F>;
 
     /// Puts a view behind another. The background view inherits the size of the view.
     fn background<BG: View + 'static>(self, background: BG) -> Background<Self, BG>;
@@ -54,7 +54,7 @@ impl<V: View + 'static> Modifiers for V {
     fn tap<F: Fn() + 'static>(self, f: F) -> Tap<Self, F> {
         Tap::new(self, f)
     }
-    fn tap2<F: Fn()>(self, f: F) -> Tap2<Self, F> {
+    fn tap2<F: FnMut()>(self, f: F) -> Tap2<Self, F> {
         Tap2::new(self, f)
     }
     fn background<BG: View + 'static>(self, background: BG) -> Background<Self, BG> {

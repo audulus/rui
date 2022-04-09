@@ -1,14 +1,15 @@
 use rui::*;
 
 fn main() {
-    rui(state2(
+    /*
+    let s = state2(
         || 1,
         |count| {
-            vstack((
-                text(&format!("{}", *count)).padding(Auto),
-                circle().tap2(|| println!("tapped"))
-                .padding(Auto),
-            ))
+            circle().tap2(|| *count += 1)
         },
-    ));
+    );*/
+
+    let mut count = 0;
+    let countref = &mut count;
+    circle().tap2(|| *countref += 1);
 }

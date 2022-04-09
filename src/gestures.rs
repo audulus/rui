@@ -1,4 +1,6 @@
 pub use crate::*;
+use std::rc::Rc;
+use std::cell::RefCell;
 
 /// Struct for the `tap` gesture.
 pub struct Tap<V, F> {
@@ -187,23 +189,23 @@ impl<V, F> private::Sealed for Drag<V, F> {}
 /// Struct for the `tap` gesture.
 pub struct Tap2<V, F> {
     child: V,
-    func: F,
+    func: Rc<RefCell<F>>,
 }
 
 impl<'a, V, F> Tap2<V, F>
 where
     V: View,
-    F: Fn() + 'a,
+    F: FnMut() + 'a,
 {
     pub fn new(v: V, f: F) -> Self {
-        Self { child: v, func: f }
+        Self { child: v, func: Rc::new(RefCell::new(f)) }
     }
 }
 
 impl<'a, V, F> View for Tap2<V, F>
 where
     V: View,
-    F: Fn() + 'a,
+    F: FnMut() + 'a,
 {
     fn print(&self, id: ViewID, cx: &mut Context) {
         println!("Tap {{");
@@ -221,8 +223,7 @@ where
             EventKind::TouchEnd { id } => {
                 if cx.touches[*id] == vid {
                     cx.touches[*id] = ViewID::default();
-                    let f = &self.func;
-                    f();
+                    self.func.borrow_mut()();
                 }
             }
             _ => (),

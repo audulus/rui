@@ -264,7 +264,7 @@ impl<S, F> private::Sealed for StateView2<S, F> {}
 
 pub fn state2<
     S: Clone + 'static,
-    V: View + 'static,
+    V: View,
     D: Fn() -> S + 'static,
     F: Fn(&mut S) -> V + 'static,
 >(
