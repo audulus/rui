@@ -125,7 +125,7 @@ where
         let text = self.text.clone();
         focus(move |has_focus| {
             let text = text.clone();
-            state(
+            gstate(
                 || TextEditorState::new(),
                 move |state| {
                     let text = text.clone();
