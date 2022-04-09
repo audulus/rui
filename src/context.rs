@@ -29,7 +29,7 @@ pub trait AnyState {
     fn as_any(&self) -> &dyn Any;
 }
 
-pub type StateMap = HashMap<ViewID, Box<dyn AnyState>>;
+pub(crate) type StateMap = HashMap<ViewID, Box<dyn AnyState>>;
 
 /// The Context stores all UI state. A user of the library
 /// shouldn't have to interact with it directly.
