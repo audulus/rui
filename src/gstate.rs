@@ -48,6 +48,7 @@ where
         let mut map = GLOBAL_STATE_MAP.lock().unwrap();
         let s = map.entry(self.id)
                        .or_insert_with(|| Box::new(S::default()));
+        set_state_dirty();
         if let Some(mut state) = s.downcast_mut::<S>() {
             f(&mut state)
         } else {
