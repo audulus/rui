@@ -1,7 +1,10 @@
 use std::any::Any;
 use std::sync::{Arc, Mutex};
+use std::sync::atomic::{AtomicBool, Ordering};
 
 use crate::*;
+
+static STATE_DIRTY: AtomicBool = AtomicBool::new(false);
 
 struct Holder<S> {
     value: S,
@@ -44,6 +47,7 @@ where
         let mut holder = self.value.lock().unwrap();
         // Set dirty so the view tree will be redrawn.
         holder.dirty.lock().unwrap().dirty = true;
+        STATE_DIRTY.store(false, Ordering::Relaxed);
         let t = f(&mut holder.value);
 
         // Wake up the event loop.
