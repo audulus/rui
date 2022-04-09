@@ -7,9 +7,9 @@ use crate::*;
 lazy_static! {
     /// Blasphemy!
     static ref GLOBAL_STATE_MAP: Mutex<HashMap<ViewID, Box<dyn Any + Send>>> = Mutex::new(HashMap::new());
-}
 
-pub(crate) static GLOBAL_EVENT_LOOP_PROXY: Option<EventLoopProxy<()>> = None;
+    pub(crate) static ref GLOBAL_EVENT_LOOP_PROXY: Mutex<Option<EventLoopProxy<()>>> = Mutex::new(None);
+}
 
 /// Contains application state.
 #[derive(Clone, Copy)]
@@ -59,7 +59,8 @@ where
         };
 
         // Wake up the event loop.
-        if let Some(proxy) = &GLOBAL_EVENT_LOOP_PROXY {
+        let opt_proxy = GLOBAL_EVENT_LOOP_PROXY.lock().unwrap();
+        if let Some(proxy) = &*opt_proxy {
             if let Err(err) = proxy.send_event(()) {
                 println!("error waking up event loop: {:?}", err);
             }

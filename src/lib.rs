@@ -310,6 +310,8 @@ pub fn rui(view: impl View + 'static) {
     };
     surface.configure(&device, &config);
 
+    *GLOBAL_EVENT_LOOP_PROXY.lock().unwrap() = Some(event_loop.create_proxy());
+
     let mut vger = VGER::new(&device, wgpu::TextureFormat::Bgra8UnormSrgb);
     let mut cx = Context::new(Some(event_loop.create_proxy()), window);
     let mut mouse_position = LocalPoint::zero();
