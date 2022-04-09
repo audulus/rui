@@ -252,7 +252,7 @@ where
         )
     }
 
-    fn gc(&self, id: ViewID, cx: &mut Context, map: &mut StateMap) {
+    fn gc(&self, _id: ViewID, _cx: &mut Context, _map: &mut StateMap) {
         // cx.with_state_aux(&self.default, id, map, |state: State<S>, cx, map| {
         //     map.insert(id, Box::new(state.clone()));
         //     (self.func)(state.clone()).gc(id.child(&0), cx, map);
