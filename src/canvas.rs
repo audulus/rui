@@ -18,7 +18,7 @@ where
     }
 
     fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
-        let rect = cx.layout.entry(id).or_insert(LayoutBox::default()).rect;
+        let rect = cx.layout.entry(id).or_default().rect;
 
         vger.save();
         (self.func)(rect, vger);
@@ -43,7 +43,7 @@ where
         cx: &mut Context,
         _vger: &mut VGER,
     ) -> Option<ViewID> {
-        let rect = cx.layout.entry(id).or_insert(LayoutBox::default()).rect;
+        let rect = cx.layout.entry(id).or_default().rect;
 
         if rect.contains(pt) {
             Some(id)
