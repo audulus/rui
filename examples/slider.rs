@@ -1,13 +1,13 @@
 use rui::*;
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 struct MyState {
     value: [f32; 2],
 }
 
 fn main() {
     rui(state(
-        || MyState { value: [0.0, 0.0] },
+        MyState::default,
         |state| {
             vstack((
                 text(&format!("value: {:?}", state.get().value))
