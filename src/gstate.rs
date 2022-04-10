@@ -12,11 +12,13 @@ lazy_static! {
 }
 
 /// Contains application state.
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub struct GState<S> {
      id: ViewID,
      phantom: std::marker::PhantomData<S>,
 }
+
+impl<S> Copy for GState<S> where S: Clone { }
 
 impl<S> GState<S> 
 where 
