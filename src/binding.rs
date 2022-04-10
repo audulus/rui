@@ -89,22 +89,22 @@ macro_rules! bind {
     }};
 }
 
-// #[cfg(test)]
-// mod tests {
+#[cfg(test)]
+mod tests {
 
-//     use super::*;
-//     use crate::*;
+    use super::*;
+    use crate::*;
 
-//     #[derive(Clone)]
-//     struct BindingTestData {
-//         x: usize,
-//     }
+    #[derive(Clone)]
+    struct BindingTestData {
+        x: usize,
+    }
 
-//     #[test]
-//     fn test_bind() {
-//         let s = State::new(BindingTestData { x: 0 }, None);
-//         let b = bind!(s, x);
-//         b.set(42);
-//         assert_eq!(s.get().x, 42);
-//     }
-// }
+    #[test]
+    fn test_bind() {
+        let s = State::new(ViewID{ id: 1 }, &|| BindingTestData{x: 0});
+        let b = bind!(s, x);
+        b.set(42);
+        assert_eq!(s.get().x, 42);
+    }
+}
