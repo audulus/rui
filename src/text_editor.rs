@@ -35,7 +35,7 @@ impl TextEditorState {
         &self,
         p: LocalPoint,
         range: std::ops::Range<usize>,
-        rects: &Vec<LocalRect>,
+        rects: &[LocalRect],
     ) -> usize {
         let mut d = std::f32::MAX;
         let mut closest = 0;
