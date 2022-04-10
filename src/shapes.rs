@@ -7,7 +7,7 @@ pub struct Circle {
 
 impl Circle {
     fn geom(&self, id: ViewID, cx: &mut Context) -> (LocalPoint, f32) {
-        let rect = cx.layout.entry(id).or_insert(LayoutBox::default()).rect;
+        let rect = cx.layout.entry(id).or_default().rect;
 
         (rect.center(), rect.size.width.min(rect.size.height) / 2.0)
     }
@@ -97,7 +97,7 @@ pub struct Rectangle {
 
 impl Rectangle {
     fn geom(&self, id: ViewID, cx: &mut Context) -> LocalRect {
-        cx.layout.entry(id).or_insert(LayoutBox::default()).rect
+        cx.layout.entry(id).or_default().rect
     }
 
     /// Sets the fill color for the rectangle.

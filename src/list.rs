@@ -26,7 +26,7 @@ where
             let offset = cx
                 .layout
                 .entry(child_id)
-                .or_insert(LayoutBox::default())
+                .or_default()
                 .offset;
 
             let mut local_event = event.clone();
@@ -42,7 +42,7 @@ where
             let offset = cx
                 .layout
                 .entry(child_id)
-                .or_insert(LayoutBox::default())
+                .or_default()
                 .offset;
 
             vger.save();
@@ -88,7 +88,7 @@ where
             let offset = cx
                 .layout
                 .entry(child_id)
-                .or_insert(LayoutBox::default())
+                .or_default()
                 .offset;
 
             if let Some(h) = ((self.func)(child)).hittest(child_id, pt - offset, cx, vger) {

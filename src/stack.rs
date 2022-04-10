@@ -35,7 +35,7 @@ impl<VT: ViewTuple> View for Stack<VT> {
             let offset = cx
                 .layout
                 .entry(child_id)
-                .or_insert(LayoutBox::default())
+                .or_default()
                 .offset;
 
             let mut local_event = event.clone();
@@ -53,7 +53,7 @@ impl<VT: ViewTuple> View for Stack<VT> {
             let layout_box = *cx
                 .layout
                 .entry(child_id)
-                .or_insert(LayoutBox::default());
+                .or_default();
 
             vger.save();
 
@@ -153,7 +153,7 @@ impl<VT: ViewTuple> View for Stack<VT> {
             let offset = cx
                 .layout
                 .entry(child_id)
-                .or_insert(LayoutBox::default())
+                .or_default()
                 .offset;
 
             if let Some(h) = child.hittest(child_id, pt - offset, cx, vger) {
