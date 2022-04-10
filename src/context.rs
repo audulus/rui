@@ -62,5 +62,4 @@ impl Context {
             window_title: "rui".into(),
         }
     }
-
 }

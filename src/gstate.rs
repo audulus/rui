@@ -1,8 +1,8 @@
 use std::any::Any;
+use std::cell::RefCell;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use tao::event_loop::EventLoopProxy;
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::cell::RefCell;
 
 use crate::*;
 
@@ -41,23 +41,23 @@ lazy_static! {
 /// Weak reference to app state.
 #[derive(Clone)]
 pub struct State<S> {
-     id: ViewID,
-     phantom: std::marker::PhantomData<S>,
+    id: ViewID,
+    phantom: std::marker::PhantomData<S>,
 }
 
-impl<S> Copy for State<S> where S: Clone { }
+impl<S> Copy for State<S> where S: Clone {}
 
-impl<S> State<S> 
-where 
-    S: Send + 'static
+impl<S> State<S>
+where
+    S: Send + 'static,
 {
     pub fn new(id: ViewID, default: &impl Fn() -> S) -> Self {
         let mut map = GLOBAL_STATE_MAP.lock().unwrap();
         map.entry(id)
-                   .or_insert_with(|| Arc::new(Mutex::new(default())));
+            .or_insert_with(|| Arc::new(Mutex::new(default())));
         Self {
             id,
-            phantom: Default::default()
+            phantom: Default::default(),
         }
     }
 }

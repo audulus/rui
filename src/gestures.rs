@@ -1,6 +1,6 @@
 pub use crate::*;
-use std::rc::Rc;
 use std::cell::RefCell;
+use std::rc::Rc;
 
 /// Struct for the `tap` gesture.
 pub struct Tap<V, F> {
@@ -184,8 +184,6 @@ where
 
 impl<V, F> private::Sealed for Drag<V, F> {}
 
-
-
 /// Struct for the `tap` gesture.
 pub struct Tap2<V, F> {
     child: V,
@@ -198,7 +196,10 @@ where
     F: FnMut() + 'a,
 {
     pub fn new(v: V, f: F) -> Self {
-        Self { child: v, func: Rc::new(RefCell::new(f)) }
+        Self {
+            child: v,
+            func: Rc::new(RefCell::new(f)),
+        }
     }
 }
 

@@ -1,4 +1,3 @@
-
 /// Reads or writes a value owned by a source-of-truth.
 pub trait Binding<S>: Clone + Copy + 'static {
     fn with<T, F: FnOnce(&S) -> T>(&self, f: F) -> T;
@@ -96,7 +95,7 @@ mod tests {
 
     #[test]
     fn test_bind() {
-        let s = State::new(ViewID{ id: 1 }, &|| BindingTestData{x: 0});
+        let s = State::new(ViewID { id: 1 }, &|| BindingTestData { x: 0 });
         let b = bind!(s, x);
         b.set(42);
         assert_eq!(s.get().x, 42);

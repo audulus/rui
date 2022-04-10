@@ -8,7 +8,6 @@ pub trait Modifiers: View + Sized {
     /// Calls a function in response to a tap.
     fn tap<F: Fn() + 'static>(self, f: F) -> Tap<Self, F>;
 
-    
     fn tap2<F: FnMut()>(self, f: F) -> Tap2<Self, F>;
 
     /// Puts a view behind another. The background view inherits the size of the view.

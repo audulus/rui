@@ -382,7 +382,9 @@ pub fn rui(view: impl View + 'static) {
                         commands = new_commands;
 
                         command_map.clear();
-                        cx.window.as_ref().unwrap()
+                        cx.window
+                            .as_ref()
+                            .unwrap()
                             .set_menu(Some(build_menubar(&commands, &mut command_map)));
                     }
 

@@ -55,7 +55,8 @@ impl TextEditorState {
         let line = self.find_line() + 1;
         if line < self.lines.len() {
             let metrics = self.lines[line];
-            self.cursor = self.closest_in_range(p, metrics.glyph_start..metrics.glyph_end, &self.glyph_rects);
+            self.cursor =
+                self.closest_in_range(p, metrics.glyph_start..metrics.glyph_end, &self.glyph_rects);
         }
     }
 
@@ -65,7 +66,8 @@ impl TextEditorState {
         let line = self.find_line();
         if line > 0 {
             let metrics = self.lines[line - 1];
-            self.cursor = self.closest_in_range(p, metrics.glyph_start..metrics.glyph_end, &self.glyph_rects);
+            self.cursor =
+                self.closest_in_range(p, metrics.glyph_start..metrics.glyph_end, &self.glyph_rects);
         }
     }
 
@@ -148,7 +150,10 @@ where
                             );
                         }
 
-                        state.with_mut(|s| { s.glyph_rects = rects; s.lines = lines; });
+                        state.with_mut(|s| {
+                            s.glyph_rects = rects;
+                            s.lines = lines;
+                        });
                     })
                     .key(move |k| {
                         if has_focus {

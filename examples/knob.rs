@@ -12,9 +12,7 @@ fn main() {
             let value = state.get().value;
             vstack((
                 text(&format!("value: {}", value)).padding(Auto),
-                knob2(value, 
-                      move |v| state.with_mut(|x| x.value = v))
-                .padding(Auto),
+                knob2(value, move |v| state.with_mut(|x| x.value = v)).padding(Auto),
             ))
         },
     ));
