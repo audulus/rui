@@ -12,7 +12,7 @@ use {
     tao::event_loop::EventLoopProxy,
 };
 
-pub(crate) type StateMap = HashMap<ViewID, Arc<Mutex<dyn Any + Send>>>;
+pub(crate) type StateMap = HashMap<ViewID, Arc<Mutex<dyn Any>>>;
 
 static STATE_DIRTY: AtomicBool = AtomicBool::new(false);
 
@@ -73,7 +73,7 @@ impl<S> Copy for State<S> where S: Clone {}
 
 impl<S> State<S>
 where
-    S: Send + 'static,
+    S: 'static,
 {
     pub fn new(id: ViewID, default: &impl Fn() -> S) -> Self {
         STATE_MAP.with(|cell| {
@@ -89,7 +89,7 @@ where
 
 impl<S> Binding<S> for State<S>
 where
-    S: Clone + Send + 'static,
+    S: Clone + 'static,
 {
     fn with<T, F: FnOnce(&S) -> T>(&self, f: F) -> T {
         let s = STATE_MAP.with(|map| map.borrow()[&self.id].clone() );
@@ -123,7 +123,7 @@ struct StateView<D, F> {
 impl<S, V, D, F> View for StateView<D, F>
 where
     V: View,
-    S: Clone + Send + 'static,
+    S: Clone + 'static,
     D: Fn() -> S,
     F: Fn(State<S>) -> V,
 {
@@ -182,7 +182,7 @@ impl<S, F> private::Sealed for StateView<S, F> {}
 ///
 /// `f` callback which is passed a `State<S>`
 pub fn state<
-    S: Clone + Send + 'static,
+    S: Clone + 'static,
     V: View + 'static,
     D: Fn() -> S + 'static,
     F: Fn(State<S>) -> V + 'static,
