@@ -122,14 +122,11 @@ where
     B: GBinding<String>,
 {
     fn body(&self) -> impl View {
-        let text = self.text.clone();
+        let text = self.text;
         focus(move |has_focus| {
-            let text = text.clone();
             gstate(
                 || TextEditorState::new(),
                 move |state| {
-                    let text = text.clone();
-                    let text2 = text.clone();
                     let cursor = state.with(|s| s.cursor);
                     canvas(move |rect, vger| {
                         vger.translate([0.0, rect.height()]);
@@ -155,7 +152,7 @@ where
                     })
                     .key(move |k| {
                         if has_focus {
-                            state.with_mut(|s| s.key(&k, &text2))
+                            state.with_mut(|s| s.key(&k, &text))
                         }
                     })
                 },
