@@ -131,7 +131,6 @@ where
                     let text = text.clone();
                     let text2 = text.clone();
                     let cursor = state.with(|s| s.cursor);
-                    let state2 = state.clone();
                     canvas(move |rect, vger| {
                         vger.translate([0.0, rect.height()]);
                         let font_size = 18;
@@ -152,7 +151,7 @@ where
                             );
                         }
 
-                        state2.with_mut(|s| { s.glyph_rects = rects; s.lines = lines; });
+                        state.with_mut(|s| { s.glyph_rects = rects; s.lines = lines; });
                     })
                     .key(move |k| {
                         if has_focus {
