@@ -12,9 +12,6 @@ pub use event::*;
 mod binding;
 pub use binding::*;
 
-mod state;
-pub use state::*;
-
 mod gstate;
 pub use gstate::*;
 
