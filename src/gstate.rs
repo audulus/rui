@@ -47,6 +47,21 @@ lazy_static! {
     pub(crate) static ref GLOBAL_WORK_QUEUE: Mutex<WorkQueue> = Mutex::new(WorkQueue::new());
 }
 
+fn wake_event_loop() {
+    // Wake up the event loop.
+    let opt_proxy = GLOBAL_EVENT_LOOP_PROXY.lock().unwrap();
+    if let Some(proxy) = &*opt_proxy {
+        if let Err(err) = proxy.send_event(()) {
+            println!("error waking up event loop: {:?}", err);
+        }
+    }
+}
+
+pub fn on_main(f: impl FnOnce() + Send + 'static) {
+    GLOBAL_WORK_QUEUE.lock().unwrap().push_back(Box::new(f));
+    wake_event_loop();
+}
+
 /// Weak reference to app state.
 #[derive(Clone)]
 pub struct State<S> {
@@ -99,13 +114,7 @@ where
             panic!("state has wrong type")
         };
 
-        // Wake up the event loop.
-        let opt_proxy = GLOBAL_EVENT_LOOP_PROXY.lock().unwrap();
-        if let Some(proxy) = &*opt_proxy {
-            if let Err(err) = proxy.send_event(()) {
-                println!("error waking up event loop: {:?}", err);
-            }
-        }
+        wake_event_loop();
 
         t
     }
