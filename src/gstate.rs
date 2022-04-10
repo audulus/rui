@@ -1,4 +1,5 @@
 use {
+    crate::*,
     std::{
         any::Any,
         cell::RefCell,
@@ -9,8 +10,6 @@ use {
     },
     tao::event_loop::EventLoopProxy,
 };
-
-use crate::*;
 
 static STATE_DIRTY: AtomicBool = AtomicBool::new(false);
 
