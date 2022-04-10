@@ -1,8 +1,13 @@
-use std::any::Any;
-use std::cell::RefCell;
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::{Arc, Mutex};
-use tao::event_loop::EventLoopProxy;
+
+use {
+    std::{
+        any::Any,
+        sync::atomic::{AtomicBool, Ordering},
+        sync::{Arc, Mutex},
+        cell::RefCell
+    },
+    tao::event_loop::EventLoopProxy,
+};
 
 use crate::*;
 
