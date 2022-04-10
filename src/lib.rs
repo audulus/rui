@@ -396,12 +396,14 @@ pub fn rui(view: impl View + 'static) {
                     let mut keep = vec![];
                     view.gc(cx.root_id, &mut cx, &mut keep);
                     {
-                        let mut map = GLOBAL_STATE_MAP.lock().unwrap();
-                        let mut new_map = StateMap::new();
-                        for id in keep {
-                            new_map.insert(id, map[&id].clone());
-                        }
-                        *map = new_map;
+                        STATE_MAP.with(|mapcell| {
+                            let mut map = mapcell.borrow_mut();
+                            let mut new_map = StateMap::new();
+                            for id in keep {
+                                new_map.insert(id, map[&id].clone());
+                            }
+                            *map = new_map;
+                        });
                     }
 
                     // Get a new accesskit tree.

@@ -18,7 +18,7 @@ static STATE_DIRTY: AtomicBool = AtomicBool::new(false);
 
 thread_local! {
     pub static ENABLE_DIRTY: RefCell<bool> = RefCell::new(true);
-    pub static STATE_MAP: Mutex<StateMap> = Mutex::new(StateMap::new());
+    pub static STATE_MAP: RefCell<StateMap> = RefCell::new(StateMap::new());
 }
 
 pub(crate) fn is_state_dirty() -> bool {
@@ -41,9 +41,6 @@ pub(crate) fn clear_state_dirty() {
 pub(crate) type WorkQueue = VecDeque<Box<dyn FnOnce() + Send>>;
 
 lazy_static! {
-    /// Global map for storing state values.
-    pub(crate) static ref GLOBAL_STATE_MAP: Mutex<StateMap> = Mutex::new(StateMap::new());
-
     /// Allows us to wake the event loop whenever we want.
     pub(crate) static ref GLOBAL_EVENT_LOOP_PROXY: Mutex<Option<EventLoopProxy<()>>> = Mutex::new(None);
 
@@ -79,9 +76,10 @@ where
     S: Send + 'static,
 {
     pub fn new(id: ViewID, default: &impl Fn() -> S) -> Self {
-        let mut map = GLOBAL_STATE_MAP.lock().unwrap();
-        map.entry(id)
-            .or_insert_with(|| Arc::new(Mutex::new(default())));
+        STATE_MAP.with(|cell| {
+            cell.borrow_mut().entry(id).or_insert_with(|| Arc::new(Mutex::new(default())));
+        });
+        
         Self {
             id,
             phantom: Default::default(),
@@ -94,10 +92,7 @@ where
     S: Clone + Send + 'static,
 {
     fn with<T, F: FnOnce(&S) -> T>(&self, f: F) -> T {
-        let s = {
-            let map = GLOBAL_STATE_MAP.lock().unwrap();
-            map[&self.id].clone()
-        };
+        let s = STATE_MAP.with(|map| map.borrow()[&self.id].clone() );
         let v = s.lock().unwrap();
         if let Some(state) = v.downcast_ref::<S>() {
             f(state)
@@ -106,10 +101,7 @@ where
         }
     }
     fn with_mut<T, F: FnOnce(&mut S) -> T>(&self, f: F) -> T {
-        let s = {
-            let map = GLOBAL_STATE_MAP.lock().unwrap();
-            map[&self.id].clone()
-        };
+        let s = STATE_MAP.with(|map| map.borrow()[&self.id].clone() );
         set_state_dirty();
         let t = if let Some(state) = s.lock().unwrap().downcast_mut::<S>() {
             f(state)
