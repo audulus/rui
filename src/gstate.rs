@@ -3,8 +3,8 @@ use {
     std::{
         any::Any,
         cell::RefCell,
-        rc::Rc,
         collections::VecDeque,
+        rc::Rc,
         sync::{
             atomic::{AtomicBool, Ordering},
             Mutex,
@@ -77,9 +77,11 @@ where
 {
     pub fn new(id: ViewID, default: &impl Fn() -> S) -> Self {
         STATE_MAP.with(|cell| {
-            cell.borrow_mut().entry(id).or_insert_with(|| Rc::new(RefCell::new(default())));
+            cell.borrow_mut()
+                .entry(id)
+                .or_insert_with(|| Rc::new(RefCell::new(default())));
         });
-        
+
         Self {
             id,
             phantom: Default::default(),
@@ -92,7 +94,7 @@ where
     S: Clone + 'static,
 {
     fn with<T, F: FnOnce(&S) -> T>(&self, f: F) -> T {
-        let s = STATE_MAP.with(|map| map.borrow()[&self.id].clone() );
+        let s = STATE_MAP.with(|map| map.borrow()[&self.id].clone());
         let v = s.borrow();
         if let Some(state) = v.downcast_ref::<S>() {
             f(state)
@@ -101,7 +103,7 @@ where
         }
     }
     fn with_mut<T, F: FnOnce(&mut S) -> T>(&self, f: F) -> T {
-        let s = STATE_MAP.with(|map| map.borrow()[&self.id].clone() );
+        let s = STATE_MAP.with(|map| map.borrow()[&self.id].clone());
         set_state_dirty();
         let t = if let Some(state) = s.borrow_mut().downcast_mut::<S>() {
             f(state)
