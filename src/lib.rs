@@ -100,11 +100,7 @@ mod window;
 pub use window::*;
 
 use futures::executor::block_on;
-
-use std::{
-    collections::HashMap,
-    env
-};
+use std::collections::HashMap;
 
 use vger::color::*;
 use vger::*;
@@ -225,7 +221,7 @@ fn make_menu_rec(
     if i == 0 {
         let mut app_menu = Menu::new();
 
-        let app_name = match env::current_exe() {
+        let app_name = match std::env::current_exe() {
             Ok(exe_path) => exe_path.file_name().unwrap().to_str().unwrap().to_string(),
             Err(_) => "rui".to_string(),
         };
