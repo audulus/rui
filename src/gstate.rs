@@ -138,7 +138,7 @@ impl<S, F> private::Sealed for GStateView<S, F> {}
 
 /// State allows you to associate some state with a view.
 /// This is what you'll use for a data model, as well as per-view state.
-/// Your state should be efficiently clonable. Use Rc as necessary.
+/// Your state should be efficiently clonable. Use Arc as necessary.
 ///
 /// `initial` is the initial value for your state.
 ///
