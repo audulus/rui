@@ -225,3 +225,27 @@ pub trait GBinding<S>: Clone + Copy + 'static {
         self.with_mut(move |s| *s = value);
     }
 }
+
+#[derive(Clone, Copy)]
+pub struct GMap<Get, Set> {
+    pub getf: Get,
+    pub setf: Set,
+}
+
+impl<S, Get, Set> GBinding<S> for GMap<Get, Set>
+where
+    Get: Fn() -> S + Clone + Copy + 'static,
+    Set: Fn(S) + Clone + Copy + 'static,
+    S: Clone,
+{
+    fn with<T, F: FnOnce(&S) -> T>(&self, f: F) -> T {
+        let v = (self.getf)();
+        f(&v)
+    }
+    fn with_mut<T, F: FnOnce(&mut S) -> T>(&self, f: F) -> T {
+        let mut v = (self.getf)();
+        let t = f(&mut v);
+        (self.setf)(v);
+        t
+    }
+}
