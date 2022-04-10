@@ -53,37 +53,31 @@ where
 #[macro_export]
 macro_rules! bind {
     ( $state:expr, $field:ident ) => {{
-        let sref = &$state;
-        let state1 = sref.clone();
-        let state2 = sref.clone();
+        let s = $state;
         Map {
-            getf: move || state1.with(|v| v.$field.clone()),
+            getf: move || s.with(|v| v.$field.clone()),
             setf: move |val| {
-                state2.with_mut(|v| v.$field = val);
+                s.with_mut(|v| v.$field = val);
             },
         }
     }};
     ( $state:expr, $field:ident [$index:expr] ) => {{
-        let sref = &$state;
-        let state1 = sref.clone();
-        let state2 = sref.clone();
+        let s = $state;
         let idx = $index;
         Map {
-            getf: move || state1.with(|v| v.$field[idx].clone()),
+            getf: move || s.with(|v| v.$field[idx].clone()),
             setf: move |val| {
-                state2.with_mut(|v| v.$field[idx] = val);
+                s.with_mut(|v| v.$field[idx] = val);
             },
         }
     }};
     ( $state:expr, [$index:expr] ) => {{
-        let sref = &$state;
-        let state1 = sref.clone();
-        let state2 = sref.clone();
+        let s = $state;
         let idx = $index;
         Map {
-            getf: move || state1.with(|v| v[idx].clone()),
+            getf: move || s.with(|v| v[idx].clone()),
             setf: move |val| {
-                state2.with_mut(|v| v[idx] = val);
+                s.with_mut(|v| v[idx] = val);
             },
         }
     }};
