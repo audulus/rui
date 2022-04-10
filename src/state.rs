@@ -80,26 +80,6 @@ where
     }
 }
 
-impl<S: std::ops::Add + Copy + 'static> std::ops::Add<S> for &State<S> {
-    type Output = <S as std::ops::Add>::Output;
-
-    fn add(self, other: S) -> Self::Output {
-        self.get() + other
-    }
-}
-
-impl<T: std::ops::Add<Output = T> + Copy + 'static> std::ops::AddAssign<T> for State<T> {
-    fn add_assign(&mut self, rhs: T) {
-        self.set( self.get() + rhs )
-    }
-}
-
-impl<T: std::ops::Sub<Output = T> + Copy + 'static> std::ops::SubAssign<T> for State<T> {
-    fn sub_assign(&mut self, rhs: T) {
-        self.set( self.get() - rhs )
-    }
-}
-
 struct StateView<D, F> {
     default: D,
     func: F,
