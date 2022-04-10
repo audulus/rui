@@ -69,7 +69,7 @@ impl TextEditorState {
         }
     }
 
-    fn key(&mut self, k: &KeyPress, text: &impl GBinding<String>) {
+    fn key(&mut self, k: &KeyPress, text: &impl Binding<String>) {
         match k {
             KeyPress::ArrowLeft => self.back(),
             KeyPress::ArrowRight => self.fwd(text.with(|t| t.len())),
@@ -119,12 +119,12 @@ pub struct TextEditor<B> {
 
 impl<B> TextEditor<B>
 where
-    B: GBinding<String>,
+    B: Binding<String>,
 {
     fn body(&self) -> impl View {
         let text = self.text;
         focus(move |has_focus| {
-            gstate(
+            state(
                 || TextEditorState::new(),
                 move |state| {
                     let cursor = state.with(|s| s.cursor);
@@ -163,13 +163,13 @@ where
 
 impl<B> View for TextEditor<B>
 where
-    B: GBinding<String>,
+    B: Binding<String>,
 {
     body_view!();
 }
 
 impl<B> private::Sealed for TextEditor<B> {}
 
-pub fn text_editor(text: impl GBinding<String>) -> impl View {
+pub fn text_editor(text: impl Binding<String>) -> impl View {
     TextEditor { text: text }
 }

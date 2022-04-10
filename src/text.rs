@@ -47,9 +47,9 @@ impl View for Text {
 
     fn commands(&self, _id: ViewID, _cx: &mut Context, _cmds: &mut Vec<CommandInfo>) {}
 
-    fn gc(&self, _id: ViewID, _cx: &mut Context, _map: &mut StateMap) {
-        // do nothing
-    }
+    // fn gc(&self, _id: ViewID, _cx: &mut Context, _map: &mut StateMap) {
+    //     // do nothing
+    // }
 
     fn access(
         &self,

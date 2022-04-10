@@ -23,20 +23,9 @@ pub(crate) struct LayoutBox {
     pub offset: LocalOffset,
 }
 
-/// Restricts what we can store in a StateMap (instead of just using Any)
-pub trait AnyState {
-    /// So we can downcast.
-    fn as_any(&self) -> &dyn Any;
-}
-
-pub(crate) type StateMap = HashMap<ViewID, Box<dyn AnyState>>;
-
 /// The Context stores all UI state. A user of the library
 /// shouldn't have to interact with it directly.
 pub struct Context {
-    /// Map for `state`.
-    pub(crate) state_map: StateMap,
-
     /// Layout information for all views.
     pub(crate) layout: HashMap<ViewID, LayoutBox>,
 
@@ -60,15 +49,11 @@ pub struct Context {
 
     /// The current title of the window
     pub(crate) window_title: String,
-
-    /// Allows us to wake up the event loop.
-    pub(crate) event_loop_proxy: Option<EventLoopProxy<()>>,
 }
 
 impl Context {
-    pub fn new(event_loop_proxy: Option<EventLoopProxy<()>>, window: Option<Window>) -> Self {
+    pub fn new(window: Option<Window>) -> Self {
         Self {
-            state_map: HashMap::new(),
             layout: HashMap::new(),
             touches: [ViewID::default(); 16],
             starts: [LocalPoint::zero(); 16],
@@ -77,21 +62,6 @@ impl Context {
             focused_id: None,
             window,
             window_title: "rui".into(),
-            event_loop_proxy,
-        }
-    }
-
-    pub fn get_state<S: Clone + 'static, D: Fn() -> S>(&mut self, id: ViewID, default: &D) -> State<S> {
-        let proxy = self.event_loop_proxy.clone();
-        let s = self
-            .state_map
-            .entry(id)
-            .or_insert_with(|| Box::new(State::new(default(), proxy)));
-
-        if let Some(state) = s.as_any().downcast_ref::<State<S>>() {
-            state.clone()
-        } else {
-            panic!("state has wrong type")
         }
     }
 

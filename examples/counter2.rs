@@ -1,7 +1,7 @@
 use rui::*;
 
 fn main() {
-    rui(gstate(
+    rui(state(
         || 1,
         |count| {
             vstack((

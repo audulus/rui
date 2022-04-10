@@ -316,7 +316,7 @@ pub fn rui(view: impl View + 'static) {
     *GLOBAL_EVENT_LOOP_PROXY.lock().unwrap() = Some(event_loop.create_proxy());
 
     let mut vger = VGER::new(&device, wgpu::TextureFormat::Bgra8UnormSrgb);
-    let mut cx = Context::new(Some(event_loop.create_proxy()), Some(window));
+    let mut cx = Context::new(Some(window));
     let mut mouse_position = LocalPoint::zero();
 
     let mut commands = Vec::new();
@@ -390,10 +390,10 @@ pub fn rui(view: impl View + 'static) {
                     }
 
                     // Clean up state.
-                    let mut new_map = StateMap::new();
-                    view.gc(cx.root_id, &mut cx, &mut new_map);
-                    // println!("collected {} states", cx.state_map.len() - new_map.len());
-                    cx.state_map = new_map;
+                    // let mut new_map = StateMap::new();
+                    // view.gc(cx.root_id, &mut cx, &mut new_map);
+                    // // println!("collected {} states", cx.state_map.len() - new_map.len());
+                    // cx.state_map = new_map;
 
                     // Get a new accesskit tree.
                     let mut nodes = vec![];
@@ -560,7 +560,7 @@ mod tests {
 
     #[test]
     fn test_state2() {
-        let mut cx = Context::new(None, None);
+        let mut cx = Context::new(None);
         let v = counter(42);
         v.print(ViewID::default(), &mut cx);
     }

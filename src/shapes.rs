@@ -66,9 +66,9 @@ impl View for Circle {
         // do nothing
     }
 
-    fn gc(&self, _id: ViewID, _cx: &mut Context, _map: &mut StateMap) {
-        // do nothing
-    }
+    // fn gc(&self, _id: ViewID, _cx: &mut Context, _map: &mut StateMap) {
+    //     // do nothing
+    // }
 
     fn access(
         &self,
@@ -164,9 +164,9 @@ impl View for Rectangle {
         // do nothing
     }
 
-    fn gc(&self, _id: ViewID, _cx: &mut Context, _map: &mut StateMap) {
-        // do nothing
-    }
+    // fn gc(&self, _id: ViewID, _cx: &mut Context, _map: &mut StateMap) {
+    //     // do nothing
+    // }
 
     fn access(
         &self,

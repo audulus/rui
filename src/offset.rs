@@ -47,9 +47,9 @@ where
         self.child.commands(id.child(&0), cx, cmds)
     }
 
-    fn gc(&self, id: ViewID, cx: &mut Context, map: &mut StateMap) {
-        self.child.gc(id.child(&0), cx, map)
-    }
+    // fn gc(&self, id: ViewID, cx: &mut Context, map: &mut StateMap) {
+    //     self.child.gc(id.child(&0), cx, map)
+    // }
 
     fn access(
         &self,
