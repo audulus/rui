@@ -4,6 +4,7 @@ use crate::*;
 pub trait ViewTuple {
     fn foreach_view<F: FnMut(&dyn View)>(&self, f: &mut F);
     fn len(&self) -> usize;
+    fn is_empty(&self) -> bool { false } // satisfy clippy
 }
 
 pub enum StackOrientation {

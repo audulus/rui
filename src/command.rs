@@ -99,6 +99,7 @@ pub trait CommandBase {
 pub trait CommandTuple {
     fn foreach_cmd<F: FnMut(&dyn CommandBase)>(&self, f: &mut F);
     fn len(&self) -> usize;
+    fn is_empty(&self) -> bool { false } // satisfy clippy
 }
 
 impl<A: CommandBase> CommandTuple for (A,) {
