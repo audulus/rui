@@ -14,7 +14,7 @@ lazy_static! {
     pub(crate) static ref GLOBAL_EVENT_LOOP_PROXY: Mutex<Option<EventLoopProxy<()>>> = Mutex::new(None);
 }
 
-/// Contains application state.
+/// Weak reference to app state.
 #[derive(Clone)]
 pub struct GState<S> {
      id: ViewID,
