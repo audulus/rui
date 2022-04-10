@@ -3,6 +3,7 @@ use {
     std::{
         any::Any,
         cell::RefCell,
+        collections::VecDeque,
         sync::{
             atomic::{AtomicBool, Ordering},
             Arc, Mutex,
@@ -34,6 +35,7 @@ pub(crate) fn clear_state_dirty() {
 }
 
 pub(crate) type StateMap = HashMap<ViewID, Arc<Mutex<dyn Any + Send>>>;
+pub(crate) type WorkQueue = VecDeque<Box<dyn FnOnce() + Send>>;
 
 lazy_static! {
     /// Global map for storing state values.
@@ -41,6 +43,8 @@ lazy_static! {
 
     /// Allows us to wake the event loop whenever we want.
     pub(crate) static ref GLOBAL_EVENT_LOOP_PROXY: Mutex<Option<EventLoopProxy<()>>> = Mutex::new(None);
+
+    pub(crate) static ref GLOBAL_WORK_QUEUE: Mutex<WorkQueue> = Mutex::new(WorkQueue::new());
 }
 
 /// Weak reference to app state.
