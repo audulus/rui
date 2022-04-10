@@ -93,14 +93,13 @@ where
     B: Binding<f32>,
 {
     fn body(&self) -> impl View {
-        let value = self.value.clone();
+        let value = self.value;
         let thumb_color = self.thumb;
         state(
             || 0.0,
             move |height| {
                 let h = height.get();
                 let y = value.get() * h;
-                let value = value.clone();
 
                 canvas(move |sz, vger| {
                     let c = sz.center();
