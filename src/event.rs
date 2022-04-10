@@ -2,7 +2,6 @@ use crate::*;
 
 #[derive(Clone, Debug)]
 pub enum EventKind {
-    PressButton(String),
     TouchBegin { id: usize },
     TouchMove { id: usize },
     TouchEnd { id: usize },
