@@ -28,11 +28,11 @@ pub(crate) fn clear_state_dirty() {
     STATE_DIRTY.store(false, Ordering::Relaxed);
 }
 
-type GStateMap = HashMap<ViewID, Arc<Mutex<dyn Any + Send>>>;
+type StateMap = HashMap<ViewID, Arc<Mutex<dyn Any + Send>>>;
 
 lazy_static! {
     /// Global map for storing state values.
-    static ref GLOBAL_STATE_MAP: Mutex<GStateMap> = Mutex::new(GStateMap::new());
+    static ref GLOBAL_STATE_MAP: Mutex<StateMap> = Mutex::new(StateMap::new());
 
     /// Allows us to wake the event loop whenever we want.
     pub(crate) static ref GLOBAL_EVENT_LOOP_PROXY: Mutex<Option<EventLoopProxy<()>>> = Mutex::new(None);
