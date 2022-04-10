@@ -38,7 +38,6 @@ pub(crate) fn clear_state_dirty() {
     STATE_DIRTY.store(false, Ordering::Relaxed);
 }
 
-
 pub(crate) type WorkQueue = VecDeque<Box<dyn FnOnce() + Send>>;
 
 lazy_static! {
