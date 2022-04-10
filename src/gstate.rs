@@ -2,8 +2,11 @@
 use {
     std::{
         any::Any,
-        sync::atomic::{AtomicBool, Ordering},
-        sync::{Arc, Mutex},
+        sync::{
+            atomic::{AtomicBool, Ordering},
+            Arc,
+            Mutex
+        },
         cell::RefCell
     },
     tao::event_loop::EventLoopProxy,
