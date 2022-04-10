@@ -249,3 +249,52 @@ where
         t
     }
 }
+
+/// Constructs a new binding from a binding and an expression.
+///
+/// For example `bind(b, x)` will create a binding to
+/// a member x inside b.
+///
+/// `bind(b, [i])` will create a binding to the ith array
+/// element in b.
+///
+/// `bind(b, x[i])` will create a binding to the ith array
+/// element of member x in b.
+#[macro_export]
+macro_rules! gbind {
+    ( $state:expr, $field:ident ) => {{
+        let sref = &$state;
+        let state1 = sref.clone();
+        let state2 = sref.clone();
+        GMap {
+            getf: move || state1.with(|v| v.$field.clone()),
+            setf: move |val| {
+                state2.with_mut(|v| v.$field = val);
+            },
+        }
+    }};
+    ( $state:expr, $field:ident [$index:expr] ) => {{
+        let sref = &$state;
+        let state1 = sref.clone();
+        let state2 = sref.clone();
+        let idx = $index;
+        GMap {
+            getf: move || state1.with(|v| v.$field[idx].clone()),
+            setf: move |val| {
+                state2.with_mut(|v| v.$field[idx] = val);
+            },
+        }
+    }};
+    ( $state:expr, [$index:expr] ) => {{
+        let sref = &$state;
+        let state1 = sref.clone();
+        let state2 = sref.clone();
+        let idx = $index;
+        GMap {
+            getf: move || state1.with(|v| v[idx].clone()),
+            setf: move |val| {
+                state2.with_mut(|v| v[idx] = val);
+            },
+        }
+    }};
+}

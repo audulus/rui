@@ -36,7 +36,7 @@ where
     }
 }
 
-impl<S> Binding<S> for GState<S>
+impl<S> GBinding<S> for GState<S>
 where
     S: Clone + Send + 'static,
 {

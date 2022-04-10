@@ -32,7 +32,7 @@ fn toggle_example() -> impl View {
 fn text_editor_example() -> impl View {
     hstack((
         caption("text_editor"),
-        state(
+        gstate(
             || "edit me".to_string(),
             |txt| text_editor(txt).padding(Auto),
         ),
