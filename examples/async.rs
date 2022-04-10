@@ -1,5 +1,5 @@
 use rui::*;
-use std::{thread, time};
+use std::{thread, time::Duration};
 
 fn main() {
     rui(state(
@@ -10,7 +10,7 @@ fn main() {
                 button(text("press to begin"), move || {
                     thread::spawn(move || {
                         on_main(move || s.set("task started".into()) );
-                        thread::sleep(time::Duration::from_secs(2));
+                        thread::sleep(Duration::from_secs(2));
                         on_main(move || s.set("task complete".into()) );
                     });
                 }),
