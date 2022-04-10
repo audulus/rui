@@ -3,16 +3,17 @@ use {
     std::{
         any::Any,
         cell::RefCell,
+        rc::Rc,
         collections::VecDeque,
         sync::{
             atomic::{AtomicBool, Ordering},
-            Arc, Mutex,
+            Mutex,
         },
     },
     tao::event_loop::EventLoopProxy,
 };
 
-pub(crate) type StateMap = HashMap<ViewID, Arc<Mutex<dyn Any>>>;
+pub(crate) type StateMap = HashMap<ViewID, Rc<RefCell<dyn Any>>>;
 
 static STATE_DIRTY: AtomicBool = AtomicBool::new(false);
 
@@ -77,7 +78,7 @@ where
 {
     pub fn new(id: ViewID, default: &impl Fn() -> S) -> Self {
         STATE_MAP.with(|cell| {
-            cell.borrow_mut().entry(id).or_insert_with(|| Arc::new(Mutex::new(default())));
+            cell.borrow_mut().entry(id).or_insert_with(|| Rc::new(RefCell::new(default())));
         });
         
         Self {
@@ -93,7 +94,7 @@ where
 {
     fn with<T, F: FnOnce(&S) -> T>(&self, f: F) -> T {
         let s = STATE_MAP.with(|map| map.borrow()[&self.id].clone() );
-        let v = s.lock().unwrap();
+        let v = s.borrow();
         if let Some(state) = v.downcast_ref::<S>() {
             f(state)
         } else {
@@ -103,7 +104,7 @@ where
     fn with_mut<T, F: FnOnce(&mut S) -> T>(&self, f: F) -> T {
         let s = STATE_MAP.with(|map| map.borrow()[&self.id].clone() );
         set_state_dirty();
-        let t = if let Some(state) = s.lock().unwrap().downcast_mut::<S>() {
+        let t = if let Some(state) = s.borrow_mut().downcast_mut::<S>() {
             f(state)
         } else {
             panic!("state has wrong type")
