@@ -66,10 +66,7 @@ where
     V: View + 'static,
 {
     pub fn new(child: V, offset: LocalOffset) -> Self {
-        Self {
-            child,
-            offset,
-        }
+        Self { child, offset }
     }
 }
 

@@ -126,42 +126,39 @@ where
     fn body(&self) -> impl View {
         let text = self.text;
         focus(move |has_focus| {
-            state(
-                TextEditorState::new,
-                move |state| {
-                    let cursor = state.with(|s| s.cursor);
-                    canvas(move |rect, vger| {
-                        vger.translate([0.0, rect.height()]);
-                        let font_size = 18;
-                        let break_width = Some(rect.width());
+            state(TextEditorState::new, move |state| {
+                let cursor = state.with(|s| s.cursor);
+                canvas(move |rect, vger| {
+                    vger.translate([0.0, rect.height()]);
+                    let font_size = 18;
+                    let break_width = Some(rect.width());
 
-                        let rects = vger.glyph_positions(&text.get(), font_size, break_width);
-                        let lines = vger.line_metrics(&text.get(), font_size, break_width);
+                    let rects = vger.glyph_positions(&text.get(), font_size, break_width);
+                    let lines = vger.line_metrics(&text.get(), font_size, break_width);
 
-                        vger.text(&text.get(), font_size, TEXT_COLOR, break_width);
+                    vger.text(&text.get(), font_size, TEXT_COLOR, break_width);
 
-                        if has_focus {
-                            let glyph_rect_paint = vger.color_paint(vger::Color::MAGENTA);
-                            let r = rects[cursor];
-                            vger.fill_rect(
-                                LocalRect::new(r.origin, [2.0, 20.0].into()),
-                                0.0,
-                                glyph_rect_paint,
-                            );
-                        }
+                    if has_focus {
+                        let glyph_rect_paint = vger.color_paint(vger::Color::MAGENTA);
+                        let r = rects[cursor];
+                        vger.fill_rect(
+                            LocalRect::new(r.origin, [2.0, 20.0].into()),
+                            0.0,
+                            glyph_rect_paint,
+                        );
+                    }
 
-                        state.with_mut(|s| {
-                            s.glyph_rects = rects;
-                            s.lines = lines;
-                        });
-                    })
-                    .key(move |k| {
-                        if has_focus {
-                            state.with_mut(|s| s.key(&k, &text))
-                        }
-                    })
-                },
-            )
+                    state.with_mut(|s| {
+                        s.glyph_rects = rects;
+                        s.lines = lines;
+                    });
+                })
+                .key(move |k| {
+                    if has_focus {
+                        state.with_mut(|s| s.key(&k, &text))
+                    }
+                })
+            })
         })
     }
 }

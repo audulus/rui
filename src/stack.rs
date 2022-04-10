@@ -4,7 +4,9 @@ use crate::*;
 pub trait ViewTuple {
     fn foreach_view<F: FnMut(&dyn View)>(&self, f: &mut F);
     fn len(&self) -> usize;
-    fn is_empty(&self) -> bool { false } // satisfy clippy
+    fn is_empty(&self) -> bool {
+        false
+    } // satisfy clippy
 }
 
 pub enum StackOrientation {
@@ -33,11 +35,7 @@ impl<VT: ViewTuple> View for Stack<VT> {
         let mut c = 0;
         self.children.foreach_view(&mut |child| {
             let child_id = id.child(&c);
-            let offset = cx
-                .layout
-                .entry(child_id)
-                .or_default()
-                .offset;
+            let offset = cx.layout.entry(child_id).or_default().offset;
 
             let mut local_event = event.clone();
             local_event.position -= offset;
@@ -51,10 +49,7 @@ impl<VT: ViewTuple> View for Stack<VT> {
         let mut c = 0;
         self.children.foreach_view(&mut |child| {
             let child_id = id.child(&c);
-            let layout_box = *cx
-                .layout
-                .entry(child_id)
-                .or_default();
+            let layout_box = *cx.layout.entry(child_id).or_default();
 
             vger.save();
 
@@ -151,11 +146,7 @@ impl<VT: ViewTuple> View for Stack<VT> {
         let mut hit = None;
         self.children.foreach_view(&mut |child| {
             let child_id = id.child(&c);
-            let offset = cx
-                .layout
-                .entry(child_id)
-                .or_default()
-                .offset;
+            let offset = cx.layout.entry(child_id).or_default().offset;
 
             if let Some(h) = child.hittest(child_id, pt - offset, cx, vger) {
                 hit = Some(h)

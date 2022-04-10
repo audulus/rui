@@ -67,9 +67,6 @@ where
     F: Fn(LocalSize) + 'static,
 {
     pub fn new(child: V, f: F) -> Self {
-        Self {
-            child,
-            func: f,
-        }
+        Self { child, func: f }
     }
 }

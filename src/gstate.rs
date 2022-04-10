@@ -1,13 +1,11 @@
-
 use {
     std::{
         any::Any,
+        cell::RefCell,
         sync::{
             atomic::{AtomicBool, Ordering},
-            Arc,
-            Mutex
+            Arc, Mutex,
         },
-        cell::RefCell
     },
     tao::event_loop::EventLoopProxy,
 };

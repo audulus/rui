@@ -23,11 +23,7 @@ where
     fn process(&self, event: &Event, id: ViewID, cx: &mut Context, vger: &mut VGER) {
         for child in &self.ids {
             let child_id = id.child(child);
-            let offset = cx
-                .layout
-                .entry(child_id)
-                .or_default()
-                .offset;
+            let offset = cx.layout.entry(child_id).or_default().offset;
 
             let mut local_event = event.clone();
             local_event.position -= offset;
@@ -39,11 +35,7 @@ where
     fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
         for child in &self.ids {
             let child_id = id.child(child);
-            let offset = cx
-                .layout
-                .entry(child_id)
-                .or_default()
-                .offset;
+            let offset = cx.layout.entry(child_id).or_default().offset;
 
             vger.save();
 
@@ -85,11 +77,7 @@ where
         let mut hit = None;
         for child in &self.ids {
             let child_id = id.child(child);
-            let offset = cx
-                .layout
-                .entry(child_id)
-                .or_default()
-                .offset;
+            let offset = cx.layout.entry(child_id).or_default().offset;
 
             if let Some(h) = ((self.func)(child)).hittest(child_id, pt - offset, cx, vger) {
                 hit = Some(h)
