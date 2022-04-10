@@ -91,13 +91,13 @@ slider with a binding (`cargo run --example slider`):
 ```rust
 use rui::*;
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 struct MyState {
     value: f32,
 }
 
 fn main() {
-    rui(state(|| MyState { value: 0.0 }, |state| {
+    rui(state(MyState::default, |state| {
         vstack((
             text(&format!("value: {:?}", state.get().value)).padding(Auto),
             hslider(bind!(state, value))
