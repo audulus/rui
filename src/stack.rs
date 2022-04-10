@@ -174,13 +174,13 @@ impl<VT: ViewTuple> View for Stack<VT> {
         });
     }
 
-    // fn gc(&self, id: ViewID, cx: &mut Context, map: &mut StateMap) {
-    //     let mut c = 0;
-    //     self.children.foreach_view(&mut |child| {
-    //         child.gc(id.child(&c), cx, map);
-    //         c += 1;
-    //     });
-    // }
+    fn gc(&self, id: ViewID, cx: &mut Context, map: &mut Vec<ViewID>) {
+        let mut c = 0;
+        self.children.foreach_view(&mut |child| {
+            child.gc(id.child(&c), cx, map);
+            c += 1;
+        });
+    }
 
     fn access(
         &self,

@@ -27,7 +27,7 @@ pub trait View: private::Sealed {
     fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<CommandInfo>);
 
     // /// Copies state currently in use to a new StateMap (the rest are dropped).
-    // fn gc(&self, id: ViewID, cx: &mut Context, map: &mut StateMap);
+    fn gc(&self, _id: ViewID, _cx: &mut Context, _map: &mut Vec<ViewID>);
 
     /// Builds an AccessKit tree. The node ID for the subtree is returned. All generated nodes are accumulated.
     fn access(
@@ -67,7 +67,7 @@ impl View for EmptyView {
 
     fn commands(&self, _id: ViewID, _cx: &mut Context, _cmds: &mut Vec<CommandInfo>) {}
 
-    // fn gc(&self, _id: ViewID, _cx: &mut Context, _map: &mut StateMap) {}
+    fn gc(&self, _id: ViewID, _cx: &mut Context, _map: &mut Vec<ViewID>) {}
 
     fn access(
         &self,

@@ -75,9 +75,9 @@ macro_rules! body_view {
             self.body().commands(id, cx, cmds);
         }
 
-        // fn gc(&self, id: ViewID, cx: &mut Context, map: &mut StateMap) {
-        //     self.body().gc(id, cx, map)
-        // }
+        fn gc(&self, id: ViewID, cx: &mut Context, map: &mut Vec<ViewID>) {
+            self.body().gc(id, cx, map)
+        }
 
         fn access(
             &self,

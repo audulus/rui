@@ -120,9 +120,10 @@ where
         (self.func)(State::new(id, &self.default)).commands(id.child(&0), cx, cmds);
     }
 
-    // fn gc(&self, id: ViewID, cx: &mut Context, map: &mut StateMap) {
-    //     (self.func)(State::new(id, &self.default)).gc(id.child(&0), cx, map);
-    // }
+    fn gc(&self, id: ViewID, cx: &mut Context, map: &mut Vec<ViewID>) {
+        map.push(id);
+        (self.func)(State::new(id, &self.default)).gc(id.child(&0), cx, map);
+    }
 
     fn access(
         &self,

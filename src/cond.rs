@@ -66,13 +66,13 @@ where
         }
     }
 
-    // fn gc(&self, id: ViewID, cx: &mut Context, map: &mut StateMap) {
-    //     if self.cond {
-    //         self.if_true.gc(id.child(&0), cx, map)
-    //     } else {
-    //         self.if_false.gc(id.child(&1), cx, map)
-    //     }
-    // }
+    fn gc(&self, id: ViewID, cx: &mut Context, map: &mut Vec<ViewID>) {
+        if self.cond {
+            self.if_true.gc(id.child(&0), cx, map)
+        } else {
+            self.if_false.gc(id.child(&1), cx, map)
+        }
+    }
 
     fn access(
         &self,

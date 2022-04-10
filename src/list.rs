@@ -105,11 +105,11 @@ where
         }
     }
 
-    // fn gc(&self, id: ViewID, cx: &mut Context, map: &mut StateMap) {
-    //     for child in &self.ids {
-    //         ((self.func)(child)).gc(id.child(child), cx, map)
-    //     }
-    // }
+    fn gc(&self, id: ViewID, cx: &mut Context, map: &mut Vec<ViewID>) {
+        for child in &self.ids {
+            ((self.func)(child)).gc(id.child(child), cx, map)
+        }
+    }
 
     fn access(
         &self,

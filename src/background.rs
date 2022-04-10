@@ -48,10 +48,10 @@ where
         self.background.commands(id.child(&1), cx, cmds);
     }
 
-    // fn gc(&self, id: ViewID, cx: &mut Context, map: &mut StateMap) {
-    //     self.child.gc(id.child(&0), cx, map);
-    //     self.background.gc(id.child(&1), cx, map);
-    // }
+    fn gc(&self, id: ViewID, cx: &mut Context, map: &mut Vec<ViewID>) {
+        self.child.gc(id.child(&0), cx, map);
+        self.background.gc(id.child(&1), cx, map);
+    }
 
     fn access(
         &self,
