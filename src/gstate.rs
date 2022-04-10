@@ -1,12 +1,12 @@
 use std::any::Any;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 use tao::event_loop::EventLoopProxy;
 
 use crate::*;
 
 lazy_static! {
     /// Global map for storing state values.
-    static ref GLOBAL_STATE_MAP: Mutex<HashMap<ViewID, Box<dyn Any + Send>>> = Mutex::new(HashMap::new());
+    static ref GLOBAL_STATE_MAP: Mutex<HashMap<ViewID, Arc<Mutex<dyn Any + Send>>>> = Mutex::new(HashMap::new());
 
     /// Allows us to wake the event loop whenever we want.
     pub(crate) static ref GLOBAL_EVENT_LOOP_PROXY: Mutex<Option<EventLoopProxy<()>>> = Mutex::new(None);
@@ -28,7 +28,7 @@ where
     pub fn new(id: ViewID, default: &impl Fn() -> S) -> Self {
         let mut map = GLOBAL_STATE_MAP.lock().unwrap();
         map.entry(id)
-                   .or_insert_with(|| Box::new(default()));
+                   .or_insert_with(|| Arc::new(Mutex::new(default())));
         Self {
             id,
             phantom: Default::default()
@@ -41,19 +41,24 @@ where
     S: Clone + Send + 'static,
 {
     fn with<T, F: FnOnce(&S) -> T>(&self, f: F) -> T {
-        let map = GLOBAL_STATE_MAP.lock().unwrap();
-        let s = &map[&self.id];
-        if let Some(state) = s.downcast_ref::<S>() {
+        let s = {
+            let map = GLOBAL_STATE_MAP.lock().unwrap();
+            map[&self.id].clone()
+        };
+        let v = s.lock().unwrap();
+        if let Some(state) = v.downcast_ref::<S>() {
             f(&state)
         } else {
             panic!("state has wrong type")
         }
     }
     fn with_mut<T, F: FnOnce(&mut S) -> T>(&self, f: F) -> T {
-        let mut map = GLOBAL_STATE_MAP.lock().unwrap();
-        let s = &mut map.get_mut(&self.id).unwrap();
+        let s = {
+            let map = GLOBAL_STATE_MAP.lock().unwrap();
+            map[&self.id].clone()
+        };
         set_state_dirty();
-        let t = if let Some(mut state) = s.downcast_mut::<S>() {
+        let t = if let Some(mut state) = s.lock().unwrap().downcast_mut::<S>() {
             f(&mut state)
         } else {
             panic!("state has wrong type")
