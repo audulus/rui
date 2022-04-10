@@ -362,6 +362,11 @@ pub fn rui(view: impl View + 'static) {
             }
             tao::event::Event::UserEvent(_) => {
                 // println!("received user event");
+
+                // Process the work queue.
+                while let Some(f) = GLOBAL_WORK_QUEUE.lock().unwrap().pop_front() {
+                    f();
+                }
             }
             tao::event::Event::MainEventsCleared => {
                 // Application update code.
