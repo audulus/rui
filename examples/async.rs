@@ -9,9 +9,9 @@ fn main() {
             hstack((
                 button(text("press to begin"), move || {
                     thread::spawn(move || {
-                        on_main(move || s.set("task started".to_string()) );
+                        on_main(move || s.set("task started".into()) );
                         thread::sleep(time::Duration::from_secs(2));
-                        on_main(move || s.set("task complete".to_string()) );
+                        on_main(move || s.set("task complete".into()) );
                     });
                 }),
                 text(&txt),
