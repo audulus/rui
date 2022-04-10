@@ -73,7 +73,7 @@ where
         };
         let v = s.lock().unwrap();
         if let Some(state) = v.downcast_ref::<S>() {
-            f(&state)
+            f(state)
         } else {
             panic!("state has wrong type")
         }
@@ -84,8 +84,8 @@ where
             map[&self.id].clone()
         };
         set_state_dirty();
-        let t = if let Some(mut state) = s.lock().unwrap().downcast_mut::<S>() {
-            f(&mut state)
+        let t = if let Some(state) = s.lock().unwrap().downcast_mut::<S>() {
+            f(state)
         } else {
             panic!("state has wrong type")
         };

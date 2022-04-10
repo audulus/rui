@@ -67,7 +67,7 @@ where
 {
     pub fn new(child: V, offset: LocalOffset) -> Self {
         Self {
-            child: child,
+            child,
             offset,
         }
     }

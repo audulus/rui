@@ -50,11 +50,10 @@ impl<VT: ViewTuple> View for Stack<VT> {
         let mut c = 0;
         self.children.foreach_view(&mut |child| {
             let child_id = id.child(&c);
-            let layout_box = cx
+            let layout_box = *cx
                 .layout
                 .entry(child_id)
-                .or_insert(LayoutBox::default())
-                .clone();
+                .or_insert(LayoutBox::default());
 
             vger.save();
 

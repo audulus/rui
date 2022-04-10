@@ -233,7 +233,7 @@ fn make_menu_rec(
 
     for j in &items[i].submenu {
         let item = &items[*j];
-        if item.submenu.len() > 0 {
+        if !item.submenu.is_empty() {
             menu.add_submenu(
                 item.name.as_str(),
                 true,
@@ -268,7 +268,7 @@ fn build_menubar(
 
     for command in commands {
         let mut v = 0;
-        for name in command.path.split(":") {
+        for name in command.path.split(':') {
             if let Some(item) = items[v].submenu.iter().find(|x| items[**x].name == name) {
                 v = *item;
             } else {
@@ -574,7 +574,7 @@ mod tests {
         state(
             move || start,
             |count| {
-                let count2 = count.clone();
+                let count2 = count;
                 let value_string = format!("value: {:?}", count.get());
                 vstack((
                     text(value_string.as_str()),
@@ -593,7 +593,7 @@ mod tests {
     where
         B: Binding<usize> + Clone + 'static,
     {
-        let count2 = count.clone();
+        let count2 = count;
         vstack((
             button(text("increment"), move || {
                 count.with_mut(|value| *value += 1);
@@ -606,6 +606,6 @@ mod tests {
 
     #[test]
     fn test_binding() {
-        let _ = state(|| 42, |count| counter3(count));
+        let _ = state(|| 42, counter3);
     }
 }

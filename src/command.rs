@@ -289,7 +289,7 @@ where
         self.child.commands(id.child(&0), cx, cmds);
         self.cmds.foreach_cmd(&mut |cmd| {
             cmds.push(CommandInfo {
-                path: cmd.name().clone(),
+                path: cmd.name(),
                 key: cmd.key(),
             })
         });
@@ -347,7 +347,7 @@ impl NullCommand {
         Command2 {
             name: self.name,
             key: self.key,
-            func: func,
+            func,
         }
     }
 }

@@ -68,7 +68,7 @@ where
 {
     pub fn new(child: V, f: F) -> Self {
         Self {
-            child: child,
+            child,
             func: f,
         }
     }

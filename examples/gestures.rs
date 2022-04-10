@@ -7,7 +7,7 @@ fn main() {
             .tap(|| println!("tapped circle"))
             .padding(Auto),
         state(
-            || LocalOffset::zero(),
+            LocalOffset::zero,
             |offset_state| {
                 let off = offset_state.get();
                 rectangle()

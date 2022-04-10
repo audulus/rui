@@ -93,7 +93,7 @@ impl TextEditorState {
             }
             KeyPress::Space => {
                 text.with_mut(|t| {
-                    t.insert_str(self.cursor, " ");
+                    t.insert(self.cursor, ' ');
                 });
                 self.cursor += 1;
             }
@@ -127,7 +127,7 @@ where
         let text = self.text;
         focus(move |has_focus| {
             state(
-                || TextEditorState::new(),
+                TextEditorState::new,
                 move |state| {
                     let cursor = state.with(|s| s.cursor);
                     canvas(move |rect, vger| {
@@ -176,5 +176,5 @@ where
 impl<B> private::Sealed for TextEditor<B> {}
 
 pub fn text_editor(text: impl Binding<String>) -> impl View {
-    TextEditor { text: text }
+    TextEditor { text }
 }

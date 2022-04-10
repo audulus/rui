@@ -94,7 +94,7 @@ where
 {
     pub fn new(child: V, param: PaddingParam) -> Self {
         Self {
-            child: child,
+            child,
             padding: match param {
                 PaddingParam::Auto => 5.0,
                 PaddingParam::Px(px) => px,

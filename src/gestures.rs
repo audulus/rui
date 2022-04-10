@@ -32,7 +32,7 @@ where
     fn process(&self, event: &Event, vid: ViewID, cx: &mut Context, vger: &mut VGER) {
         match &event.kind {
             EventKind::TouchBegin { id } => {
-                if let Some(_) = self.hittest(vid, event.position, cx, vger) {
+                if self.hittest(vid, event.position, cx, vger).is_some() {
                     cx.touches[*id] = vid;
                 }
             }
@@ -120,7 +120,7 @@ where
     fn process(&self, event: &Event, vid: ViewID, cx: &mut Context, vger: &mut VGER) {
         match &event.kind {
             EventKind::TouchBegin { id } => {
-                if let Some(_) = self.hittest(vid, event.position, cx, vger) {
+                if self.hittest(vid, event.position, cx, vger).is_some() {
                     cx.touches[*id] = vid;
                     cx.starts[*id] = event.position;
                     cx.previous_position[*id] = event.position;
@@ -217,7 +217,7 @@ where
     fn process(&self, event: &Event, vid: ViewID, cx: &mut Context, vger: &mut VGER) {
         match &event.kind {
             EventKind::TouchBegin { id } => {
-                if let Some(_) = self.hittest(vid, event.position, cx, vger) {
+                if self.hittest(vid, event.position, cx, vger).is_some() {
                     cx.touches[*id] = vid;
                 }
             }

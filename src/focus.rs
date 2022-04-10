@@ -18,7 +18,7 @@ where
     fn process(&self, event: &Event, vid: ViewID, cx: &mut Context, vger: &mut VGER) {
         match &event.kind {
             EventKind::TouchBegin { .. } => {
-                if let Some(_) = self.hittest(vid, event.position, cx, vger) {
+                if self.hittest(vid, event.position, cx, vger).is_some() {
                     cx.focused_id = Some(vid);
                     set_state_dirty();
                 }
