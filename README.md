@@ -121,6 +121,7 @@ widget gallery (`cargo run --example gallery`):
 - Use [vger-rs](https://github.com/audulus/vger-rs) for rendering.
 - Minimal boilerplate.
 - Good looking.
+- No `unsafe`.
 - Accessible.
 
 ## Why?
