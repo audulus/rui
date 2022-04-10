@@ -4,9 +4,11 @@ use tao::event_loop::EventLoopProxy;
 
 use crate::*;
 
+type GStateMap = HashMap<ViewID, Arc<Mutex<dyn Any + Send>>>;
+
 lazy_static! {
     /// Global map for storing state values.
-    static ref GLOBAL_STATE_MAP: Mutex<HashMap<ViewID, Arc<Mutex<dyn Any + Send>>>> = Mutex::new(HashMap::new());
+    static ref GLOBAL_STATE_MAP: Mutex<GStateMap> = Mutex::new(GStateMap::new());
 
     /// Allows us to wake the event loop whenever we want.
     pub(crate) static ref GLOBAL_EVENT_LOOP_PROXY: Mutex<Option<EventLoopProxy<()>>> = Mutex::new(None);
