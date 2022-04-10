@@ -5,9 +5,10 @@ use tao::event_loop::EventLoopProxy;
 use crate::*;
 
 lazy_static! {
-    /// Blasphemy!
+    /// Global map for storing state values.
     static ref GLOBAL_STATE_MAP: Mutex<HashMap<ViewID, Box<dyn Any + Send>>> = Mutex::new(HashMap::new());
 
+    /// Allows us to wake the event loop whenever we want.
     pub(crate) static ref GLOBAL_EVENT_LOOP_PROXY: Mutex<Option<EventLoopProxy<()>>> = Mutex::new(None);
 }
 
