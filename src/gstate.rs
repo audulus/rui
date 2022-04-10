@@ -12,10 +12,13 @@ use {
     tao::event_loop::EventLoopProxy,
 };
 
+pub(crate) type StateMap = HashMap<ViewID, Arc<Mutex<dyn Any + Send>>>;
+
 static STATE_DIRTY: AtomicBool = AtomicBool::new(false);
 
 thread_local! {
     pub static ENABLE_DIRTY: RefCell<bool> = RefCell::new(true);
+    pub static STATE_MAP: Mutex<StateMap> = Mutex::new(StateMap::new());
 }
 
 pub(crate) fn is_state_dirty() -> bool {
@@ -34,7 +37,7 @@ pub(crate) fn clear_state_dirty() {
     STATE_DIRTY.store(false, Ordering::Relaxed);
 }
 
-pub(crate) type StateMap = HashMap<ViewID, Arc<Mutex<dyn Any + Send>>>;
+
 pub(crate) type WorkQueue = VecDeque<Box<dyn FnOnce() + Send>>;
 
 lazy_static! {
