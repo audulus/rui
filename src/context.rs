@@ -1,6 +1,5 @@
 use crate::*;
 use euclid::*;
-use std::any::Any;
 use std::collections::HashMap;
 
 pub type LocalSpace = vger::defs::LocalSpace;
@@ -12,7 +11,6 @@ pub type LocalPoint = Point2D<f32, LocalSpace>;
 pub type WorldRect = Rect<f32, WorldSpace>;
 pub type WorldPoint = Point2D<f32, WorldSpace>;
 
-use tao::event_loop::EventLoopProxy;
 use tao::window::Window;
 
 pub const DEBUG_LAYOUT: bool = false;
