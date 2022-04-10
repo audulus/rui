@@ -100,7 +100,12 @@ mod window;
 pub use window::*;
 
 use futures::executor::block_on;
-use std::collections::HashMap;
+
+use std::{
+    collections::HashMap,
+    env
+};
+
 use vger::color::*;
 use vger::*;
 
@@ -113,8 +118,6 @@ use tao::{
     menu::{MenuBar as Menu, MenuItem, MenuItemAttributes},
     window::{Window, WindowBuilder},
 };
-
-use std::env;
 
 #[macro_use]
 extern crate lazy_static;
