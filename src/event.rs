@@ -1,7 +1,8 @@
 use crate::*;
 
+/// Type of event.
 #[derive(Clone, Debug)]
-pub enum EventKind {
+pub(crate) enum EventKind {
     TouchBegin { id: usize },
     TouchMove { id: usize },
     TouchEnd { id: usize },
@@ -9,8 +10,9 @@ pub enum EventKind {
     Key(KeyPress, ModifiersState),
 }
 
+/// Used internally for event processing.
 #[derive(Clone, Debug)]
 pub struct Event {
-    pub kind: EventKind,
-    pub position: LocalPoint,
+    pub(crate) kind: EventKind,
+    pub(crate) position: LocalPoint,
 }
