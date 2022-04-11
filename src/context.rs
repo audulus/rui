@@ -73,9 +73,9 @@ impl Context {
         self.state_map[&id.id].downcast_ref::<S>().unwrap()
     }
 
-    //pub fn get_mut<S>(&mut self, id: State<S>) -> &mut S where S: 'static {
-    //    self.state_map[&id.id].downcast_mut::<S>().unwrap()
-    //}
+    pub fn get_mut<S>(&mut self, id: State<S>) -> &mut S where S: 'static {
+        self.state_map.get_mut(&id.id).unwrap().downcast_mut::<S>().unwrap()
+    }
 }
 
 impl<S> ops::Index<State<S>> for Context where S: 'static {
