@@ -1,5 +1,6 @@
 use crate::*;
 
+/// Struct for the `focus` modifier.
 pub struct Focus<F> {
     func: F,
 }
