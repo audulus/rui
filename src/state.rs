@@ -99,7 +99,7 @@ where
 /// Weak reference to app state.
 #[derive(Clone)]
 pub struct State<S> {
-    id: ViewID,
+    pub(crate) id: ViewID,
     phantom: std::marker::PhantomData<S>,
 }
 
