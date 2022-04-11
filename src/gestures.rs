@@ -187,26 +187,23 @@ impl<V, F> private::Sealed for Drag<V, F> {}
 /// Struct for the `tap` gesture.
 pub struct Tap2<V, F> {
     child: V,
-    func: Rc<RefCell<F>>,
+    func: F,
 }
 
-impl<'a, V, F> Tap2<V, F>
+impl<V, F> Tap2<V, F>
 where
     V: View,
-    F: FnMut() + 'a,
+    F: Fn(&mut Context) + 'static,
 {
     pub fn new(v: V, f: F) -> Self {
-        Self {
-            child: v,
-            func: Rc::new(RefCell::new(f)),
-        }
+        Self { child: v, func: f }
     }
 }
 
-impl<'a, V, F> View for Tap2<V, F>
+impl<V, F> View for Tap2<V, F>
 where
     V: View,
-    F: FnMut() + 'a,
+    F: Fn(&mut Context) + 'static,
 {
     fn print(&self, id: ViewID, cx: &mut Context) {
         println!("Tap {{");
@@ -224,7 +221,7 @@ where
             EventKind::TouchEnd { id } => {
                 if cx.touches[*id] == vid {
                     cx.touches[*id] = ViewID::default();
-                    self.func.borrow_mut()();
+                    (self.func)(cx);
                 }
             }
             _ => (),
