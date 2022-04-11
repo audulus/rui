@@ -122,7 +122,7 @@ where
         }
     }
 
-    pub fn strong(&self) -> StrongState<S> {
+    fn strong(&self) -> StrongState<S> {
         StrongState {
             ptr: STATE_MAP.with(|map| map.borrow()[&self.id].clone()),
             phantom: Default::default()
