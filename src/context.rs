@@ -85,3 +85,9 @@ impl<S> ops::Index<State<S>> for Context where S: 'static {
         self.state_map[&index.id].downcast_ref::<S>().unwrap()
     }
 }
+
+impl<S> ops::IndexMut<State<S>> for Context where S: 'static {
+    fn index_mut(&mut self, index: State<S>) -> &mut Self::Output {
+        self.state_map.get_mut(&index.id).unwrap().downcast_mut::<S>().unwrap()
+    }
+}
