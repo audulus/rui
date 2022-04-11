@@ -1,6 +1,8 @@
 use crate::*;
 use euclid::*;
 use std::collections::HashMap;
+use std::any::Any;
+use std::ops;
 
 pub type LocalSpace = vger::defs::LocalSpace;
 pub type WorldSpace = vger::defs::WorldSpace;
@@ -47,6 +49,9 @@ pub struct Context {
 
     /// The current title of the window
     pub(crate) window_title: String,
+
+    /// Attempt to not use interior mutability.
+    state_map: HashMap<ViewID, Box<dyn Any>>,
 }
 
 impl Context {
@@ -60,6 +65,23 @@ impl Context {
             focused_id: None,
             window,
             window_title: "rui".into(),
+            state_map: HashMap::new(),
         }
+    }
+
+    pub fn get<S>(&self, id: State<S>) -> &S where S: 'static {
+        self.state_map[&id.id].downcast_ref::<S>().unwrap()
+    }
+
+    //pub fn get_mut<S>(&mut self, id: State<S>) -> &mut S where S: 'static {
+    //    self.state_map[&id.id].downcast_mut::<S>().unwrap()
+    //}
+}
+
+impl<S> ops::Index<State<S>> for Context where S: 'static {
+    type Output = S;
+
+    fn index(&self, index: State<S>) -> &Self::Output {
+        self.state_map[&index.id].downcast_ref::<S>().unwrap()
     }
 }
