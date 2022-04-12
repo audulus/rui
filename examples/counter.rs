@@ -5,9 +5,9 @@ fn main() {
         || 1,
         |count, cx| {
             vstack((
-                text(&format!("{}", count.get())).padding(Auto),
-                button(text("increment"), move || {
-                    count.with_mut(|x| *x += 1);
+                text(&format!("{}", cx[count])).padding(Auto),
+                button2(text("increment"), move |cx| {
+                    *cx.get_mut(count) += 1
                 })
                 .padding(Auto),
             ))
