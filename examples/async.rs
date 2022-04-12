@@ -7,7 +7,7 @@ use std::{
 fn main() {
     rui(state(
         || "task not started".to_string(),
-        |s| {
+        |s, cx| {
             let txt = s.get();
             hstack((
                 button(text("press to begin"), move || {

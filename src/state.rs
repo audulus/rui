@@ -152,22 +152,22 @@ where
     V: View,
     S: Clone + 'static,
     D: Fn() -> S,
-    F: Fn(State<S>) -> V,
+    F: Fn(State<S>, &mut Context) -> V,
 {
     fn print(&self, id: ViewID, cx: &mut Context) {
-        (self.func)(State::new(id, &self.default)).print(id.child(&0), cx);
+        (self.func)(State::new(id, &self.default), cx).print(id.child(&0), cx);
     }
 
     fn process(&self, event: &Event, id: ViewID, cx: &mut Context, vger: &mut VGER) {
-        (self.func)(State::new(id, &self.default)).process(event, id.child(&0), cx, vger);
+        (self.func)(State::new(id, &self.default), cx).process(event, id.child(&0), cx, vger);
     }
 
     fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
-        (self.func)(State::new(id, &self.default)).draw(id.child(&0), cx, vger);
+        (self.func)(State::new(id, &self.default), cx).draw(id.child(&0), cx, vger);
     }
 
     fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
-        (self.func)(State::new(id, &self.default)).layout(id.child(&0), sz, cx, vger)
+        (self.func)(State::new(id, &self.default), cx).layout(id.child(&0), sz, cx, vger)
     }
 
     fn hittest(
@@ -177,16 +177,16 @@ where
         cx: &mut Context,
         vger: &mut VGER,
     ) -> Option<ViewID> {
-        (self.func)(State::new(id, &self.default)).hittest(id.child(&0), pt, cx, vger)
+        (self.func)(State::new(id, &self.default), cx).hittest(id.child(&0), pt, cx, vger)
     }
 
     fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
-        (self.func)(State::new(id, &self.default)).commands(id.child(&0), cx, cmds);
+        (self.func)(State::new(id, &self.default), cx).commands(id.child(&0), cx, cmds);
     }
 
     fn gc(&self, id: ViewID, cx: &mut Context, map: &mut Vec<ViewID>) {
         map.push(id);
-        (self.func)(State::new(id, &self.default)).gc(id.child(&0), cx, map);
+        (self.func)(State::new(id, &self.default), cx).gc(id.child(&0), cx, map);
     }
 
     fn access(
@@ -195,7 +195,7 @@ where
         cx: &mut Context,
         nodes: &mut Vec<accesskit::Node>,
     ) -> Option<accesskit::NodeId> {
-        (self.func)(State::new(id, &self.default)).access(id.child(&0), cx, nodes)
+        (self.func)(State::new(id, &self.default), cx).access(id.child(&0), cx, nodes)
     }
 }
 
@@ -212,7 +212,7 @@ pub fn state<
     S: Clone + 'static,
     V: View + 'static,
     D: Fn() -> S + 'static,
-    F: Fn(State<S>) -> V + 'static,
+    F: Fn(State<S>, &mut Context) -> V + 'static,
 >(
     initial: D,
     f: F,

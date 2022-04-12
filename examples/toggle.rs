@@ -1,5 +1,5 @@
 use rui::*;
 
 fn main() {
-    rui(state(|| false, toggle));
+    rui(state(|| false, |s, cx| toggle(s)));
 }

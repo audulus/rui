@@ -579,7 +579,7 @@ mod tests {
     fn counter(start: usize) -> impl View {
         state(
             move || start,
-            |count| {
+            |count, cx| {
                 let count2 = count;
                 let value_string = format!("value: {:?}", count.get());
                 vstack((
@@ -595,7 +595,7 @@ mod tests {
         )
     }
 
-    fn counter3<B>(count: B) -> impl View
+    fn counter3<B>(count: B, cx: &mut Context) -> impl View
     where
         B: Binding<usize> + Clone + 'static,
     {

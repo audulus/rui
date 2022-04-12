@@ -8,7 +8,7 @@ struct MyState {
 fn main() {
     rui(state(
         || MyState { value: 0.0 },
-        |state| {
+        |state, cx| {
             let value = state.get().value;
             vstack((
                 text(&format!("value: {}", value)).padding(Auto),

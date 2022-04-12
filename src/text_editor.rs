@@ -126,7 +126,7 @@ where
     fn body(&self) -> impl View {
         let text = self.text;
         focus(move |has_focus| {
-            state(TextEditorState::new, move |state| {
+            state(TextEditorState::new, move |state, cx| {
                 let cursor = state.with(|s| s.cursor);
                 canvas(move |rect, vger| {
                     vger.translate([0.0, rect.height()]);

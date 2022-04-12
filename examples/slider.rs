@@ -6,7 +6,7 @@ struct MyState {
 }
 
 fn main() {
-    rui(state(MyState::default, |state| {
+    rui(state(MyState::default, |state, cx| {
         vstack((
             text(&format!("value: {:?}", state.get().value))
                 .font_size(10)

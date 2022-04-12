@@ -6,7 +6,7 @@ fn main() {
             .color(RED_HIGHLIGHT.alpha(0.8))
             .tap(|| println!("tapped circle"))
             .padding(Auto),
-        state(LocalOffset::zero, |offset_state| {
+        state(LocalOffset::zero, |offset_state, cx| {
             let off = offset_state.get();
             rectangle()
                 .corner_radius(5.0)

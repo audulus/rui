@@ -5,7 +5,7 @@ fn main() {
     rui(vstack((
         state(
             move || lorem.to_string(),
-            |state| text_editor(state).padding(Auto),
+            |state, cx| text_editor(state).padding(Auto),
         )
         .background(
             rectangle()
@@ -15,7 +15,7 @@ fn main() {
         .padding(Auto),
         state(
             move || lorem.to_string(),
-            |state| text_editor(state).padding(Auto),
+            |state, cx| text_editor(state).padding(Auto),
         )
         .background(
             rectangle()

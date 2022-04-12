@@ -3,7 +3,7 @@ use rui::*;
 fn main() {
     rui(state(
         || 1,
-        |count| {
+        |count, cx| {
             vstack((
                 text(&format!("{}", count.get())).padding(Auto),
                 button(text("increment"), move || {

@@ -8,7 +8,7 @@ fn button_example() -> impl View {
 }
 
 fn slider_example() -> impl View {
-    hstack((caption("slider"), state(|| 0.5, hslider)))
+    hstack((caption("slider"), state(|| 0.5, |s, cx| hslider(s))))
 }
 
 fn caption(s: &str) -> impl View {
@@ -18,14 +18,14 @@ fn caption(s: &str) -> impl View {
 fn knob_example() -> impl View {
     hstack((
         caption("knob"),
-        state(|| 0.5, |s| knob(s).size([30.0, 30.0]).padding(Auto)),
+        state(|| 0.5, |s, cx| knob(s).size([30.0, 30.0]).padding(Auto)),
     ))
 }
 
 fn toggle_example() -> impl View {
     hstack((
         caption("toggle"),
-        state(|| false, |b| toggle(b).size([30.0, 30.0]).padding(Auto)),
+        state(|| false, |b, cx| toggle(b).size([30.0, 30.0]).padding(Auto)),
     ))
 }
 
@@ -34,7 +34,7 @@ fn text_editor_example() -> impl View {
         caption("text_editor"),
         state(
             || "edit me".to_string(),
-            |txt| text_editor(txt).padding(Auto),
+            |txt, cx| text_editor(txt).padding(Auto),
         ),
     ))
 }
