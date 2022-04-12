@@ -230,3 +230,13 @@ pub fn state<
         func: f,
     }
 }
+
+impl<S> Binding2<S> for State<S> where
+S: Clone + 'static {
+    fn get2<'a>(&self, cx: &'a mut Context) -> &'a S {
+        cx.get(*self)
+    }
+    fn get_mut<'a>(&self, cx: &'a mut Context) -> &'a mut S {
+        cx.get_mut(*self)
+    }
+}
