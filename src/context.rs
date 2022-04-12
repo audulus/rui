@@ -236,7 +236,7 @@ mod tests {
         cx.state_map
             .entry(id)
             .or_insert_with(|| Box::new(MyState { x: 0 }));
-        let s = State::new(id, &|| MyState { x: 0 });
+        let s = State::new(id);
 
         let b = Map2 {
             binding: s,
