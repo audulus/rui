@@ -12,21 +12,35 @@ pub trait Binding<S>: Clone + Copy + 'static {
 }
 
 #[derive(Clone)]
-pub struct Map<B, L, T> {
+pub struct Map<B, L, S, T> {
     binding: B,
     lens: L,
-    phantom: std::marker::PhantomData<T>,
+    phantom_s: std::marker::PhantomData<S>,
+    phantom_t: std::marker::PhantomData<T>,
 }
 
-impl<B, L, T> Copy for Map<B, L, T>
+impl<B, L, S, T> Copy for Map<B, L, S, T>
 where
     B: Copy,
     L: Copy,
+    S: Clone,
     T: Clone,
 {
 }
 
-impl<S, B, L, T> Binding<S> for Map<B, L, T>
+impl<S, B, L, T> Map<B, L, S, T>
+where
+    B: Binding<T>,
+    L: Lens<T, S>,
+    S: Clone + 'static,
+    T: Clone + 'static,
+{
+    pub fn new(binding: B, lens: L) -> Self {
+        Self { binding, lens, phantom_s: Default::default(), phantom_t: Default::default() }
+    }
+}
+
+impl<S, B, L, T> Binding<S> for Map<B, L, S, T>
 where
     B: Binding<T>,
     L: Lens<T, S>,
@@ -124,11 +138,7 @@ mod tests {
             .or_insert_with(|| Box::new(MyState { x: 0 }));
         let s = State::new(id);
 
-        let b = Map {
-            binding: s,
-            lens: MyLens {},
-            phantom: Default::default(),
-        };
+        let b = Map::new(s, MyLens{});
 
         *b.get_mut(&mut cx) = 42;
     }
