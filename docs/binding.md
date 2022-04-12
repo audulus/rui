@@ -4,26 +4,22 @@ Bindings allow you to expose parts of your data model to a `View`. For example, 
 
 ```rust
 pub trait Binding<S>: Clone + 'static {
-    fn get(&self) -> S;
-    fn set(&self, value: S);
+    fn get<'a>(&self, cx: &'a mut Context) -> &'a S;
+    fn get_mut<'a>(&self, cx: &'a mut Context) -> &'a mut S;
 }
 ```
 
-To create a binding for a member of a struct, use the `bind!` macro. Suppose our app state is defined as follows:
+To create a binding for a member of a struct, use `make_lens!` and `bind` Suppose our app state is defined as follows:
 
 ```rust
 #[derive(Clone)]
 struct MyState {
     value: f32,
 }
+make_lens!(MyLens, MyState, f32, x);
 ```
 
-then we can use `bind!` to create a control for `value`:
+then we can use `bind` to create a control for `value`:
 
-`hslider(bind!(state, value))`
+`hslider(bind(state, MyLens{}))`
 
-The `bind!` macro simply creates an implementation of the `Binding` trait with the appropriate get/set functions to get and update `value` inside `MyState`.
-
-If your state has arrays or Vecs you can index into them when creating a `Binding`:
-
-`bind!(state, value[0])`
