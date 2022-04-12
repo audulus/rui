@@ -76,6 +76,10 @@ impl Context {
     pub fn get_mut<S>(&mut self, id: State<S>) -> &mut S where S: 'static {
         self.state_map.get_mut(&id.id).unwrap().downcast_mut::<S>().unwrap()
     }
+
+    pub fn init_state<S>(&mut self, id: ViewID, f: impl FnOnce() -> S) where S: 'static {
+        self.state_map.entry(id).or_insert_with(|| Box::new(f()));
+    }
 }
 
 impl<S> ops::Index<State<S>> for Context where S: 'static {
