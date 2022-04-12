@@ -6,9 +6,7 @@ pub trait Modifiers: View + Sized {
     fn padding(self, param: impl Into<PaddingParam>) -> Padding<Self>;
 
     /// Calls a function in response to a tap.
-    fn tap<F: Fn() + 'static>(self, f: F) -> Tap<Self, F>;
-
-    fn tap2<F: Fn(&mut Context) + 'static>(self, f: F) -> Tap2<Self, F>;
+    fn tap<F: Fn(&mut Context) + 'static>(self, f: F) -> Tap<Self, F>;
 
     /// Puts a view behind another. The background view inherits the size of the view.
     fn background<BG: View + 'static>(self, background: BG) -> Background<Self, BG>;
@@ -50,11 +48,8 @@ impl<V: View + 'static> Modifiers for V {
     fn padding(self, param: impl Into<PaddingParam>) -> Padding<Self> {
         Padding::new(self, param.into())
     }
-    fn tap<F: Fn() + 'static>(self, f: F) -> Tap<Self, F> {
+    fn tap<F: Fn(&mut Context) + 'static>(self, f: F) -> Tap<Self, F> {
         Tap::new(self, f)
-    }
-    fn tap2<F: Fn(&mut Context) + 'static>(self, f: F) -> Tap2<Self, F> {
-        Tap2::new(self, f)
     }
     fn background<BG: View + 'static>(self, background: BG) -> Background<Self, BG> {
         Background::new(self, background)

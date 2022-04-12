@@ -12,7 +12,7 @@ pub fn toggle(state: impl Binding<bool>) -> impl View {
             })
             .corner_radius(10.0)
             .size([40.0, 20.0])
-            .tap(move || state.with_mut(|b| *b = !*b)),
+            .tap(move |_cx| state.with_mut(|b| *b = !*b)),
         circle()
             .color(if b { AZURE_HIGHLIGHT } else { MEDIUM_GRAY })
             .size([10.0, 10.0])

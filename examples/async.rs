@@ -10,7 +10,7 @@ fn main() {
         |s, cx| {
             let txt = s.get();
             hstack((
-                button(text("press to begin"), move || {
+                button(text("press to begin"), move |_cx| {
                     spawn(move || {
                         on_main(move || s.set("task started".into()));
                         sleep(Duration::from_secs(2));

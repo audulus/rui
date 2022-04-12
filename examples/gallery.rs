@@ -3,12 +3,12 @@ use rui::*;
 fn button_example() -> impl View {
     hstack((
         caption("button"),
-        button(text("press me"), || println!("pressed")),
+        button(text("press me"), |_cx| println!("pressed")),
     ))
 }
 
 fn slider_example() -> impl View {
-    hstack((caption("slider"), state(|| 0.5, |s, cx| hslider(s))))
+    hstack((caption("slider"), state(|| 0.5, |s, _cx| hslider(s))))
 }
 
 fn caption(s: &str) -> impl View {
