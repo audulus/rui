@@ -25,7 +25,7 @@ fn knob_example() -> impl View {
 fn toggle_example() -> impl View {
     hstack((
         caption("toggle"),
-        state(|| false, |b, cx| toggle(b).size([30.0, 30.0]).padding(Auto)),
+        state(|| false, |s, cx| toggle(cx[s], move |cx, b| cx[s] = b).size([30.0, 30.0]).padding(Auto)),
     ))
 }
 
