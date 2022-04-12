@@ -26,7 +26,7 @@ where
     fn body(&self) -> impl View {
         let value = self.value;
         let thumb_color = self.thumb;
-        let set_value = self.set_value.clone();
+        let set_value = self.set_value;
         state(
             || 0.0,
             move |width, cx| {
@@ -83,32 +83,34 @@ pub fn hslider(value: f32, set_value: impl Fn(&mut Context, f32) + 'static + Cop
     }
 }
 
-pub struct VSlider<B> {
-    value: B,
+pub struct VSlider<F> {
+    value: f32,
+    set_value: F,
     thumb: Color,
 }
 
-impl<B> View for VSlider<B>
+impl<F> View for VSlider<F>
 where
-    B: Binding<f32>,
+    F: Fn(&mut Context, f32) + 'static + Copy,
 {
     body_view!();
 }
 
-impl<B> VSlider<B>
+impl<F> VSlider<F>
 where
-    B: Binding<f32>,
+    F: Fn(&mut Context, f32) + 'static + Copy,
 {
     fn body(&self) -> impl View {
         let value = self.value;
         let thumb_color = self.thumb;
+        let set_value = self.set_value;
         state(
             || 0.0,
             move |height, cx| {
                 let h = cx[height];
-                let y = value.get() * h;
+                let y = value * h;
 
-                canvas(move |cx, sz, vger| {
+                canvas(move |_, sz, vger| {
                     let c = sz.center();
                     let paint = vger.color_paint(BUTTON_BACKGROUND_COLOR);
                     vger.fill_rect(
@@ -125,7 +127,7 @@ where
                     }
                 })
                 .drag(move |cx, off, _state| {
-                    value.with_mut(|v| *v = (*v + off.y / h).clamp(0.0, 1.0));
+                    (set_value)(cx, (value + off.y / h).clamp(0.0, 1.0));
                 })
             },
         )
@@ -134,6 +136,7 @@ where
     pub fn thumb_color(self, thumb_color: Color) -> Self {
         Self {
             value: self.value,
+            set_value: self.set_value,
             thumb: thumb_color,
         }
     }
@@ -142,9 +145,10 @@ where
 impl<B> private::Sealed for VSlider<B> {}
 
 /// Horizontal slider built from other Views.
-pub fn vslider(value: impl Binding<f32>) -> VSlider<impl Binding<f32>> {
+pub fn vslider(value: f32, set_value: impl Fn(&mut Context, f32) + 'static + Copy) -> VSlider<impl Fn(&mut Context, f32) + 'static + Copy> {
     VSlider {
         value,
+        set_value,
         thumb: AZURE_HIGHLIGHT,
     }
 }
