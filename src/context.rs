@@ -91,3 +91,50 @@ impl<S> ops::IndexMut<State<S>> for Context where S: 'static {
         self.state_map.get_mut(&index.id).unwrap().downcast_mut::<S>().unwrap()
     }
 }
+
+pub trait Lens<T: ?Sized, U: ?Sized> {
+    fn with<V, F: FnOnce(&U) -> V>(&self, data: &T, f: F) -> V;
+    fn with_mut<V, F: FnOnce(&mut U) -> V>(&self, data: &mut T, f: F) -> V;
+}
+
+pub struct Field<Get, GetMut> {
+    get: Get,
+    get_mut: GetMut,
+}
+
+impl<Get, GetMut> Field<Get, GetMut> {
+    /// Construct a lens from a pair of getter functions
+    pub fn new<T: ?Sized, U: ?Sized>(get: Get, get_mut: GetMut) -> Self
+    where
+        Get: Fn(&T) -> &U,
+        GetMut: Fn(&mut T) -> &mut U,
+    {
+        Self { get, get_mut }
+    }
+}
+
+impl<T, U, Get, GetMut> Lens<T, U> for Field<Get, GetMut>
+where
+    T: ?Sized,
+    U: ?Sized,
+    Get: Fn(&T) -> &U,
+    GetMut: Fn(&mut T) -> &mut U,
+{
+    fn with<V, F: FnOnce(&U) -> V>(&self, data: &T, f: F) -> V {
+        f((self.get)(data))
+    }
+
+    fn with_mut<V, F: FnOnce(&mut U) -> V>(&self, data: &mut T, f: F) -> V {
+        f((self.get_mut)(data))
+    }
+}
+
+#[macro_export]
+macro_rules! lens {
+    ($ty:ty, [$index:expr]) => {
+        $crate::lens::Field::new::<$ty, _>(move |x| &x[$index], move |x| &mut x[$index])
+    };
+    ($ty:ty, $($field:tt)*) => {
+        $crate::lens::Field::new::<$ty, _>(move |x| &x.$($field)*, move |x| &mut x.$($field)*)
+    };
+}
