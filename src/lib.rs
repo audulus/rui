@@ -376,7 +376,7 @@ pub fn rui(view: impl View + 'static) {
                 // You only need to call this if you've determined that you need to redraw, in
                 // applications which do not always need to. Applications that redraw continuously
                 // can just render here instead.
-                if is_state_dirty() {
+                if cx.dirty {
                     // Have the commands changed?
                     let mut new_commands = Vec::new();
                     view.commands(cx.root_id, &mut cx, &mut new_commands);
@@ -422,7 +422,7 @@ pub fn rui(view: impl View + 'static) {
 
                     cx.window.as_ref().unwrap().request_redraw();
 
-                    clear_state_dirty();
+                    cx.dirty = false;
                 }
             }
             tao::event::Event::RedrawRequested(_) => {
@@ -454,10 +454,10 @@ pub fn rui(view: impl View + 'static) {
 
                 // Disable dirtying the state during layout and rendering
                 // to avoid constantly re-rendering if some state is saved.
-                ENABLE_DIRTY.with(|enable| *enable.borrow_mut() = false);
+                cx.enable_dirty = false;
                 view.layout(cx.root_id, [width, height].into(), &mut cx, &mut vger);
                 view.draw(cx.root_id, &mut cx, &mut vger);
-                ENABLE_DIRTY.with(|enable| *enable.borrow_mut() = true);
+                cx.enable_dirty = true;
 
                 let texture_view = frame
                     .texture

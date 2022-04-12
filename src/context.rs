@@ -54,6 +54,12 @@ pub struct Context {
 
     /// Attempt to not use interior mutability.
     pub(crate) state_map: StateMap,
+
+    /// Has the state changed?
+    pub(crate) dirty: bool,
+
+    /// Are we currently setting the dirty bit?
+    pub(crate) enable_dirty: bool,
 }
 
 impl Context {
@@ -68,6 +74,14 @@ impl Context {
             window,
             window_title: "rui".into(),
             state_map: HashMap::new(),
+            dirty: false,
+            enable_dirty: true
+        }
+    }
+
+    pub(crate) fn set_dirty(&mut self) {
+        if self.enable_dirty {
+            self.dirty = true
         }
     }
 
@@ -82,7 +96,7 @@ impl Context {
     where
         S: 'static,
     {
-        set_state_dirty();
+        self.set_dirty();
         self.state_map
             .get_mut(&id.id)
             .unwrap()
@@ -107,7 +121,7 @@ where
     S: 'static,
 {
     fn index_mut(&mut self, index: State<S>) -> &mut Self::Output {
-        set_state_dirty();
+        self.set_dirty();
         self.state_map
             .get_mut(&index.id)
             .unwrap()

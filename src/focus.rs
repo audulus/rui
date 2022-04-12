@@ -21,13 +21,13 @@ where
             EventKind::TouchBegin { .. } => {
                 if self.hittest(vid, event.position, cx, vger).is_some() {
                     cx.focused_id = Some(vid);
-                    set_state_dirty();
+                    cx.set_dirty();
                 }
             }
             EventKind::Key(KeyPress::Escape, _) => {
                 if cx.focused_id == Some(vid) {
                     cx.focused_id = None;
-                    set_state_dirty();
+                    cx.set_dirty();
                 }
             }
             _ => (),
