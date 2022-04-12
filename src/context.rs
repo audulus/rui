@@ -142,6 +142,6 @@ macro_rules! lens {
 
 /// Reads or writes a value owned by a source-of-truth.
 pub trait Binding2<S>: Clone + Copy + 'static {
-    fn get(&self, cx: &mut Context) -> &S;
-    fn get_mut(&self, cx: &mut Context) -> &mut S;
+    fn get<'a>(&self, cx: &'a mut Context) -> &'a S;
+    fn get_mut<'a>(&self, cx: &'a mut Context) -> &'a mut S;
 }
