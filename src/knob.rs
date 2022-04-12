@@ -14,7 +14,7 @@ pub fn knob(value: impl Binding<f32>) -> impl View {
         circle().color(CLEAR_COLOR).drag(move |off, _state| {
             value.with_mut(|v| *v = (*v + (off.x + off.y) / 400.0).clamp(0.0, 1.0));
         }),
-        canvas(move |sz, vger| {
+        canvas(move |cx, sz, vger| {
             let c = sz.center();
             let r = sz.width().min(sz.height()) / 2.0;
 
@@ -42,7 +42,7 @@ pub fn knob2(value: f32, set_value: impl Fn(f32) + 'static) -> impl View {
         circle().color(CLEAR_COLOR).drag(move |off, _state| {
             set_value((v + (off.x + off.y) / 400.0).clamp(0.0, 1.0));
         }),
-        canvas(move |sz, vger| {
+        canvas(move |cx, sz, vger| {
             let c = sz.center();
             let r = sz.width().min(sz.height()) / 2.0;
 

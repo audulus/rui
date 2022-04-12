@@ -28,7 +28,7 @@ where
                 let w = width.get();
                 let x = value.get() * w;
 
-                canvas(move |sz, vger| {
+                canvas(move |cx, sz, vger| {
                     let c = sz.center();
                     let paint = vger.color_paint(BUTTON_BACKGROUND_COLOR);
                     vger.fill_rect(
@@ -101,7 +101,7 @@ where
                 let h = height.get();
                 let y = value.get() * h;
 
-                canvas(move |sz, vger| {
+                canvas(move |cx, sz, vger| {
                     let c = sz.center();
                     let paint = vger.color_paint(BUTTON_BACKGROUND_COLOR);
                     vger.fill_rect(

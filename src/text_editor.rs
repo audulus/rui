@@ -128,7 +128,7 @@ where
         focus(move |has_focus| {
             state(TextEditorState::new, move |state, cx| {
                 let cursor = state.with(|s| s.cursor);
-                canvas(move |rect, vger| {
+                canvas(move |cx, rect, vger| {
                     vger.translate([0.0, rect.height()]);
                     let font_size = 18;
                     let break_width = Some(rect.width());

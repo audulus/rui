@@ -7,7 +7,7 @@ pub struct Canvas<F> {
 
 impl<F> View for Canvas<F>
 where
-    F: Fn(LocalRect, &mut VGER),
+    F: Fn(&mut Context, LocalRect, &mut VGER),
 {
     fn print(&self, _id: ViewID, _cx: &mut Context) {
         println!("canvas");
@@ -21,7 +21,7 @@ where
         let rect = cx.layout.entry(id).or_default().rect;
 
         vger.save();
-        (self.func)(rect, vger);
+        (self.func)(cx, rect, vger);
         vger.restore();
     }
 
@@ -67,7 +67,7 @@ where
 }
 
 /// Canvas for GPU drawing with VGER. See https://github.com/audulus/vger-rs.
-pub fn canvas<F: Fn(LocalRect, &mut VGER) + 'static>(f: F) -> impl View {
+pub fn canvas<F: Fn(&mut Context, LocalRect, &mut VGER) + 'static>(f: F) -> impl View {
     Canvas { func: f }
 }
 
