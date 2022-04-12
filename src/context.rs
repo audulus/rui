@@ -1,7 +1,7 @@
 use crate::*;
 use euclid::*;
-use std::collections::HashMap;
 use std::any::Any;
+use std::collections::HashMap;
 use std::ops;
 
 pub type LocalSpace = vger::defs::LocalSpace;
@@ -69,17 +69,30 @@ impl Context {
         }
     }
 
-    pub fn get<S>(&self, id: State<S>) -> &S where S: 'static {
+    pub fn get<S>(&self, id: State<S>) -> &S
+    where
+        S: 'static,
+    {
         self.state_map[&id.id].downcast_ref::<S>().unwrap()
     }
 
-    pub fn get_mut<S>(&mut self, id: State<S>) -> &mut S where S: 'static {
+    pub fn get_mut<S>(&mut self, id: State<S>) -> &mut S
+    where
+        S: 'static,
+    {
         set_state_dirty();
-        self.state_map.get_mut(&id.id).unwrap().downcast_mut::<S>().unwrap()
+        self.state_map
+            .get_mut(&id.id)
+            .unwrap()
+            .downcast_mut::<S>()
+            .unwrap()
     }
 }
 
-impl<S> ops::Index<State<S>> for Context where S: 'static {
+impl<S> ops::Index<State<S>> for Context
+where
+    S: 'static,
+{
     type Output = S;
 
     fn index(&self, index: State<S>) -> &Self::Output {
@@ -87,10 +100,17 @@ impl<S> ops::Index<State<S>> for Context where S: 'static {
     }
 }
 
-impl<S> ops::IndexMut<State<S>> for Context where S: 'static {
+impl<S> ops::IndexMut<State<S>> for Context
+where
+    S: 'static,
+{
     fn index_mut(&mut self, index: State<S>) -> &mut Self::Output {
         set_state_dirty();
-        self.state_map.get_mut(&index.id).unwrap().downcast_mut::<S>().unwrap()
+        self.state_map
+            .get_mut(&index.id)
+            .unwrap()
+            .downcast_mut::<S>()
+            .unwrap()
     }
 }
 
@@ -112,9 +132,21 @@ pub struct Map2<B, L, T> {
     phantom: std::marker::PhantomData<T>,
 }
 
-impl<B, L, T> Copy for Map2<B, L, T> where B: Copy, L: Copy, T: Clone {}
+impl<B, L, T> Copy for Map2<B, L, T>
+where
+    B: Copy,
+    L: Copy,
+    T: Clone,
+{
+}
 
-impl<S, B, L, T> Binding2<S> for Map2<B, L, T> where B: Binding2<T>, L: Lens<T, S>, S: Clone + 'static, T: Clone + 'static {
+impl<S, B, L, T> Binding2<S> for Map2<B, L, T>
+where
+    B: Binding2<T>,
+    L: Lens<T, S>,
+    S: Clone + 'static,
+    T: Clone + 'static,
+{
     fn get2<'a>(&self, cx: &'a mut Context) -> &'a S {
         self.lens.focus(self.binding.get2(cx))
     }
@@ -131,15 +163,23 @@ pub struct Map3<B, F, FM, T> {
     phantom: std::marker::PhantomData<T>,
 }
 
-impl<B, F, FM, T> Copy for Map3<B, F, FM, T> where B: Copy, F: Copy, FM: Copy, T: Clone {}
+impl<B, F, FM, T> Copy for Map3<B, F, FM, T>
+where
+    B: Copy,
+    F: Copy,
+    FM: Copy,
+    T: Clone,
+{
+}
 
-impl<S, B, F, FM, T> Binding2<S> for Map3<B, F, FM, T> 
+impl<S, B, F, FM, T> Binding2<S> for Map3<B, F, FM, T>
 where
     B: Binding2<T>,
     F: Fn(&T) -> &S + Copy + 'static,
     FM: Fn(&mut T) -> &mut S + Copy + 'static,
     S: Clone + 'static,
-    T: Clone + 'static {
+    T: Clone + 'static,
+{
     fn get2<'a>(&self, cx: &'a mut Context) -> &'a S {
         (self.focus)(self.binding.get2(cx))
     }
@@ -152,9 +192,9 @@ where
 macro_rules! bind2 {
     ( $state:expr, $field:ident, $t:ty ) => {{
         let s = $state;
-        Map3::<_,_,_,$t> {
+        Map3::<_, _, _, $t> {
             binding: s,
-            focus: |x: & $t| x.$field,
+            focus: |x: &$t| x.$field,
             focus_mut: |x: &mut $t| x.$field,
             phantom: Default::default(),
         }
@@ -168,7 +208,7 @@ mod tests {
 
     #[derive(Clone)]
     struct MyState {
-        x: i32
+        x: i32,
     }
 
     #[derive(Clone, Copy)]
@@ -184,25 +224,24 @@ mod tests {
 
     #[test]
     fn test_lens() {
-
-        let mut s = MyState{ x: 0 };
-        *MyLens{}.focus_mut(&mut s) = 42;
-        assert_eq!(*MyLens{}.focus(&s), 42);
-
+        let mut s = MyState { x: 0 };
+        *MyLens {}.focus_mut(&mut s) = 42;
+        assert_eq!(*MyLens {}.focus(&s), 42);
     }
 
     #[test]
     fn test_bind2() {
-
         let mut cx = Context::new(None);
         let id = ViewID::default();
-        cx.state_map.entry(id).or_insert_with(|| Box::new(MyState{ x: 0}));
-        let s = State::new(id, &|| MyState{ x: 0 });
+        cx.state_map
+            .entry(id)
+            .or_insert_with(|| Box::new(MyState { x: 0 }));
+        let s = State::new(id, &|| MyState { x: 0 });
 
         let b = Map2 {
             binding: s,
-            lens: MyLens{},
-            phantom: std::marker::PhantomData::<MyState>{}
+            lens: MyLens {},
+            phantom: std::marker::PhantomData::<MyState> {},
         };
 
         *b.get_mut(&mut cx) = 42;

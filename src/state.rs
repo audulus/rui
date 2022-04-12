@@ -125,7 +125,7 @@ where
     fn strong(&self) -> StrongState<S> {
         StrongState {
             ptr: STATE_MAP.with(|map| map.borrow()[&self.id].clone()),
-            phantom: Default::default()
+            phantom: Default::default(),
         }
     }
 }
@@ -155,22 +155,30 @@ where
     F: Fn(State<S>, &mut Context) -> V,
 {
     fn print(&self, id: ViewID, cx: &mut Context) {
-        cx.state_map.entry(id).or_insert_with(|| Box::new((self.default)()));
+        cx.state_map
+            .entry(id)
+            .or_insert_with(|| Box::new((self.default)()));
         (self.func)(State::new(id, &self.default), cx).print(id.child(&0), cx);
     }
 
     fn process(&self, event: &Event, id: ViewID, cx: &mut Context, vger: &mut VGER) {
-        cx.state_map.entry(id).or_insert_with(|| Box::new((self.default)()));
+        cx.state_map
+            .entry(id)
+            .or_insert_with(|| Box::new((self.default)()));
         (self.func)(State::new(id, &self.default), cx).process(event, id.child(&0), cx, vger);
     }
 
     fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
-        cx.state_map.entry(id).or_insert_with(|| Box::new((self.default)()));
+        cx.state_map
+            .entry(id)
+            .or_insert_with(|| Box::new((self.default)()));
         (self.func)(State::new(id, &self.default), cx).draw(id.child(&0), cx, vger);
     }
 
     fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
-        cx.state_map.entry(id).or_insert_with(|| Box::new((self.default)()));
+        cx.state_map
+            .entry(id)
+            .or_insert_with(|| Box::new((self.default)()));
         (self.func)(State::new(id, &self.default), cx).layout(id.child(&0), sz, cx, vger)
     }
 
@@ -181,17 +189,23 @@ where
         cx: &mut Context,
         vger: &mut VGER,
     ) -> Option<ViewID> {
-        cx.state_map.entry(id).or_insert_with(|| Box::new((self.default)()));
+        cx.state_map
+            .entry(id)
+            .or_insert_with(|| Box::new((self.default)()));
         (self.func)(State::new(id, &self.default), cx).hittest(id.child(&0), pt, cx, vger)
     }
 
     fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
-        cx.state_map.entry(id).or_insert_with(|| Box::new((self.default)()));
+        cx.state_map
+            .entry(id)
+            .or_insert_with(|| Box::new((self.default)()));
         (self.func)(State::new(id, &self.default), cx).commands(id.child(&0), cx, cmds);
     }
 
     fn gc(&self, id: ViewID, cx: &mut Context, map: &mut Vec<ViewID>) {
-        cx.state_map.entry(id).or_insert_with(|| Box::new((self.default)()));
+        cx.state_map
+            .entry(id)
+            .or_insert_with(|| Box::new((self.default)()));
         map.push(id);
         (self.func)(State::new(id, &self.default), cx).gc(id.child(&0), cx, map);
     }
@@ -202,7 +216,9 @@ where
         cx: &mut Context,
         nodes: &mut Vec<accesskit::Node>,
     ) -> Option<accesskit::NodeId> {
-        cx.state_map.entry(id).or_insert_with(|| Box::new((self.default)()));
+        cx.state_map
+            .entry(id)
+            .or_insert_with(|| Box::new((self.default)()));
         (self.func)(State::new(id, &self.default), cx).access(id.child(&0), cx, nodes)
     }
 }
@@ -231,8 +247,10 @@ pub fn state<
     }
 }
 
-impl<S> Binding2<S> for State<S> where
-S: Clone + 'static {
+impl<S> Binding2<S> for State<S>
+where
+    S: Clone + 'static,
+{
     fn get2<'a>(&self, cx: &'a mut Context) -> &'a S {
         cx.get(*self)
     }

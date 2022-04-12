@@ -12,9 +12,9 @@ fn main() {
             hstack((
                 button(text("press to begin"), move |_cx| {
                     spawn(move || {
-                        on_main(move |cx| cx[s] = "task started".into() );
+                        on_main(move |cx| cx[s] = "task started".into());
                         sleep(Duration::from_secs(2));
-                        on_main(move |cx| cx[s] = "task complete".into() );
+                        on_main(move |cx| cx[s] = "task complete".into());
                     });
                 }),
                 text(&txt),
