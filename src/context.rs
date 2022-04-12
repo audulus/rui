@@ -165,6 +165,7 @@ mod tests {
 
     use super::*;
 
+    #[derive(Clone)]
     struct MyState {
         x: i32
     }
@@ -192,20 +193,17 @@ mod tests {
     #[test]
     fn test_bind2() {
 
-        struct MyState {
-            x: i32
-        }
-
         let mut cx = Context::new(None);
-        let s = State::new(ViewID::default(), &|| MyState{ x: 0 });
+        let id = ViewID::default();
+        cx.state_map.entry(id).or_insert_with(|| Box::new(MyState{ x: 0}));
+        let s = State::new(id, &|| MyState{ x: 0 });
 
-        // let b = Map3::<_,_,_,MyState> {
-        //     binding: s,
-        //     focus: |x: &MyState| &x.x,
-        //     focus_mut: |x: &mut MyState| &mut x.x,
-        //     phantom: Default::default(),
-        // };
+        let b = Map2 {
+            binding: s,
+            lens: MyLens{},
+            phantom: std::marker::PhantomData::<MyState>{}
+        };
 
-        // b.get_mut(&mut cx) = 42;
+        *b.get_mut(&mut cx) = 42;
     }
 }
