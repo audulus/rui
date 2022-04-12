@@ -45,8 +45,7 @@ impl<B: Binding<f32>> HSlider<B> {
                     }
                 })
                 .drag(move |cx, off, _state| {
-                    let v = value.get(cx);
-                    *value.get_mut(cx) = (v + off.x / w).clamp(0.0, 1.0);
+                    value.with_mut(cx, |v| *v = (*v + off.x / w).clamp(0.0, 1.0));
                 })
             },
         )
