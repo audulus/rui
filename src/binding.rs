@@ -40,6 +40,10 @@ where
     }
 }
 
+pub fn bind<S, T>(binding: impl Binding<S>, lens: impl Lens<S, T>) -> impl Binding<T> where S: Clone + 'static, T: Clone + 'static {
+    Map::new(binding, lens)
+}
+
 impl<S, B, L, T> Binding<S> for Map<B, L, S, T>
 where
     B: Binding<T>,
@@ -138,7 +142,7 @@ mod tests {
             .or_insert_with(|| Box::new(MyState { x: 0 }));
         let s = State::new(id);
 
-        let b = Map::new(s, MyLens{});
+        let b = bind(s, MyLens{});
 
         *b.get_mut(&mut cx) = 42;
     }
