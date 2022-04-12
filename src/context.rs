@@ -175,7 +175,12 @@ mod tests {
         let mut cx = Context::new(None);
         let s = State::new(ViewID::default(), &|| MyState{ x: 0 });
 
-        let b = bind2!(s, x, MyState);
+        let b = Map3 {
+            binding: s,
+            focus: |x: &MyState| &x.x,
+            focus_mut: |x: &mut MyState| &mut x.x,
+            phantom: Default::default(),
+        };
 
         // b.get_mut(&mut cx) = 42;
     }
