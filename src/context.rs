@@ -23,6 +23,8 @@ pub(crate) struct LayoutBox {
     pub offset: LocalOffset,
 }
 
+pub type StateMap = HashMap<ViewID, Box<dyn Any>>;
+
 /// The Context stores all UI state. A user of the library
 /// shouldn't have to interact with it directly.
 pub struct Context {
@@ -51,7 +53,7 @@ pub struct Context {
     pub(crate) window_title: String,
 
     /// Attempt to not use interior mutability.
-    pub(crate) state_map: HashMap<ViewID, Box<dyn Any>>,
+    pub(crate) state_map: StateMap,
 }
 
 impl Context {

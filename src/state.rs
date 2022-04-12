@@ -1,10 +1,8 @@
 use {
     crate::*,
     std::{
-        any::Any,
         cell::RefCell,
         collections::VecDeque,
-        rc::Rc,
         sync::{
             atomic::{AtomicBool, Ordering},
             Mutex,
@@ -13,13 +11,10 @@ use {
     tao::event_loop::EventLoopProxy,
 };
 
-pub(crate) type StateMap = HashMap<ViewID, Rc<RefCell<dyn Any>>>;
-
 static STATE_DIRTY: AtomicBool = AtomicBool::new(false);
 
 thread_local! {
     pub static ENABLE_DIRTY: RefCell<bool> = RefCell::new(true);
-    pub static STATE_MAP: RefCell<StateMap> = RefCell::new(StateMap::new());
 }
 
 pub(crate) fn is_state_dirty() -> bool {
