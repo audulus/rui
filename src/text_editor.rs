@@ -117,33 +117,28 @@ impl TextEditorState {
 }
 
 /// Struct for `text_editor`.
-pub struct TextEditor<F> {
-    text: String,
-    set_text: F,
+pub struct TextEditor<B> {
+    text_binding: B
 }
 
-impl<F> TextEditor<F>
+impl<B> TextEditor<B>
 where
-    F: Fn(&mut Context, String) + 'static + Copy
+    B: Binding<String>
 {
     fn body(&self) -> impl View {
-        let text = self.text.clone();
-        let set_text = self.set_text;
+        let text = self.text_binding;
         focus(move |has_focus| {
-            let text = text.clone();
             state(TextEditorState::new, move |state, cx| {
                 let cursor = cx[state].cursor;
-                let text = text.clone();
-                let text2 = text.clone();
                 canvas(move |cx, rect, vger| {
                     vger.translate([0.0, rect.height()]);
                     let font_size = 18;
                     let break_width = Some(rect.width());
 
-                    let rects = vger.glyph_positions(&text, font_size, break_width);
-                    let lines = vger.line_metrics(&text, font_size, break_width);
+                    let rects = vger.glyph_positions(text.get(cx), font_size, break_width);
+                    let lines = vger.line_metrics(text.get(cx), font_size, break_width);
 
-                    vger.text(&text, font_size, TEXT_COLOR, break_width);
+                    vger.text(text.get(cx), font_size, TEXT_COLOR, break_width);
 
                     if has_focus {
                         let glyph_rect_paint = vger.color_paint(vger::Color::MAGENTA);
@@ -160,8 +155,9 @@ where
                 })
                 .key(move |cx, k| {
                     if has_focus {
-                        let new_text = cx[state].key(&k, text2.clone());
-                        set_text(cx, new_text);
+                        let t = text.get(cx).clone();
+                        let new_text = cx[state].key(&k, t);
+                        *text.get_mut(cx) = new_text;
                     }
                 })
             })
@@ -169,15 +165,15 @@ where
     }
 }
 
-impl<F> View for TextEditor<F>
+impl<B> View for TextEditor<B>
 where
-    F: Fn(&mut Context, String) + 'static + Copy,
+    B: Binding<String>
 {
     body_view!();
 }
 
 impl<B> private::Sealed for TextEditor<B> {}
 
-pub fn text_editor(text: String, set_text: impl Fn(&mut Context, String) + 'static + Copy) -> impl View {
-    TextEditor { text, set_text }
+pub fn text_editor(text: impl Binding<String>) -> impl View {
+    TextEditor { text_binding: text }
 }
