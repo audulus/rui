@@ -11,7 +11,7 @@ fn lerp(x: f32, a: f32, b: f32) -> f32 {
 pub fn knob(value: impl Binding<f32>) -> impl View {
     let v = value.get();
     zstack((
-        circle().color(CLEAR_COLOR).drag(move |off, _state| {
+        circle().color(CLEAR_COLOR).drag(move |cx, off, _state| {
             value.with_mut(|v| *v = (*v + (off.x + off.y) / 400.0).clamp(0.0, 1.0));
         }),
         canvas(move |cx, sz, vger| {
@@ -39,7 +39,7 @@ pub fn knob2(value: f32, set_value: impl Fn(f32) + 'static) -> impl View {
     let v = value;
 
     zstack((
-        circle().color(CLEAR_COLOR).drag(move |off, _state| {
+        circle().color(CLEAR_COLOR).drag(move |cx, off, _state| {
             set_value((v + (off.x + off.y) / 400.0).clamp(0.0, 1.0));
         }),
         canvas(move |cx, sz, vger| {

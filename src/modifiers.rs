@@ -16,7 +16,7 @@ pub trait Modifiers: View + Sized {
     fn geom<F: Fn(LocalSize) + 'static>(self, f: F) -> Geom<Self, F>;
 
     /// Calls a function in response to a drag.
-    fn drag<F: Fn(LocalOffset, GestureState) + 'static>(self, f: F) -> Drag<Self, F>;
+    fn drag<F: Fn(&mut Context, LocalOffset, GestureState) + 'static>(self, f: F) -> Drag<Self, F>;
 
     /// Applies an offset to the view in local space.
     fn offset<Off: Into<LocalOffset>>(self, offset: Off) -> Offset<Self>;
@@ -57,7 +57,7 @@ impl<V: View + 'static> Modifiers for V {
     fn geom<F: Fn(LocalSize) + 'static>(self, f: F) -> Geom<Self, F> {
         Geom::new(self, f)
     }
-    fn drag<F: Fn(LocalOffset, GestureState) + 'static>(self, f: F) -> Drag<Self, F> {
+    fn drag<F: Fn(&mut Context, LocalOffset, GestureState) + 'static>(self, f: F) -> Drag<Self, F> {
         Drag::new(self, f)
     }
     fn offset<Off: Into<LocalOffset>>(self, offset: Off) -> Offset<Self> {

@@ -50,7 +50,7 @@ where
                         width.set(sz.width)
                     }
                 })
-                .drag(move |off, _state| {
+                .drag(move |cx, off, _state| {
                     value.with_mut(|v| *v = (*v + off.x / w).clamp(0.0, 1.0));
                 })
             },
@@ -117,7 +117,7 @@ where
                         height.set(sz.width)
                     }
                 })
-                .drag(move |off, _state| {
+                .drag(move |cx, off, _state| {
                     value.with_mut(|v| *v = (*v + off.y / h).clamp(0.0, 1.0));
                 })
             },
