@@ -93,7 +93,7 @@ impl<S> ops::IndexMut<State<S>> for Context where S: 'static {
     }
 }
 
-pub trait Lens<T: ?Sized, U: ?Sized>: Clone + Copy + 'static {
+pub trait Lens<T, U>: Clone + Copy + 'static {
     fn focus<'a>(&self, data: &'a T) -> &'a U;
     fn focus_mut<'a>(&self, data: &mut T) -> &'a mut U;
 }
