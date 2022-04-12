@@ -74,6 +74,7 @@ impl Context {
     }
 
     pub fn get_mut<S>(&mut self, id: State<S>) -> &mut S where S: 'static {
+        set_state_dirty();
         self.state_map.get_mut(&id.id).unwrap().downcast_mut::<S>().unwrap()
     }
 }
