@@ -48,7 +48,7 @@ fn text_editor_example() -> impl View {
         caption("text_editor"),
         state(
             || "edit me".to_string(),
-            |txt, cx| text_editor(txt).padding(Auto),
+            |txt, cx| text_editor(cx[txt].clone(), move |cx, t| cx[txt] = t).padding(Auto),
         ),
     ))
 }
