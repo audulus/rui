@@ -3,7 +3,7 @@ use rui::*;
 fn button_example() -> impl View {
     hstack((
         caption("button"),
-        button(text("press me"), |_cx| println!("pressed")),
+        button(text("press me"), |_| println!("pressed")),
     ))
 }
 
