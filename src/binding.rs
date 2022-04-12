@@ -59,6 +59,22 @@ where
     }
 }
 
+#[macro_export]
+macro_rules! make_lens {
+    ($lens_name: ident, $from: ty, $to: ty, $field: ident) => {
+        #[derive(Clone, Copy)]
+        struct $lens_name {}
+        impl Lens<$from, $to> for $lens_name {
+            fn focus<'a>(&self, data: &'a $from) -> &'a $to {
+                &data.$field
+            }
+            fn focus_mut<'a>(&self, data: &'a mut $from) -> &'a mut $to {
+                &mut data.$field
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
 
@@ -69,16 +85,7 @@ mod tests {
         x: i32,
     }
 
-    #[derive(Clone, Copy)]
-    struct MyLens {}
-    impl Lens<MyState, i32> for MyLens {
-        fn focus<'a>(&self, data: &'a MyState) -> &'a i32 {
-            &data.x
-        }
-        fn focus_mut<'a>(&self, data: &'a mut MyState) -> &'a mut i32 {
-            &mut data.x
-        }
-    }
+    make_lens!(MyLens, MyState, i32, x);
 
     #[test]
     fn test_lens() {
