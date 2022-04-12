@@ -5,13 +5,13 @@ fn main() {
         || 1,
         |count, cx| {
             vstack((
-                text(&format!("{}", count.get())).padding(Auto),
-                button(text("increment"), move |_cx| {
-                    count.with_mut(|x| *x += 1);
+                text(&format!("{}", cx[count])).padding(Auto),
+                button(text("increment"), move |cx| {
+                    cx[count] += 1;
                 })
                 .padding(Auto),
-                button(text("decrement"), move |_cx| {
-                    count.with_mut(|x| *x -= 1);
+                button(text("decrement"), move |cx| {
+                    cx[count] -= 1;
                 })
                 .padding(Auto),
             ))
