@@ -11,7 +11,7 @@ fn main() {
             text(&format!("value: {:?}", state.get().value))
                 .font_size(10)
                 .padding(Auto),
-            hslider(bind!(state, value[0]))
+            hslider(cx[state].value[0], move |cx, v| cx[state].value[0] = v)
                 .thumb_color(RED_HIGHLIGHT)
                 .padding(Auto),
         ))

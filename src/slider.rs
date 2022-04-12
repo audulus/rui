@@ -3,30 +3,34 @@ use crate::*;
 const SLIDER_WIDTH: f32 = 4.0;
 const SLIDER_THUMB_RADIUS: f32 = 10.0;
 
-pub struct HSlider<B> {
-    value: B,
+pub struct HSlider<F> {
+    value: f32,
+    set_value: F,
     thumb: Color,
 }
 
-impl<B> View for HSlider<B>
+pub trait SliderSetter: Fn(&mut Context, f32) + 'static + Copy {}
+
+impl<F> View for HSlider<F>
 where
-    B: Binding<f32>,
+    F: Fn(&mut Context, f32) + 'static + Copy,
 {
     body_view!();
 }
 
-impl<B> HSlider<B>
+impl<F> HSlider<F>
 where
-    B: Binding<f32>,
+    F: Fn(&mut Context, f32) + 'static + Copy,
 {
     fn body(&self) -> impl View {
         let value = self.value;
         let thumb_color = self.thumb;
+        let set_value = self.set_value.clone();
         state(
             || 0.0,
             move |width, cx| {
                 let w = cx[width];
-                let x = value.get() * w;
+                let x = value * w;
 
                 canvas(move |cx, sz, vger| {
                     let c = sz.center();
@@ -51,7 +55,7 @@ where
                     }
                 })
                 .drag(move |cx, off, _state| {
-                    value.with_mut(|v| *v = (*v + off.x / w).clamp(0.0, 1.0));
+                    (set_value)(cx, (value + off.x / w).clamp(0.0, 1.0));
                 })
             },
         )
@@ -61,6 +65,7 @@ where
     pub fn thumb_color(self, thumb_color: Color) -> Self {
         Self {
             value: self.value,
+            set_value: self.set_value,
             thumb: thumb_color,
         }
     }
@@ -69,9 +74,10 @@ where
 impl<B> private::Sealed for HSlider<B> {}
 
 /// Horizontal slider built from other Views.
-pub fn hslider(value: impl Binding<f32>) -> HSlider<impl Binding<f32>> {
+pub fn hslider(value: f32, set_value: impl Fn(&mut Context, f32) + 'static + Copy) -> HSlider< impl Fn(&mut Context, f32) + 'static + Copy> {
     HSlider {
         value,
+        set_value,
         thumb: AZURE_HIGHLIGHT,
     }
 }
