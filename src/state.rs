@@ -1,10 +1,8 @@
 use {
     crate::*,
     std::{
-        cell::RefCell,
         collections::VecDeque,
         sync::{
-            atomic::{AtomicBool, Ordering},
             Mutex,
         },
     },
