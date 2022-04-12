@@ -18,7 +18,7 @@ fn caption(s: &str) -> impl View {
 fn knob_example() -> impl View {
     hstack((
         caption("knob"),
-        state(|| 0.5, |s, cx| knob(s).size([30.0, 30.0]).padding(Auto)),
+        state(|| 0.5, |s, cx| knob(cx[s], move |cx, x| cx[s] = x).size([30.0, 30.0]).padding(Auto)),
     ))
 }
 
