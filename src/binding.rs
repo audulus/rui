@@ -127,7 +127,7 @@ mod tests {
         let b = Map {
             binding: s,
             lens: MyLens {},
-            phantom: std::marker::PhantomData::<MyState> {},
+            phantom: Default::default(),
         };
 
         *b.get_mut(&mut cx) = 42;
