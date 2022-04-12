@@ -1,7 +1,7 @@
 use rui::*;
 
 fn main() {
-    rui(canvas(|_cx, rect, vger| {
+    rui(canvas(|_, rect, vger| {
         vger.translate(rect.center() - LocalPoint::zero());
 
         let paint = vger.linear_gradient(
