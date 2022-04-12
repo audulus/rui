@@ -18,28 +18,14 @@ fn caption(s: &str) -> impl View {
 fn knob_example() -> impl View {
     hstack((
         caption("knob"),
-        state(
-            || 0.5,
-            |s, _| {
-                knob(s)
-                    .size([30.0, 30.0])
-                    .padding(Auto)
-            },
-        ),
+        state(|| 0.5, |s, _| knob(s).size([30.0, 30.0]).padding(Auto)),
     ))
 }
 
 fn toggle_example() -> impl View {
     hstack((
         caption("toggle"),
-        state(
-            || false,
-            |s, _| {
-                toggle(s)
-                    .size([30.0, 30.0])
-                    .padding(Auto)
-            },
-        ),
+        state(|| false, |s, _| toggle(s).size([30.0, 30.0]).padding(Auto)),
     ))
 }
 

@@ -8,13 +8,11 @@ pub struct HSlider<B> {
     thumb: Color,
 }
 
-impl<B: Binding<f32>> View for HSlider<B>
-{
+impl<B: Binding<f32>> View for HSlider<B> {
     body_view!();
 }
 
-impl<B: Binding<f32>> HSlider<B>
-{
+impl<B: Binding<f32>> HSlider<B> {
     fn body(&self) -> impl View {
         let value = self.binding;
         let thumb_color = self.thumb;
@@ -66,7 +64,7 @@ impl<B: Binding<f32>> HSlider<B>
 impl<B> private::Sealed for HSlider<B> {}
 
 /// Horizontal slider built from other Views.
-pub fn hslider(value: impl Binding<f32>) -> HSlider< impl Binding<f32> > {
+pub fn hslider(value: impl Binding<f32>) -> HSlider<impl Binding<f32>> {
     HSlider {
         binding: value,
         thumb: AZURE_HIGHLIGHT,
@@ -135,7 +133,10 @@ where
 impl<B> private::Sealed for VSlider<B> {}
 
 /// Horizontal slider built from other Views.
-pub fn vslider(value: f32, set_value: impl Fn(&mut Context, f32) + 'static + Copy) -> VSlider<impl Fn(&mut Context, f32) + 'static + Copy> {
+pub fn vslider(
+    value: f32,
+    set_value: impl Fn(&mut Context, f32) + 'static + Copy,
+) -> VSlider<impl Fn(&mut Context, f32) + 'static + Copy> {
     VSlider {
         value,
         set_value,

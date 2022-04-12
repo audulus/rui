@@ -73,14 +73,26 @@ impl TextEditorState {
 
     fn key(&mut self, k: &KeyPress, text: String) -> String {
         match k {
-            KeyPress::ArrowLeft => { self.back(); text }
-            KeyPress::ArrowRight => { self.fwd(text.len()); text }
-            KeyPress::ArrowUp => { self.up(); text }
-            KeyPress::ArrowDown => { self.down(); text }
+            KeyPress::ArrowLeft => {
+                self.back();
+                text
+            }
+            KeyPress::ArrowRight => {
+                self.fwd(text.len());
+                text
+            }
+            KeyPress::ArrowUp => {
+                self.up();
+                text
+            }
+            KeyPress::ArrowDown => {
+                self.down();
+                text
+            }
             KeyPress::Backspace => {
                 if self.cursor > 0 {
                     let mut t = text.clone();
-                    t.remove(self.cursor-1);
+                    t.remove(self.cursor - 1);
                     self.back();
                     t
                 } else {
@@ -99,8 +111,14 @@ impl TextEditorState {
                 self.cursor += 1;
                 t
             }
-            KeyPress::Home => { self.cursor = 0; text },
-            KeyPress::End => { self.cursor = text.len(); text },
+            KeyPress::Home => {
+                self.cursor = 0;
+                text
+            }
+            KeyPress::End => {
+                self.cursor = text.len();
+                text
+            }
             _ => text,
         }
     }
@@ -118,12 +136,12 @@ impl TextEditorState {
 
 /// Struct for `text_editor`.
 pub struct TextEditor<B> {
-    text_binding: B
+    text_binding: B,
 }
 
 impl<B> TextEditor<B>
 where
-    B: Binding<String>
+    B: Binding<String>,
 {
     fn body(&self) -> impl View {
         let text = self.text_binding;
@@ -167,7 +185,7 @@ where
 
 impl<B> View for TextEditor<B>
 where
-    B: Binding<String>
+    B: Binding<String>,
 {
     body_view!();
 }

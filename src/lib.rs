@@ -565,5 +565,4 @@ mod tests {
             println!("clicked!");
         });
     }
-
 }

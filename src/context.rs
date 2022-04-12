@@ -75,7 +75,7 @@ impl Context {
             window_title: "rui".into(),
             state_map: HashMap::new(),
             dirty: false,
-            enable_dirty: true
+            enable_dirty: true,
         }
     }
 
@@ -129,4 +129,3 @@ where
             .unwrap()
     }
 }
-

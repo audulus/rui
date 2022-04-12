@@ -40,11 +40,20 @@ where
     T: Clone + 'static,
 {
     pub fn new(binding: B, lens: L) -> Self {
-        Self { binding, lens, phantom_s: Default::default(), phantom_t: Default::default() }
+        Self {
+            binding,
+            lens,
+            phantom_s: Default::default(),
+            phantom_t: Default::default(),
+        }
     }
 }
 
-pub fn bind<S, T>(binding: impl Binding<S>, lens: impl Lens<S, T>) -> impl Binding<T> where S: Clone + 'static, T: Clone + 'static {
+pub fn bind<S, T>(binding: impl Binding<S>, lens: impl Lens<S, T>) -> impl Binding<T>
+where
+    S: Clone + 'static,
+    T: Clone + 'static,
+{
     Map::new(binding, lens)
 }
 
@@ -76,7 +85,7 @@ macro_rules! make_lens {
                 &mut data.$field
             }
         }
-    }
+    };
 }
 
 #[cfg(test)]
@@ -107,7 +116,7 @@ mod tests {
             .or_insert_with(|| Box::new(MyState { x: 0 }));
         let s = State::new(id);
 
-        let b = bind(s, MyLens{});
+        let b = bind(s, MyLens {});
 
         *b.get_mut(&mut cx) = 42;
 

@@ -1,11 +1,6 @@
 use {
     crate::*,
-    std::{
-        collections::VecDeque,
-        sync::{
-            Mutex,
-        },
-    },
+    std::{collections::VecDeque, sync::Mutex},
     tao::event_loop::EventLoopProxy,
 };
 
