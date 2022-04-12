@@ -151,7 +151,7 @@ where
 macro_rules! bind2 {
     ( $state:expr, $field:ident, $t:ty ) => {{
         let s = $state;
-        Map3::<_,_,_,i32> {
+        Map3::<_,_,_,$t> {
             binding: s,
             focus: |x: & $t| x.$field,
             focus_mut: |x: &mut $t| x.$field,
@@ -175,12 +175,12 @@ mod tests {
         let mut cx = Context::new(None);
         let s = State::new(ViewID::default(), &|| MyState{ x: 0 });
 
-        let b = Map3 {
-            binding: s,
-            focus: |x: &MyState| &x.x,
-            focus_mut: |x: &mut MyState| &mut x.x,
-            phantom: Default::default(),
-        };
+        // let b = Map3::<_,_,_,MyState> {
+        //     binding: s,
+        //     focus: |x: &MyState| &x.x,
+        //     focus_mut: |x: &mut MyState| &mut x.x,
+        //     phantom: Default::default(),
+        // };
 
         // b.get_mut(&mut cx) = 42;
     }
