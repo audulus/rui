@@ -121,3 +121,28 @@ impl<S, B, L, T> Binding2<S> for Map2<B, L, T> where B: Binding2<T>, L: Lens<T, 
         self.lens.focus_mut(self.binding.get_mut(cx))
     }
 }
+
+#[derive(Clone)]
+pub struct Map3<B, F, FM, T> {
+    binding: B,
+    focus: F,
+    focus_mut: FM,
+    phantom: std::marker::PhantomData<T>,
+}
+
+impl<B, F, FM, T> Copy for Map3<B, F, FM, T> where B: Copy, F: Copy, FM: Copy, T: Clone {}
+
+impl<S, B, F, FM, T> Binding2<S> for Map3<B, F, FM, T> 
+where
+    B: Binding2<T>,
+    F: Fn(&T) -> &S + Copy + 'static,
+    FM: Fn(&mut T) -> &mut S + Copy + 'static,
+    S: Clone + 'static,
+    T: Clone + 'static {
+    fn get2<'a>(&self, cx: &'a mut Context) -> &'a S {
+        (self.focus)(self.binding.get2(cx))
+    }
+    fn get_mut<'a>(&self, cx: &'a mut Context) -> &'a mut S {
+        (self.focus_mut)(self.binding.get_mut(cx))
+    }
+}
