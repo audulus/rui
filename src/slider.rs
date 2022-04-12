@@ -9,6 +9,7 @@ pub struct HSlider<F> {
     thumb: Color,
 }
 
+// XXX: why can't I use this?
 pub trait SliderSetter: Fn(&mut Context, f32) + 'static + Copy {}
 
 impl<F> View for HSlider<F>
