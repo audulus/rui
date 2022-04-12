@@ -5,6 +5,8 @@ struct MyState {
     value: f32,
 }
 
+make_lens!(ValueLens, MyState, f32, value);
+
 fn main() {
     rui(state(MyState::default, |state, cx| {
         vstack((
