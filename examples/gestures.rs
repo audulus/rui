@@ -4,7 +4,7 @@ fn main() {
     rui(hstack((
         circle()
             .color(RED_HIGHLIGHT.alpha(0.8))
-            .tap(|_cx| println!("tapped circle"))
+            .tap(|_| println!("tapped circle"))
             .padding(Auto),
         state(LocalOffset::zero, |off, cx| {
             rectangle()
