@@ -20,8 +20,8 @@ fn knob_example() -> impl View {
         caption("knob"),
         state(
             || 0.5,
-            |s, cx| {
-                knob(cx[s], move |cx, x| cx[s] = x)
+            |s, _| {
+                knob(s)
                     .size([30.0, 30.0])
                     .padding(Auto)
             },

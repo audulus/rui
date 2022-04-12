@@ -1,18 +1,13 @@
 use rui::*;
 
-#[derive(Clone)]
-struct MyState {
-    value: f32,
-}
-
 fn main() {
     rui(state(
-        || MyState { value: 0.0 },
+        || 0.0,
         |state, cx| {
-            let value = cx[state].value;
+            let value = cx[state];
             vstack((
                 text(&format!("value: {}", value)).padding(Auto),
-                knob(value, move |cx, v| cx[state].value = v).padding(Auto),
+                knob(state).padding(Auto),
             ))
         },
     ));
