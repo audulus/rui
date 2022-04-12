@@ -14,3 +14,14 @@ pub fn button<F: Fn() + 'static>(view: impl View + 'static, f: F) -> impl View {
         .tap(f)
         .role(Role::Button)
 }
+
+pub fn button2<F: Fn(&mut Context) + 'static>(view: impl View + 'static, f: F) -> impl View {
+    view.padding(Auto)
+        .background(
+            rectangle()
+                .corner_radius(BUTTON_CORNER_RADIUS)
+                .color(BUTTON_BACKGROUND_COLOR),
+        )
+        .tap2(f)
+        .role(Role::Button)
+}
