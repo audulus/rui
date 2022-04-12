@@ -187,7 +187,7 @@ impl<S> Binding<S> for State<S>
 where
     S: Clone + 'static,
 {
-    fn get2<'a>(&self, cx: &'a mut Context) -> &'a S {
+    fn get<'a>(&self, cx: &'a mut Context) -> &'a S {
         cx.get(*self)
     }
     fn get_mut<'a>(&self, cx: &'a mut Context) -> &'a mut S {

@@ -7,7 +7,7 @@ pub trait Lens<T, U>: Clone + Copy + 'static {
 
 /// Reads or writes a value owned by a source-of-truth.
 pub trait Binding<S>: Clone + Copy + 'static {
-    fn get2<'a>(&self, cx: &'a mut Context) -> &'a S;
+    fn get<'a>(&self, cx: &'a mut Context) -> &'a S;
     fn get_mut<'a>(&self, cx: &'a mut Context) -> &'a mut S;
 }
 
@@ -33,8 +33,8 @@ where
     S: Clone + 'static,
     T: Clone + 'static,
 {
-    fn get2<'a>(&self, cx: &'a mut Context) -> &'a S {
-        self.lens.focus(self.binding.get2(cx))
+    fn get<'a>(&self, cx: &'a mut Context) -> &'a S {
+        self.lens.focus(self.binding.get(cx))
     }
     fn get_mut<'a>(&self, cx: &'a mut Context) -> &'a mut S {
         self.lens.focus_mut(self.binding.get_mut(cx))
@@ -66,8 +66,8 @@ where
     S: Clone + 'static,
     T: Clone + 'static,
 {
-    fn get2<'a>(&self, cx: &'a mut Context) -> &'a S {
-        (self.focus)(self.binding.get2(cx))
+    fn get<'a>(&self, cx: &'a mut Context) -> &'a S {
+        (self.focus)(self.binding.get(cx))
     }
     fn get_mut<'a>(&self, cx: &'a mut Context) -> &'a mut S {
         (self.focus_mut)(self.binding.get_mut(cx))
