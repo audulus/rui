@@ -26,11 +26,11 @@ use rui::*;
 fn main() {
     rui(state(
         || 1,
-        |count| {
+        |count, cx| {
             vstack((
-                text(&format!("{}", count.get())).padding(Auto),
-                button(text("increment"), move || {
-                    count.with_mut(|x| *x += 1);
+                text(&format!("{}", cx[count])).padding(Auto),
+                button(text("increment"), move |cx| {
+                    cx[count] += 1;
                 })
                 .padding(Auto),
             ))
@@ -67,7 +67,7 @@ canvas for gpu drawing (`cargo run --example canvas`):
 use rui::*;
 
 fn main() {
-    rui(canvas(|rect, vger| {
+    rui(canvas(|_, rect, vger| {
         vger.translate(rect.center() - LocalPoint::zero());
 
         let paint = vger.linear_gradient(
@@ -96,11 +96,15 @@ struct MyState {
     value: f32,
 }
 
+make_lens!(ValueLens, MyState, f32, value);
+
 fn main() {
-    rui(state(MyState::default, |state| {
+    rui(state(MyState::default, |state, cx| {
         vstack((
-            text(&format!("value: {:?}", state.get().value)).padding(Auto),
-            hslider(bind!(state, value))
+            text(&format!("value: {:?}", cx[state].value))
+                .font_size(10)
+                .padding(Auto),
+            hslider(bind(state, ValueLens {}))
                 .thumb_color(RED_HIGHLIGHT)
                 .padding(Auto),
         ))
