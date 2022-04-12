@@ -34,8 +34,8 @@ fn toggle_example() -> impl View {
         caption("toggle"),
         state(
             || false,
-            |s, cx| {
-                toggle(cx[s], move |cx, b| cx[s] = b)
+            |s, _| {
+                toggle(s)
                     .size([30.0, 30.0])
                     .padding(Auto)
             },
