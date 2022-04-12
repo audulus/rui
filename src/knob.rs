@@ -15,7 +15,7 @@ pub fn knob(value: f32, set_value: impl Fn(&mut Context, f32) + 'static) -> impl
         circle().color(CLEAR_COLOR).drag(move |cx, off, _state| {
             set_value(cx, (v + (off.x + off.y) / 400.0).clamp(0.0, 1.0));
         }),
-        canvas(move |cx, sz, vger| {
+        canvas(move |_, sz, vger| {
             let c = sz.center();
             let r = sz.width().min(sz.height()) / 2.0;
 
