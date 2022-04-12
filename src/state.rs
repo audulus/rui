@@ -54,6 +54,18 @@ where
     }
 }
 
+impl<S> Binding<S> for State<S>
+where
+    S: Clone + 'static,
+{
+    fn get<'a>(&self, cx: &'a mut Context) -> &'a S {
+        cx.get(*self)
+    }
+    fn get_mut<'a>(&self, cx: &'a mut Context) -> &'a mut S {
+        cx.get_mut(*self)
+    }
+}
+
 struct StateView<D, F> {
     default: D,
     func: F,
@@ -156,17 +168,5 @@ pub fn state<
     StateView {
         default: initial,
         func: f,
-    }
-}
-
-impl<S> Binding<S> for State<S>
-where
-    S: Clone + 'static,
-{
-    fn get<'a>(&self, cx: &'a mut Context) -> &'a S {
-        cx.get(*self)
-    }
-    fn get_mut<'a>(&self, cx: &'a mut Context) -> &'a mut S {
-        cx.get_mut(*self)
     }
 }
