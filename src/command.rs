@@ -10,7 +10,7 @@ pub struct Command<V, F> {
 impl<V, F> Command<V, F>
 where
     V: View,
-    F: Fn() + 'static,
+    F: Fn(&mut Context) + 'static,
 {
     pub fn new(v: V, name: String, key: Option<KeyCode>, f: F) -> Self {
         Self {
@@ -25,7 +25,7 @@ where
 impl<V, F> View for Command<V, F>
 where
     V: View,
-    F: Fn() + 'static,
+    F: Fn(&mut Context) + 'static,
 {
     fn print(&self, id: ViewID, cx: &mut Context) {
         println!("Command {{");
@@ -36,7 +36,7 @@ where
     fn process(&self, event: &Event, id: ViewID, cx: &mut Context, vger: &mut VGER) {
         if let EventKind::Command(name) = &event.kind {
             if *name == self.name {
-                (self.func)();
+                (self.func)(cx);
             }
         }
         self.child.process(event, id.child(&0), cx, vger)
@@ -86,7 +86,7 @@ where
 impl<V, F> private::Sealed for Command<V, F>
 where
     V: View,
-    F: Fn() + 'static,
+    F: Fn(&mut Context) + 'static,
 {
 }
 

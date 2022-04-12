@@ -25,7 +25,7 @@ pub trait Modifiers: View + Sized {
     fn size<Sz: Into<LocalSize>>(self, size: Sz) -> Size<Self>;
 
     /// Adds a menu command.
-    fn command<F: Fn() + 'static>(self, name: &str, key: Option<KeyCode>, f: F)
+    fn command<F: Fn(&mut Context) + 'static>(self, name: &str, key: Option<KeyCode>, f: F)
         -> Command<Self, F>;
 
     /// Adds a group of menu commands.
@@ -66,7 +66,7 @@ impl<V: View + 'static> Modifiers for V {
     fn size<Sz: Into<LocalSize>>(self, size: Sz) -> Size<Self> {
         Size::new(self, size.into())
     }
-    fn command<F: Fn() + 'static>(
+    fn command<F: Fn(&mut Context) + 'static>(
         self,
         name: &str,
         key: Option<KeyCode>,
