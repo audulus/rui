@@ -33,7 +33,7 @@ where
                 let w = cx[width];
                 let x = value * w;
 
-                canvas(move |cx, sz, vger| {
+                canvas(move |_, sz, vger| {
                     let c = sz.center();
                     let paint = vger.color_paint(BUTTON_BACKGROUND_COLOR);
                     vger.fill_rect(
