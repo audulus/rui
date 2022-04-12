@@ -24,7 +24,7 @@ where
         let thumb_color = self.thumb;
         state(
             || 0.0,
-            move |width, context| {
+            move |width, cx| {
                 let w = width.get();
                 let x = value.get() * w;
 
