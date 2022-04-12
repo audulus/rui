@@ -3,35 +3,26 @@ use crate::*;
 const SLIDER_WIDTH: f32 = 4.0;
 const SLIDER_THUMB_RADIUS: f32 = 10.0;
 
-pub struct HSlider<F> {
-    value: f32,
-    set_value: F,
+pub struct HSlider<B> {
+    binding: B,
     thumb: Color,
 }
 
-// XXX: why can't I use this?
-pub trait SliderSetter: Fn(&mut Context, f32) + 'static + Copy {}
-
-impl<F> View for HSlider<F>
-where
-    F: Fn(&mut Context, f32) + 'static + Copy,
+impl<B: Binding<f32>> View for HSlider<B>
 {
     body_view!();
 }
 
-impl<F> HSlider<F>
-where
-    F: Fn(&mut Context, f32) + 'static + Copy,
+impl<B: Binding<f32>> HSlider<B>
 {
     fn body(&self) -> impl View {
-        let value = self.value;
+        let value = self.binding;
         let thumb_color = self.thumb;
-        let set_value = self.set_value;
         state(
             || 0.0,
             move |width, cx| {
                 let w = cx[width];
-                let x = value * w;
+                let x = value.get(cx) * w;
 
                 canvas(move |_, sz, vger| {
                     let c = sz.center();
@@ -56,7 +47,8 @@ where
                     }
                 })
                 .drag(move |cx, off, _state| {
-                    (set_value)(cx, (value + off.x / w).clamp(0.0, 1.0));
+                    let v = value.get(cx);
+                    *value.get_mut(cx) = (v + off.x / w).clamp(0.0, 1.0);
                 })
             },
         )
@@ -65,8 +57,7 @@ where
 
     pub fn thumb_color(self, thumb_color: Color) -> Self {
         Self {
-            value: self.value,
-            set_value: self.set_value,
+            binding: self.binding,
             thumb: thumb_color,
         }
     }
@@ -75,10 +66,9 @@ where
 impl<B> private::Sealed for HSlider<B> {}
 
 /// Horizontal slider built from other Views.
-pub fn hslider(value: f32, set_value: impl Fn(&mut Context, f32) + 'static + Copy) -> HSlider< impl Fn(&mut Context, f32) + 'static + Copy> {
+pub fn hslider(value: impl Binding<f32>) -> HSlider< impl Binding<f32> > {
     HSlider {
-        value,
-        set_value,
+        binding: value,
         thumb: AZURE_HIGHLIGHT,
     }
 }

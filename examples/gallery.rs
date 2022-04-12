@@ -8,7 +8,7 @@ fn button_example() -> impl View {
 }
 
 fn slider_example() -> impl View {
-    hstack((caption("slider"), state(|| 0.5, |s, cx| hslider(cx[s], move |cx, v| cx[s] = v))))
+    hstack((caption("slider"), state(|| 0.5, |s, _| hslider(s))))
 }
 
 fn caption(s: &str) -> impl View {

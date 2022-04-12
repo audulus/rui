@@ -8,7 +8,7 @@ fn main() {
             vstack((
                 text("58").font_size(s),
                 text(&format!("font size: {}", s)),
-                hslider(cx[size], move |cx, v| cx[size] = v),
+                hslider(size),
             ))
         },
     ));

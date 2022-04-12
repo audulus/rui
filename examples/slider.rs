@@ -13,7 +13,7 @@ fn main() {
             text(&format!("value: {:?}", cx[state].value))
                 .font_size(10)
                 .padding(Auto),
-            hslider(cx[state].value, move |cx, v| cx[state].value = v)
+            hslider(bind(state, ValueLens{}))
                 .thumb_color(RED_HIGHLIGHT)
                 .padding(Auto),
         ))
