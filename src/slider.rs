@@ -25,7 +25,7 @@ where
         state(
             || 0.0,
             move |width, cx| {
-                let w = width.get();
+                let w = cx[width];
                 let x = value.get() * w;
 
                 canvas(move |cx, sz, vger| {
@@ -45,9 +45,9 @@ where
                     let paint = vger.color_paint(thumb_color);
                     vger.fill_circle([x, c.y], SLIDER_THUMB_RADIUS, paint);
                 })
-                .geom(move |sz| {
+                .geom(move |cx, sz| {
                     if sz.width != w {
-                        width.set(sz.width)
+                        cx[width] = sz.width;
                     }
                 })
                 .drag(move |cx, off, _state| {
@@ -98,7 +98,7 @@ where
         state(
             || 0.0,
             move |height, cx| {
-                let h = height.get();
+                let h = cx[height];
                 let y = value.get() * h;
 
                 canvas(move |cx, sz, vger| {
@@ -112,9 +112,9 @@ where
                     let paint = vger.color_paint(thumb_color);
                     vger.fill_circle([c.x, y], SLIDER_THUMB_RADIUS, paint);
                 })
-                .geom(move |sz| {
+                .geom(move |cx, sz| {
                     if sz.height != h {
-                        height.set(sz.width)
+                        cx[height] = sz.height;
                     }
                 })
                 .drag(move |cx, off, _state| {

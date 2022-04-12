@@ -13,7 +13,7 @@ pub trait Modifiers: View + Sized {
 
     /// Calls a function with the view's geometry after layout runs.
     /// Currently only the view's size is returned.
-    fn geom<F: Fn(LocalSize) + 'static>(self, f: F) -> Geom<Self, F>;
+    fn geom<F: Fn(&mut Context, LocalSize) + 'static>(self, f: F) -> Geom<Self, F>;
 
     /// Calls a function in response to a drag.
     fn drag<F: Fn(&mut Context, LocalOffset, GestureState) + 'static>(self, f: F) -> Drag<Self, F>;
@@ -54,7 +54,7 @@ impl<V: View + 'static> Modifiers for V {
     fn background<BG: View + 'static>(self, background: BG) -> Background<Self, BG> {
         Background::new(self, background)
     }
-    fn geom<F: Fn(LocalSize) + 'static>(self, f: F) -> Geom<Self, F> {
+    fn geom<F: Fn(&mut Context, LocalSize) + 'static>(self, f: F) -> Geom<Self, F> {
         Geom::new(self, f)
     }
     fn drag<F: Fn(&mut Context, LocalOffset, GestureState) + 'static>(self, f: F) -> Drag<Self, F> {

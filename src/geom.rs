@@ -9,7 +9,7 @@ pub struct Geom<V, F> {
 impl<V, F> View for Geom<V, F>
 where
     V: View,
-    F: Fn(LocalSize),
+    F: Fn(&mut Context, LocalSize),
 {
     fn print(&self, id: ViewID, cx: &mut Context) {
         println!("Geom {{");
@@ -27,7 +27,7 @@ where
 
     fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
         let sz = self.child.layout(id.child(&0), sz, cx, vger);
-        (self.func)(sz);
+        (self.func)(cx, sz);
         sz
     }
 
@@ -64,7 +64,7 @@ impl<V, F> private::Sealed for Geom<V, F> {}
 impl<V, F> Geom<V, F>
 where
     V: View + 'static,
-    F: Fn(LocalSize) + 'static,
+    F: Fn(&mut Context, LocalSize) + 'static,
 {
     pub fn new(child: V, f: F) -> Self {
         Self { child, func: f }
