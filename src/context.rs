@@ -95,7 +95,7 @@ impl<S> ops::IndexMut<State<S>> for Context where S: 'static {
 
 pub trait Lens<T, U>: Clone + Copy + 'static {
     fn focus<'a>(&self, data: &'a T) -> &'a U;
-    fn focus_mut<'a>(&self, data: &mut T) -> &'a mut U;
+    fn focus_mut<'a>(&self, data: &'a mut T) -> &'a mut U;
 }
 
 /// Reads or writes a value owned by a source-of-truth.
@@ -164,6 +164,30 @@ macro_rules! bind2 {
 mod tests {
 
     use super::*;
+
+    struct MyState {
+        x: i32
+    }
+
+    #[derive(Clone, Copy)]
+    struct MyLens {}
+    impl Lens<MyState, i32> for MyLens {
+        fn focus<'a>(&self, data: &'a MyState) -> &'a i32 {
+            &data.x
+        }
+        fn focus_mut<'a>(&self, data: &'a mut MyState) -> &'a mut i32 {
+            &mut data.x
+        }
+    }
+
+    #[test]
+    fn test_lens() {
+
+        let mut s = MyState{ x: 0 };
+        *MyLens{}.focus_mut(&mut s) = 42;
+        assert_eq!(*MyLens{}.focus(&s), 42);
+
+    }
 
     #[test]
     fn test_bind2() {
