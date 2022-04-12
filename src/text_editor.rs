@@ -71,35 +71,37 @@ impl TextEditorState {
         }
     }
 
-    fn key(&mut self, k: &KeyPress, text: &impl Binding<String>) {
+    fn key(&mut self, k: &KeyPress, text: String) -> String {
         match k {
-            KeyPress::ArrowLeft => self.back(),
-            KeyPress::ArrowRight => self.fwd(text.with(|t| t.len())),
-            KeyPress::ArrowUp => self.up(),
-            KeyPress::ArrowDown => self.down(),
+            KeyPress::ArrowLeft => { self.back(); text }
+            KeyPress::ArrowRight => { self.fwd(text.len()); text }
+            KeyPress::ArrowUp => { self.up(); text }
+            KeyPress::ArrowDown => { self.down(); text }
             KeyPress::Backspace => {
                 if self.cursor > 0 {
-                    text.with_mut(|t| {
-                        t.remove(self.cursor - 1);
-                    });
+                    let mut t = text.clone();
+                    t.remove(self.cursor-1);
                     self.back();
+                    t
+                } else {
+                    text
                 }
             }
             KeyPress::Character(c) => {
-                text.with_mut(|t| {
-                    t.insert_str(self.cursor, c);
-                });
+                let mut t = text.clone();
+                t.insert_str(self.cursor, c);
                 self.cursor += c.len();
+                t
             }
             KeyPress::Space => {
-                text.with_mut(|t| {
-                    t.insert(self.cursor, ' ');
-                });
+                let mut t = text.clone();
+                t.insert(self.cursor, ' ');
                 self.cursor += 1;
+                t
             }
-            KeyPress::Home => self.cursor = 0,
-            KeyPress::End => self.cursor = text.with(|t| t.len()),
-            _ => (),
+            KeyPress::Home => { self.cursor = 0; text },
+            KeyPress::End => { self.cursor = text.len(); text },
+            _ => text,
         }
     }
 }
@@ -115,28 +117,33 @@ impl TextEditorState {
 }
 
 /// Struct for `text_editor`.
-pub struct TextEditor<B> {
-    text: B,
+pub struct TextEditor<F> {
+    text: String,
+    set_text: F,
 }
 
-impl<B> TextEditor<B>
+impl<F> TextEditor<F>
 where
-    B: Binding<String>,
+    F: Fn(&mut Context, String) + 'static + Copy
 {
     fn body(&self) -> impl View {
-        let text = self.text;
+        let text = self.text.clone();
+        let set_text = self.set_text;
         focus(move |has_focus| {
+            let text = text.clone();
             state(TextEditorState::new, move |state, cx| {
                 let cursor = cx[state].cursor;
+                let text = text.clone();
+                let text2 = text.clone();
                 canvas(move |cx, rect, vger| {
                     vger.translate([0.0, rect.height()]);
                     let font_size = 18;
                     let break_width = Some(rect.width());
 
-                    let rects = vger.glyph_positions(&text.get(), font_size, break_width);
-                    let lines = vger.line_metrics(&text.get(), font_size, break_width);
+                    let rects = vger.glyph_positions(&text, font_size, break_width);
+                    let lines = vger.line_metrics(&text, font_size, break_width);
 
-                    vger.text(&text.get(), font_size, TEXT_COLOR, break_width);
+                    vger.text(&text, font_size, TEXT_COLOR, break_width);
 
                     if has_focus {
                         let glyph_rect_paint = vger.color_paint(vger::Color::MAGENTA);
@@ -153,7 +160,8 @@ where
                 })
                 .key(move |cx, k| {
                     if has_focus {
-                        cx[state].key(&k, &text);
+                        let new_text = cx[state].key(&k, text2.clone());
+                        set_text(cx, new_text);
                     }
                 })
             })
@@ -161,15 +169,15 @@ where
     }
 }
 
-impl<B> View for TextEditor<B>
+impl<F> View for TextEditor<F>
 where
-    B: Binding<String>,
+    F: Fn(&mut Context, String) + 'static + Copy,
 {
     body_view!();
 }
 
 impl<B> private::Sealed for TextEditor<B> {}
 
-pub fn text_editor(text: impl Binding<String>) -> impl View {
-    TextEditor { text }
+pub fn text_editor(text: String, set_text: impl Fn(&mut Context, String) + 'static + Copy) -> impl View {
+    TextEditor { text, set_text }
 }
