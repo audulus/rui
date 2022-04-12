@@ -569,49 +569,4 @@ mod tests {
         });
     }
 
-    #[test]
-    fn test_state2() {
-        let mut cx = Context::new(None);
-        let v = counter(42);
-        v.print(ViewID::default(), &mut cx);
-    }
-
-    fn counter(start: usize) -> impl View {
-        state(
-            move || start,
-            |count, cx| {
-                let count2 = count;
-                let value_string = format!("value: {:?}", count.get());
-                vstack((
-                    text(value_string.as_str()),
-                    button(text("increment"), move |_cx| {
-                        count.with_mut(|value| *value += 1);
-                    }),
-                    button(text("decrement"), move |_cx| {
-                        count2.with_mut(|value| *value -= 1);
-                    }),
-                ))
-            },
-        )
-    }
-
-    fn counter3<B>(count: B, cx: &mut Context) -> impl View
-    where
-        B: Binding<usize> + Clone + 'static,
-    {
-        let count2 = count;
-        vstack((
-            button(text("increment"), move |_cx| {
-                count.with_mut(|value| *value += 1);
-            }),
-            button(text("decrement"), move |_cx| {
-                count2.with_mut(|value| *value -= 1);
-            }),
-        ))
-    }
-
-    #[test]
-    fn test_binding() {
-        let _ = state(|| 42, counter3);
-    }
 }

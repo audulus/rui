@@ -130,18 +130,6 @@ where
     }
 }
 
-impl<S> Binding<S> for State<S>
-where
-    S: Clone + 'static,
-{
-    fn with<T, F: FnOnce(&S) -> T>(&self, f: F) -> T {
-        self.strong().with(f)
-    }
-    fn with_mut<T, F: FnOnce(&mut S) -> T>(&self, f: F) -> T {
-        self.strong().with_mut(f)
-    }
-}
-
 struct StateView<D, F> {
     default: D,
     func: F,
