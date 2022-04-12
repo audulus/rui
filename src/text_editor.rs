@@ -127,7 +127,7 @@ where
         let text = self.text;
         focus(move |has_focus| {
             state(TextEditorState::new, move |state, cx| {
-                let cursor = state.with(|s| s.cursor);
+                let cursor = cx[state].cursor;
                 canvas(move |cx, rect, vger| {
                     vger.translate([0.0, rect.height()]);
                     let font_size = 18;
@@ -148,14 +148,12 @@ where
                         );
                     }
 
-                    state.with_mut(|s| {
-                        s.glyph_rects = rects;
-                        s.lines = lines;
-                    });
+                    cx[state].glyph_rects = rects;
+                    cx[state].lines = lines;
                 })
-                .key(move |k| {
+                .key(move |cx, k| {
                     if has_focus {
-                        state.with_mut(|s| s.key(&k, &text))
+                        cx[state].key(&k, &text);
                     }
                 })
             })
