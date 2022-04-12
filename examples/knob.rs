@@ -1,13 +1,19 @@
 use rui::*;
 
+#[derive(Clone, Debug)]
+struct MyState {
+    x: f32,
+}
+
+make_lens!(MyLens, MyState, f32, x);
+
 fn main() {
     rui(state(
-        || 0.0,
+        || MyState{ x: 0.0 },
         |state, cx| {
-            let value = cx[state];
             vstack((
-                text(&format!("value: {}", value)).padding(Auto),
-                knob(state).padding(Auto),
+                text(&format!("value: {:?}", cx[state])).padding(Auto),
+                knob(bind(state, MyLens{})).padding(Auto),
             ))
         },
     ));
