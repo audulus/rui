@@ -1,6 +1,4 @@
 use crate::*;
-use std::cell::RefCell;
-use std::rc::Rc;
 
 /// Struct for the `tap` gesture.
 pub struct Tap<V, F> {
