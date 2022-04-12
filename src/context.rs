@@ -146,3 +146,37 @@ where
         (self.focus_mut)(self.binding.get_mut(cx))
     }
 }
+
+#[macro_export]
+macro_rules! bind2 {
+    ( $state:expr, $field:ident, $t:ty ) => {{
+        let s = $state;
+        Map3::<_,_,_,i32> {
+            binding: s,
+            focus: |x: & $t| x.$field,
+            focus_mut: |x: &mut $t| x.$field,
+            phantom: Default::default(),
+        }
+    }};
+}
+
+#[cfg(test)]
+mod tests {
+
+    use super::*;
+
+    #[test]
+    fn test_bind2() {
+
+        struct MyState {
+            x: i32
+        }
+
+        let mut cx = Context::new(None);
+        let s = State::new(ViewID::default(), &|| MyState{ x: 0 });
+
+        let b = bind2!(s, x, MyState);
+
+        // b.get_mut(&mut cx) = 42;
+    }
+}
