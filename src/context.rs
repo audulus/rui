@@ -93,13 +93,31 @@ impl<S> ops::IndexMut<State<S>> for Context where S: 'static {
     }
 }
 
-pub trait Lens<T: ?Sized, U: ?Sized> {
-    fn focus<'a>(data: &'a T) -> &'a U;
-    fn focus_mut<'a>(data: &mut T) -> &'a mut U;
+pub trait Lens<T: ?Sized, U: ?Sized>: Clone + Copy + 'static {
+    fn focus<'a>(&self, data: &'a T) -> &'a U;
+    fn focus_mut<'a>(&self, data: &mut T) -> &'a mut U;
 }
 
 /// Reads or writes a value owned by a source-of-truth.
 pub trait Binding2<S>: Clone + Copy + 'static {
     fn get2<'a>(&self, cx: &'a mut Context) -> &'a S;
     fn get_mut<'a>(&self, cx: &'a mut Context) -> &'a mut S;
+}
+
+#[derive(Clone)]
+pub struct Map2<B, L, T> {
+    binding: B,
+    lens: L,
+    phantom: std::marker::PhantomData<T>,
+}
+
+impl<B, L, T> Copy for Map2<B, L, T> where B: Copy, L: Copy, T: Clone {}
+
+impl<S, B, L, T> Binding2<S> for Map2<B, L, T> where B: Binding2<T>, L: Lens<T, S>, S: Clone + 'static, T: Clone + 'static {
+    fn get2<'a>(&self, cx: &'a mut Context) -> &'a S {
+        self.lens.focus(self.binding.get2(cx))
+    }
+    fn get_mut<'a>(&self, cx: &'a mut Context) -> &'a mut S {
+        self.lens.focus_mut(self.binding.get_mut(cx))
+    }
 }
