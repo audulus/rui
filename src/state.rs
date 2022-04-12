@@ -46,13 +46,18 @@ impl<S> Copy for State<S> where S: Clone {}
 
 impl<S> State<S>
 where
-    S: 'static,
+    S: Clone + 'static,
 {
     pub fn new(id: ViewID) -> Self {
         Self {
             id,
             phantom: Default::default(),
         }
+    }
+
+    pub fn setter(&self) -> impl Fn(&mut Context, &S) {
+        let st = *self;
+        move |cx, s| *st.get_mut(cx) = s.clone()
     }
 }
 
