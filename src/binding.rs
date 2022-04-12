@@ -12,13 +12,13 @@ pub trait Binding2<S>: Clone + Copy + 'static {
 }
 
 #[derive(Clone)]
-pub struct Map2<B, L, T> {
+pub struct Map<B, L, T> {
     binding: B,
     lens: L,
     phantom: std::marker::PhantomData<T>,
 }
 
-impl<B, L, T> Copy for Map2<B, L, T>
+impl<B, L, T> Copy for Map<B, L, T>
 where
     B: Copy,
     L: Copy,
@@ -26,7 +26,7 @@ where
 {
 }
 
-impl<S, B, L, T> Binding2<S> for Map2<B, L, T>
+impl<S, B, L, T> Binding2<S> for Map<B, L, T>
 where
     B: Binding2<T>,
     L: Lens<T, S>,
@@ -124,7 +124,7 @@ mod tests {
             .or_insert_with(|| Box::new(MyState { x: 0 }));
         let s = State::new(id);
 
-        let b = Map2 {
+        let b = Map {
             binding: s,
             lens: MyLens {},
             phantom: std::marker::PhantomData::<MyState> {},
