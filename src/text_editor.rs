@@ -91,7 +91,7 @@ impl TextEditorState {
             }
             KeyPress::Backspace => {
                 if self.cursor > 0 {
-                    let mut t = text.clone();
+                    let mut t = text;
                     t.remove(self.cursor - 1);
                     self.back();
                     t
@@ -100,13 +100,13 @@ impl TextEditorState {
                 }
             }
             KeyPress::Character(c) => {
-                let mut t = text.clone();
+                let mut t = text;
                 t.insert_str(self.cursor, c);
                 self.cursor += c.len();
                 t
             }
             KeyPress::Space => {
-                let mut t = text.clone();
+                let mut t = text;
                 t.insert(self.cursor, ' ');
                 self.cursor += 1;
                 t
