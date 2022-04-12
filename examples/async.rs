@@ -8,7 +8,6 @@ fn main() {
     rui(state(
         || "task not started".to_string(),
         |s, cx| {
-            let txt = &cx[s];
             hstack((
                 button(text("press to begin"), move |_| {
                     spawn(move || {
@@ -17,7 +16,7 @@ fn main() {
                         on_main(move |cx| cx[s] = "task complete".into());
                     });
                 }),
-                text(&txt),
+                text(&cx[s]),
             ))
         },
     ));
