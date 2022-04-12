@@ -183,7 +183,7 @@ pub fn state<
     }
 }
 
-impl<S> Binding2<S> for State<S>
+impl<S> Binding<S> for State<S>
 where
     S: Clone + 'static,
 {

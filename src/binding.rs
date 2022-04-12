@@ -6,7 +6,7 @@ pub trait Lens<T, U>: Clone + Copy + 'static {
 }
 
 /// Reads or writes a value owned by a source-of-truth.
-pub trait Binding2<S>: Clone + Copy + 'static {
+pub trait Binding<S>: Clone + Copy + 'static {
     fn get2<'a>(&self, cx: &'a mut Context) -> &'a S;
     fn get_mut<'a>(&self, cx: &'a mut Context) -> &'a mut S;
 }
@@ -26,9 +26,9 @@ where
 {
 }
 
-impl<S, B, L, T> Binding2<S> for Map<B, L, T>
+impl<S, B, L, T> Binding<S> for Map<B, L, T>
 where
-    B: Binding2<T>,
+    B: Binding<T>,
     L: Lens<T, S>,
     S: Clone + 'static,
     T: Clone + 'static,
@@ -58,9 +58,9 @@ where
 {
 }
 
-impl<S, B, F, FM, T> Binding2<S> for Map3<B, F, FM, T>
+impl<S, B, F, FM, T> Binding<S> for Map3<B, F, FM, T>
 where
-    B: Binding2<T>,
+    B: Binding<T>,
     F: Fn(&T) -> &S + Copy + 'static,
     FM: Fn(&mut T) -> &mut S + Copy + 'static,
     S: Clone + 'static,
