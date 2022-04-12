@@ -62,40 +62,6 @@ pub fn on_main(f: impl FnOnce(&mut Context) + Send + 'static) {
     wake_event_loop();
 }
 
-/// Strong reference to app state.
-#[derive(Clone)]
-pub struct StrongState<S> {
-    ptr: Rc<RefCell<dyn Any>>,
-    phantom: std::marker::PhantomData<S>,
-}
-
-impl<S> StrongState<S>
-where
-    S: Clone + 'static,
-{
-    pub fn with<T, F: FnOnce(&S) -> T>(&self, f: F) -> T {
-        let v = self.ptr.borrow();
-        if let Some(state) = v.downcast_ref::<S>() {
-            f(state)
-        } else {
-            panic!("state has wrong type")
-        }
-    }
-    pub fn with_mut<T, F: FnOnce(&mut S) -> T>(&self, f: F) -> T {
-        let s = &self.ptr;
-        set_state_dirty();
-        let t = if let Some(state) = s.borrow_mut().downcast_mut::<S>() {
-            f(state)
-        } else {
-            panic!("state has wrong type")
-        };
-
-        wake_event_loop();
-
-        t
-    }
-}
-
 /// Weak reference to app state.
 #[derive(Clone)]
 pub struct State<S> {
@@ -110,21 +76,8 @@ where
     S: 'static,
 {
     pub fn new(id: ViewID, default: &impl Fn() -> S) -> Self {
-        STATE_MAP.with(|cell| {
-            cell.borrow_mut()
-                .entry(id)
-                .or_insert_with(|| Rc::new(RefCell::new(default())));
-        });
-
         Self {
             id,
-            phantom: Default::default(),
-        }
-    }
-
-    fn strong(&self) -> StrongState<S> {
-        StrongState {
-            ptr: STATE_MAP.with(|map| map.borrow()[&self.id].clone()),
             phantom: Default::default(),
         }
     }
