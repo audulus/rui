@@ -6,13 +6,12 @@ fn main() {
             .color(RED_HIGHLIGHT.alpha(0.8))
             .tap(|_cx| println!("tapped circle"))
             .padding(Auto),
-        state(LocalOffset::zero, |offset_state, _cx| {
-            let off = offset_state.get();
+        state(LocalOffset::zero, |off, cx| {
             rectangle()
                 .corner_radius(5.0)
                 .color(AZURE_HIGHLIGHT.alpha(0.8))
-                .offset(off)
-                .drag(move |cx, delta, _state| offset_state.set(offset_state.get() + delta))
+                .offset(cx[off])
+                .drag(move |cx, delta, _state| cx[off] += delta)
                 .padding(Auto)
         }),
     )));
