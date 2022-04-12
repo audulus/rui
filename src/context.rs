@@ -139,3 +139,9 @@ macro_rules! lens {
         $crate::lens::Field::new::<$ty, _>(move |x| &x.$($field)*, move |x| &mut x.$($field)*)
     };
 }
+
+/// Reads or writes a value owned by a source-of-truth.
+pub trait Binding2<S>: Clone + Copy + 'static {
+    fn get(&self, cx: &mut Context) -> &S;
+    fn get_mut(&self, cx: &mut Context) -> &mut S;
+}
