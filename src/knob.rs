@@ -35,12 +35,12 @@ pub fn knob(value: impl Binding<f32>) -> impl View {
 }
 
 /// Knob for controlling a 0 to 1 floating point parameter.
-pub fn knob2(value: f32, set_value: impl Fn(f32) + 'static) -> impl View {
+pub fn knob2(value: f32, set_value: impl Fn(&mut Context, f32) + 'static) -> impl View {
     let v = value;
 
     zstack((
         circle().color(CLEAR_COLOR).drag(move |cx, off, _state| {
-            set_value((v + (off.x + off.y) / 400.0).clamp(0.0, 1.0));
+            set_value(cx, (v + (off.x + off.y) / 400.0).clamp(0.0, 1.0));
         }),
         canvas(move |cx, sz, vger| {
             let c = sz.center();
