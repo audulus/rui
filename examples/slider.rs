@@ -2,7 +2,7 @@ use rui::*;
 
 #[derive(Clone, Default)]
 struct MyState {
-    value: [f32; 2],
+    value: f32,
 }
 
 fn main() {
@@ -11,7 +11,7 @@ fn main() {
             text(&format!("value: {:?}", cx[state].value))
                 .font_size(10)
                 .padding(Auto),
-            hslider(cx[state].value[0], move |cx, v| cx[state].value[0] = v)
+            hslider(cx[state].value, move |cx, v| cx[state].value = v)
                 .thumb_color(RED_HIGHLIGHT)
                 .padding(Auto),
         ))
