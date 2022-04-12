@@ -38,7 +38,7 @@ pub(crate) fn clear_state_dirty() {
     STATE_DIRTY.store(false, Ordering::Relaxed);
 }
 
-pub(crate) type WorkQueue = VecDeque<Box<dyn FnOnce() + Send>>;
+pub(crate) type WorkQueue = VecDeque<Box<dyn FnOnce(&mut Context) + Send>>;
 
 lazy_static! {
     /// Allows us to wake the event loop whenever we want.
@@ -57,7 +57,7 @@ fn wake_event_loop() {
     }
 }
 
-pub fn on_main(f: impl FnOnce() + Send + 'static) {
+pub fn on_main(f: impl FnOnce(&mut Context) + Send + 'static) {
     GLOBAL_WORK_QUEUE.lock().unwrap().push_back(Box::new(f));
     wake_event_loop();
 }

@@ -365,7 +365,7 @@ pub fn rui(view: impl View + 'static) {
 
                 // Process the work queue.
                 while let Some(f) = GLOBAL_WORK_QUEUE.lock().unwrap().pop_front() {
-                    f();
+                    f(&mut cx);
                 }
             }
             tao::event::Event::MainEventsCleared => {
