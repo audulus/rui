@@ -100,7 +100,8 @@ mod window;
 pub use window::*;
 
 use futures::executor::block_on;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
+use std::iter::FromIterator;
 
 use vger::color::*;
 use vger::*;
@@ -395,13 +396,8 @@ pub fn rui(view: impl View + 'static) {
                     // Clean up state.
                     let mut keep = vec![];
                     view.gc(cx.root_id, &mut cx, &mut keep);
-                    {
-                        // let mut new_map = StateMap::new();
-                        // for id in keep {
-                        //     new_map.insert(id, cx[&id].clone());
-                        // }
-                        // *map = new_map;
-                    }
+                    let keep_set = HashSet::<ViewID>::from_iter(keep);
+                    cx.state_map.retain(|k, _| keep_set.contains(k));
 
                     // Get a new accesskit tree.
                     let mut nodes = vec![];
