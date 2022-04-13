@@ -19,6 +19,10 @@ impl AnyView {
 
 impl View for AnyView
 {
+    fn tid(&self) -> TypeId {
+        self.child.tid()
+    }
+
     fn print(&self, id: ViewID, cx: &mut Context) {
         println!("AnyView {{");
         (self.child).print(id.child(&self.id()), cx);
@@ -94,12 +98,11 @@ mod tests {
         assert_ne!(a.tid(), b.tid());
     }
 
-    // XXX: fixme
-    // #[test]
-    // fn test_typeid3() {
-    //     let a = any_view(EmptyView{});
-    //     let b = any_view(rectangle());
-    //     // assert_ne!(a.tid(), b.tid());
-    // }
+    #[test]
+    fn test_typeid3() {
+        let a = any_view(EmptyView{});
+        let b = any_view(rectangle());
+        assert_ne!(a.tid(), b.tid());
+    }
 }
 
