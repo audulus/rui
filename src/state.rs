@@ -47,11 +47,6 @@ where
             phantom: Default::default(),
         }
     }
-
-    pub fn setter(&self) -> impl Fn(&mut Context, &S) + Copy + 'static {
-        let st = *self;
-        move |cx, s| *st.get_mut(cx) = s.clone()
-    }
 }
 
 impl<S> Binding<S> for State<S>
