@@ -93,5 +93,13 @@ mod tests {
         let b = rectangle();
         assert_ne!(a.tid(), b.tid());
     }
+
+    // XXX: fixme
+    // #[test]
+    // fn test_typeid3() {
+    //     let a = any_view(EmptyView{});
+    //     let b = any_view(rectangle());
+    //     // assert_ne!(a.tid(), b.tid());
+    // }
 }
 
