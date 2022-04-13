@@ -3,7 +3,7 @@ use rui::*;
 fn calc_button(title: &str, callback: impl Fn(&mut Context) + 'static) -> impl View {
     zstack((
         rectangle()
-            .corner_radius(20.0)
+            .corner_radius(10.0)
             .color(RED_HIGHLIGHT)
             .tap(callback),
         text(title)
@@ -41,7 +41,7 @@ fn main() {
                         calc_button("+", |_| ()),
                     )),
                     hstack((
-                        calc_button("0", |_| ()),
+                        calc_button("0", move |cx| cx[s].push('0')),
                         calc_button(".", move |cx| cx[s].push('.')),
                         calc_button("=", |_| ()),
                     ))
