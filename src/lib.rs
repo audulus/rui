@@ -399,7 +399,7 @@ pub fn rui(view: impl View + 'static) {
                     // Clean up state.
                     let mut keep = vec![];
                     view.gc(cx.root_id, &mut cx, &mut keep);
-                    let keep_set = HashSet::<ViewID>::from_iter(keep);
+                    let keep_set = HashSet::<ViewId>::from_iter(keep);
                     cx.state_map.retain(|k, _| keep_set.contains(k));
 
                     // Get a new accesskit tree.

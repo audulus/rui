@@ -31,7 +31,7 @@ pub fn on_main(f: impl FnOnce(&mut Context) + Send + 'static) {
 /// Weak reference to app state.
 #[derive(Clone)]
 pub struct State<S> {
-    pub(crate) id: ViewID,
+    pub(crate) id: ViewId,
     phantom: std::marker::PhantomData<S>,
 }
 
@@ -41,7 +41,7 @@ impl<S> State<S>
 where
     S: Clone + 'static,
 {
-    pub fn new(id: ViewID) -> Self {
+    pub fn new(id: ViewId) -> Self {
         Self {
             id,
             phantom: Default::default(),
@@ -73,28 +73,28 @@ where
     D: Fn() -> S + 'static,
     F: Fn(State<S>, &mut Context) -> V + 'static,
 {
-    fn print(&self, id: ViewID, cx: &mut Context) {
+    fn print(&self, id: ViewId, cx: &mut Context) {
         cx.state_map
             .entry(id)
             .or_insert_with(|| Box::new((self.default)()));
         (self.func)(State::new(id), cx).print(id.child(&0), cx);
     }
 
-    fn process(&self, event: &Event, id: ViewID, cx: &mut Context, vger: &mut VGER) {
+    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut VGER) {
         cx.state_map
             .entry(id)
             .or_insert_with(|| Box::new((self.default)()));
         (self.func)(State::new(id), cx).process(event, id.child(&0), cx, vger);
     }
 
-    fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
+    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut VGER) {
         cx.state_map
             .entry(id)
             .or_insert_with(|| Box::new((self.default)()));
         (self.func)(State::new(id), cx).draw(id.child(&0), cx, vger);
     }
 
-    fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
+    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
         cx.state_map
             .entry(id)
             .or_insert_with(|| Box::new((self.default)()));
@@ -103,25 +103,25 @@ where
 
     fn hittest(
         &self,
-        id: ViewID,
+        id: ViewId,
         pt: LocalPoint,
         cx: &mut Context,
         vger: &mut VGER,
-    ) -> Option<ViewID> {
+    ) -> Option<ViewId> {
         cx.state_map
             .entry(id)
             .or_insert_with(|| Box::new((self.default)()));
         (self.func)(State::new(id), cx).hittest(id.child(&0), pt, cx, vger)
     }
 
-    fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
+    fn commands(&self, id: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
         cx.state_map
             .entry(id)
             .or_insert_with(|| Box::new((self.default)()));
         (self.func)(State::new(id), cx).commands(id.child(&0), cx, cmds);
     }
 
-    fn gc(&self, id: ViewID, cx: &mut Context, map: &mut Vec<ViewID>) {
+    fn gc(&self, id: ViewId, cx: &mut Context, map: &mut Vec<ViewId>) {
         cx.state_map
             .entry(id)
             .or_insert_with(|| Box::new((self.default)()));
@@ -131,7 +131,7 @@ where
 
     fn access(
         &self,
-        id: ViewID,
+        id: ViewId,
         cx: &mut Context,
         nodes: &mut Vec<accesskit::Node>,
     ) -> Option<accesskit::NodeId> {

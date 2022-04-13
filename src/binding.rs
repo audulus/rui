@@ -114,7 +114,7 @@ mod tests {
     #[test]
     fn test_bind2() {
         let mut cx = Context::new(None);
-        let id = ViewID::default();
+        let id = ViewId::default();
         cx.state_map
             .entry(id)
             .or_insert_with(|| Box::new(MyState { x: 0 }));

@@ -6,7 +6,7 @@ pub struct Circle {
 }
 
 impl Circle {
-    fn geom(&self, id: ViewID, cx: &mut Context) -> (LocalPoint, f32) {
+    fn geom(&self, id: ViewId, cx: &mut Context) -> (LocalPoint, f32) {
         let rect = cx.layout.entry(id).or_default().rect;
 
         (rect.center(), rect.size.width.min(rect.size.height) / 2.0)
@@ -20,22 +20,22 @@ impl Circle {
 }
 
 impl View for Circle {
-    fn print(&self, _id: ViewID, _cx: &mut Context) {
+    fn print(&self, _id: ViewId, _cx: &mut Context) {
         println!("circle");
     }
 
-    fn process(&self, _event: &Event, _id: ViewID, _cx: &mut Context, _vger: &mut VGER) {
+    fn process(&self, _event: &Event, _id: ViewId, _cx: &mut Context, _vger: &mut VGER) {
         // do nothing
     }
 
-    fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
+    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut VGER) {
         let (center, radius) = self.geom(id, cx);
 
         let paint = self.paint.vger_paint(vger);
         vger.fill_circle(center, radius, paint);
     }
 
-    fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, _vger: &mut VGER) -> LocalSize {
+    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, _vger: &mut VGER) -> LocalSize {
         cx.layout.insert(
             id,
             LayoutBox {
@@ -48,11 +48,11 @@ impl View for Circle {
 
     fn hittest(
         &self,
-        id: ViewID,
+        id: ViewId,
         pt: LocalPoint,
         cx: &mut Context,
         _vger: &mut VGER,
-    ) -> Option<ViewID> {
+    ) -> Option<ViewId> {
         let (center, radius) = self.geom(id, cx);
 
         if pt.distance_to(center) < radius {
@@ -62,17 +62,17 @@ impl View for Circle {
         }
     }
 
-    fn commands(&self, _id: ViewID, _cx: &mut Context, _cmds: &mut Vec<CommandInfo>) {
+    fn commands(&self, _id: ViewId, _cx: &mut Context, _cmds: &mut Vec<CommandInfo>) {
         // do nothing
     }
 
-    fn gc(&self, _id: ViewID, _cx: &mut Context, _map: &mut Vec<ViewID>) {
+    fn gc(&self, _id: ViewId, _cx: &mut Context, _map: &mut Vec<ViewId>) {
         // do nothing
     }
 
     fn access(
         &self,
-        _id: ViewID,
+        _id: ViewId,
         _cx: &mut Context,
         _nodes: &mut Vec<accesskit::Node>,
     ) -> Option<accesskit::NodeId> {
@@ -96,7 +96,7 @@ pub struct Rectangle {
 }
 
 impl Rectangle {
-    fn geom(&self, id: ViewID, cx: &mut Context) -> LocalRect {
+    fn geom(&self, id: ViewId, cx: &mut Context) -> LocalRect {
         cx.layout.entry(id).or_default().rect
     }
 
@@ -118,22 +118,22 @@ impl Rectangle {
 }
 
 impl View for Rectangle {
-    fn print(&self, _id: ViewID, _cx: &mut Context) {
+    fn print(&self, _id: ViewId, _cx: &mut Context) {
         println!("rectangle");
     }
 
-    fn process(&self, _event: &Event, _id: ViewID, _cx: &mut Context, _vger: &mut VGER) {
+    fn process(&self, _event: &Event, _id: ViewId, _cx: &mut Context, _vger: &mut VGER) {
         // do nothing
     }
 
-    fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
+    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut VGER) {
         let rect = self.geom(id, cx);
 
         let paint = self.paint.vger_paint(vger);
         vger.fill_rect(rect, self.corner_radius, paint);
     }
 
-    fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, _vger: &mut VGER) -> LocalSize {
+    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, _vger: &mut VGER) -> LocalSize {
         cx.layout.insert(
             id,
             LayoutBox {
@@ -146,11 +146,11 @@ impl View for Rectangle {
 
     fn hittest(
         &self,
-        id: ViewID,
+        id: ViewId,
         pt: LocalPoint,
         cx: &mut Context,
         _vger: &mut VGER,
-    ) -> Option<ViewID> {
+    ) -> Option<ViewId> {
         let rect = self.geom(id, cx);
 
         if rect.contains(pt) {
@@ -160,17 +160,17 @@ impl View for Rectangle {
         }
     }
 
-    fn commands(&self, _id: ViewID, _cx: &mut Context, _cmds: &mut Vec<CommandInfo>) {
+    fn commands(&self, _id: ViewId, _cx: &mut Context, _cmds: &mut Vec<CommandInfo>) {
         // do nothing
     }
 
-    fn gc(&self, _id: ViewID, _cx: &mut Context, _map: &mut Vec<ViewID>) {
+    fn gc(&self, _id: ViewId, _cx: &mut Context, _map: &mut Vec<ViewId>) {
         // do nothing
     }
 
     fn access(
         &self,
-        _id: ViewID,
+        _id: ViewId,
         _cx: &mut Context,
         _nodes: &mut Vec<accesskit::Node>,
     ) -> Option<accesskit::NodeId> {

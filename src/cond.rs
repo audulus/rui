@@ -12,7 +12,7 @@ where
     V0: View,
     V1: View,
 {
-    fn print(&self, id: ViewID, cx: &mut Context) {
+    fn print(&self, id: ViewId, cx: &mut Context) {
         if self.cond {
             self.if_true.print(id.child(&0), cx)
         } else {
@@ -20,7 +20,7 @@ where
         }
     }
 
-    fn process(&self, event: &Event, id: ViewID, cx: &mut Context, vger: &mut VGER) {
+    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut VGER) {
         if self.cond {
             self.if_true.process(event, id.child(&0), cx, vger)
         } else {
@@ -28,7 +28,7 @@ where
         }
     }
 
-    fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
+    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut VGER) {
         if self.cond {
             self.if_true.draw(id.child(&0), cx, vger)
         } else {
@@ -36,7 +36,7 @@ where
         }
     }
 
-    fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
+    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
         if self.cond {
             self.if_true.layout(id.child(&0), sz, cx, vger)
         } else {
@@ -46,11 +46,11 @@ where
 
     fn hittest(
         &self,
-        id: ViewID,
+        id: ViewId,
         pt: LocalPoint,
         cx: &mut Context,
         vger: &mut VGER,
-    ) -> Option<ViewID> {
+    ) -> Option<ViewId> {
         if self.cond {
             self.if_true.hittest(id.child(&0), pt, cx, vger)
         } else {
@@ -58,7 +58,7 @@ where
         }
     }
 
-    fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
+    fn commands(&self, id: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
         if self.cond {
             self.if_true.commands(id.child(&0), cx, cmds)
         } else {
@@ -66,7 +66,7 @@ where
         }
     }
 
-    fn gc(&self, id: ViewID, cx: &mut Context, map: &mut Vec<ViewID>) {
+    fn gc(&self, id: ViewId, cx: &mut Context, map: &mut Vec<ViewId>) {
         if self.cond {
             self.if_true.gc(id.child(&0), cx, map)
         } else {
@@ -76,7 +76,7 @@ where
 
     fn access(
         &self,
-        id: ViewID,
+        id: ViewId,
         cx: &mut Context,
         nodes: &mut Vec<accesskit::Node>,
     ) -> Option<accesskit::NodeId> {

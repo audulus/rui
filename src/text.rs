@@ -11,11 +11,11 @@ impl Text {
 }
 
 impl View for Text {
-    fn print(&self, _id: ViewID, _cx: &mut Context) {
+    fn print(&self, _id: ViewId, _cx: &mut Context) {
         println!("Text({:?})", self.text);
     }
-    fn process(&self, _event: &Event, _id: ViewID, _cx: &mut Context, _vger: &mut VGER) {}
-    fn draw(&self, _id: ViewID, _cx: &mut Context, vger: &mut VGER) {
+    fn process(&self, _event: &Event, _id: ViewId, _cx: &mut Context, _vger: &mut VGER) {}
+    fn draw(&self, _id: ViewId, _cx: &mut Context, vger: &mut VGER) {
         let origin = vger.text_bounds(self.text.as_str(), self.size, None).origin;
 
         vger.save();
@@ -23,7 +23,7 @@ impl View for Text {
         vger.text(self.text.as_str(), self.size, TEXT_COLOR, None);
         vger.restore();
     }
-    fn layout(&self, id: ViewID, _sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
+    fn layout(&self, id: ViewId, _sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
         let size = vger.text_bounds(self.text.as_str(), self.size, None).size;
 
         cx.layout.insert(
@@ -37,23 +37,23 @@ impl View for Text {
     }
     fn hittest(
         &self,
-        _id: ViewID,
+        _id: ViewId,
         _pt: LocalPoint,
         _cx: &mut Context,
         _vger: &mut VGER,
-    ) -> Option<ViewID> {
+    ) -> Option<ViewId> {
         None
     }
 
-    fn commands(&self, _id: ViewID, _cx: &mut Context, _cmds: &mut Vec<CommandInfo>) {}
+    fn commands(&self, _id: ViewId, _cx: &mut Context, _cmds: &mut Vec<CommandInfo>) {}
 
-    fn gc(&self, _id: ViewID, _cx: &mut Context, _map: &mut Vec<ViewID>) {
+    fn gc(&self, _id: ViewId, _cx: &mut Context, _map: &mut Vec<ViewId>) {
         // do nothing
     }
 
     fn access(
         &self,
-        id: ViewID,
+        id: ViewId,
         _cx: &mut Context,
         nodes: &mut Vec<accesskit::Node>,
     ) -> Option<accesskit::NodeId> {

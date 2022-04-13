@@ -12,7 +12,7 @@ where
     V: View,
     F: Fn(&ID) -> V + 'static,
 {
-    fn print(&self, id: ViewID, cx: &mut Context) {
+    fn print(&self, id: ViewId, cx: &mut Context) {
         println!("List {{");
         for child in &self.ids {
             ((self.func)(child)).print(id.child(child), cx);
@@ -20,7 +20,7 @@ where
         println!("}}");
     }
 
-    fn process(&self, event: &Event, id: ViewID, cx: &mut Context, vger: &mut VGER) {
+    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut VGER) {
         for child in &self.ids {
             let child_id = id.child(child);
             let offset = cx.layout.entry(child_id).or_default().offset;
@@ -32,7 +32,7 @@ where
         }
     }
 
-    fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
+    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut VGER) {
         for child in &self.ids {
             let child_id = id.child(child);
             let offset = cx.layout.entry(child_id).or_default().offset;
@@ -47,7 +47,7 @@ where
         }
     }
 
-    fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
+    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
         let n = self.ids.len() as f32;
         let proposed_child_size = LocalSize::new(sz.width, sz.height / n);
 
@@ -69,11 +69,11 @@ where
 
     fn hittest(
         &self,
-        id: ViewID,
+        id: ViewId,
         pt: LocalPoint,
         cx: &mut Context,
         vger: &mut VGER,
-    ) -> Option<ViewID> {
+    ) -> Option<ViewId> {
         let mut hit = None;
         for child in &self.ids {
             let child_id = id.child(child);
@@ -86,14 +86,14 @@ where
         hit
     }
 
-    fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
+    fn commands(&self, id: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
         for child in &self.ids {
             let child_id = id.child(child);
             ((self.func)(child)).commands(child_id, cx, cmds)
         }
     }
 
-    fn gc(&self, id: ViewID, cx: &mut Context, map: &mut Vec<ViewID>) {
+    fn gc(&self, id: ViewId, cx: &mut Context, map: &mut Vec<ViewId>) {
         for child in &self.ids {
             ((self.func)(child)).gc(id.child(child), cx, map)
         }
@@ -101,7 +101,7 @@ where
 
     fn access(
         &self,
-        id: ViewID,
+        id: ViewId,
         cx: &mut Context,
         nodes: &mut Vec<accesskit::Node>,
     ) -> Option<accesskit::NodeId> {

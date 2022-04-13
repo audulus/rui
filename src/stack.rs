@@ -21,7 +21,7 @@ struct Stack<VT> {
 }
 
 impl<VT: ViewTuple + 'static> View for Stack<VT> {
-    fn print(&self, id: ViewID, cx: &mut Context) {
+    fn print(&self, id: ViewId, cx: &mut Context) {
         println!("Stack {{");
         let mut c = 0;
         self.children.foreach_view(&mut |child| {
@@ -31,7 +31,7 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
         println!("}}");
     }
 
-    fn process(&self, event: &Event, id: ViewID, cx: &mut Context, vger: &mut VGER) {
+    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut VGER) {
         let mut c = 0;
         self.children.foreach_view(&mut |child| {
             let child_id = id.child(&c);
@@ -45,7 +45,7 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
         })
     }
 
-    fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
+    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut VGER) {
         let mut c = 0;
         self.children.foreach_view(&mut |child| {
             let child_id = id.child(&c);
@@ -73,7 +73,7 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
         })
     }
 
-    fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
+    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
         let n = self.children.len() as f32;
 
         match self.orientation {
@@ -137,11 +137,11 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
 
     fn hittest(
         &self,
-        id: ViewID,
+        id: ViewId,
         pt: LocalPoint,
         cx: &mut Context,
         vger: &mut VGER,
-    ) -> Option<ViewID> {
+    ) -> Option<ViewId> {
         let mut c = 0;
         let mut hit = None;
         self.children.foreach_view(&mut |child| {
@@ -157,7 +157,7 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
         hit
     }
 
-    fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
+    fn commands(&self, id: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
         let mut c = 0;
         self.children.foreach_view(&mut |child| {
             child.commands(id.child(&c), cx, cmds);
@@ -165,7 +165,7 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
         });
     }
 
-    fn gc(&self, id: ViewID, cx: &mut Context, map: &mut Vec<ViewID>) {
+    fn gc(&self, id: ViewId, cx: &mut Context, map: &mut Vec<ViewId>) {
         let mut c = 0;
         self.children.foreach_view(&mut |child| {
             child.gc(id.child(&c), cx, map);
@@ -175,7 +175,7 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
 
     fn access(
         &self,
-        id: ViewID,
+        id: ViewId,
         cx: &mut Context,
         nodes: &mut Vec<accesskit::Node>,
     ) -> Option<accesskit::NodeId> {

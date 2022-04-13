@@ -11,23 +11,23 @@ where
     V: View,
     BG: View,
 {
-    fn print(&self, id: ViewID, cx: &mut Context) {
+    fn print(&self, id: ViewId, cx: &mut Context) {
         println!("Background {{");
         (self.child).print(id.child(&0), cx);
         (self.background).print(id.child(&1), cx);
         println!("}}");
     }
 
-    fn process(&self, event: &Event, id: ViewID, cx: &mut Context, vger: &mut VGER) {
+    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut VGER) {
         self.child.process(event, id.child(&0), cx, vger);
     }
 
-    fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
+    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut VGER) {
         self.background.draw(id.child(&1), cx, vger);
         self.child.draw(id.child(&0), cx, vger);
     }
 
-    fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
+    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
         let child_size = self.child.layout(id.child(&0), sz, cx, vger);
         self.background.layout(id.child(&1), child_size, cx, vger);
         child_size
@@ -35,27 +35,27 @@ where
 
     fn hittest(
         &self,
-        id: ViewID,
+        id: ViewId,
         pt: LocalPoint,
         cx: &mut Context,
         vger: &mut VGER,
-    ) -> Option<ViewID> {
+    ) -> Option<ViewId> {
         self.background.hittest(id.child(&1), pt, cx, vger)
     }
 
-    fn commands(&self, id: ViewID, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
+    fn commands(&self, id: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
         self.child.commands(id.child(&0), cx, cmds);
         self.background.commands(id.child(&1), cx, cmds);
     }
 
-    fn gc(&self, id: ViewID, cx: &mut Context, map: &mut Vec<ViewID>) {
+    fn gc(&self, id: ViewId, cx: &mut Context, map: &mut Vec<ViewId>) {
         self.child.gc(id.child(&0), cx, map);
         self.background.gc(id.child(&1), cx, map);
     }
 
     fn access(
         &self,
-        id: ViewID,
+        id: ViewId,
         cx: &mut Context,
         nodes: &mut Vec<accesskit::Node>,
     ) -> Option<accesskit::NodeId> {

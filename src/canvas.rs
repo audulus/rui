@@ -9,15 +9,15 @@ impl<F> View for Canvas<F>
 where
     F: Fn(&mut Context, LocalRect, &mut VGER) + 'static,
 {
-    fn print(&self, _id: ViewID, _cx: &mut Context) {
+    fn print(&self, _id: ViewId, _cx: &mut Context) {
         println!("canvas");
     }
 
-    fn process(&self, _event: &Event, _id: ViewID, _cx: &mut Context, _vger: &mut VGER) {
+    fn process(&self, _event: &Event, _id: ViewId, _cx: &mut Context, _vger: &mut VGER) {
         // do nothing
     }
 
-    fn draw(&self, id: ViewID, cx: &mut Context, vger: &mut VGER) {
+    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut VGER) {
         let rect = cx.layout.entry(id).or_default().rect;
 
         vger.save();
@@ -25,7 +25,7 @@ where
         vger.restore();
     }
 
-    fn layout(&self, id: ViewID, sz: LocalSize, cx: &mut Context, _vger: &mut VGER) -> LocalSize {
+    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, _vger: &mut VGER) -> LocalSize {
         cx.layout.insert(
             id,
             LayoutBox {
@@ -38,11 +38,11 @@ where
 
     fn hittest(
         &self,
-        id: ViewID,
+        id: ViewId,
         pt: LocalPoint,
         cx: &mut Context,
         _vger: &mut VGER,
-    ) -> Option<ViewID> {
+    ) -> Option<ViewId> {
         let rect = cx.layout.entry(id).or_default().rect;
 
         if rect.contains(pt) {
@@ -52,13 +52,13 @@ where
         }
     }
 
-    fn commands(&self, _id: ViewID, _cx: &mut Context, _cmds: &mut Vec<CommandInfo>) {}
+    fn commands(&self, _id: ViewId, _cx: &mut Context, _cmds: &mut Vec<CommandInfo>) {}
 
-    fn gc(&self, _id: ViewID, _cx: &mut Context, _map: &mut Vec<ViewID>) {}
+    fn gc(&self, _id: ViewId, _cx: &mut Context, _map: &mut Vec<ViewId>) {}
 
     fn access(
         &self,
-        _id: ViewID,
+        _id: ViewId,
         _cx: &mut Context,
         _nodes: &mut Vec<accesskit::Node>,
     ) -> Option<accesskit::NodeId> {
