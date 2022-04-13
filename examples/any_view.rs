@@ -1,7 +1,7 @@
 use rui::*;
 
 fn main() {
-    rui(list(vec![7, 42, 666], |i| {
+    rui(list(vec![7, 42], |i| {
         if *i == 7 {
             any_view(circle())
         } else {
