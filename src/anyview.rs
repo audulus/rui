@@ -8,7 +8,7 @@ pub struct AnyView {
 
 impl AnyView {
 
-    pub fn new(child: impl View + 'static) -> Self {
+    pub fn new(child: impl View) -> Self {
         Self { child: Box::new(child) }
     }
 

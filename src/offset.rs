@@ -63,7 +63,7 @@ where
 
 impl<V> Offset<V>
 where
-    V: View + 'static,
+    V: View,
 {
     pub fn new(child: V, offset: LocalOffset) -> Self {
         Self { child, offset }

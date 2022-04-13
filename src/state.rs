@@ -153,13 +153,13 @@ impl<S, F> private::Sealed for StateView<S, F> {}
 /// `f` callback which is passed a `State<S>`
 pub fn state<
     S: Clone + 'static,
-    V: View + 'static,
+    V: View,
     D: Fn() -> S + 'static,
     F: Fn(State<S>, &mut Context) -> V + 'static,
 >(
     initial: D,
     f: F,
-) -> impl View + 'static {
+) -> impl View {
     StateView {
         default: initial,
         func: f,

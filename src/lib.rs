@@ -291,7 +291,7 @@ fn build_menubar(
 }
 
 /// Call this function to run your UI.
-pub fn rui(view: impl View + 'static) {
+pub fn rui(view: impl View) {
     let event_loop = EventLoop::new();
 
     let builder = WindowBuilder::new().with_title("rui");

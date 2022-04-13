@@ -90,7 +90,7 @@ impl From<f32> for PaddingParam {
 
 impl<V> Padding<V>
 where
-    V: View + 'static,
+    V: View,
 {
     pub fn new(child: V, param: PaddingParam) -> Self {
         Self {

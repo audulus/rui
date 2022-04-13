@@ -61,7 +61,7 @@ impl<V> private::Sealed for Size<V> {}
 
 impl<V> Size<V>
 where
-    V: View + 'static,
+    V: View,
 {
     pub fn new(child: V, size: LocalSize) -> Self {
         Self { child, size }

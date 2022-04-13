@@ -63,7 +63,7 @@ impl<V, F> private::Sealed for Geom<V, F> {}
 
 impl<V, F> Geom<V, F>
 where
-    V: View + 'static,
+    V: View,
     F: Fn(&mut Context, LocalSize) + 'static,
 {
     pub fn new(child: V, f: F) -> Self {

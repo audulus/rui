@@ -9,7 +9,7 @@ pub trait Modifiers: View + Sized {
     fn tap<F: Fn(&mut Context) + 'static>(self, f: F) -> Tap<Self, F>;
 
     /// Puts a view behind another. The background view inherits the size of the view.
-    fn background<BG: View + 'static>(self, background: BG) -> Background<Self, BG>;
+    fn background<BG: View>(self, background: BG) -> Background<Self, BG>;
 
     /// Calls a function with the view's geometry after layout runs.
     /// Currently only the view's size is returned.
@@ -48,14 +48,14 @@ pub trait Modifiers: View + Sized {
     fn fullscreen(self) -> FullscreenView<Self>;
 }
 
-impl<V: View + 'static> Modifiers for V {
+impl<V: View> Modifiers for V {
     fn padding(self, param: impl Into<PaddingParam>) -> Padding<Self> {
         Padding::new(self, param.into())
     }
     fn tap<F: Fn(&mut Context) + 'static>(self, f: F) -> Tap<Self, F> {
         Tap::new(self, f)
     }
-    fn background<BG: View + 'static>(self, background: BG) -> Background<Self, BG> {
+    fn background<BG: View>(self, background: BG) -> Background<Self, BG> {
         Background::new(self, background)
     }
     fn geom<F: Fn(&mut Context, LocalSize) + 'static>(self, f: F) -> Geom<Self, F> {
