@@ -86,5 +86,12 @@ mod tests {
         println!("{:?}", tid);
         assert_eq!(tid, TypeId::of::<EmptyView>());
     }
+
+    #[test]
+    fn test_typeid2() {
+        let a = EmptyView{};
+        let b = rectangle();
+        assert_ne!(a.tid(), b.tid());
+    }
 }
 
