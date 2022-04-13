@@ -65,6 +65,13 @@ impl View for AnyView
     }
 }
 
+/// Switches between views according to a boolean.
+pub fn any_view(view: impl View) -> impl View {
+    AnyView {
+        child: Box::new(view)
+    }
+}
+
 impl private::Sealed for AnyView {}
 
 #[cfg(test)]
