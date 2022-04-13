@@ -1,5 +1,16 @@
 use rui::*;
 
+fn digit_button(title: &str, binding: impl Binding<String>) -> impl View {
+    let t = String::from(title).clone();
+    zstack((
+        rectangle()
+            .corner_radius(10.0)
+            .color(RED_HIGHLIGHT)
+            .tap(move |cx| binding.with_mut(cx, |value| value.push_str(&t))),
+        text(title)
+    )).padding(Auto)
+}
+
 fn calc_button(title: &str, callback: impl Fn(&mut Context) + 'static) -> impl View {
     zstack((
         rectangle()
