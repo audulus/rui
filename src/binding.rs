@@ -10,6 +10,10 @@ pub trait Binding<S>: Clone + Copy + 'static {
     fn get<'a>(&self, cx: &'a mut Context) -> &'a S;
     fn get_mut<'a>(&self, cx: &'a mut Context) -> &'a mut S;
 
+    fn with<T>(&self, cx: &mut Context, f: impl FnOnce(&S) -> T) -> T {
+        f(self.get(cx))
+    }
+
     fn with_mut<T>(&self, cx: &mut Context, f: impl FnOnce(&mut S) -> T) -> T {
         f(self.get_mut(cx))
     }
