@@ -7,7 +7,7 @@ pub struct Canvas<F> {
 
 impl<F> View for Canvas<F>
 where
-    F: Fn(&mut Context, LocalRect, &mut VGER),
+    F: Fn(&mut Context, LocalRect, &mut VGER) + 'static,
 {
     fn print(&self, _id: ViewID, _cx: &mut Context) {
         println!("canvas");

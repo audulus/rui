@@ -251,7 +251,7 @@ where
 impl<V, C> View for CommandGroup<V, C>
 where
     V: View,
-    C: CommandTuple,
+    C: CommandTuple + 'static,
 {
     fn print(&self, id: ViewID, cx: &mut Context) {
         println!("Command {{");

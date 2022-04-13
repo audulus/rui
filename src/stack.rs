@@ -20,7 +20,7 @@ struct Stack<VT> {
     children: VT,
 }
 
-impl<VT: ViewTuple> View for Stack<VT> {
+impl<VT: ViewTuple + 'static> View for Stack<VT> {
     fn print(&self, id: ViewID, cx: &mut Context) {
         println!("Stack {{");
         let mut c = 0;
@@ -309,16 +309,16 @@ impl<A: View, B: View, C: View, D: View, E: View, F: View, G: View, H: View> Vie
 }
 
 /// Horizontal stack of up to 8 Views in a tuple. Each item can be a different view type.
-pub fn hstack<VT: ViewTuple>(children: VT) -> impl View {
+pub fn hstack<VT: ViewTuple + 'static>(children: VT) -> impl View {
     Stack::new(StackOrientation::Horizontal, children)
 }
 
 /// Vertical stack of up to 8 Views in a tuple. Each item can be a different view type.
-pub fn vstack<VT: ViewTuple>(children: VT) -> impl View {
+pub fn vstack<VT: ViewTuple + 'static>(children: VT) -> impl View {
     Stack::new(StackOrientation::Vertical, children)
 }
 
 /// Stack of up to 8 overlaid Views in a tuple. Each item can be a different view type.
-pub fn zstack<VT: ViewTuple>(children: VT) -> impl View {
+pub fn zstack<VT: ViewTuple + 'static>(children: VT) -> impl View {
     Stack::new(StackOrientation::Z, children)
 }

@@ -8,7 +8,7 @@ pub struct Focus<F> {
 impl<V, F> View for Focus<F>
 where
     V: View,
-    F: Fn(bool) -> V,
+    F: Fn(bool) -> V + 'static,
 {
     fn print(&self, id: ViewID, cx: &mut Context) {
         println!("focus(");

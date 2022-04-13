@@ -8,9 +8,9 @@ pub struct List<ID, F> {
 
 impl<ID, V, F> View for List<ID, F>
 where
-    ID: Hash,
+    ID: Hash + 'static,
     V: View,
-    F: Fn(&ID) -> V,
+    F: Fn(&ID) -> V + 'static,
 {
     fn print(&self, id: ViewID, cx: &mut Context) {
         println!("List {{");

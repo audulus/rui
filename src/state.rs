@@ -70,8 +70,8 @@ impl<S, V, D, F> View for StateView<D, F>
 where
     V: View,
     S: Clone + 'static,
-    D: Fn() -> S,
-    F: Fn(State<S>, &mut Context) -> V,
+    D: Fn() -> S + 'static,
+    F: Fn(State<S>, &mut Context) -> V + 'static,
 {
     fn print(&self, id: ViewID, cx: &mut Context) {
         cx.state_map

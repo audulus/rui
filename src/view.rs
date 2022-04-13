@@ -1,7 +1,7 @@
 use crate::*;
 
 /// Trait for the unit of UI composition.
-pub trait View: private::Sealed {
+pub trait View: private::Sealed + 'static {
     /// Prints a description of the view for debugging.
     fn print(&self, id: ViewID, cx: &mut Context);
 
