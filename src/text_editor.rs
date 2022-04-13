@@ -173,9 +173,9 @@ where
                 })
                 .key(move |cx, k| {
                     if has_focus {
-                        let t = text.get(cx).clone();
-                        let new_text = cx[state].key(&k, t);
-                        *text.get_mut(cx) = new_text;
+                        let t = text.with(cx, |t| t.clone());
+                        let new_t = cx[state].key(&k, t);
+                        text.with_mut(cx, |t| *t = new_t);
                     }
                 })
             })
