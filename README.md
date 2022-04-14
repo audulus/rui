@@ -28,7 +28,7 @@ fn main() {
         || 1,
         |count, cx| {
             vstack((
-                format!("{}", cx[count]).padding(Auto),
+                cx[count].padding(Auto),
                 button("increment", move |cx| {
                     cx[count] += 1;
                 })
@@ -101,7 +101,7 @@ make_lens!(ValueLens, MyState, f32, value);
 fn main() {
     rui(state(MyState::default, |state, cx| {
         vstack((
-            format!("value: {:?}", cx[state].value)
+            cx[state].value
                 .font_size(10)
                 .padding(Auto),
             hslider(bind(state, ValueLens {}))
