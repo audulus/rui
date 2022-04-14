@@ -47,6 +47,11 @@ where
             phantom: Default::default(),
         }
     }
+
+    /// Makes it convenient to get a function to set the value.
+    pub fn setter(self) -> impl Fn(S, &mut Context) {
+        move |s, cx| cx[self] = s
+    }
 }
 
 impl<S> Binding<S> for State<S>
