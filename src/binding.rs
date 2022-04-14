@@ -19,6 +19,10 @@ pub trait Binding<S>: Clone + Copy + 'static {
     }
 }
 
+pub fn setter<S>(binding: impl Binding<S>) -> impl Fn(S, &mut Context) {
+    move |s, cx| binding.with_mut(cx, |v| *v = s)
+}
+
 #[derive(Clone)]
 pub struct Map<B, L, S, T> {
     binding: B,
