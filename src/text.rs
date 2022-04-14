@@ -136,3 +136,58 @@ impl View for String {
 }
 
 impl private::Sealed for String {}
+
+impl View for &'static str {
+    fn print(&self, _id: ViewId, _cx: &mut Context) {
+        println!("Text({:?})", self);
+    }
+    fn process(&self, _event: &Event, _id: ViewId, _cx: &mut Context, _vger: &mut VGER) {}
+    fn draw(&self, _id: ViewId, _cx: &mut Context, vger: &mut VGER) {
+        let origin = vger.text_bounds(&self, Text::DEFAULT_SIZE, None).origin;
+
+        vger.save();
+        vger.translate([-origin.x, -origin.y]);
+        vger.text(&self, Text::DEFAULT_SIZE, TEXT_COLOR, None);
+        vger.restore();
+    }
+    fn layout(&self, id: ViewId, _sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
+        let size = vger.text_bounds(&self, Text::DEFAULT_SIZE, None).size;
+
+        cx.layout.insert(
+            id,
+            LayoutBox {
+                rect: LocalRect::new(LocalPoint::zero(), size),
+                offset: LocalOffset::zero(),
+            },
+        );
+        size
+    }
+    fn hittest(
+        &self,
+        _id: ViewId,
+        _pt: LocalPoint,
+        _cx: &mut Context,
+        _vger: &mut VGER,
+    ) -> Option<ViewId> {
+        None
+    }
+
+    fn commands(&self, _id: ViewId, _cx: &mut Context, _cmds: &mut Vec<CommandInfo>) {}
+
+    fn gc(&self, _id: ViewId, _cx: &mut Context, _map: &mut Vec<ViewId>) {
+        // do nothing
+    }
+
+    fn access(
+        &self,
+        id: ViewId,
+        _cx: &mut Context,
+        nodes: &mut Vec<accesskit::Node>,
+    ) -> Option<accesskit::NodeId> {
+        let aid = id.access_id();
+        nodes.push(accesskit::Node::new(aid, accesskit::Role::LabelText));
+        Some(aid)
+    }
+}
+
+impl private::Sealed for &'static str {}

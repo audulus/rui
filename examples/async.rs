@@ -9,7 +9,7 @@ fn main() {
         || "task not started".to_string(),
         |s, cx| {
             hstack((
-                button(text("press to begin"), move |_| {
+                button("press to begin", move |_| {
                     spawn(move || {
                         on_main(move |cx| cx[s] = "task started".into());
                         sleep(Duration::from_secs(2));
