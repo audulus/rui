@@ -6,6 +6,7 @@ fn main() {
             any_view(circle())
         } else {
             any_view(rectangle())
-        }.padding(Auto)
+        }
+        .padding(Auto)
     }));
 }

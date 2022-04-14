@@ -3,7 +3,6 @@ use std::any::TypeId;
 
 /// Trait for the unit of UI composition.
 pub trait View: private::Sealed + 'static {
-
     /// Returns the type ID of the underlying view.
     fn tid(&self) -> TypeId {
         TypeId::of::<Self>()

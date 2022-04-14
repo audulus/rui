@@ -9,7 +9,7 @@ fn lerp(x: f32, a: f32, b: f32) -> f32 {
 
 /// Knob for controlling a 0 to 1 floating point parameter.
 pub fn knob(value: impl Binding<f32>) -> impl View {
-    state(||(), move |_, cx| knob_v(*value.get(cx), setter(value)))
+    state(|| (), move |_, cx| knob_v(*value.get(cx), setter(value)))
 }
 
 /// Knob for controlling a 0 to 1 floating point parameter.

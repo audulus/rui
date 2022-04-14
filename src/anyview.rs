@@ -7,9 +7,10 @@ pub struct AnyView {
 }
 
 impl AnyView {
-
     pub fn new(child: impl View) -> Self {
-        Self { child: Box::new(child) }
+        Self {
+            child: Box::new(child),
+        }
     }
 
     fn id(&self) -> TypeId {
@@ -17,8 +18,7 @@ impl AnyView {
     }
 }
 
-impl View for AnyView
-{
+impl View for AnyView {
     fn tid(&self) -> TypeId {
         self.child.tid()
     }
@@ -72,7 +72,7 @@ impl View for AnyView
 /// Switches between views according to a boolean.
 pub fn any_view(view: impl View) -> AnyView {
     AnyView {
-        child: Box::new(view)
+        child: Box::new(view),
     }
 }
 
@@ -82,10 +82,10 @@ impl private::Sealed for AnyView {}
 mod tests {
 
     use super::*;
-    
+
     #[test]
     fn test_typeid() {
-        let b: Box<dyn View> = Box::new(EmptyView{});
+        let b: Box<dyn View> = Box::new(EmptyView {});
         let tid = b.tid();
         println!("{:?}", tid);
         assert_eq!(tid, TypeId::of::<EmptyView>());
@@ -93,16 +93,15 @@ mod tests {
 
     #[test]
     fn test_typeid2() {
-        let a = EmptyView{};
+        let a = EmptyView {};
         let b = rectangle();
         assert_ne!(a.tid(), b.tid());
     }
 
     #[test]
     fn test_typeid3() {
-        let a = any_view(EmptyView{});
+        let a = any_view(EmptyView {});
         let b = any_view(rectangle());
         assert_ne!(a.tid(), b.tid());
     }
 }
-
