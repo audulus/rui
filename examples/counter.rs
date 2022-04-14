@@ -5,7 +5,7 @@ fn main() {
         || 1,
         |count, cx| {
             vstack((
-                text(&format!("{}", cx[count])).padding(Auto),
+                format!("{}", cx[count]).padding(Auto),
                 button(text("increment"), move |cx| {
                     cx[count] += 1;
                 })
