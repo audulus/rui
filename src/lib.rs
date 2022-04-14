@@ -36,8 +36,11 @@ pub use shapes::*;
 mod paint;
 pub use paint::*;
 
-mod gestures;
-pub use gestures::*;
+mod tap;
+pub use tap::*;
+
+mod drag;
+pub use drag::*;
 
 mod background;
 pub use background::*;
