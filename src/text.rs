@@ -1,5 +1,9 @@
 use crate::*;
 
+pub trait TextModifiers: View + Sized {
+    fn font_size(self, size: u32) -> Text;
+}
+
 /// Struct for `text`.
 pub struct Text {
     text: String,
@@ -63,8 +67,8 @@ impl View for Text {
     }
 }
 
-impl Text {
-    pub fn font_size(self, size: u32) -> Self {
+impl TextModifiers for Text {
+    fn font_size(self, size: u32) -> Self {
         Self {
             text: self.text,
             size,
@@ -135,6 +139,15 @@ impl View for String {
     }
 }
 
+impl TextModifiers for String {
+    fn font_size(self, size: u32) -> Text {
+        Text {
+            text: self,
+            size,
+        }
+    }
+}
+
 impl private::Sealed for String {}
 
 impl View for &'static str {
@@ -187,6 +200,15 @@ impl View for &'static str {
         let aid = id.access_id();
         nodes.push(accesskit::Node::new(aid, accesskit::Role::LabelText));
         Some(aid)
+    }
+}
+
+impl TextModifiers for &'static str {
+    fn font_size(self, size: u32) -> Text {
+        Text {
+            text: self.into(),
+            size,
+        }
     }
 }
 

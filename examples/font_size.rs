@@ -6,8 +6,8 @@ fn main() {
         |size, cx| {
             let s = (cx[size] * 100.0) as u32;
             vstack((
-                text("58").font_size(s),
-                text(&format!("font size: {}", s)),
+                "58".font_size(s),
+                format!("font size: {}", s),
                 hslider(size),
             ))
         },
