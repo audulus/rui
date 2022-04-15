@@ -104,6 +104,14 @@ where
         cx.state_map
             .entry(id)
             .or_insert_with(|| Box::new((self.default)()));
+
+        cx.layout.insert(
+            id,
+            LayoutBox {
+                rect: LocalRect::new(LocalPoint::zero(), sz),
+                offset: LocalOffset::zero(),
+            },
+        );
         (self.func)(State::new(id), cx).layout(id.child(&0), sz, cx, vger)
     }
 
