@@ -12,7 +12,7 @@ Underneath rui is vger, a GPU-based vector graphics renderer. Rui will only
 re-render a window when your application state changes, and rendering is very
 fast. Rui doesn't attempt to use native widgets or emulate them.
 
-Rui is experimental and not yet (or ever) inteded for shipping products.
+Rui is experimental and not yet (or ever) intended for shipping products.
 
 ## Key Concepts
 
