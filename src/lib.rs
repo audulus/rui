@@ -105,6 +105,9 @@ pub use window::*;
 mod anyview;
 pub use anyview::*;
 
+mod region;
+pub use region::*;
+
 use futures::executor::block_on;
 use std::collections::{HashMap, HashSet};
 use std::iter::FromIterator;
