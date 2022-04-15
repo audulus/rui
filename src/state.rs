@@ -29,13 +29,18 @@ pub fn on_main(f: impl FnOnce(&mut Context) + Send + 'static) {
 }
 
 /// Weak reference to app state.
-#[derive(Clone)]
 pub struct State<S> {
     pub(crate) id: ViewId,
     phantom: std::marker::PhantomData<S>,
 }
 
-impl<S> Copy for State<S> where S: Clone {}
+impl<S> Copy for State<S> {}
+
+impl<S> Clone for State<S> {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
 
 impl<S> State<S>
 where
