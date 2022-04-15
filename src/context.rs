@@ -52,7 +52,7 @@ pub struct Context {
     /// The current title of the window
     pub(crate) window_title: String,
 
-    /// Attempt to not use interior mutability.
+    /// User state created by `state`.
     pub(crate) state_map: StateMap,
 
     /// Has the state changed?
