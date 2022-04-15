@@ -23,7 +23,6 @@ pub fn setter<S>(binding: impl Binding<S>) -> impl Fn(S, &mut Context) {
     move |s, cx| binding.with_mut(cx, |v| *v = s)
 }
 
-#[derive(Clone)]
 pub struct Map<B, L, S, T> {
     binding: B,
     lens: L,
@@ -31,12 +30,24 @@ pub struct Map<B, L, S, T> {
     phantom_t: std::marker::PhantomData<T>,
 }
 
+impl<B, L, S, T> Clone for Map<B, L, S, T>
+where
+    B: Copy,
+    L: Copy,
+    S: 'static,
+    T: 'static,
+{
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+
 impl<B, L, S, T> Copy for Map<B, L, S, T>
 where
     B: Copy,
     L: Copy,
-    S: Clone,
-    T: Clone,
+    S: 'static,
+    T: 'static,
 {
 }
 
@@ -44,8 +55,8 @@ impl<S, B, L, T> Map<B, L, S, T>
 where
     B: Binding<T>,
     L: Lens<T, S>,
-    S: Clone + 'static,
-    T: Clone + 'static,
+    S: 'static,
+    T: 'static,
 {
     pub fn new(binding: B, lens: L) -> Self {
         Self {
@@ -59,8 +70,8 @@ where
 
 pub fn bind<S, T>(binding: impl Binding<S>, lens: impl Lens<S, T>) -> impl Binding<T>
 where
-    S: Clone + 'static,
-    T: Clone + 'static,
+    S: 'static,
+    T: 'static,
 {
     Map::new(binding, lens)
 }
@@ -69,8 +80,8 @@ impl<S, B, L, T> Binding<S> for Map<B, L, S, T>
 where
     B: Binding<T>,
     L: Lens<T, S>,
-    S: Clone + 'static,
-    T: Clone + 'static,
+    S: 'static,
+    T: 'static,
 {
     fn get<'a>(&self, cx: &'a mut Context) -> &'a S {
         self.lens.focus(self.binding.get(cx))
