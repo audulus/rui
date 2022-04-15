@@ -12,7 +12,6 @@ pub trait Binding<S>: Clone + 'static {
 To create a binding for a member of a struct, use `make_lens!` and `bind` Suppose our app state is defined as follows:
 
 ```rust
-#[derive(Clone)]
 struct MyState {
     value: f32,
 }
