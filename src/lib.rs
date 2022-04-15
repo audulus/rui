@@ -330,8 +330,6 @@ pub fn rui(view: impl View) {
         .unwrap()
         .set_menu(Some(build_menubar(&commands, &mut command_map)));
 
-    let mut modifiers = ModifiersState::default();
-
     let mut access_nodes = vec![];
 
     event_loop.run(move |event, _, control_flow| {
@@ -526,7 +524,7 @@ pub fn rui(view: impl View) {
             } => {
                 if event.state == ElementState::Pressed {
                     let event = Event {
-                        kind: EventKind::Key(event.logical_key, modifiers),
+                        kind: EventKind::Key(event.logical_key),
                         position: mouse_position,
                     };
                     view.process(&event, cx.root_id, &mut cx, &mut vger)
@@ -536,8 +534,8 @@ pub fn rui(view: impl View) {
                 event: WindowEvent::ModifiersChanged(mods),
                 ..
             } => {
-                modifiers = mods;
-                // println!("modifiers changed: {:?}", modifiers);
+                // println!("modifiers changed: {:?}", mods);
+                cx.key_mods = mods;
             }
             tao::event::Event::MenuEvent { menu_id, .. } => {
                 //println!("menu event");

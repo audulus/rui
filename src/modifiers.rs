@@ -6,7 +6,7 @@ pub trait Modifiers: View + Sized {
     fn padding(self, param: impl Into<PaddingParam>) -> Padding<Self>;
 
     /// Calls a function in response to a tap.
-    fn tap<F: Fn(&mut Context) + 'static>(self, f: F) -> Tap<Self, F>;
+    fn tap<F: Fn(&mut Context, ModifiersState) + 'static>(self, f: F) -> Tap<Self, F>;
 
     /// Puts a view behind another. The background view inherits the size of the view.
     fn background<BG: View>(self, background: BG) -> Background<Self, BG>;
@@ -16,7 +16,10 @@ pub trait Modifiers: View + Sized {
     fn geom<F: Fn(&mut Context, LocalSize) + 'static>(self, f: F) -> Geom<Self, F>;
 
     /// Calls a function in response to a drag.
-    fn drag<F: Fn(&mut Context, LocalOffset, GestureState) + 'static>(self, f: F) -> Drag<Self, F>;
+    fn drag<F: Fn(&mut Context, LocalOffset, GestureState, ModifiersState) + 'static>(
+        self,
+        f: F,
+    ) -> Drag<Self, F>;
 
     /// Applies an offset to the view in local space.
     fn offset<Off: Into<LocalOffset>>(self, offset: Off) -> Offset<Self>;
@@ -36,7 +39,7 @@ pub trait Modifiers: View + Sized {
     fn command_group<T: CommandTuple>(self, cmds: T) -> CommandGroup<Self, T>;
 
     /// Responds to keyboard events
-    fn key<F: Fn(&mut Context, KeyPress) + 'static>(self, f: F) -> Key<Self, F>;
+    fn key<F: Fn(&mut Context, KeyPress, ModifiersState) + 'static>(self, f: F) -> Key<Self, F>;
 
     /// Specify an accessiblity role.
     fn role(self, role: Role) -> RoleView<Self>;
@@ -52,7 +55,7 @@ impl<V: View> Modifiers for V {
     fn padding(self, param: impl Into<PaddingParam>) -> Padding<Self> {
         Padding::new(self, param.into())
     }
-    fn tap<F: Fn(&mut Context) + 'static>(self, f: F) -> Tap<Self, F> {
+    fn tap<F: Fn(&mut Context, ModifiersState) + 'static>(self, f: F) -> Tap<Self, F> {
         Tap::new(self, f)
     }
     fn background<BG: View>(self, background: BG) -> Background<Self, BG> {
@@ -61,7 +64,10 @@ impl<V: View> Modifiers for V {
     fn geom<F: Fn(&mut Context, LocalSize) + 'static>(self, f: F) -> Geom<Self, F> {
         Geom::new(self, f)
     }
-    fn drag<F: Fn(&mut Context, LocalOffset, GestureState) + 'static>(self, f: F) -> Drag<Self, F> {
+    fn drag<F: Fn(&mut Context, LocalOffset, GestureState, ModifiersState) + 'static>(
+        self,
+        f: F,
+    ) -> Drag<Self, F> {
         Drag::new(self, f)
     }
     fn offset<Off: Into<LocalOffset>>(self, offset: Off) -> Offset<Self> {
@@ -81,7 +87,7 @@ impl<V: View> Modifiers for V {
     fn command_group<T: CommandTuple>(self, cmds: T) -> CommandGroup<Self, T> {
         CommandGroup::new(self, cmds)
     }
-    fn key<F: Fn(&mut Context, KeyPress) + 'static>(self, f: F) -> Key<Self, F> {
+    fn key<F: Fn(&mut Context, KeyPress, ModifiersState) + 'static>(self, f: F) -> Key<Self, F> {
         Key::new(self, f)
     }
     fn role(self, role: Role) -> RoleView<Self> {

@@ -170,7 +170,7 @@ where
                     cx[state].glyph_rects = rects;
                     cx[state].lines = lines;
                 })
-                .key(move |cx, k| {
+                .key(move |cx, k, _| {
                     if has_focus {
                         let t = text.with(cx, |t| t.clone());
                         let new_t = cx[state].key(&k, t);

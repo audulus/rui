@@ -40,6 +40,9 @@ pub struct Context {
     /// Previous touch/mouse positions.
     pub(crate) previous_position: [LocalPoint; 16],
 
+    /// Keyboard modifiers state.
+    pub(crate) key_mods: ModifiersState,
+
     /// The root view ID. This should be randomized for security reasons.
     pub(crate) root_id: ViewId,
 
@@ -69,6 +72,7 @@ impl Context {
             touches: [ViewId::default(); 16],
             starts: [LocalPoint::zero(); 16],
             previous_position: [LocalPoint::zero(); 16],
+            key_mods: ModifiersState::default(),
             root_id: ViewId { id: 1 },
             focused_id: None,
             window,

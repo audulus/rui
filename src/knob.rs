@@ -16,9 +16,11 @@ pub fn knob(value: impl Binding<f32>) -> impl View {
 /// Version where you can specify value and set_value.
 pub fn knob_v(value: f32, set_value: impl Fn(f32, &mut Context) + 'static) -> impl View {
     zstack((
-        circle().color(CLEAR_COLOR).drag(move |cx, off, _state| {
-            set_value((value + (off.x + off.y) / 400.0).clamp(0.0, 1.0), cx);
-        }),
+        circle()
+            .color(CLEAR_COLOR)
+            .drag(move |cx, off, _state, _key_mods| {
+                set_value((value + (off.x + off.y) / 400.0).clamp(0.0, 1.0), cx);
+            }),
         canvas(move |_, sz, vger| {
             let c = sz.center();
             let r = sz.width().min(sz.height()) / 2.0;

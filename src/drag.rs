@@ -15,7 +15,7 @@ pub struct Drag<V, F> {
 impl<V, F> Drag<V, F>
 where
     V: View,
-    F: Fn(&mut Context, LocalOffset, GestureState) + 'static,
+    F: Fn(&mut Context, LocalOffset, GestureState, ModifiersState) + 'static,
 {
     pub fn new(v: V, f: F) -> Self {
         Self { child: v, func: f }
@@ -25,7 +25,7 @@ where
 impl<V, F> View for Drag<V, F>
 where
     V: View,
-    F: Fn(&mut Context, LocalOffset, GestureState) + 'static,
+    F: Fn(&mut Context, LocalOffset, GestureState, ModifiersState) + 'static,
 {
     fn print(&self, id: ViewId, cx: &mut Context) {
         println!("Drag {{");
@@ -45,7 +45,7 @@ where
             EventKind::TouchMove { id } => {
                 if cx.touches[*id] == vid {
                     let delta = event.position - cx.previous_position[*id];
-                    (self.func)(cx, delta, GestureState::Changed);
+                    (self.func)(cx, delta, GestureState::Changed, cx.key_mods.clone());
                     cx.previous_position[*id] = event.position;
                 }
             }
@@ -56,6 +56,7 @@ where
                         cx,
                         event.position - cx.previous_position[*id],
                         GestureState::Ended,
+                        cx.key_mods.clone(),
                     );
                 }
             }

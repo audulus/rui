@@ -7,7 +7,7 @@ pub(crate) enum EventKind {
     TouchMove { id: usize },
     TouchEnd { id: usize },
     Command(String),
-    Key(KeyPress, ModifiersState),
+    Key(KeyPress),
 }
 
 /// Used internally for event processing.
