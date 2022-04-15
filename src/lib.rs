@@ -81,6 +81,9 @@ pub use colors::*;
 mod key;
 pub use key::*;
 
+mod key_mods;
+pub use key_mods::*;
+
 mod text_editor;
 pub use text_editor::*;
 

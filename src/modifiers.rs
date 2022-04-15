@@ -38,6 +38,9 @@ pub trait Modifiers: View + Sized {
     /// Responds to keyboard events
     fn key<F: Fn(&mut Context, KeyPress) + 'static>(self, f: F) -> Key<Self, F>;
 
+    /// Responds to keyboard modifiers state changes
+    fn key_mods<F: Fn(&mut Context, ModifiersState) + 'static>(self, f: F) -> KeyMods<Self, F>;
+
     /// Specify an accessiblity role.
     fn role(self, role: Role) -> RoleView<Self>;
 
@@ -83,6 +86,9 @@ impl<V: View> Modifiers for V {
     }
     fn key<F: Fn(&mut Context, KeyPress) + 'static>(self, f: F) -> Key<Self, F> {
         Key::new(self, f)
+    }
+    fn key_mods<F: Fn(&mut Context, ModifiersState) + 'static>(self, f: F) -> KeyMods<Self, F> {
+        KeyMods::new(self, f)
     }
     fn role(self, role: Role) -> RoleView<Self> {
         RoleView::new(self, role)
