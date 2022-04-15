@@ -1,6 +1,6 @@
 # Internals
 
-Unlike the classic OOP UI, the `Views` you pass to rui are immutable. Mutable state is stored in the `Context`, which the user never interacts with directly. The state is all keyed by `ViewIds`.
+Unlike the classic OOP UI, the `Views` you pass to rui are immutable. Mutable state is stored in the `Context`. The state is all keyed by `ViewId`s.
 
 A `ViewId` is the unique identifier for a view (a u64 internally), formed by hashing a traversal down the view tree.
 
