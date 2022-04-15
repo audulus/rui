@@ -91,7 +91,7 @@ slider with a binding (`cargo run --example slider`):
 ```rust
 use rui::*;
 
-#[derive(Clone, Default)]
+#[derive(Default)]
 struct MyState {
     value: f32,
 }
