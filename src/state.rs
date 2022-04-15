@@ -42,9 +42,7 @@ impl<S> Clone for State<S> {
     }
 }
 
-impl<S> State<S>
-where
-    S: Clone + 'static,
+impl<S: 'static> State<S>
 {
     pub fn new(id: ViewId) -> Self {
         Self {
@@ -59,9 +57,7 @@ where
     }
 }
 
-impl<S> Binding<S> for State<S>
-where
-    S: Clone + 'static,
+impl<S: 'static> Binding<S> for State<S>
 {
     fn get<'a>(&self, cx: &'a mut Context) -> &'a S {
         cx.get(*self)
