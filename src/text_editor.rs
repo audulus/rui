@@ -1,6 +1,5 @@
 use crate::*;
 
-#[derive(Clone)]
 struct TextEditorState {
     cursor: usize,
     glyph_rects: Vec<LocalRect>,
