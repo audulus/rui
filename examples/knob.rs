@@ -1,6 +1,6 @@
 use rui::*;
 
-#[derive(Clone, Debug, Default)]
+#[derive(Debug, Default)]
 struct MyState {
     x: f32,
 }
