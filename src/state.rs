@@ -75,7 +75,7 @@ struct StateView<D, F> {
 impl<S, V, D, F> View for StateView<D, F>
 where
     V: View,
-    S: Clone + 'static,
+    S: 'static,
     D: Fn() -> S + 'static,
     F: Fn(State<S>, &mut Context) -> V + 'static,
 {
