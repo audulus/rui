@@ -9,7 +9,7 @@ pub struct Key<V, F> {
 impl<V, F> Key<V, F>
 where
     V: View,
-    F: Fn(&mut Context, KeyPress) + 'static,
+    F: Fn(&mut Context, KeyPress, ModifiersState) + 'static,
 {
     pub fn new(v: V, f: F) -> Self {
         Self { child: v, func: f }
@@ -19,7 +19,7 @@ where
 impl<V, F> View for Key<V, F>
 where
     V: View,
-    F: Fn(&mut Context, KeyPress) + 'static,
+    F: Fn(&mut Context, KeyPress, ModifiersState) + 'static,
 {
     fn print(&self, id: ViewId, cx: &mut Context) {
         println!("Key {{");
@@ -28,8 +28,8 @@ where
     }
 
     fn process(&self, event: &Event, _vid: ViewId, cx: &mut Context, _vger: &mut VGER) {
-        if let EventKind::Key(key, _) = &event.kind {
-            (self.func)(cx, key.clone())
+        if let EventKind::Key(key) = &event.kind {
+            (self.func)(cx, key.clone(), cx.key_mods.clone())
         }
     }
 

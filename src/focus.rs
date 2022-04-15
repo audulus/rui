@@ -24,7 +24,7 @@ where
                     cx.set_dirty();
                 }
             }
-            EventKind::Key(KeyPress::Escape, _) => {
+            EventKind::Key(KeyPress::Escape) => {
                 if cx.focused_id == Some(vid) {
                     cx.focused_id = None;
                     cx.set_dirty();

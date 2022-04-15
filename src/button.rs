@@ -11,6 +11,6 @@ pub fn button<F: Fn(&mut Context) + 'static>(view: impl View, f: F) -> impl View
                 .corner_radius(BUTTON_CORNER_RADIUS)
                 .color(BUTTON_BACKGROUND_COLOR),
         )
-        .tap(f)
+        .tap(move |cx, _mods| f(cx))
         .role(Role::Button)
 }
