@@ -158,7 +158,7 @@ impl<S, F> private::Sealed for StateView<S, F> {}
 ///
 /// `f` callback which is passed a `State<S>`
 pub fn state<
-    S: Clone + 'static,
+    S: 'static,
     V: View,
     D: Fn() -> S + 'static,
     F: Fn(State<S>, &mut Context) -> V + 'static,
