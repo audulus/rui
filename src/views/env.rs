@@ -116,24 +116,29 @@ where
     E: Clone + 'static
 {
     fn print(&self, id: ViewId, cx: &mut Context) {
-        cx.set_env(&self.env_val);
+        let old = cx.set_env(&self.env_val);
         (self.child).print(id.child(&0), cx);
         println!(".env()");
+        old.and_then(|s| cx.set_env(&s));
     }
 
     fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut VGER) {
-        cx.set_env(&self.env_val);
+        let old = cx.set_env(&self.env_val);
         self.child.process(event, id.child(&0), cx, vger);
+        old.and_then(|s| cx.set_env(&s));
     }
 
     fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut VGER) {
-        cx.set_env(&self.env_val);
+        let old = cx.set_env(&self.env_val);
         self.child.draw(id.child(&0), cx, vger);
+        old.and_then(|s| cx.set_env(&s));
     }
 
     fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
-        cx.set_env(&self.env_val);
-        self.child.layout(id.child(&0), sz, cx, vger)
+        let old = cx.set_env(&self.env_val);
+        let sz = self.child.layout(id.child(&0), sz, cx, vger);
+        old.and_then(|s| cx.set_env(&s));
+        sz
     }
 
     fn dirty(
@@ -143,8 +148,9 @@ where
         cx: &mut Context,
         region: &mut Region<WorldSpace>,
     ) {
-        cx.set_env(&self.env_val);
+        let old = cx.set_env(&self.env_val);
         self.child.dirty(id.child(&0), xform, cx, region);
+        old.and_then(|s| cx.set_env(&s));
     }
 
     fn hittest(
@@ -154,18 +160,22 @@ where
         cx: &mut Context,
         vger: &mut VGER,
     ) -> Option<ViewId> {
-        cx.set_env(&self.env_val);
-        self.child.hittest(id.child(&0), pt, cx, vger)
+        let old = cx.set_env(&self.env_val);
+        let r = self.child.hittest(id.child(&0), pt, cx, vger);
+        old.and_then(|s| cx.set_env(&s));
+        r
     }
 
     fn commands(&self, id: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
-        cx.set_env(&self.env_val);
-        self.child.commands(id.child(&0), cx, cmds)
+        let old = cx.set_env(&self.env_val);
+        self.child.commands(id.child(&0), cx, cmds);
+        old.and_then(|s| cx.set_env(&s));
     }
 
     fn gc(&self, id: ViewId, cx: &mut Context, map: &mut Vec<ViewId>) {
-        cx.set_env(&self.env_val);
-        self.child.gc(id.child(&0), cx, map)
+        let old = cx.set_env(&self.env_val);
+        self.child.gc(id.child(&0), cx, map);
+        old.and_then(|s| cx.set_env(&s));
     }
 
     fn access(
@@ -174,8 +184,10 @@ where
         cx: &mut Context,
         nodes: &mut Vec<accesskit::Node>,
     ) -> Option<accesskit::NodeId> {
-        cx.set_env(&self.env_val);
-        self.child.access(id.child(&0), cx, nodes)
+        let old = cx.set_env(&self.env_val);
+        let r = self.child.access(id.child(&0), cx, nodes);
+        old.and_then(|s| cx.set_env(&s));
+        r
     }
 }
 
