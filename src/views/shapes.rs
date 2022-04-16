@@ -142,14 +142,6 @@ impl View for Rectangle {
             None
         }
     }
-
-    fn commands(&self, _id: ViewId, _cx: &mut Context, _cmds: &mut Vec<CommandInfo>) {
-        // do nothing
-    }
-
-    fn gc(&self, _id: ViewId, _cx: &mut Context, _map: &mut Vec<ViewId>) {
-        // do nothing
-    }
 }
 
 impl private::Sealed for Rectangle {}
