@@ -10,6 +10,8 @@ mod command;
 pub use command::*;
 mod drag;
 pub use drag::*;
+mod emptyview;
+pub use emptyview::*;
 mod focus;
 pub use focus::*;
 mod geom;
