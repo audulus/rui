@@ -52,10 +52,6 @@ where
         }
     }
 
-    fn commands(&self, _id: ViewId, _cx: &mut Context, _cmds: &mut Vec<CommandInfo>) {}
-
-    fn gc(&self, _id: ViewId, _cx: &mut Context, _map: &mut Vec<ViewId>) {}
-
     fn access(
         &self,
         _id: ViewId,
