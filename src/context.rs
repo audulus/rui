@@ -126,6 +126,10 @@ impl Context {
         self.env.entry(TypeId::of::<S>()).or_insert_with(|| Box::new((func)())).downcast_ref::<S>().unwrap().clone()
     }
 
+    pub(crate) fn set_env<S: Clone + 'static>(&mut self, value: &S) {
+        self.env.insert(TypeId::of::<S>(), Box::new(value.clone()));
+    }
+
     pub fn get<S>(&self, id: State<S>) -> &S
     where
         S: 'static,
