@@ -6,8 +6,14 @@ enum MyControlType {
     Agro
 }
 
+impl Default for MyControlType {
+    fn default() -> Self {
+        Self::Chill
+    }
+}
+
 fn my_control() -> impl View {
-    env(|| MyControlType::Chill, |t, _| {
+    env(MyControlType::default, |t, _| {
         circle().color( match t {
             MyControlType::Chill => AZURE_HIGHLIGHT,
             MyControlType::Agro => RED_HIGHLIGHT
