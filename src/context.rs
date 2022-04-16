@@ -109,9 +109,10 @@ impl Context {
     }
 
     pub(crate) fn init_state<S: 'static, D: Fn() -> S + 'static>(&mut self, id: ViewId, func: &D) {
-        self.state_map
-            .entry(id)
-            .or_insert_with(|| StateHolder{ state: Box::new((func)()), dirty: false} );
+        self.state_map.entry(id).or_insert_with(|| StateHolder {
+            state: Box::new((func)()),
+            dirty: false,
+        });
     }
 
     pub fn get<S>(&self, id: State<S>) -> &S

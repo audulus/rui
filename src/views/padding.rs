@@ -39,8 +39,19 @@ where
         child_size + LocalSize::new(2.0 * self.padding, 2.0 * self.padding)
     }
 
-    fn dirty(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context, region: &mut Region<WorldSpace>) {
-        self.child.dirty(id.child(&0), xform.pre_translate([self.padding, self.padding].into()), cx, region);
+    fn dirty(
+        &self,
+        id: ViewId,
+        xform: LocalToWorld,
+        cx: &mut Context,
+        region: &mut Region<WorldSpace>,
+    ) {
+        self.child.dirty(
+            id.child(&0),
+            xform.pre_translate([self.padding, self.padding].into()),
+            cx,
+            region,
+        );
     }
 
     fn hittest(

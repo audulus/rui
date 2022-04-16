@@ -86,7 +86,10 @@ pub fn text(name: &str) -> Text {
     }
 }
 
-impl<V> View for V where V: std::fmt::Display + std::fmt::Debug + 'static {
+impl<V> View for V
+where
+    V: std::fmt::Display + std::fmt::Debug + 'static,
+{
     fn print(&self, _id: ViewId, _cx: &mut Context) {
         println!("Text({:?})", self);
     }
@@ -141,7 +144,10 @@ impl<V> View for V where V: std::fmt::Display + std::fmt::Debug + 'static {
     }
 }
 
-impl<V> TextModifiers for V where V: std::fmt::Display + std::fmt::Debug + 'static {
+impl<V> TextModifiers for V
+where
+    V: std::fmt::Display + std::fmt::Debug + 'static,
+{
     fn font_size(self, size: u32) -> Text {
         Text {
             text: format!("{}", self),

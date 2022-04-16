@@ -21,7 +21,14 @@ pub trait View: private::Sealed + 'static {
     fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize;
 
     /// Determines dirty regions which need repainting.
-    fn dirty(&self, _id: ViewId, _xform: LocalToWorld, _cx: &mut Context, _region: &mut Region<WorldSpace>) { }
+    fn dirty(
+        &self,
+        _id: ViewId,
+        _xform: LocalToWorld,
+        _cx: &mut Context,
+        _region: &mut Region<WorldSpace>,
+    ) {
+    }
 
     /// Returns the topmost view which the point intersects.
     fn hittest(

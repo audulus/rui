@@ -354,7 +354,12 @@ pub fn rui(view: impl View) {
                     }
 
                     // Get dirty rectangles.
-                    view.dirty(cx.root_id, LocalToWorld::identity(), &mut cx, &mut dirty_region);
+                    view.dirty(
+                        cx.root_id,
+                        LocalToWorld::identity(),
+                        &mut cx,
+                        &mut dirty_region,
+                    );
 
                     cx.window.as_ref().unwrap().request_redraw();
 
@@ -398,7 +403,13 @@ pub fn rui(view: impl View) {
                 let paint = vger.color_paint(RED_HIGHLIGHT);
                 let xf = WorldToLocal::identity();
                 for rect in dirty_region.rects() {
-                    vger.stroke_rect(xf.transform_point(rect.min()), xf.transform_point(rect.max()), 0.0, 1.0, paint);
+                    vger.stroke_rect(
+                        xf.transform_point(rect.min()),
+                        xf.transform_point(rect.max()),
+                        0.0,
+                        1.0,
+                        paint,
+                    );
                 }
 
                 dirty_region.clear();

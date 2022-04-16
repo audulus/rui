@@ -42,8 +42,7 @@ impl<S> Clone for State<S> {
     }
 }
 
-impl<S: 'static> State<S>
-{
+impl<S: 'static> State<S> {
     pub fn new(id: ViewId) -> Self {
         Self {
             id,
@@ -57,8 +56,7 @@ impl<S: 'static> State<S>
     }
 }
 
-impl<S: 'static> Binding<S> for State<S>
-{
+impl<S: 'static> Binding<S> for State<S> {
     fn get<'a>(&self, cx: &'a mut Context) -> &'a S {
         cx.get(*self)
     }
@@ -106,21 +104,32 @@ where
                 offset: LocalOffset::zero(),
             },
         );
-        
+
         child_size
     }
 
-    fn dirty(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context, region: &mut Region<WorldSpace>) {
-        
+    fn dirty(
+        &self,
+        id: ViewId,
+        xform: LocalToWorld,
+        cx: &mut Context,
+        region: &mut Region<WorldSpace>,
+    ) {
         let default = &self.default;
-        let holder = cx.state_map
-            .entry(id)
-            .or_insert_with(|| StateHolder{ state: Box::new((default)()), dirty: false} );
+        let holder = cx.state_map.entry(id).or_insert_with(|| StateHolder {
+            state: Box::new((default)()),
+            dirty: false,
+        });
 
         if holder.dirty {
             // Add a region.
             let rect = cx.layout[&id].rect;
-            let pts: [LocalPoint; 4] = [rect.min(), [rect.max_x(), rect.min_y()].into(), [rect.min_x(), rect.max_y()].into(), rect.max()];
+            let pts: [LocalPoint; 4] = [
+                rect.min(),
+                [rect.max_x(), rect.min_y()].into(),
+                [rect.min_x(), rect.max_y()].into(),
+                rect.max(),
+            ];
             let world_pts = pts.map(|p| xform.transform_point(p));
             region.add_rect(WorldRect::from_points(world_pts));
         } else {

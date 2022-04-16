@@ -135,8 +135,13 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
         }
     }
 
-    fn dirty(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context, region: &mut Region<WorldSpace>) {
-        
+    fn dirty(
+        &self,
+        id: ViewId,
+        xform: LocalToWorld,
+        cx: &mut Context,
+        region: &mut Region<WorldSpace>,
+    ) {
         let mut c = 0;
         self.children.foreach_view(&mut |child| {
             let child_id = id.child(&c);
@@ -145,7 +150,6 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
             child.dirty(child_id, xf, cx, region);
             c += 1;
         })
-        
     }
 
     fn hittest(
