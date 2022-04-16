@@ -52,6 +52,9 @@ pub trait Modifiers: View + Sized {
 
     /// Make the window full screen.
     fn fullscreen(self) -> FullscreenView<Self>;
+
+    /// Add an environment value.
+    fn env<E: Clone + 'static>(self, value: E) -> SetenvView<Self, E>;
 }
 
 impl<V: View> Modifiers for V {
@@ -103,5 +106,8 @@ impl<V: View> Modifiers for V {
     }
     fn fullscreen(self) -> FullscreenView<Self> {
         FullscreenView::new(self)
+    }
+    fn env<E: Clone + 'static>(self, value: E) -> SetenvView<Self, E> {
+        SetenvView::new(self, value)
     }
 }

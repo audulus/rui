@@ -101,6 +101,16 @@ pub struct SetenvView<V, E> {
     env_val: E,
 }
 
+impl<V, E> SetenvView<V, E>
+where
+    V: View,
+    E: Clone + 'static
+{
+    pub fn new(child: V, env_val: E) -> Self {
+        Self { child, env_val }
+    }
+}
+
 impl<V, E> View for SetenvView<V, E>
 where
     V: View,
