@@ -107,6 +107,24 @@ where
         (self.func)(State::new(id), cx).layout(id.child(&0), sz, cx, vger)
     }
 
+    fn dirty(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context, region: &mut Region<WorldSpace>) {
+        
+        let default = &self.default;
+        let holder = cx.state_map
+            .entry(id)
+            .or_insert_with(|| StateHolder{ state: Box::new((default)()), dirty: false} );
+
+        if holder.dirty {
+            // Add a region.
+            let rect = cx.layout[&id].rect;
+            let pts: [LocalPoint; 4] = [rect.min(), [rect.max_x(), rect.min_y()].into(), [rect.min_x(), rect.max_y()].into(), rect.max()];
+            let world_pts = pts.map(|p| xform.transform_point(p));
+            region.add_rect(WorldRect::from_points(world_pts));
+        } else {
+            self.dirty(id, xform, cx, region);
+        }
+    }
+
     fn hittest(
         &self,
         id: ViewId,

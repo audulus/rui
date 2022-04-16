@@ -33,6 +33,10 @@ where
         self.child.layout(id.child(&0), sz, cx, vger)
     }
 
+    fn dirty(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context, region: &mut Region<WorldSpace>) {
+        self.child.dirty(id.child(&0), xform.pre_translate(self.offset.into()), cx, region);
+    }
+
     fn hittest(
         &self,
         id: ViewId,

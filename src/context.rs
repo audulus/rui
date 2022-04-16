@@ -25,8 +25,8 @@ pub(crate) struct LayoutBox {
 }
 
 pub(crate) struct StateHolder {
-    state: Box<dyn Any>,
-    dirty: bool,
+    pub state: Box<dyn Any>,
+    pub dirty: bool,
 }
 
 pub(crate) type StateMap = HashMap<ViewId, StateHolder>;
