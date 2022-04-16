@@ -43,6 +43,10 @@ where
         self.child.layout(id.child(&0), sz, cx, vger)
     }
 
+    fn dirty(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context, region: &mut Region<WorldSpace>) {
+        self.child.dirty(id.child(&0), xform, cx, region);
+    }
+
     fn hittest(
         &self,
         id: ViewId,
@@ -110,6 +114,10 @@ where
 
     fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
         self.child.layout(id.child(&0), sz, cx, vger)
+    }
+
+    fn dirty(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context, region: &mut Region<WorldSpace>) {
+        self.child.dirty(id.child(&0), xform, cx, region);
     }
 
     fn hittest(

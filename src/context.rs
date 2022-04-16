@@ -13,6 +13,7 @@ pub type LocalPoint = Point2D<f32, LocalSpace>;
 pub type WorldRect = Rect<f32, WorldSpace>;
 pub type WorldPoint = Point2D<f32, WorldSpace>;
 pub type LocalToWorld = Transform2D<f32, LocalSpace, WorldSpace>;
+pub type WorldToLocal = Transform2D<f32, WorldSpace, LocalSpace>;
 
 use tao::window::Window;
 

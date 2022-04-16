@@ -142,7 +142,7 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
             let child_id = id.child(&c);
             let offset = cx.layout.entry(child_id).or_default().offset;
             let xf = xform.pre_translate(offset.into());
-            child.dirty(id, xf, cx, region);
+            child.dirty(child_id, xf, cx, region);
             c += 1;
         })
         

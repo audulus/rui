@@ -467,6 +467,12 @@ pub fn rui(view: impl View) {
                 view.draw(cx.root_id, &mut cx, &mut vger);
                 cx.enable_dirty = true;
 
+                let paint = vger.color_paint(RED_HIGHLIGHT);
+                let xf = WorldToLocal::identity();
+                for rect in dirty_region.rects() {
+                    vger.stroke_rect(xf.transform_point(rect.min()), xf.transform_point(rect.max()), 0.0, 1.0, paint);
+                }
+
                 dirty_region.clear();
 
                 let texture_view = frame

@@ -121,7 +121,7 @@ where
             let world_pts = pts.map(|p| xform.transform_point(p));
             region.add_rect(WorldRect::from_points(world_pts));
         } else {
-            self.dirty(id, xform, cx, region);
+            (self.func)(State::new(id), cx).dirty(id.child(&0), xform, cx, region);
         }
     }
 
