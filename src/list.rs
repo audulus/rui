@@ -67,6 +67,17 @@ where
         LocalSize::new(sz.width, height_sum)
     }
 
+    fn dirty(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context, region: &mut Region<WorldSpace>) {
+        
+        for child in &self.ids {
+            let child_id = id.child(child);
+            let offset = cx.layout.entry(child_id).or_default().offset;
+            let xf = xform.pre_translate(offset.into());
+            ((self.func)(child)).dirty(id, xf, cx, region);
+        }
+        
+    }
+
     fn hittest(
         &self,
         id: ViewId,
