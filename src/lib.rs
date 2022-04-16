@@ -335,6 +335,8 @@ pub fn rui(view: impl View) {
 
     let mut access_nodes = vec![];
 
+    let mut dirty_region = Region::<WorldSpace>::EMPTY;
+
     event_loop.run(move |event, _, control_flow| {
         // ControlFlow::Poll continuously runs the event loop, even if the OS hasn't
         // dispatched any events. This is ideal for games and similar applications.
@@ -423,6 +425,9 @@ pub fn rui(view: impl View) {
                         // println!("access nodes unchanged");
                     }
 
+                    // Get dirty rectangles.
+                    view.dirty(cx.root_id, LocalToWorld::identity(), &mut cx, &mut dirty_region);
+
                     cx.window.as_ref().unwrap().request_redraw();
 
                     cx.clear_dirty();
@@ -461,6 +466,8 @@ pub fn rui(view: impl View) {
                 view.layout(cx.root_id, [width, height].into(), &mut cx, &mut vger);
                 view.draw(cx.root_id, &mut cx, &mut vger);
                 cx.enable_dirty = true;
+
+                dirty_region.clear();
 
                 let texture_view = frame
                     .texture
