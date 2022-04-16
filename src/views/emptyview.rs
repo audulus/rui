@@ -26,15 +26,6 @@ impl View for EmptyView {
     ) -> Option<ViewId> {
         None
     }
-
-    fn access(
-        &self,
-        _id: ViewId,
-        _cx: &mut Context,
-        _nodes: &mut Vec<accesskit::Node>,
-    ) -> Option<accesskit::NodeId> {
-        None
-    }
 }
 
 impl private::Sealed for EmptyView {}

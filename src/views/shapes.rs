@@ -61,15 +61,6 @@ impl View for Circle {
             None
         }
     }
-
-    fn access(
-        &self,
-        _id: ViewId,
-        _cx: &mut Context,
-        _nodes: &mut Vec<accesskit::Node>,
-    ) -> Option<accesskit::NodeId> {
-        None
-    }
 }
 
 impl private::Sealed for Circle {}
@@ -158,15 +149,6 @@ impl View for Rectangle {
 
     fn gc(&self, _id: ViewId, _cx: &mut Context, _map: &mut Vec<ViewId>) {
         // do nothing
-    }
-
-    fn access(
-        &self,
-        _id: ViewId,
-        _cx: &mut Context,
-        _nodes: &mut Vec<accesskit::Node>,
-    ) -> Option<accesskit::NodeId> {
-        None
     }
 }
 

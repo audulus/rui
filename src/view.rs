@@ -48,9 +48,9 @@ pub trait View: private::Sealed + 'static {
     /// Builds an AccessKit tree. The node ID for the subtree is returned. All generated nodes are accumulated.
     fn access(
         &self,
-        id: ViewId,
-        cx: &mut Context,
-        nodes: &mut Vec<accesskit::Node>,
-    ) -> Option<accesskit::NodeId>;
+        _id: ViewId,
+        _cx: &mut Context,
+        _nodes: &mut Vec<accesskit::Node>,
+    ) -> Option<accesskit::NodeId> { None }
 }
 

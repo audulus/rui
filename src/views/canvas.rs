@@ -51,15 +51,6 @@ where
             None
         }
     }
-
-    fn access(
-        &self,
-        _id: ViewId,
-        _cx: &mut Context,
-        _nodes: &mut Vec<accesskit::Node>,
-    ) -> Option<accesskit::NodeId> {
-        None
-    }
 }
 
 /// Canvas for GPU drawing with VGER. See https://github.com/audulus/vger-rs.
