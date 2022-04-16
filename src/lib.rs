@@ -425,7 +425,7 @@ pub fn rui(view: impl View) {
 
                     cx.window.as_ref().unwrap().request_redraw();
 
-                    cx.dirty = false;
+                    cx.clear_dirty();
                 }
             }
             tao::event::Event::RedrawRequested(_) => {

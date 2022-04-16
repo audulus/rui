@@ -95,6 +95,13 @@ impl Context {
         }
     }
 
+    pub(crate) fn clear_dirty(&mut self) {
+        self.dirty = false;
+        for (_, holder) in &mut self.state_map {
+            holder.dirty = false;
+        }
+    }
+
     pub(crate) fn init_state<S: 'static, D: Fn() -> S + 'static>(&mut self, id: ViewId, func: &D) {
         self.state_map
             .entry(id)
