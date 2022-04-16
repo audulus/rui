@@ -23,7 +23,12 @@ pub(crate) struct LayoutBox {
     pub offset: LocalOffset,
 }
 
-pub type StateMap = HashMap<ViewId, Box<dyn Any>>;
+pub(crate) struct StateHolder {
+    state: Box<dyn Any>,
+    dirty: bool,
+}
+
+pub(crate) type StateMap = HashMap<ViewId, StateHolder>;
 
 /// The Context stores all UI state. A user of the library
 /// shouldn't have to interact with it directly.
@@ -89,11 +94,17 @@ impl Context {
         }
     }
 
+    pub(crate) fn init_state<S: 'static, D: Fn() -> S + 'static>(&mut self, id: ViewId, func: &D) {
+        self.state_map
+            .entry(id)
+            .or_insert_with(|| StateHolder{ state: Box::new((func)()), dirty: false} );
+    }
+
     pub fn get<S>(&self, id: State<S>) -> &S
     where
         S: 'static,
     {
-        self.state_map[&id.id].downcast_ref::<S>().unwrap()
+        self.state_map[&id.id].state.downcast_ref::<S>().unwrap()
     }
 
     pub fn get_mut<S>(&mut self, id: State<S>) -> &mut S
@@ -101,11 +112,10 @@ impl Context {
         S: 'static,
     {
         self.set_dirty();
-        self.state_map
-            .get_mut(&id.id)
-            .unwrap()
-            .downcast_mut::<S>()
-            .unwrap()
+
+        let mut holder = self.state_map.get_mut(&id.id).unwrap();
+        holder.dirty = true;
+        holder.state.downcast_mut::<S>().unwrap()
     }
 }
 
@@ -116,7 +126,7 @@ where
     type Output = S;
 
     fn index(&self, index: State<S>) -> &Self::Output {
-        self.state_map[&index.id].downcast_ref::<S>().unwrap()
+        self.get(index)
     }
 }
 
@@ -125,11 +135,6 @@ where
     S: 'static,
 {
     fn index_mut(&mut self, index: State<S>) -> &mut Self::Output {
-        self.set_dirty();
-        self.state_map
-            .get_mut(&index.id)
-            .unwrap()
-            .downcast_mut::<S>()
-            .unwrap()
+        self.get_mut(index)
     }
 }

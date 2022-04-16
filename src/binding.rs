@@ -112,7 +112,7 @@ mod tests {
 
     use super::*;
 
-    #[derive(Clone)]
+    #[derive(Clone, Default)]
     struct MyState {
         x: i32,
     }
@@ -130,9 +130,7 @@ mod tests {
     fn test_bind2() {
         let mut cx = Context::new(None);
         let id = ViewId::default();
-        cx.state_map
-            .entry(id)
-            .or_insert_with(|| Box::new(MyState { x: 0 }));
+        cx.init_state(id, &MyState::default);
         let s = State::new(id);
 
         let b = bind(s, MyLens {});

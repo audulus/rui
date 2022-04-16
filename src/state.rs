@@ -80,30 +80,22 @@ where
     F: Fn(State<S>, &mut Context) -> V + 'static,
 {
     fn print(&self, id: ViewId, cx: &mut Context) {
-        cx.state_map
-            .entry(id)
-            .or_insert_with(|| Box::new((self.default)()));
+        cx.init_state(id, &self.default);
         (self.func)(State::new(id), cx).print(id.child(&0), cx);
     }
 
     fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut VGER) {
-        cx.state_map
-            .entry(id)
-            .or_insert_with(|| Box::new((self.default)()));
+        cx.init_state(id, &self.default);
         (self.func)(State::new(id), cx).process(event, id.child(&0), cx, vger);
     }
 
     fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut VGER) {
-        cx.state_map
-            .entry(id)
-            .or_insert_with(|| Box::new((self.default)()));
+        cx.init_state(id, &self.default);
         (self.func)(State::new(id), cx).draw(id.child(&0), cx, vger);
     }
 
     fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
-        cx.state_map
-            .entry(id)
-            .or_insert_with(|| Box::new((self.default)()));
+        cx.init_state(id, &self.default);
 
         cx.layout.insert(
             id,
@@ -122,23 +114,17 @@ where
         cx: &mut Context,
         vger: &mut VGER,
     ) -> Option<ViewId> {
-        cx.state_map
-            .entry(id)
-            .or_insert_with(|| Box::new((self.default)()));
+        cx.init_state(id, &self.default);
         (self.func)(State::new(id), cx).hittest(id.child(&0), pt, cx, vger)
     }
 
     fn commands(&self, id: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
-        cx.state_map
-            .entry(id)
-            .or_insert_with(|| Box::new((self.default)()));
+        cx.init_state(id, &self.default);
         (self.func)(State::new(id), cx).commands(id.child(&0), cx, cmds);
     }
 
     fn gc(&self, id: ViewId, cx: &mut Context, map: &mut Vec<ViewId>) {
-        cx.state_map
-            .entry(id)
-            .or_insert_with(|| Box::new((self.default)()));
+        cx.init_state(id, &self.default);
         map.push(id);
         (self.func)(State::new(id), cx).gc(id.child(&0), cx, map);
     }
@@ -149,9 +135,7 @@ where
         cx: &mut Context,
         nodes: &mut Vec<accesskit::Node>,
     ) -> Option<accesskit::NodeId> {
-        cx.state_map
-            .entry(id)
-            .or_insert_with(|| Box::new((self.default)()));
+        cx.init_state(id, &self.default);
         (self.func)(State::new(id), cx).access(id.child(&0), cx, nodes)
     }
 }
