@@ -12,98 +12,26 @@ pub use event::*;
 mod binding;
 pub use binding::*;
 
-mod state;
-pub use state::*;
-
-mod text;
-pub use text::*;
-
-mod button;
-pub use button::*;
-
-mod stack;
-pub use stack::*;
-
 mod context;
 pub use context::*;
 
-mod padding;
-pub use padding::*;
-
-mod shapes;
-pub use shapes::*;
+mod views;
+pub use views::*;
 
 mod paint;
 pub use paint::*;
 
-mod tap;
-pub use tap::*;
-
-mod drag;
-pub use drag::*;
-
-mod background;
-pub use background::*;
-
 mod modifiers;
 pub use modifiers::*;
-
-mod geom;
-pub use geom::*;
-
-mod offset;
-pub use offset::*;
-
-mod canvas;
-pub use canvas::*;
-
-mod slider;
-pub use slider::*;
-
-mod list;
-pub use list::*;
-
-mod size;
-pub use size::*;
 
 mod body;
 pub use body::*;
 
-mod knob;
-pub use knob::*;
-
-mod command;
-pub use command::*;
-
 mod colors;
 pub use colors::*;
 
-mod key;
-pub use key::*;
-
-mod text_editor;
-pub use text_editor::*;
-
-mod focus;
-pub use focus::*;
-
-mod cond;
-pub use cond::*;
-
-mod toggle;
-pub use toggle::*;
-
 mod align;
 pub use align::*;
-
-mod role;
-pub use role::*;
-
-mod window;
-pub use window::*;
-
-mod anyview;
-pub use anyview::*;
 
 mod region;
 pub use region::*;
