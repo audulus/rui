@@ -3,6 +3,7 @@ use euclid::*;
 use std::any::Any;
 use std::collections::HashMap;
 use std::ops;
+use tao::event::MouseButton;
 
 pub type LocalSpace = vger::defs::LocalSpace;
 pub type WorldSpace = vger::defs::WorldSpace;
@@ -40,6 +41,9 @@ pub struct Context {
     /// Previous touch/mouse positions.
     pub(crate) previous_position: [LocalPoint; 16],
 
+    /// Pressed mouse buton.
+    pub(crate) mouse_button: Option<MouseButton>,
+
     /// Keyboard modifiers state.
     pub(crate) key_mods: ModifiersState,
 
@@ -72,6 +76,7 @@ impl Context {
             touches: [ViewId::default(); 16],
             starts: [LocalPoint::zero(); 16],
             previous_position: [LocalPoint::zero(); 16],
+            mouse_button: None,
             key_mods: ModifiersState::default(),
             root_id: ViewId { id: 1 },
             focused_id: None,

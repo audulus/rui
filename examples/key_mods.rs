@@ -13,7 +13,7 @@ fn main() {
             rectangle()
                 .corner_radius(5.0)
                 .color(AZURE_HIGHLIGHT_BACKGROUND)
-                .drag(|_, delta, _state, key_mods| {
+                .drag(|_, delta, _state, key_mods, _mouse_button| {
                     println!("dragging: {:?}, key modifiers state: {:?}", delta, key_mods)
                 })
                 .padding(Auto),
