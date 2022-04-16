@@ -17,18 +17,14 @@ where
     }
 
     fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut VGER) {
-        cx.init_state(id, &self.default);
         (self.func)(cx.init_env(&self.default), cx).process(event, id.child(&0), cx, vger);
     }
 
     fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut VGER) {
-        cx.init_state(id, &self.default);
         (self.func)(cx.init_env(&self.default), cx).draw(id.child(&0), cx, vger);
     }
 
     fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
-        cx.init_state(id, &self.default);
-
         let child_size = (self.func)(cx.init_env(&self.default), cx).layout(id.child(&0), sz, cx, vger);
 
         cx.layout.insert(
@@ -59,17 +55,14 @@ where
         cx: &mut Context,
         vger: &mut VGER,
     ) -> Option<ViewId> {
-        cx.init_state(id, &self.default);
         (self.func)(cx.init_env(&self.default), cx).hittest(id.child(&0), pt, cx, vger)
     }
 
     fn commands(&self, id: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
-        cx.init_state(id, &self.default);
         (self.func)(cx.init_env(&self.default), cx).commands(id.child(&0), cx, cmds);
     }
 
     fn gc(&self, id: ViewId, cx: &mut Context, map: &mut Vec<ViewId>) {
-        cx.init_state(id, &self.default);
         map.push(id);
         (self.func)(cx.init_env(&self.default), cx).gc(id.child(&0), cx, map);
     }
@@ -80,7 +73,6 @@ where
         cx: &mut Context,
         nodes: &mut Vec<accesskit::Node>,
     ) -> Option<accesskit::NodeId> {
-        cx.init_state(id, &self.default);
         (self.func)(cx.init_env(&self.default), cx).access(id.child(&0), cx, nodes)
     }
 }
