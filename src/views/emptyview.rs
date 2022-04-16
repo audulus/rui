@@ -6,7 +6,6 @@ impl View for EmptyView {
     fn print(&self, _id: ViewId, _cx: &mut Context) {
         println!("EmptyView");
     }
-    fn process(&self, _event: &Event, _id: ViewId, _cx: &mut Context, _vger: &mut VGER) {}
     fn draw(&self, _id: ViewId, _cx: &mut Context, _vger: &mut VGER) {}
     fn layout(
         &self,

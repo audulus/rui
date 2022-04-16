@@ -24,10 +24,6 @@ impl View for Circle {
         println!("circle");
     }
 
-    fn process(&self, _event: &Event, _id: ViewId, _cx: &mut Context, _vger: &mut VGER) {
-        // do nothing
-    }
-
     fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut VGER) {
         let (center, radius) = self.geom(id, cx);
 
@@ -103,10 +99,6 @@ impl Rectangle {
 impl View for Rectangle {
     fn print(&self, _id: ViewId, _cx: &mut Context) {
         println!("rectangle");
-    }
-
-    fn process(&self, _event: &Event, _id: ViewId, _cx: &mut Context, _vger: &mut VGER) {
-        // do nothing
     }
 
     fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut VGER) {

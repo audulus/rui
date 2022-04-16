@@ -18,7 +18,6 @@ impl View for Text {
     fn print(&self, _id: ViewId, _cx: &mut Context) {
         println!("Text({:?})", self.text);
     }
-    fn process(&self, _event: &Event, _id: ViewId, _cx: &mut Context, _vger: &mut VGER) {}
     fn draw(&self, _id: ViewId, _cx: &mut Context, vger: &mut VGER) {
         let origin = vger.text_bounds(self.text.as_str(), self.size, None).origin;
 

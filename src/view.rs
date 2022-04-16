@@ -12,7 +12,7 @@ pub trait View: private::Sealed + 'static {
     fn print(&self, id: ViewId, cx: &mut Context);
 
     /// Processes an event.
-    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut VGER);
+    fn process(&self, _event: &Event, _id: ViewId, _cx: &mut Context, _vger: &mut VGER) {}
 
     /// Draws the view using vger.
     fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut VGER);

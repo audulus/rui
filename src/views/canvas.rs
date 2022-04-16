@@ -13,10 +13,6 @@ where
         println!("canvas");
     }
 
-    fn process(&self, _event: &Event, _id: ViewId, _cx: &mut Context, _vger: &mut VGER) {
-        // do nothing
-    }
-
     fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut VGER) {
         let rect = cx.layout.entry(id).or_default().rect;
 
