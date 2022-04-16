@@ -1,31 +1,31 @@
 use crate::*;
 
-struct EnvView<D, F> {
-    default: D,
+struct EnvView<S, V, F> {
     func: F,
+    phantom_s: std::marker::PhantomData<S>,
+    phantom_v: std::marker::PhantomData<V>,
 }
 
-impl<S, V, D, F> View for EnvView<D, F>
+impl<S, V, F> View for EnvView<S, V, F>
 where
     V: View,
-    S: Clone + 'static,
-    D: Fn() -> S + 'static,
+    S: Clone + Default + 'static,
     F: Fn(S, &mut Context) -> V + 'static,
 {
     fn print(&self, id: ViewId, cx: &mut Context) {
-        (self.func)(cx.init_env(&self.default), cx).print(id.child(&0), cx);
+        (self.func)(cx.init_env(&S::default), cx).print(id.child(&0), cx);
     }
 
     fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut VGER) {
-        (self.func)(cx.init_env(&self.default), cx).process(event, id.child(&0), cx, vger);
+        (self.func)(cx.init_env(&S::default), cx).process(event, id.child(&0), cx, vger);
     }
 
     fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut VGER) {
-        (self.func)(cx.init_env(&self.default), cx).draw(id.child(&0), cx, vger);
+        (self.func)(cx.init_env(&S::default), cx).draw(id.child(&0), cx, vger);
     }
 
     fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
-        let child_size = (self.func)(cx.init_env(&self.default), cx).layout(id.child(&0), sz, cx, vger);
+        let child_size = (self.func)(cx.init_env(&S::default), cx).layout(id.child(&0), sz, cx, vger);
 
         cx.layout.insert(
             id,
@@ -45,7 +45,7 @@ where
         cx: &mut Context,
         region: &mut Region<WorldSpace>,
     ) {
-        (self.func)(cx.init_env(&self.default), cx).dirty(id.child(&0), xform, cx, region);
+        (self.func)(cx.init_env(&S::default), cx).dirty(id.child(&0), xform, cx, region);
     }
 
     fn hittest(
@@ -55,16 +55,16 @@ where
         cx: &mut Context,
         vger: &mut VGER,
     ) -> Option<ViewId> {
-        (self.func)(cx.init_env(&self.default), cx).hittest(id.child(&0), pt, cx, vger)
+        (self.func)(cx.init_env(&S::default), cx).hittest(id.child(&0), pt, cx, vger)
     }
 
     fn commands(&self, id: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
-        (self.func)(cx.init_env(&self.default), cx).commands(id.child(&0), cx, cmds);
+        (self.func)(cx.init_env(&S::default), cx).commands(id.child(&0), cx, cmds);
     }
 
     fn gc(&self, id: ViewId, cx: &mut Context, map: &mut Vec<ViewId>) {
         map.push(id);
-        (self.func)(cx.init_env(&self.default), cx).gc(id.child(&0), cx, map);
+        (self.func)(cx.init_env(&S::default), cx).gc(id.child(&0), cx, map);
     }
 
     fn access(
@@ -73,25 +73,24 @@ where
         cx: &mut Context,
         nodes: &mut Vec<accesskit::Node>,
     ) -> Option<accesskit::NodeId> {
-        (self.func)(cx.init_env(&self.default), cx).access(id.child(&0), cx, nodes)
+        (self.func)(cx.init_env(&S::default), cx).access(id.child(&0), cx, nodes)
     }
 }
 
-impl<S, F> private::Sealed for EnvView<S, F> {}
+impl<S, V, F> private::Sealed for EnvView<S, V, F> {}
 
 /// Reads from the environment.
 pub fn env<
-    S: Clone + 'static,
+    S: Clone + Default + 'static,
     V: View,
-    D: Fn() -> S + 'static,
     F: Fn(S, &mut Context) -> V + 'static,
 >(
-    initial: D,
     f: F,
 ) -> impl View {
     EnvView {
-        default: initial,
         func: f,
+        phantom_s: Default::default(),
+        phantom_v: Default::default()
     }
 }
 

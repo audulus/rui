@@ -13,7 +13,7 @@ impl Default for MyControlType {
 }
 
 fn my_control() -> impl View {
-    env(MyControlType::default, |t, _| {
+    env(|t, _| {
         circle().color( match t {
             MyControlType::Chill => AZURE_HIGHLIGHT,
             MyControlType::Agro => RED_HIGHLIGHT
