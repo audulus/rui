@@ -30,7 +30,7 @@ impl View for AnyView {
     }
 
     fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut VGER) {
-        self.child.process(&event, id.child(&self.id()), cx, vger);
+        self.child.process(event, id.child(&self.id()), cx, vger);
     }
 
     fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut VGER) {

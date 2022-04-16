@@ -103,7 +103,7 @@ impl Context {
 
     pub(crate) fn clear_dirty(&mut self) {
         self.dirty = false;
-        for (_, holder) in &mut self.state_map {
+        for holder in &mut self.state_map.values_mut() {
             holder.dirty = false;
         }
     }

@@ -4,7 +4,7 @@ use tao::keyboard::ModifiersState;
 // XXX: WIP
 
 fn digit_button(title: &str, state: State<String>) -> impl View {
-    let t = String::from(title).clone();
+    let t = String::from(title);
     zstack((
         rectangle()
             .corner_radius(10.0)
@@ -34,7 +34,7 @@ fn main() {
         || String::from("0"),
         |s, cx| {
             vstack((
-                text(&format!("{}", cx[s])),
+                text(&cx[s].to_string()),
                 hstack((
                     calc_button("AC", move |cx, _| cx[s] = "0".into()),
                     calc_button("+/-", |_, _| ()),

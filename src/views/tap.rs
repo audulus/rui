@@ -37,7 +37,7 @@ where
             EventKind::TouchEnd { id } => {
                 if cx.touches[*id] == vid {
                     cx.touches[*id] = ViewId::default();
-                    (self.func)(cx, cx.key_mods.clone());
+                    (self.func)(cx, cx.key_mods);
                 }
             }
             _ => (),

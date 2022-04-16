@@ -51,8 +51,8 @@ where
                         cx,
                         delta,
                         GestureState::Changed,
-                        cx.key_mods.clone(),
-                        cx.mouse_button.clone(),
+                        cx.key_mods,
+                        cx.mouse_button,
                     );
                     cx.previous_position[*id] = event.position;
                 }
@@ -64,8 +64,8 @@ where
                         cx,
                         event.position - cx.previous_position[*id],
                         GestureState::Ended,
-                        cx.key_mods.clone(),
-                        cx.mouse_button.clone(),
+                        cx.key_mods,
+                        cx.mouse_button,
                     );
                 }
             }

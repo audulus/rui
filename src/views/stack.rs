@@ -146,7 +146,7 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
         self.children.foreach_view(&mut |child| {
             let child_id = id.child(&c);
             let offset = cx.layout.entry(child_id).or_default().offset;
-            let xf = xform.pre_translate(offset.into());
+            let xf = xform.pre_translate(offset);
             child.dirty(child_id, xf, cx, region);
             c += 1;
         })

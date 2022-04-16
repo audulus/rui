@@ -29,7 +29,7 @@ where
 
     fn process(&self, event: &Event, _vid: ViewId, cx: &mut Context, _vger: &mut VGER) {
         if let EventKind::Key(key) = &event.kind {
-            (self.func)(cx, key.clone(), cx.key_mods.clone())
+            (self.func)(cx, key.clone(), cx.key_mods)
         }
     }
 

@@ -42,7 +42,7 @@ where
     ) {
         self.child.dirty(
             id.child(&0),
-            xform.pre_translate(self.offset.into()),
+            xform.pre_translate(self.offset),
             cx,
             region,
         );
