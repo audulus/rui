@@ -97,14 +97,17 @@ where
     fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
         cx.init_state(id, &self.default);
 
+        let child_size = (self.func)(State::new(id), cx).layout(id.child(&0), sz, cx, vger);
+
         cx.layout.insert(
             id,
             LayoutBox {
-                rect: LocalRect::new(LocalPoint::zero(), sz),
+                rect: LocalRect::new(LocalPoint::zero(), child_size),
                 offset: LocalOffset::zero(),
             },
         );
-        (self.func)(State::new(id), cx).layout(id.child(&0), sz, cx, vger)
+        
+        child_size
     }
 
     fn dirty(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context, region: &mut Region<WorldSpace>) {
