@@ -4,6 +4,7 @@ use std::any::Any;
 use std::collections::HashMap;
 use std::ops;
 use tao::event::MouseButton;
+use std::any::TypeId;
 
 pub type LocalSpace = vger::defs::LocalSpace;
 pub type WorldSpace = vger::defs::WorldSpace;
@@ -32,6 +33,8 @@ pub(crate) struct StateHolder {
 }
 
 pub(crate) type StateMap = HashMap<ViewId, StateHolder>;
+
+pub(crate) type EnvMap = HashMap<TypeId, Box<dyn Any>>;
 
 /// The Context stores all UI state. A user of the library
 /// shouldn't have to interact with it directly.
@@ -74,6 +77,9 @@ pub struct Context {
 
     /// Are we currently setting the dirty bit?
     pub(crate) enable_dirty: bool,
+
+    /// Values indexed by type.
+    pub(crate) env: EnvMap,
 }
 
 impl Context {
@@ -92,6 +98,7 @@ impl Context {
             state_map: HashMap::new(),
             dirty: false,
             enable_dirty: true,
+            env: HashMap::new()
         }
     }
 
@@ -113,6 +120,10 @@ impl Context {
             state: Box::new((func)()),
             dirty: false,
         });
+    }
+
+    pub(crate) fn init_env<S: Clone + 'static, D: Fn() -> S + 'static>(&mut self, func: &D) -> S {
+        self.env.entry(TypeId::of::<S>()).or_insert_with(|| Box::new((func)())).downcast_ref::<S>().unwrap().clone()
     }
 
     pub fn get<S>(&self, id: State<S>) -> &S

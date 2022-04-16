@@ -12,6 +12,8 @@ mod drag;
 pub use drag::*;
 mod emptyview;
 pub use emptyview::*;
+mod env;
+pub use env::*;
 mod focus;
 pub use focus::*;
 mod geom;
