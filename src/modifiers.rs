@@ -1,5 +1,6 @@
 use crate::*;
 use accesskit::Role;
+use tao::event::MouseButton;
 
 pub trait Modifiers: View + Sized {
     /// Adds space around a view. Can be either `Auto` or `Px(number_of_pixels)`
@@ -16,7 +17,9 @@ pub trait Modifiers: View + Sized {
     fn geom<F: Fn(&mut Context, LocalSize) + 'static>(self, f: F) -> Geom<Self, F>;
 
     /// Calls a function in response to a drag.
-    fn drag<F: Fn(&mut Context, LocalOffset, GestureState, ModifiersState) + 'static>(
+    fn drag<
+        F: Fn(&mut Context, LocalOffset, GestureState, ModifiersState, Option<MouseButton>) + 'static,
+    >(
         self,
         f: F,
     ) -> Drag<Self, F>;
@@ -64,7 +67,9 @@ impl<V: View> Modifiers for V {
     fn geom<F: Fn(&mut Context, LocalSize) + 'static>(self, f: F) -> Geom<Self, F> {
         Geom::new(self, f)
     }
-    fn drag<F: Fn(&mut Context, LocalOffset, GestureState, ModifiersState) + 'static>(
+    fn drag<
+        F: Fn(&mut Context, LocalOffset, GestureState, ModifiersState, Option<MouseButton>) + 'static,
+    >(
         self,
         f: F,
     ) -> Drag<Self, F> {

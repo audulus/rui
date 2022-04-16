@@ -497,11 +497,12 @@ pub fn rui(view: impl View) {
                 frame.present();
             }
             tao::event::Event::WindowEvent {
-                event: WindowEvent::MouseInput { state, .. },
+                event: WindowEvent::MouseInput { state, button, .. },
                 ..
             } => {
                 match state {
                     ElementState::Pressed => {
+                        cx.mouse_button = Some(button);
                         let event = Event {
                             kind: EventKind::TouchBegin { id: 0 },
                             position: mouse_position,
@@ -509,6 +510,7 @@ pub fn rui(view: impl View) {
                         view.process(&event, cx.root_id, &mut cx, &mut vger)
                     }
                     ElementState::Released => {
+                        cx.mouse_button = None;
                         let event = Event {
                             kind: EventKind::TouchEnd { id: 0 },
                             position: mouse_position,
