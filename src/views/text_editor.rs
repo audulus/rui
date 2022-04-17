@@ -133,64 +133,40 @@ impl TextEditorState {
     }
 }
 
-/// Struct for `text_editor`.
-pub struct TextEditor<B> {
-    text_binding: B,
-}
+pub fn text_editor(text: impl Binding<String>) -> impl View {
+    focus(move |has_focus| {
+        state(TextEditorState::new, move |state, cx| {
+            let cursor = cx[state].cursor;
+            canvas(move |cx, rect, vger| {
+                vger.translate([0.0, rect.height()]);
+                let font_size = 18;
+                let break_width = Some(rect.width());
 
-impl<B> TextEditor<B>
-where
-    B: Binding<String>,
-{
-    fn body(&self) -> impl View {
-        let text = self.text_binding;
-        focus(move |has_focus| {
-            state(TextEditorState::new, move |state, cx| {
-                let cursor = cx[state].cursor;
-                canvas(move |cx, rect, vger| {
-                    vger.translate([0.0, rect.height()]);
-                    let font_size = 18;
-                    let break_width = Some(rect.width());
+                let rects = vger.glyph_positions(text.get(cx), font_size, break_width);
+                let lines = vger.line_metrics(text.get(cx), font_size, break_width);
 
-                    let rects = vger.glyph_positions(text.get(cx), font_size, break_width);
-                    let lines = vger.line_metrics(text.get(cx), font_size, break_width);
+                vger.text(text.get(cx), font_size, TEXT_COLOR, break_width);
 
-                    vger.text(text.get(cx), font_size, TEXT_COLOR, break_width);
+                if has_focus {
+                    let glyph_rect_paint = vger.color_paint(vger::Color::MAGENTA);
+                    let r = rects[cursor];
+                    vger.fill_rect(
+                        LocalRect::new(r.origin, [2.0, 20.0].into()),
+                        0.0,
+                        glyph_rect_paint,
+                    );
+                }
 
-                    if has_focus {
-                        let glyph_rect_paint = vger.color_paint(vger::Color::MAGENTA);
-                        let r = rects[cursor];
-                        vger.fill_rect(
-                            LocalRect::new(r.origin, [2.0, 20.0].into()),
-                            0.0,
-                            glyph_rect_paint,
-                        );
-                    }
-
-                    cx[state].glyph_rects = rects;
-                    cx[state].lines = lines;
-                })
-                .key(move |cx, k, _| {
-                    if has_focus {
-                        let t = text.with(cx, |t| t.clone());
-                        let new_t = cx[state].key(&k, t);
-                        text.with_mut(cx, |t| *t = new_t);
-                    }
-                })
+                cx[state].glyph_rects = rects;
+                cx[state].lines = lines;
+            })
+            .key(move |cx, k, _| {
+                if has_focus {
+                    let t = text.with(cx, |t| t.clone());
+                    let new_t = cx[state].key(&k, t);
+                    text.with_mut(cx, |t| *t = new_t);
+                }
             })
         })
-    }
-}
-
-impl<B> View for TextEditor<B>
-where
-    B: Binding<String>,
-{
-    body_view!();
-}
-
-impl<B> private::Sealed for TextEditor<B> {}
-
-pub fn text_editor(text: impl Binding<String>) -> impl View {
-    TextEditor { text_binding: text }
+    })
 }
