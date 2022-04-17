@@ -34,8 +34,8 @@ impl<V: View> MyMods for SetenvView<V, MyControlType> {
 fn main() {
     rui( 
         vstack((
-            my_control(),
-            my_control().agro()
+            my_control().padding(Auto),
+            my_control().agro().padding(Auto)
         ))
     )
 }
