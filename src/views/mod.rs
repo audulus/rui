@@ -24,6 +24,8 @@ mod knob;
 pub use knob::*;
 mod list;
 pub use list::*;
+mod modview;
+pub use modview::*;
 mod offset;
 pub use offset::*;
 mod padding;
