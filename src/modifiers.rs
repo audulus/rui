@@ -81,7 +81,7 @@ pub trait Modifiers: View + Sized {
 
     /// Add an environment value.
     fn env<E: Clone + 'static>(self, value: E) -> SetenvView<Self, E> {
-        SetenvView::new(self, Some(value))
+        SetenvView::new(self, value)
     }
 }
 
