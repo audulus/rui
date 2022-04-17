@@ -24,9 +24,6 @@ pub use paint::*;
 mod modifiers;
 pub use modifiers::*;
 
-mod body;
-pub use body::*;
-
 mod colors;
 pub use colors::*;
 
