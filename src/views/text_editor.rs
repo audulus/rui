@@ -151,9 +151,7 @@ pub fn text_editor(text: impl Binding<String>) -> impl View {
                     let glyph_rect_paint = vger.color_paint(vger::Color::MAGENTA);
                     let p = if cursor == rects.len() {
                         if let Some(r) = rects.last() {
-                            let mut p = r.origin;
-                            p.x += r.size.width;
-                            p
+                            [r.origin.x + r.size.width, r.origin.y].into()
                         } else {
                             [0.0, -20.0].into()
                         }
