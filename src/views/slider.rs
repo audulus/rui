@@ -3,19 +3,24 @@ use crate::*;
 const SLIDER_WIDTH: f32 = 4.0;
 const SLIDER_THUMB_RADIUS: f32 = 10.0;
 
-pub struct HSlider<B> {
-    binding: B,
-    thumb: Color,
+#[derive(Clone, Copy)]
+pub struct SliderOptions {
+    thumb: Color
 }
 
-impl<B: Binding<f32>> View for HSlider<B> {
-    body_view!();
+impl Default for SliderOptions {
+    fn default() -> Self {
+        Self{ thumb: AZURE_HIGHLIGHT }
+    }
 }
 
-impl<B: Binding<f32>> HSlider<B> {
-    fn body(&self) -> impl View {
-        let value = self.binding;
-        let thumb_color = self.thumb;
+pub trait SliderMods: View + Sized {
+    fn thumb_color(self, color: Color) -> Self;
+}
+
+/// Horizontal slider built from other Views.
+pub fn hslider(value: impl Binding<f32>) -> impl SliderMods {
+    modview(move |opts: SliderOptions, _|
         state(
             || 0.0,
             move |width, cx| {
@@ -36,7 +41,7 @@ impl<B: Binding<f32>> HSlider<B> {
                         0.0,
                         paint,
                     );
-                    let paint = vger.color_paint(thumb_color);
+                    let paint = vger.color_paint(opts.thumb);
                     vger.fill_circle([x, c.y], SLIDER_THUMB_RADIUS, paint);
                 })
                 .geom(move |cx, sz| {
@@ -50,23 +55,15 @@ impl<B: Binding<f32>> HSlider<B> {
             },
         )
         .role(accesskit::Role::Slider)
-    }
-
-    pub fn thumb_color(self, thumb_color: Color) -> Self {
-        Self {
-            binding: self.binding,
-            thumb: thumb_color,
-        }
-    }
+    )
 }
 
-impl<B> private::Sealed for HSlider<B> {}
-
-/// Horizontal slider built from other Views.
-pub fn hslider(value: impl Binding<f32>) -> HSlider<impl Binding<f32>> {
-    HSlider {
-        binding: value,
-        thumb: AZURE_HIGHLIGHT,
+impl<F> SliderMods for ModView<SliderOptions, F> where ModView<SliderOptions, F>: View
+{
+    fn thumb_color(self, color: Color) -> Self {
+        let mut opts = self.value;
+        opts.thumb = color;
+        ModView { func: self.func, value: opts }
     }
 }
 
