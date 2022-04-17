@@ -6,6 +6,9 @@ pub use view::*;
 mod viewid;
 pub use viewid::*;
 
+mod viewtuple;
+pub use viewtuple::*;
+
 mod event;
 pub use event::*;
 
