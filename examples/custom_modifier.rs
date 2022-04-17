@@ -13,21 +13,21 @@ impl Default for MyControlType {
 }
 
 trait MyMods: View + Sized {
-    fn agro(self) -> ModView<AnyView, MyControlType>;
+    fn agro(self) -> SetenvView<Self, MyControlType>;
 }
 
 fn my_control() -> impl MyMods {
-    modview(env(|t, _| {
+    env(|t, _| {
         circle().color( match t {
             MyControlType::Chill => AZURE_HIGHLIGHT,
             MyControlType::Agro => RED_HIGHLIGHT
         })
-    }))
+    }).env_mod::<MyControlType>()
 }
 
-impl<V: View> MyMods for ModView<V, MyControlType> {
-    fn agro(self) -> ModView<AnyView, MyControlType> {
-        modview(any_view(self.env(MyControlType::Agro)))
+impl<V: View> MyMods for SetenvView<V, MyControlType> {
+    fn agro(self) -> SetenvView<Self, MyControlType> {
+        self.env(MyControlType::Agro)
     }
 }
 
