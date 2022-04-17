@@ -67,27 +67,12 @@ impl<F> SliderMods for ModView<SliderOptions, F> where ModView<SliderOptions, F>
     }
 }
 
-pub struct VSlider<F> {
+/// Horizontal slider built from other Views.
+pub fn vslider(
     value: f32,
-    set_value: F,
-    thumb: Color,
-}
-
-impl<F> View for VSlider<F>
-where
-    F: Fn(&mut Context, f32) + 'static + Copy,
-{
-    body_view!();
-}
-
-impl<F> VSlider<F>
-where
-    F: Fn(&mut Context, f32) + 'static + Copy,
-{
-    fn body(&self) -> impl View {
-        let value = self.value;
-        let thumb_color = self.thumb;
-        let set_value = self.set_value;
+    set_value: impl Fn(&mut Context, f32) + 'static + Copy,
+) -> impl SliderMods {
+    modview(move |opts: SliderOptions, _|
         state(
             || 0.0,
             move |height, cx| {
@@ -102,7 +87,7 @@ where
                         0.0,
                         paint,
                     );
-                    let paint = vger.color_paint(thumb_color);
+                    let paint = vger.color_paint(opts.thumb);
                     vger.fill_circle([c.x, y], SLIDER_THUMB_RADIUS, paint);
                 })
                 .geom(move |cx, sz| {
@@ -115,27 +100,5 @@ where
                 })
             },
         )
-    }
-
-    pub fn thumb_color(self, thumb_color: Color) -> Self {
-        Self {
-            value: self.value,
-            set_value: self.set_value,
-            thumb: thumb_color,
-        }
-    }
-}
-
-impl<B> private::Sealed for VSlider<B> {}
-
-/// Horizontal slider built from other Views.
-pub fn vslider(
-    value: f32,
-    set_value: impl Fn(&mut Context, f32) + 'static + Copy,
-) -> VSlider<impl Fn(&mut Context, f32) + 'static + Copy> {
-    VSlider {
-        value,
-        set_value,
-        thumb: AZURE_HIGHLIGHT,
-    }
+    )
 }
