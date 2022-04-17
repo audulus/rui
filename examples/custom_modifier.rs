@@ -25,10 +25,7 @@ fn my_control() -> impl MyMods {
     })
 }
 
-impl<V, F> MyMods for ModView<MyControlType, F>
-where
-    V: View,
-    F: Fn(&MyControlType, &mut Context) -> V + 'static,
+impl<F> MyMods for ModView<MyControlType, F> where ModView<MyControlType, F>: View
 {
     fn agro(self) -> Self {
         ModView { func: self.func, value: MyControlType::Agro }
