@@ -67,7 +67,7 @@ impl<F> SliderMods for ModView<SliderOptions, F> where ModView<SliderOptions, F>
     }
 }
 
-/// Horizontal slider built from other Views.
+/// Vertical slider built from other Views.
 pub fn vslider(
     value: f32,
     set_value: impl Fn(&mut Context, f32) + 'static + Copy,
