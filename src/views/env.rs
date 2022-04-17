@@ -25,7 +25,8 @@ where
     }
 
     fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
-        let child_size = (self.func)(cx.init_env(&S::default), cx).layout(id.child(&0), sz, cx, vger);
+        let child_size =
+            (self.func)(cx.init_env(&S::default), cx).layout(id.child(&0), sz, cx, vger);
 
         cx.layout.insert(
             id,
@@ -80,17 +81,13 @@ where
 impl<S, V, F> private::Sealed for EnvView<S, V, F> {}
 
 /// Reads from the environment.
-pub fn env<
-    S: Clone + Default + 'static,
-    V: View,
-    F: Fn(S, &mut Context) -> V + 'static,
->(
+pub fn env<S: Clone + Default + 'static, V: View, F: Fn(S, &mut Context) -> V + 'static>(
     f: F,
 ) -> impl View {
     EnvView {
         func: f,
         phantom_s: Default::default(),
-        phantom_v: Default::default()
+        phantom_v: Default::default(),
     }
 }
 
@@ -103,7 +100,7 @@ pub struct SetenvView<V, E> {
 impl<V, E> SetenvView<V, E>
 where
     V: View,
-    E: Clone + 'static
+    E: Clone + 'static,
 {
     pub fn new(child: V, env_val: Option<E>) -> Self {
         Self { child, env_val }
@@ -113,7 +110,7 @@ where
 impl<V, E> View for SetenvView<V, E>
 where
     V: View,
-    E: Clone + 'static
+    E: Clone + 'static,
 {
     fn print(&self, id: ViewId, cx: &mut Context) {
         if let Some(v) = &self.env_val {

@@ -5,12 +5,14 @@ const SLIDER_THUMB_RADIUS: f32 = 10.0;
 
 #[derive(Clone, Copy)]
 pub struct SliderOptions {
-    thumb: Color
+    thumb: Color,
 }
 
 impl Default for SliderOptions {
     fn default() -> Self {
-        Self{ thumb: AZURE_HIGHLIGHT }
+        Self {
+            thumb: AZURE_HIGHLIGHT,
+        }
     }
 }
 
@@ -20,7 +22,7 @@ pub trait SliderMods: View + Sized {
 
 /// Horizontal slider built from other Views.
 pub fn hslider(value: impl Binding<f32>) -> impl SliderMods {
-    modview(move |opts: SliderOptions, _|
+    modview(move |opts: SliderOptions, _| {
         state(
             || 0.0,
             move |width, cx| {
@@ -55,15 +57,20 @@ pub fn hslider(value: impl Binding<f32>) -> impl SliderMods {
             },
         )
         .role(accesskit::Role::Slider)
-    )
+    })
 }
 
-impl<F> SliderMods for ModView<SliderOptions, F> where ModView<SliderOptions, F>: View
+impl<F> SliderMods for ModView<SliderOptions, F>
+where
+    ModView<SliderOptions, F>: View,
 {
     fn thumb_color(self, color: Color) -> Self {
         let mut opts = self.value;
         opts.thumb = color;
-        ModView { func: self.func, value: opts }
+        ModView {
+            func: self.func,
+            value: opts,
+        }
     }
 }
 
@@ -72,7 +79,7 @@ pub fn vslider(
     value: f32,
     set_value: impl Fn(&mut Context, f32) + 'static + Copy,
 ) -> impl SliderMods {
-    modview(move |opts: SliderOptions, _|
+    modview(move |opts: SliderOptions, _| {
         state(
             || 0.0,
             move |height, cx| {
@@ -100,5 +107,5 @@ pub fn vslider(
                 })
             },
         )
-    )
+    })
 }

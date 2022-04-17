@@ -40,12 +40,8 @@ where
         cx: &mut Context,
         region: &mut Region<WorldSpace>,
     ) {
-        self.child.dirty(
-            id.child(&0),
-            xform.pre_translate(self.offset),
-            cx,
-            region,
-        );
+        self.child
+            .dirty(id.child(&0), xform.pre_translate(self.offset), cx, region);
     }
 
     fn hittest(

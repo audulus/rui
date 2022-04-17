@@ -3,7 +3,7 @@ use rui::*;
 #[derive(Clone, Copy)]
 enum MyControlType {
     Chill,
-    Agro
+    Agro,
 }
 
 impl Default for MyControlType {
@@ -14,18 +14,16 @@ impl Default for MyControlType {
 
 fn my_control() -> impl View {
     env(|t, _| {
-        circle().color( match t {
+        circle().color(match t {
             MyControlType::Chill => AZURE_HIGHLIGHT,
-            MyControlType::Agro => RED_HIGHLIGHT
+            MyControlType::Agro => RED_HIGHLIGHT,
         })
     })
 }
 
 fn main() {
-    rui( 
-        vstack((
-            my_control(),
-            my_control().env(MyControlType::Agro)
-        ))
-    )
+    rui(vstack((
+        my_control(),
+        my_control().env(MyControlType::Agro),
+    )))
 }

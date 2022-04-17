@@ -51,6 +51,7 @@ pub trait View: private::Sealed + 'static {
         _id: ViewId,
         _cx: &mut Context,
         _nodes: &mut Vec<accesskit::Node>,
-    ) -> Option<accesskit::NodeId> { None }
+    ) -> Option<accesskit::NodeId> {
+        None
+    }
 }
-

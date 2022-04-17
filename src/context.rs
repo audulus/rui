@@ -1,10 +1,10 @@
 use crate::*;
 use euclid::*;
 use std::any::Any;
+use std::any::TypeId;
 use std::collections::HashMap;
 use std::ops;
 use tao::event::MouseButton;
-use std::any::TypeId;
 
 pub type LocalSpace = vger::defs::LocalSpace;
 pub type WorldSpace = vger::defs::WorldSpace;
@@ -98,7 +98,7 @@ impl Context {
             state_map: HashMap::new(),
             dirty: false,
             enable_dirty: true,
-            env: HashMap::new()
+            env: HashMap::new(),
         }
     }
 
@@ -123,12 +123,20 @@ impl Context {
     }
 
     pub(crate) fn init_env<S: Clone + 'static, D: Fn() -> S + 'static>(&mut self, func: &D) -> S {
-        self.env.entry(TypeId::of::<S>()).or_insert_with(|| Box::new((func)())).downcast_ref::<S>().unwrap().clone()
+        self.env
+            .entry(TypeId::of::<S>())
+            .or_insert_with(|| Box::new((func)()))
+            .downcast_ref::<S>()
+            .unwrap()
+            .clone()
     }
 
     pub(crate) fn set_env<S: Clone + 'static>(&mut self, value: &S) -> Option<S> {
         let typeid = TypeId::of::<S>();
-        let old_value = self.env.get(&typeid).map(|b| b.downcast_ref::<S>().unwrap().clone());
+        let old_value = self
+            .env
+            .get(&typeid)
+            .map(|b| b.downcast_ref::<S>().unwrap().clone());
         self.env.insert(typeid, Box::new(value.clone()));
         old_value
     }
