@@ -149,24 +149,22 @@ pub fn text_editor(text: impl Binding<String>) -> impl View {
 
                 if has_focus {
                     let glyph_rect_paint = vger.color_paint(vger::Color::MAGENTA);
-                    if cursor == rects.len() {
+                    let p = if cursor == rects.len() {
                         if let Some(r) = rects.last() {
                             let mut p = r.origin;
                             p.x += r.size.width;
-                            vger.fill_rect(
-                                LocalRect::new(p, [2.0, 20.0].into()),
-                                0.0,
-                                glyph_rect_paint,
-                            );
+                            p
+                        } else {
+                            [0.0, -20.0].into()
                         }
                     } else {
-                        let r = rects[cursor];
-                        vger.fill_rect(
-                            LocalRect::new(r.origin, [2.0, 20.0].into()),
-                            0.0,
-                            glyph_rect_paint,
-                        );
-                    }
+                        rects[cursor].origin
+                    };
+                    vger.fill_rect(
+                        LocalRect::new(p, [2.0, 20.0].into()),
+                        0.0,
+                        glyph_rect_paint,
+                    );
                 }
 
                 cx[state].glyph_rects = rects;
