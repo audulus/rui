@@ -20,7 +20,7 @@ where
         }
     }
 
-    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut VGER) {
+    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger) {
         if self.cond {
             self.if_true.process(event, id.child(&0), cx, vger)
         } else {
@@ -28,7 +28,7 @@ where
         }
     }
 
-    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut VGER) {
+    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {
         if self.cond {
             self.if_true.draw(id.child(&0), cx, vger)
         } else {
@@ -36,7 +36,7 @@ where
         }
     }
 
-    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
+    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {
         if self.cond {
             self.if_true.layout(id.child(&0), sz, cx, vger)
         } else {
@@ -49,7 +49,7 @@ where
         id: ViewId,
         pt: LocalPoint,
         cx: &mut Context,
-        vger: &mut VGER,
+        vger: &mut Vger,
     ) -> Option<ViewId> {
         if self.cond {
             self.if_true.hittest(id.child(&0), pt, cx, vger)

@@ -29,15 +29,15 @@ impl View for AnyView {
         println!("}}");
     }
 
-    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut VGER) {
+    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger) {
         self.child.process(event, id.child(&self.id()), cx, vger);
     }
 
-    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut VGER) {
+    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {
         self.child.draw(id.child(&self.id()), cx, vger);
     }
 
-    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
+    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {
         self.child.layout(id.child(&self.id()), sz, cx, vger)
     }
 
@@ -56,7 +56,7 @@ impl View for AnyView {
         id: ViewId,
         pt: LocalPoint,
         cx: &mut Context,
-        vger: &mut VGER,
+        vger: &mut Vger,
     ) -> Option<ViewId> {
         self.child.hittest(id.child(&self.id()), pt, cx, vger)
     }

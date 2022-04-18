@@ -249,7 +249,7 @@ pub fn rui(view: impl View) {
 
     *GLOBAL_EVENT_LOOP_PROXY.lock().unwrap() = Some(event_loop.create_proxy());
 
-    let mut vger = VGER::new(&device, wgpu::TextureFormat::Bgra8UnormSrgb);
+    let mut vger = Vger::new(&device, wgpu::TextureFormat::Bgra8UnormSrgb);
     let mut cx = Context::new(Some(window));
     let mut mouse_position = LocalPoint::zero();
 

@@ -82,17 +82,17 @@ where
         (self.func)(State::new(id), cx).print(id.child(&0), cx);
     }
 
-    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut VGER) {
+    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger) {
         cx.init_state(id, &self.default);
         (self.func)(State::new(id), cx).process(event, id.child(&0), cx, vger);
     }
 
-    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut VGER) {
+    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {
         cx.init_state(id, &self.default);
         (self.func)(State::new(id), cx).draw(id.child(&0), cx, vger);
     }
 
-    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
+    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {
         cx.init_state(id, &self.default);
 
         let child_size = (self.func)(State::new(id), cx).layout(id.child(&0), sz, cx, vger);
@@ -142,7 +142,7 @@ where
         id: ViewId,
         pt: LocalPoint,
         cx: &mut Context,
-        vger: &mut VGER,
+        vger: &mut Vger,
     ) -> Option<ViewId> {
         cx.init_state(id, &self.default);
         (self.func)(State::new(id), cx).hittest(id.child(&0), pt, cx, vger)

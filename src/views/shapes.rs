@@ -24,14 +24,14 @@ impl View for Circle {
         println!("circle");
     }
 
-    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut VGER) {
+    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {
         let (center, radius) = self.geom(id, cx);
 
         let paint = self.paint.vger_paint(vger);
         vger.fill_circle(center, radius, paint);
     }
 
-    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, _vger: &mut VGER) -> LocalSize {
+    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, _vger: &mut Vger) -> LocalSize {
         cx.layout.insert(
             id,
             LayoutBox {
@@ -47,7 +47,7 @@ impl View for Circle {
         id: ViewId,
         pt: LocalPoint,
         cx: &mut Context,
-        _vger: &mut VGER,
+        _vger: &mut Vger,
     ) -> Option<ViewId> {
         let (center, radius) = self.geom(id, cx);
 
@@ -101,14 +101,14 @@ impl View for Rectangle {
         println!("rectangle");
     }
 
-    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut VGER) {
+    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {
         let rect = self.geom(id, cx);
 
         let paint = self.paint.vger_paint(vger);
         vger.fill_rect(rect, self.corner_radius, paint);
     }
 
-    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, _vger: &mut VGER) -> LocalSize {
+    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, _vger: &mut Vger) -> LocalSize {
         cx.layout.insert(
             id,
             LayoutBox {
@@ -124,7 +124,7 @@ impl View for Rectangle {
         id: ViewId,
         pt: LocalPoint,
         cx: &mut Context,
-        _vger: &mut VGER,
+        _vger: &mut Vger,
     ) -> Option<ViewId> {
         let rect = self.geom(id, cx);
 

@@ -16,20 +16,20 @@ where
         println!("}}");
     }
 
-    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut VGER) {
+    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger) {
         let mut local_event = event.clone();
         local_event.position -= LocalOffset::new(self.padding, self.padding);
         self.child.process(&local_event, id.child(&0), cx, vger);
     }
 
-    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut VGER) {
+    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {
         vger.save();
         vger.translate([self.padding, self.padding]);
         self.child.draw(id.child(&0), cx, vger);
         vger.restore();
     }
 
-    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
+    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {
         let child_size = self.child.layout(
             id.child(&0),
             sz - [2.0 * self.padding, 2.0 * self.padding].into(),
@@ -59,7 +59,7 @@ where
         id: ViewId,
         pt: LocalPoint,
         cx: &mut Context,
-        vger: &mut VGER,
+        vger: &mut Vger,
     ) -> Option<ViewId> {
         self.child.hittest(
             id.child(&0),
