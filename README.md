@@ -150,7 +150,7 @@ In the long term, I'd like to move Audulus over to Rust. After looking at other 
 - ✅ editable text (still a bit rough)
 - ✅ any_view (view type erasure)
 - ❌ layout feedback
-- ❌ animation
+- ✅ animation
 
 ## References
 
