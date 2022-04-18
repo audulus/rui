@@ -5,6 +5,16 @@ pub struct AnimView<V, F> {
     func: F,
 }
 
+impl<V, F> AnimView<V, F>
+where
+    V: View,
+    F: Fn(&mut Context, f32) + 'static,
+{
+    pub fn new(child: V, func: F) -> Self {
+        Self { child, func }
+    }
+}
+
 impl<V, F> View for AnimView<V, F>
 where
     V: View,

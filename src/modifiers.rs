@@ -83,6 +83,11 @@ pub trait Modifiers: View + Sized {
     fn env<E: Clone + 'static>(self, value: E) -> SetenvView<Self, E> {
         SetenvView::new(self, value)
     }
+
+    /// Calls a closure after rendering with context and delta time.
+    fn anim<F: Fn(&mut Context, f32) + 'static>(self, func: F) -> AnimView<Self, F> {
+        AnimView::new(self, func)
+    }
 }
 
 impl<V: View> Modifiers for V {}
