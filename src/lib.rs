@@ -314,6 +314,14 @@ pub fn rui(view: impl View) {
                 // You only need to call this if you've determined that you need to redraw, in
                 // applications which do not always need to. Applications that redraw continuously
                 // can just render here instead.
+
+                // Run any animations.
+                let event = Event {
+                    kind: EventKind::Anim,
+                    position: mouse_position,
+                };
+                view.process(&event, cx.root_id, &mut cx, &mut vger);
+
                 if cx.dirty {
                     // Have the commands changed?
                     let mut new_commands = Vec::new();
@@ -352,6 +360,13 @@ pub fn rui(view: impl View) {
                     } else {
                         // println!("access nodes unchanged");
                     }
+
+                    // XXX: we're doing layout both here and in rendering.
+                    let window_size = cx.window.as_ref().unwrap().inner_size();
+                    let scale = cx.window.as_ref().unwrap().scale_factor() as f32;
+                    let width = window_size.width as f32 / scale;
+                    let height = window_size.height as f32 / scale;
+                    view.layout(cx.root_id, [width, height].into(), &mut cx, &mut vger);
 
                     // Get dirty rectangles.
                     view.dirty(
