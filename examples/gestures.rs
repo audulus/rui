@@ -12,15 +12,14 @@ fn main() {
                 .corner_radius(5.0)
                 .color(AZURE_HIGHLIGHT.alpha(0.8))
                 .offset(cx[anim_off])
-                .drag(move |cx, delta, state, _key_mods, mouse_button| {
-                    println!("mouse button {:?}", mouse_button);
+                .drag(move |cx, delta, state, _, _| {
                     cx[off] += delta;
                     cx[anim_off] = cx[off];
                     if state == GestureState::Ended {
                         cx[off] = LocalOffset::zero();
                     }
                 })
-                .anim(move |cx, dt| {
+                .anim(move |cx, _dt| {
                     cx[anim_off] = cx[anim_off].lerp(cx[off], 0.05);
                 })
                 .padding(Auto)
