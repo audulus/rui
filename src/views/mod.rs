@@ -1,3 +1,5 @@
+mod anim;
+pub use anim::*;
 mod anyview;
 pub use anyview::*;
 mod background;
