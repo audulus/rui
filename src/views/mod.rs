@@ -40,6 +40,8 @@ mod size;
 pub use size::*;
 mod slider;
 pub use slider::*;
+mod spacer;
+pub use spacer::*;
 mod stack;
 pub use stack::*;
 mod state;

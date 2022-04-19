@@ -54,4 +54,7 @@ pub trait View: private::Sealed + 'static {
     ) -> Option<accesskit::NodeId> {
         None
     }
+
+    /// For detecting spacers.
+    fn is_spacer(&self) -> bool { false }
 }
