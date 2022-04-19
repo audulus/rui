@@ -7,6 +7,13 @@ pub trait ViewTuple {
     fn is_empty(&self) -> bool {
         false
     } // satisfy clippy
+
+    /// Returns the number of spacers in the ViewTuple
+    fn spacer_count(&self) -> usize {
+        let mut n = 0;
+        self.foreach_view(&mut |v| if v.is_spacer() { n += 1});
+        n
+    }
 }
 
 macro_rules! impl_view_tuple {
