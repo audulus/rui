@@ -6,6 +6,42 @@ pub enum StackOrientation {
     Z,
 }
 
+enum StackSize {
+    Fixed(f32),
+    Spacer
+}
+
+/// 1-D stack layout to make the algorithm clear.
+fn stack_layout(total: f32, sizes: &[StackSize], intervals: &mut [(f32, f32)]) {
+
+    // Count the number of spacers.
+    let spacers = sizes.into_iter().filter(|x| match x { StackSize::Spacer => true, _ => false }).count();
+
+    // Count number of sizes.
+    let sizes_sum: f32 = sizes.into_iter().map(|x| match x { StackSize::Spacer => 0.0 as f32, StackSize::Fixed(s) => *s }).sum();
+
+    // length of spacer is remaining size divided equally
+    let spacer_length = (total - sizes_sum) / (spacers as f32);
+
+    let mut x = 0.0;
+    for i in 0..sizes.len() {
+        let sz = match sizes[i] {
+            StackSize::Spacer => spacer_length,
+            StackSize::Fixed(s) => {
+                if spacers != 0 {
+                    s
+                } else {
+                    total / (sizes.len() as f32)
+                }
+            }  
+        };
+
+        intervals[i] = (x, x+sz);
+        x += sz;
+    }
+
+}
+
 struct Stack<VT> {
     orientation: StackOrientation,
     children: VT,
