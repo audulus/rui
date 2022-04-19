@@ -20,7 +20,13 @@ fn main() {
                     }
                 })
                 .anim(move |cx, _dt| {
-                    cx[anim_off] = cx[anim_off].lerp(cx[off], 0.05);
+                    if cx[anim_off] != cx[off] {
+                        if (cx[anim_off] - cx[off]).length() < 0.01 {
+                            cx[anim_off] = cx[off];
+                        } else {
+                            cx[anim_off] = cx[anim_off].lerp(cx[off], 0.05);
+                        }
+                    }
                 })
                 .padding(Auto)
             })
