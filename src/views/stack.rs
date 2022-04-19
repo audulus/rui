@@ -8,12 +8,11 @@ pub enum StackOrientation {
 
 pub enum StackSize {
     Fixed(f32),
-    Spacer
+    Spacer,
 }
 
 /// 1-D stack layout to make the algorithm clear.
 pub fn stack_layout(total: f32, sizes: &[StackSize], intervals: &mut [(f32, f32)]) {
-
     // Count the number of spacers and total of fixed sizes.
     let mut spacers = 0;
     let mut sizes_sum = 0.0;
@@ -37,13 +36,12 @@ pub fn stack_layout(total: f32, sizes: &[StackSize], intervals: &mut [(f32, f32)
                 } else {
                     total / (sizes.len() as f32)
                 }
-            }  
+            }
         };
 
-        intervals[i] = (x, x+sz);
+        intervals[i] = (x, x + sz);
         x += sz;
     }
-
 }
 
 struct Stack<VT> {
@@ -114,8 +112,14 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
                 let mut child_sizes = [None; 10];
                 self.layout_children2(id, proposed_child_size, cx, vger, &mut child_sizes);
 
-                let child_sizes_1d = child_sizes.map(|x| if let Some(s) = x { StackSize::Fixed(s.width) } else { StackSize::Spacer });
-                let mut intervals = [(0.0,0.0); 10];
+                let child_sizes_1d = child_sizes.map(|x| {
+                    if let Some(s) = x {
+                        StackSize::Fixed(s.width)
+                    } else {
+                        StackSize::Spacer
+                    }
+                });
+                let mut intervals = [(0.0, 0.0); 10];
                 let n = self.children.len();
                 stack_layout(sz.width, &child_sizes_1d[0..n], &mut intervals[0..n]);
 
@@ -123,8 +127,15 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
                     let child_id = id.child(&c);
                     let ab = intervals[c as usize];
 
-                    let child_offset =  align_h(
-                        LocalRect::new(LocalPoint::origin(), if let Some(sz) = child_sizes[c as usize] { sz } else { LocalSize::zero() } ),
+                    let child_offset = align_h(
+                        LocalRect::new(
+                            LocalPoint::origin(),
+                            if let Some(sz) = child_sizes[c as usize] {
+                                sz
+                            } else {
+                                LocalSize::zero()
+                            },
+                        ),
                         LocalRect::new([ab.0, 0.0].into(), [ab.1 - ab.0, sz.height].into()),
                         HAlignment::Center,
                     );
@@ -140,7 +151,10 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
 
                 let mut child_sizes = [LocalSize::zero(); 10];
                 self.layout_children(id, proposed_child_size, cx, vger, &mut child_sizes);
-                let total_children_height: f32 = child_sizes[0..self.children.len()].iter().map(|x| x.height).sum();
+                let total_children_height: f32 = child_sizes[0..self.children.len()]
+                    .iter()
+                    .map(|x| x.height)
+                    .sum();
 
                 let spacer_height = (sz.height - total_children_height) / (spacers as f32);
 
@@ -151,7 +165,7 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
 
                     let child_offset = align_v(
                         LocalRect::new(LocalPoint::origin(), child_sizes[c as usize]),
-                        if spacers > 0 { 
+                        if spacers > 0 {
                             LocalRect::new(
                                 [0.0, y - child_sizes[c as usize].height].into(),
                                 [sz.width, child_sizes[c as usize].height].into(),
@@ -162,7 +176,7 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
                                 proposed_child_size,
                             )
                         },
-                        VAlignment::Middle
+                        VAlignment::Middle,
                     );
 
                     cx.layout.entry(child_id).or_default().offset = child_offset;
@@ -276,13 +290,14 @@ impl<VT: ViewTuple> Stack<VT> {
         }
     }
 
-    pub fn layout_children(&self,
+    pub fn layout_children(
+        &self,
         id: ViewId,
         proposed_child_size: LocalSize,
         cx: &mut Context,
         vger: &mut VGER,
-        child_sizes: &mut [LocalSize]) {
-
+        child_sizes: &mut [LocalSize],
+    ) {
         let mut c: i32 = 0;
         self.children.foreach_view(&mut |child| {
             let child_id = id.child(&c);
@@ -291,13 +306,14 @@ impl<VT: ViewTuple> Stack<VT> {
         });
     }
 
-    pub fn layout_children2(&self,
+    pub fn layout_children2(
+        &self,
         id: ViewId,
         proposed_child_size: LocalSize,
         cx: &mut Context,
         vger: &mut VGER,
-        child_sizes: &mut [Option<LocalSize>]) {
-
+        child_sizes: &mut [Option<LocalSize>],
+    ) {
         let mut c: i32 = 0;
         self.children.foreach_view(&mut |child| {
             let child_id = id.child(&c);
@@ -339,7 +355,7 @@ mod tests {
         use StackSize::Spacer;
         {
             let sizes = [Fixed(1.0), Fixed(1.0)];
-            let mut intervals = [(0.0,0.0), (0.0, 0.0)];
+            let mut intervals = [(0.0, 0.0), (0.0, 0.0)];
 
             stack_layout(4.0, &sizes, &mut intervals);
 
@@ -348,7 +364,7 @@ mod tests {
 
         {
             let sizes = [Fixed(1.0), Spacer, Fixed(1.0)];
-            let mut intervals = [(0.0,0.0), (0.0, 0.0), (0.0, 0.0)];
+            let mut intervals = [(0.0, 0.0), (0.0, 0.0), (0.0, 0.0)];
 
             stack_layout(4.0, &sizes, &mut intervals);
 
@@ -357,7 +373,7 @@ mod tests {
 
         {
             let sizes = [Fixed(1.0), Fixed(1.0), Spacer];
-            let mut intervals = [(0.0,0.0), (0.0, 0.0), (0.0, 0.0)];
+            let mut intervals = [(0.0, 0.0), (0.0, 0.0), (0.0, 0.0)];
 
             stack_layout(4.0, &sizes, &mut intervals);
 

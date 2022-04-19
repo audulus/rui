@@ -37,7 +37,9 @@ pub trait View: private::Sealed + 'static {
         _pt: LocalPoint,
         _cx: &mut Context,
         _vger: &mut VGER,
-    ) -> Option<ViewId> { None }
+    ) -> Option<ViewId> {
+        None
+    }
 
     /// Accumulates information about menu bar commands.
     fn commands(&self, _id: ViewId, _cx: &mut Context, _cmds: &mut Vec<CommandInfo>) {}
@@ -56,5 +58,7 @@ pub trait View: private::Sealed + 'static {
     }
 
     /// For detecting spacers.
-    fn is_spacer(&self) -> bool { false }
+    fn is_spacer(&self) -> bool {
+        false
+    }
 }

@@ -100,7 +100,7 @@ pub struct SetenvView<V, E> {
 impl<V, E> SetenvView<V, E>
 where
     V: View,
-    E: Clone + 'static
+    E: Clone + 'static,
 {
     pub fn new(child: V, env_val: E) -> Self {
         Self { child, env_val }
@@ -110,7 +110,7 @@ where
 impl<V, E> View for SetenvView<V, E>
 where
     V: View,
-    E: Clone + 'static
+    E: Clone + 'static,
 {
     fn print(&self, id: ViewId, cx: &mut Context) {
         let old = cx.set_env(&self.env_val);

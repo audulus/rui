@@ -17,11 +17,13 @@ impl View for Spacer {
         [0.0, 0.0].into()
     }
 
-    fn is_spacer(&self) -> bool { true }
+    fn is_spacer(&self) -> bool {
+        true
+    }
 }
 
 impl private::Sealed for Spacer {}
 
 pub fn spacer() -> Spacer {
-    Spacer{}
+    Spacer {}
 }

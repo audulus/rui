@@ -157,11 +157,7 @@ pub fn text_editor(text: impl Binding<String>) -> impl View {
                     } else {
                         rects[cursor].origin
                     };
-                    vger.fill_rect(
-                        LocalRect::new(p, [2.0, 20.0].into()),
-                        0.0,
-                        glyph_rect_paint,
-                    );
+                    vger.fill_rect(LocalRect::new(p, [2.0, 20.0].into()), 0.0, glyph_rect_paint);
 
                     cx[state].glyph_rects = rects;
                     cx[state].lines = lines;
