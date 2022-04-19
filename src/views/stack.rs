@@ -6,13 +6,13 @@ pub enum StackOrientation {
     Z,
 }
 
-enum StackSize {
+pub enum StackSize {
     Fixed(f32),
     Spacer
 }
 
 /// 1-D stack layout to make the algorithm clear.
-fn stack_layout(total: f32, sizes: &[StackSize], intervals: &mut [(f32, f32)]) {
+pub fn stack_layout(total: f32, sizes: &[StackSize], intervals: &mut [(f32, f32)]) {
 
     // Count the number of spacers and total of fixed sizes.
     let mut spacers = 0;
