@@ -112,7 +112,7 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
             StackOrientation::Horizontal => {
                 let proposed_child_size = LocalSize::new(sz.width / n, sz.height);
 
-                let mut child_sizes = [None; 10];
+                let mut child_sizes = [None; VIEW_TUPLE_MAX_ELEMENTS];
                 self.layout_children2(id, proposed_child_size, cx, vger, &mut child_sizes);
 
                 let child_sizes_1d = child_sizes.map(|x| {
@@ -122,7 +122,7 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
                         StackSize::Spacer
                     }
                 });
-                let mut intervals = [(0.0, 0.0); 10];
+                let mut intervals = [(0.0, 0.0); VIEW_TUPLE_MAX_ELEMENTS];
                 let n = self.children.len();
                 stack_layout(sz.width, &child_sizes_1d[0..n], &mut intervals[0..n]);
 
@@ -152,7 +152,7 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
                 let proposed_child_size = LocalSize::new(sz.width, sz.height / n);
                 let spacers = self.children.spacer_count();
 
-                let mut child_sizes = [LocalSize::zero(); 10];
+                let mut child_sizes = [LocalSize::zero(); VIEW_TUPLE_MAX_ELEMENTS];
                 self.layout_children(id, proposed_child_size, cx, vger, &mut child_sizes);
                 let total_children_height: f32 = child_sizes[0..self.children.len()]
                     .iter()

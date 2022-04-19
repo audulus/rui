@@ -34,6 +34,8 @@ macro_rules! impl_view_tuple {
     }
 }
 
+pub const VIEW_TUPLE_MAX_ELEMENTS: usize = 10;
+
 impl_view_tuple!(1; V0; 0);
 impl_view_tuple!(2; V0, V1; 0, 1);
 impl_view_tuple!(3; V0, V1, V2; 0, 1, 2);
