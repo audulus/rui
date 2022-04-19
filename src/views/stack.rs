@@ -13,6 +13,9 @@ pub enum StackSize {
 
 /// 1-D stack layout to make the algorithm clear.
 pub fn stack_layout(total: f32, sizes: &[StackSize], intervals: &mut [(f32, f32)]) {
+
+    assert_eq!(sizes.len(), intervals.len());
+
     // Count the number of spacers and total of fixed sizes.
     let mut spacers = 0;
     let mut sizes_sum = 0.0;
