@@ -37,7 +37,7 @@ pub trait View: private::Sealed + 'static {
         pt: LocalPoint,
         cx: &mut Context,
         vger: &mut VGER,
-    ) -> Option<ViewId>;
+    ) -> Option<ViewId> { None }
 
     /// Accumulates information about menu bar commands.
     fn commands(&self, _id: ViewId, _cx: &mut Context, _cmds: &mut Vec<CommandInfo>) {}

@@ -16,15 +16,6 @@ impl View for Spacer {
     ) -> LocalSize {
         [0.0, 0.0].into()
     }
-    fn hittest(
-        &self,
-        _id: ViewId,
-        _pt: LocalPoint,
-        _cx: &mut Context,
-        _vger: &mut VGER,
-    ) -> Option<ViewId> {
-        None
-    }
 
     fn is_spacer(&self) -> bool { true }
 }

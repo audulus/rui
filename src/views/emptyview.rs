@@ -16,15 +16,6 @@ impl View for EmptyView {
     ) -> LocalSize {
         [0.0, 0.0].into()
     }
-    fn hittest(
-        &self,
-        _id: ViewId,
-        _pt: LocalPoint,
-        _cx: &mut Context,
-        _vger: &mut VGER,
-    ) -> Option<ViewId> {
-        None
-    }
 }
 
 impl private::Sealed for EmptyView {}
