@@ -1,5 +1,18 @@
 use rui::*;
 
+fn anim_to(current: &mut LocalOffset, target: LocalOffset) -> bool {
+    if *current != target {
+        if (*current - target).length() < 0.01 {
+            *current = target;
+        } else {
+            *current = current.lerp(target, 0.05);
+        }
+        true
+    } else {
+        false
+    }
+}
+
 fn main() {
     rui(hstack((
         circle()
@@ -20,12 +33,9 @@ fn main() {
                     }
                 })
                 .anim(move |cx, _dt| {
-                    if cx[anim_off] != cx[off] {
-                        if (cx[anim_off] - cx[off]).length() < 0.01 {
-                            cx[anim_off] = cx[off];
-                        } else {
-                            cx[anim_off] = cx[anim_off].lerp(cx[off], 0.05);
-                        }
+                    let mut v = cx[anim_off];
+                    if anim_to(&mut v, cx[off]) {
+                        cx[anim_off] = v;
                     }
                 })
                 .padding(Auto)
