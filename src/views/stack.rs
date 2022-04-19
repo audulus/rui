@@ -330,3 +330,41 @@ pub fn vstack<VT: ViewTuple + 'static>(children: VT) -> impl View {
 pub fn zstack<VT: ViewTuple + 'static>(children: VT) -> impl View {
     Stack::new(StackOrientation::Z, children)
 }
+
+#[cfg(test)]
+mod tests {
+
+    use super::*;
+
+    #[test]
+    fn test_layout_basic() {
+        use StackSize::Fixed;
+        use StackSize::Spacer;
+        {
+            let sizes = [Fixed(1.0), Fixed(1.0)];
+            let mut intervals = [(0.0,0.0), (0.0, 0.0)];
+
+            stack_layout(4.0, &sizes, &mut intervals);
+
+            println!("intervals: {:?}", intervals);
+        }
+
+        {
+            let sizes = [Fixed(1.0), Spacer, Fixed(1.0)];
+            let mut intervals = [(0.0,0.0), (0.0, 0.0), (0.0, 0.0)];
+
+            stack_layout(4.0, &sizes, &mut intervals);
+
+            println!("intervals: {:?}", intervals);
+        }
+
+        {
+            let sizes = [Fixed(1.0), Fixed(1.0), Spacer];
+            let mut intervals = [(0.0,0.0), (0.0, 0.0), (0.0, 0.0)];
+
+            stack_layout(4.0, &sizes, &mut intervals);
+
+            println!("intervals: {:?}", intervals);
+        }
+    }
+}
