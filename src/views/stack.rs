@@ -96,17 +96,8 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
 
                 let mut child_sizes = [LocalSize::zero(); 10];
                 
-                let mut total_children_height = 0.0;
-                
-                {
-                    let mut c: i32 = 0;
-                    self.children.foreach_view(&mut |child| {
-                        let child_id = id.child(&c);
-                        child_sizes[c as usize] = child.layout(child_id, proposed_child_size, cx, vger);
-                        total_children_height += child_sizes[c as usize].height;
-                        c += 1;
-                    });
-                }
+                self.layout_children(id, proposed_child_size, cx, vger, &mut child_sizes);
+                let total_children_height: f32 = child_sizes[0..self.children.len()].iter().map(|x| x.height).sum();
 
                 let spacer_height = (sz.height - total_children_height) / (spacers as f32);
 
@@ -242,6 +233,21 @@ impl<VT: ViewTuple> Stack<VT> {
             orientation,
             children,
         }
+    }
+
+    pub fn layout_children(&self,
+        id: ViewId,
+        proposed_child_size: LocalSize,
+        cx: &mut Context,
+        vger: &mut VGER,
+        child_sizes: &mut [LocalSize]) {
+
+        let mut c: i32 = 0;
+        self.children.foreach_view(&mut |child| {
+            let child_id = id.child(&c);
+            child_sizes[c as usize] = child.layout(child_id, proposed_child_size, cx, vger);
+            c += 1;
+        });
     }
 }
 
