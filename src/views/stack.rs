@@ -110,49 +110,27 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
         match self.orientation {
             StackOrientation::Horizontal => {
                 let proposed_child_size = LocalSize::new(sz.width / n, sz.height);
-                let spacers = self.children.spacer_count();
 
-                let mut child_sizes = [LocalSize::zero(); 10];
-                self.layout_children(id, proposed_child_size, cx, vger, &mut child_sizes);
-                let total_children_width: f32 = child_sizes[0..self.children.len()].iter().map(|x| x.width).sum();
+                let mut child_sizes = [None; 10];
+                self.layout_children2(id, proposed_child_size, cx, vger, &mut child_sizes);
 
-                let spacer_width = (sz.width - total_children_width) / (spacers as f32);
+                let child_sizes_1d = child_sizes.map(|x| if let Some(s) = x { StackSize::Fixed(s.width) } else { StackSize::Spacer });
+                let mut intervals = [(0.0,0.0); 10];
+                let n = self.children.len();
+                stack_layout(sz.width, &child_sizes_1d[0..n], &mut intervals[0..n]);
 
-                let mut c = 0;
-                let mut x = 0.0;
-                self.children.foreach_view(&mut |child| {
+                for c in 0..(self.children.len() as i32) {
                     let child_id = id.child(&c);
+                    let ab = intervals[c as usize];
 
                     let child_offset =  align_h(
-                        LocalRect::new(LocalPoint::origin(), child_sizes[c as usize]),
-                        if spacers > 0 { 
-                            LocalRect::new(
-                                [x, 0.0].into(),
-                                [child_sizes[c as usize].width, sz.height].into(),
-                            )
-                        } else {
-                            LocalRect::new(
-                                [x, 0.0].into(),
-                                proposed_child_size,
-                            )
-                        },
+                        LocalRect::new(LocalPoint::origin(), if let Some(sz) = child_sizes[c as usize] { sz } else { LocalSize::zero() } ),
+                        LocalRect::new([ab.0, 0.0].into(), [ab.1 - ab.0, sz.height].into()),
                         HAlignment::Center,
                     );
 
                     cx.layout.entry(child_id).or_default().offset = child_offset;
-
-                    if spacers > 0 {
-                        if child.is_spacer() {
-                            x += spacer_width;
-                        } else {
-                            x += child_sizes[c as usize].width;
-                        }
-                    } else {
-                        x += proposed_child_size.width;
-                    }
-
-                    c += 1;
-                });
+                }
 
                 sz
             }
@@ -309,6 +287,25 @@ impl<VT: ViewTuple> Stack<VT> {
         self.children.foreach_view(&mut |child| {
             let child_id = id.child(&c);
             child_sizes[c as usize] = child.layout(child_id, proposed_child_size, cx, vger);
+            c += 1;
+        });
+    }
+
+    pub fn layout_children2(&self,
+        id: ViewId,
+        proposed_child_size: LocalSize,
+        cx: &mut Context,
+        vger: &mut VGER,
+        child_sizes: &mut [Option<LocalSize>]) {
+
+        let mut c: i32 = 0;
+        self.children.foreach_view(&mut |child| {
+            let child_id = id.child(&c);
+            child_sizes[c as usize] = if child.is_spacer() {
+                None
+            } else {
+                Some(child.layout(child_id, proposed_child_size, cx, vger))
+            };
             c += 1;
         });
     }
