@@ -14,11 +14,15 @@ enum StackSize {
 /// 1-D stack layout to make the algorithm clear.
 fn stack_layout(total: f32, sizes: &[StackSize], intervals: &mut [(f32, f32)]) {
 
-    // Count the number of spacers.
-    let spacers = sizes.into_iter().filter(|x| match x { StackSize::Spacer => true, _ => false }).count();
-
-    // Count number of sizes.
-    let sizes_sum: f32 = sizes.into_iter().map(|x| match x { StackSize::Spacer => 0.0 as f32, StackSize::Fixed(s) => *s }).sum();
+    // Count the number of spacers and total of fixed sizes.
+    let mut spacers = 0;
+    let mut sizes_sum = 0.0;
+    for sz in sizes {
+        match sz {
+            StackSize::Spacer => spacers += 1,
+            StackSize::Fixed(s) => sizes_sum += s,
+        }
+    }
 
     // length of spacer is remaining size divided equally
     let spacer_length = (total - sizes_sum) / (spacers as f32);
