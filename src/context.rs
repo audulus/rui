@@ -251,6 +251,11 @@ impl Context {
         frame.present();
     }
 
+    /// Process a UI event.
+    pub fn process(&mut self, view: &impl View, event: &Event, vger: &mut Vger) {
+        view.process(event, self.root_id, self, vger);
+    }
+
     pub(crate) fn set_dirty(&mut self) {
         if self.enable_dirty {
             self.dirty = true

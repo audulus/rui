@@ -376,7 +376,7 @@ pub fn rui(view: impl View) {
                         kind: EventKind::Key(event.logical_key),
                         position: mouse_position,
                     };
-                    view.process(&event, cx.root_id, &mut cx, &mut vger)
+                    cx.process(&view, &event, &mut vger)
                 }
             }
             tao::event::Event::WindowEvent {
@@ -395,7 +395,7 @@ pub fn rui(view: impl View) {
                         kind: EventKind::Command(command.clone()),
                         position: mouse_position,
                     };
-                    view.process(&event, cx.root_id, &mut cx, &mut vger)
+                    cx.process(&view, &event, &mut vger)
                 }
             }
             _ => (),
