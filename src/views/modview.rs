@@ -42,9 +42,8 @@ where
         id: ViewId,
         xform: LocalToWorld,
         cx: &mut Context,
-        region: &mut Region<WorldSpace>,
     ) {
-        (self.func)(self.value.clone(), cx).dirty(id.child(&0), xform, cx, region);
+        (self.func)(self.value.clone(), cx).dirty(id.child(&0), xform, cx);
     }
 
     fn hittest(

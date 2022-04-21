@@ -113,7 +113,6 @@ where
         id: ViewId,
         xform: LocalToWorld,
         cx: &mut Context,
-        region: &mut Region<WorldSpace>,
     ) {
         let default = &self.default;
         let holder = cx.state_map.entry(id).or_insert_with(|| StateHolder {
@@ -131,9 +130,9 @@ where
                 rect.max(),
             ];
             let world_pts = pts.map(|p| xform.transform_point(p));
-            region.add_rect(WorldRect::from_points(world_pts));
+            cx.dirty_region.add_rect(WorldRect::from_points(world_pts));
         } else {
-            (self.func)(State::new(id), cx).dirty(id.child(&0), xform, cx, region);
+            (self.func)(State::new(id), cx).dirty(id.child(&0), xform, cx);
         }
     }
 

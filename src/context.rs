@@ -80,6 +80,9 @@ pub struct Context {
 
     /// Values indexed by type.
     pub(crate) env: EnvMap,
+
+    /// Regions of window that needs repainting.
+    pub(crate) dirty_region: Region<WorldSpace>,
 }
 
 impl Context {
@@ -99,6 +102,7 @@ impl Context {
             dirty: false,
             enable_dirty: true,
             env: HashMap::new(),
+            dirty_region: Region::EMPTY,
         }
     }
 
@@ -110,8 +114,7 @@ impl Context {
         config: &wgpu::SurfaceConfiguration,
         queue: &wgpu::Queue,
         view: &impl View,
-        vger: &mut Vger,
-        dirty_region: &mut Region<WorldSpace>) {
+        vger: &mut Vger) {
     
         let frame = match surface.get_current_texture() {
             Ok(frame) => frame,
@@ -140,7 +143,7 @@ impl Context {
     
         let paint = vger.color_paint(RED_HIGHLIGHT);
         let xf = WorldToLocal::identity();
-        for rect in dirty_region.rects() {
+        for rect in self.dirty_region.rects() {
             vger.stroke_rect(
                 xf.transform_point(rect.min()),
                 xf.transform_point(rect.max()),
@@ -150,7 +153,7 @@ impl Context {
             );
         }
     
-        dirty_region.clear();
+        self.dirty_region.clear();
     
         let texture_view = frame
             .texture

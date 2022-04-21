@@ -38,10 +38,9 @@ where
         id: ViewId,
         xform: LocalToWorld,
         cx: &mut Context,
-        region: &mut Region<WorldSpace>,
     ) {
-        self.child.dirty(id.child(&0), xform, cx, region);
-        self.background.dirty(id.child(&1), xform, cx, region);
+        self.child.dirty(id.child(&0), xform, cx);
+        self.background.dirty(id.child(&1), xform, cx);
     }
 
     fn hittest(

@@ -48,9 +48,8 @@ where
         id: ViewId,
         xform: LocalToWorld,
         cx: &mut Context,
-        region: &mut Region<WorldSpace>,
     ) {
-        (self.func)(Some(id) == cx.focused_id).dirty(id.child(&0), xform, cx, region);
+        (self.func)(Some(id) == cx.focused_id).dirty(id.child(&0), xform, cx);
     }
 
     fn hittest(

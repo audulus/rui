@@ -72,13 +72,12 @@ where
         id: ViewId,
         xform: LocalToWorld,
         cx: &mut Context,
-        region: &mut Region<WorldSpace>,
     ) {
         for child in &self.ids {
             let child_id = id.child(child);
             let offset = cx.layout.entry(child_id).or_default().offset;
             let xf = xform.pre_translate(offset);
-            ((self.func)(child)).dirty(child_id, xf, cx, region);
+            ((self.func)(child)).dirty(child_id, xf, cx);
         }
     }
 

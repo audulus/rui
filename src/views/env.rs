@@ -44,9 +44,8 @@ where
         id: ViewId,
         xform: LocalToWorld,
         cx: &mut Context,
-        region: &mut Region<WorldSpace>,
     ) {
-        (self.func)(cx.init_env(&S::default), cx).dirty(id.child(&0), xform, cx, region);
+        (self.func)(cx.init_env(&S::default), cx).dirty(id.child(&0), xform, cx);
     }
 
     fn hittest(
@@ -143,10 +142,9 @@ where
         id: ViewId,
         xform: LocalToWorld,
         cx: &mut Context,
-        region: &mut Region<WorldSpace>,
     ) {
         let old = cx.set_env(&self.env_val);
-        self.child.dirty(id.child(&0), xform, cx, region);
+        self.child.dirty(id.child(&0), xform, cx);
         old.and_then(|s| cx.set_env(&s));
     }
 

@@ -26,7 +26,6 @@ pub trait View: private::Sealed + 'static {
         _id: ViewId,
         _xform: LocalToWorld,
         _cx: &mut Context,
-        _region: &mut Region<WorldSpace>,
     ) {
     }
 

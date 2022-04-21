@@ -233,8 +233,7 @@ fn update(
     commands: &mut Vec<CommandInfo>,
     command_map: &mut CommandMap,
     mouse_position: LocalPoint,
-    access_nodes: &mut Vec<accesskit::Node>,
-    dirty_region: &mut Region<WorldSpace>) {
+    access_nodes: &mut Vec<accesskit::Node>) {
 
     // Run any animations.
     let event = Event {
@@ -293,8 +292,7 @@ fn update(
         view.dirty(
             cx.root_id,
             LocalToWorld::identity(),
-            cx,
-            dirty_region,
+            cx
         );
 
         cx.window.as_ref().unwrap().request_redraw();
@@ -341,8 +339,6 @@ pub fn rui(view: impl View) {
         .set_menu(Some(build_menubar(&commands, &mut command_map)));
 
     let mut access_nodes = vec![];
-
-    let mut dirty_region = Region::<WorldSpace>::EMPTY;
 
     event_loop.run(move |event, _, control_flow| {
         // ControlFlow::Poll continuously runs the event loop, even if the OS hasn't
@@ -394,7 +390,7 @@ pub fn rui(view: impl View) {
                 // applications which do not always need to. Applications that redraw continuously
                 // can just render here instead.
 
-                update(&view, &mut cx, &mut vger, &mut commands, &mut command_map, mouse_position, &mut access_nodes, &mut dirty_region);
+                update(&view, &mut cx, &mut vger, &mut commands, &mut command_map, mouse_position, &mut access_nodes);
             }
             tao::event::Event::RedrawRequested(_) => {
                 // Redraw the application.
@@ -404,7 +400,7 @@ pub fn rui(view: impl View) {
                 // the program to gracefully handle redraws requested by the OS.
 
                 // println!("RedrawRequested");
-                cx.render(&device, &surface, &config, &queue, &view, &mut vger, &mut dirty_region);
+                cx.render(&device, &surface, &config, &queue, &view, &mut vger);
             }
             tao::event::Event::WindowEvent {
                 event: WindowEvent::MouseInput { state, button, .. },

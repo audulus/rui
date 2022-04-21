@@ -46,9 +46,8 @@ impl View for AnyView {
         id: ViewId,
         xform: LocalToWorld,
         cx: &mut Context,
-        region: &mut Region<WorldSpace>,
     ) {
-        self.child.dirty(id.child(&self.id()), xform, cx, region)
+        self.child.dirty(id.child(&self.id()), xform, cx);
     }
 
     fn hittest(

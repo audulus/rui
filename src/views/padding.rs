@@ -44,13 +44,11 @@ where
         id: ViewId,
         xform: LocalToWorld,
         cx: &mut Context,
-        region: &mut Region<WorldSpace>,
     ) {
         self.child.dirty(
             id.child(&0),
             xform.pre_translate([self.padding, self.padding].into()),
             cx,
-            region,
         );
     }
 

@@ -38,10 +38,9 @@ where
         id: ViewId,
         xform: LocalToWorld,
         cx: &mut Context,
-        region: &mut Region<WorldSpace>,
     ) {
         self.child
-            .dirty(id.child(&0), xform.pre_translate(self.offset), cx, region);
+            .dirty(id.child(&0), xform.pre_translate(self.offset), cx);
     }
 
     fn hittest(
