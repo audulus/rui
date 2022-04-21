@@ -26,13 +26,13 @@ pub fn stack_layout(total: f32, sizes: &[StackItem], intervals: &mut [(f32, f32)
         }
     }
 
-    // length of spacer is remaining size divided equally
-    let spacer_length = (total - sizes_sum) / (flex_count as f32);
+    // length of flexible items is remaining size divided equally
+    let flex_length = (total - sizes_sum) / (flex_count as f32);
 
     let mut x = 0.0;
     for i in 0..sizes.len() {
         let sz = match sizes[i] {
-            StackItem::Flexible => spacer_length,
+            StackItem::Flexible => flex_length,
             StackItem::Fixed(s) => {
                 if flex_count != 0 {
                     s
