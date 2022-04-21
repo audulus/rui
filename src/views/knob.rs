@@ -9,19 +9,13 @@ fn lerp(x: f32, a: f32, b: f32) -> f32 {
 
 /// Knob for controlling a 0 to 1 floating point parameter.
 pub fn knob(value: impl Binding<f32>) -> impl View {
-    state(|| (), move |_, cx| knob_v(*value.get(cx), setter(value)))
-}
-
-/// Knob for controlling a 0 to 1 floating point parameter.
-/// Version where you can specify value and set_value.
-pub fn knob_v(value: f32, set_value: impl Fn(f32, &mut Context) + 'static) -> impl View {
     zstack((
         circle()
             .color(CLEAR_COLOR)
             .drag(move |cx, off, _state, _key_mods, _mouse_button| {
-                set_value((value + (off.x + off.y) / 400.0).clamp(0.0, 1.0), cx);
+                value.with_mut(cx, |v| *v = (*v + (off.x + off.y) / 400.0).clamp(0.0, 1.0));
             }),
-        canvas(move |_, sz, vger| {
+        canvas(move |cx, sz, vger| {
             let c = sz.center();
             let r = sz.width().min(sz.height()) / 2.0;
 
@@ -30,7 +24,7 @@ pub fn knob_v(value: f32, set_value: impl Fn(f32, &mut Context) + 'static) -> im
             vger.stroke_arc(c, r, 2.0, 0.0, std::f32::consts::PI, paint);
 
             let paint = vger.color_paint(AZURE_HIGHLIGHT);
-            let a0 = lerp(value, THETA_MAX, THETA_MIN);
+            let a0 = lerp(*value.get(cx), THETA_MAX, THETA_MIN);
             let a1 = THETA_MAX;
 
             let theta = -(a0 + a1) / 2.0 + std::f32::consts::PI;
