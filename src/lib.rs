@@ -226,77 +226,6 @@ fn build_menubar(
     make_menu_rec(&items, 0, command_map)
 }
 
-fn render(
-    device: &wgpu::Device,
-    surface: &wgpu::Surface,
-    config: &wgpu::SurfaceConfiguration,
-    queue: &wgpu::Queue,
-    view: &impl View,
-    cx: &mut Context,
-    vger: &mut Vger,
-    dirty_region: &mut Region<WorldSpace>) {
-
-    let frame = match surface.get_current_texture() {
-        Ok(frame) => frame,
-        Err(_) => {
-            surface.configure(device, config);
-            surface
-                .get_current_texture()
-                .expect("Failed to acquire next surface texture!")
-        }
-    };
-
-    let window_size = cx.window.as_ref().unwrap().inner_size();
-    let scale = cx.window.as_ref().unwrap().scale_factor() as f32;
-    // println!("window_size: {:?}", window_size);
-    let width = window_size.width as f32 / scale;
-    let height = window_size.height as f32 / scale;
-
-    vger.begin(width, height, scale);
-
-    // Disable dirtying the state during layout and rendering
-    // to avoid constantly re-rendering if some state is saved.
-    cx.enable_dirty = false;
-    view.layout(cx.root_id, [width, height].into(), cx, vger);
-    view.draw(cx.root_id, cx, vger);
-    cx.enable_dirty = true;
-
-    let paint = vger.color_paint(RED_HIGHLIGHT);
-    let xf = WorldToLocal::identity();
-    for rect in dirty_region.rects() {
-        vger.stroke_rect(
-            xf.transform_point(rect.min()),
-            xf.transform_point(rect.max()),
-            0.0,
-            1.0,
-            paint,
-        );
-    }
-
-    dirty_region.clear();
-
-    let texture_view = frame
-        .texture
-        .create_view(&wgpu::TextureViewDescriptor::default());
-
-    let desc = wgpu::RenderPassDescriptor {
-        label: None,
-        color_attachments: &[wgpu::RenderPassColorAttachment {
-            view: &texture_view,
-            resolve_target: None,
-            ops: wgpu::Operations {
-                load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
-                store: true,
-            },
-        }],
-        depth_stencil_attachment: None,
-    };
-
-    vger.encode(device, &desc, queue);
-
-    frame.present();
-}
-
 fn update(
     view: &impl View,
     cx: &mut Context,
@@ -475,7 +404,7 @@ pub fn rui(view: impl View) {
                 // the program to gracefully handle redraws requested by the OS.
 
                 // println!("RedrawRequested");
-                render(&device, &surface, &config, &queue, &view, &mut cx, &mut vger, &mut dirty_region);
+                cx.render(&device, &surface, &config, &queue, &view, &mut vger, &mut dirty_region);
             }
             tao::event::Event::WindowEvent {
                 event: WindowEvent::MouseInput { state, button, .. },
