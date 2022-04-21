@@ -150,52 +150,40 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
             }
             StackOrientation::Vertical => {
                 let proposed_child_size = LocalSize::new(sz.width, sz.height / n);
-                let spacers = self.children.spacer_count();
+                let mut child_sizes = [None; VIEW_TUPLE_MAX_ELEMENTS];
+                self.layout_children2(id, proposed_child_size, cx, vger, &mut child_sizes);
 
-                let mut child_sizes = [LocalSize::zero(); VIEW_TUPLE_MAX_ELEMENTS];
-                self.layout_children(id, proposed_child_size, cx, vger, &mut child_sizes);
-                let total_children_height: f32 = child_sizes[0..self.children.len()]
-                    .iter()
-                    .map(|x| x.height)
-                    .sum();
+                let child_sizes_1d = child_sizes.map(|x| {
+                    if let Some(s) = x {
+                        StackItem::Fixed(s.height)
+                    } else {
+                        StackItem::Flexible
+                    }
+                });
+                let mut intervals = [(0.0, 0.0); VIEW_TUPLE_MAX_ELEMENTS];
+                let n = self.children.len();
+                stack_layout(sz.height, &child_sizes_1d[0..n], &mut intervals[0..n]);
 
-                let spacer_height = (sz.height - total_children_height) / (spacers as f32);
-
-                let mut c: i32 = 0;
-                let mut y = sz.height;
-                self.children.foreach_view(&mut |child| {
+                for c in 0..(self.children.len() as i32) {
                     let child_id = id.child(&c);
+                    let ab = intervals[c as usize];
 
-                    let child_offset = align_v(
-                        LocalRect::new(LocalPoint::origin(), child_sizes[c as usize]),
-                        if spacers > 0 {
-                            LocalRect::new(
-                                [0.0, y - child_sizes[c as usize].height].into(),
-                                [sz.width, child_sizes[c as usize].height].into(),
-                            )
-                        } else {
-                            LocalRect::new(
-                                [0.0, y - proposed_child_size.height].into(),
-                                proposed_child_size,
-                            )
-                        },
-                        VAlignment::Middle,
+                    let h = ab.1 - ab.0;
+                    let child_offset = align_h(
+                        LocalRect::new(
+                            LocalPoint::origin(),
+                            if let Some(sz) = child_sizes[c as usize] {
+                                sz
+                            } else {
+                                LocalSize::zero()
+                            },
+                        ),
+                        LocalRect::new([0.0, sz.height - ab.0 - h].into(), [sz.width, h].into()),
+                        HAlignment::Center,
                     );
 
                     cx.layout.entry(child_id).or_default().offset = child_offset;
-
-                    if spacers > 0 {
-                        if child.is_spacer() {
-                            y -= spacer_height;
-                        } else {
-                            y -= child_sizes[c as usize].height;
-                        }
-                    } else {
-                        y -= proposed_child_size.height;
-                    }
-
-                    c += 1;
-                });
+                }
 
                 sz
             }
