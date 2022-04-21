@@ -190,9 +190,11 @@ fn make_menu_rec(
     menu
 }
 
+type CommandMap = HashMap<tao::menu::MenuId, String>;
+
 fn build_menubar(
     commands: &Vec<CommandInfo>,
-    command_map: &mut HashMap<tao::menu::MenuId, String>,
+    command_map: &mut CommandMap,
 ) -> Menu {
     let mut items: Vec<MenuItem2> = vec![MenuItem2 {
         name: "root".into(),
@@ -295,6 +297,83 @@ fn render(
     frame.present();
 }
 
+fn update(
+    view: &impl View,
+    cx: &mut Context,
+    vger: &mut Vger,
+    commands: &mut Vec<CommandInfo>,
+    command_map: &mut CommandMap,
+    mouse_position: LocalPoint,
+    access_nodes: &mut Vec<accesskit::Node>,
+    dirty_region: &mut Region<WorldSpace>) {
+
+    // Run any animations.
+    let event = Event {
+        kind: EventKind::Anim,
+        position: mouse_position,
+    };
+    view.process(&event, cx.root_id, cx, vger);
+
+    if cx.dirty {
+        // Have the commands changed?
+        let mut new_commands = Vec::new();
+        view.commands(cx.root_id, cx, &mut new_commands);
+
+        if new_commands != *commands {
+            print!("commands changed");
+            *commands = new_commands;
+
+            command_map.clear();
+            cx.window
+                .as_ref()
+                .unwrap()
+                .set_menu(Some(build_menubar(&commands, command_map)));
+        }
+
+        // Clean up state.
+        let mut keep = vec![];
+        view.gc(cx.root_id, cx, &mut keep);
+        let keep_set = HashSet::<ViewId>::from_iter(keep);
+        cx.state_map.retain(|k, _| keep_set.contains(k));
+
+        // Get a new accesskit tree.
+        let mut nodes = vec![];
+        view.access(cx.root_id, cx, &mut nodes);
+
+        if nodes != *access_nodes {
+            println!("access nodes:");
+            for node in &nodes {
+                println!(
+                    "  id: {:?}, role: {:?}, children: {:?}",
+                    node.id, node.role, node.children
+                );
+            }
+            *access_nodes = nodes;
+        } else {
+            // println!("access nodes unchanged");
+        }
+
+        // XXX: we're doing layout both here and in rendering.
+        let window_size = cx.window.as_ref().unwrap().inner_size();
+        let scale = cx.window.as_ref().unwrap().scale_factor() as f32;
+        let width = window_size.width as f32 / scale;
+        let height = window_size.height as f32 / scale;
+        view.layout(cx.root_id, [width, height].into(), cx, vger);
+
+        // Get dirty rectangles.
+        view.dirty(
+            cx.root_id,
+            LocalToWorld::identity(),
+            cx,
+            dirty_region,
+        );
+
+        cx.window.as_ref().unwrap().request_redraw();
+
+        cx.clear_dirty();
+    }
+}
+
 /// Call this function to run your UI.
 pub fn rui(view: impl View) {
     let event_loop = EventLoop::new();
@@ -386,71 +465,7 @@ pub fn rui(view: impl View) {
                 // applications which do not always need to. Applications that redraw continuously
                 // can just render here instead.
 
-                // Run any animations.
-                let event = Event {
-                    kind: EventKind::Anim,
-                    position: mouse_position,
-                };
-                view.process(&event, cx.root_id, &mut cx, &mut vger);
-
-                if cx.dirty {
-                    // Have the commands changed?
-                    let mut new_commands = Vec::new();
-                    view.commands(cx.root_id, &mut cx, &mut new_commands);
-
-                    if new_commands != commands {
-                        print!("commands changed");
-                        commands = new_commands;
-
-                        command_map.clear();
-                        cx.window
-                            .as_ref()
-                            .unwrap()
-                            .set_menu(Some(build_menubar(&commands, &mut command_map)));
-                    }
-
-                    // Clean up state.
-                    let mut keep = vec![];
-                    view.gc(cx.root_id, &mut cx, &mut keep);
-                    let keep_set = HashSet::<ViewId>::from_iter(keep);
-                    cx.state_map.retain(|k, _| keep_set.contains(k));
-
-                    // Get a new accesskit tree.
-                    let mut nodes = vec![];
-                    view.access(cx.root_id, &mut cx, &mut nodes);
-
-                    if nodes != access_nodes {
-                        println!("access nodes:");
-                        for node in &nodes {
-                            println!(
-                                "  id: {:?}, role: {:?}, children: {:?}",
-                                node.id, node.role, node.children
-                            );
-                        }
-                        access_nodes = nodes;
-                    } else {
-                        // println!("access nodes unchanged");
-                    }
-
-                    // XXX: we're doing layout both here and in rendering.
-                    let window_size = cx.window.as_ref().unwrap().inner_size();
-                    let scale = cx.window.as_ref().unwrap().scale_factor() as f32;
-                    let width = window_size.width as f32 / scale;
-                    let height = window_size.height as f32 / scale;
-                    view.layout(cx.root_id, [width, height].into(), &mut cx, &mut vger);
-
-                    // Get dirty rectangles.
-                    view.dirty(
-                        cx.root_id,
-                        LocalToWorld::identity(),
-                        &mut cx,
-                        &mut dirty_region,
-                    );
-
-                    cx.window.as_ref().unwrap().request_redraw();
-
-                    cx.clear_dirty();
-                }
+                update(&view, &mut cx, &mut vger, &mut commands, &mut command_map, mouse_position, &mut access_nodes, &mut dirty_region);
             }
             tao::event::Event::RedrawRequested(_) => {
                 // Redraw the application.
