@@ -7,13 +7,13 @@ pub struct Canvas<F> {
 
 impl<F> View for Canvas<F>
 where
-    F: Fn(&mut Context, LocalRect, &mut VGER) + 'static,
+    F: Fn(&mut Context, LocalRect, &mut Vger) + 'static,
 {
     fn print(&self, _id: ViewId, _cx: &mut Context) {
         println!("canvas");
     }
 
-    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut VGER) {
+    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {
         let rect = cx.layout.entry(id).or_default().rect;
 
         vger.save();
@@ -21,7 +21,7 @@ where
         vger.restore();
     }
 
-    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, _vger: &mut VGER) -> LocalSize {
+    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, _vger: &mut Vger) -> LocalSize {
         cx.layout.insert(
             id,
             LayoutBox {
@@ -37,7 +37,7 @@ where
         id: ViewId,
         pt: LocalPoint,
         cx: &mut Context,
-        _vger: &mut VGER,
+        _vger: &mut Vger,
     ) -> Option<ViewId> {
         let rect = cx.layout.entry(id).or_default().rect;
 
@@ -49,8 +49,8 @@ where
     }
 }
 
-/// Canvas for GPU drawing with VGER. See https://github.com/audulus/vger-rs.
-pub fn canvas<F: Fn(&mut Context, LocalRect, &mut VGER) + 'static>(f: F) -> impl View {
+/// Canvas for GPU drawing with Vger. See https://github.com/audulus/vger-rs.
+pub fn canvas<F: Fn(&mut Context, LocalRect, &mut Vger) + 'static>(f: F) -> impl View {
     Canvas { func: f }
 }
 

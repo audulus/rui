@@ -18,16 +18,16 @@ where
         println!("}}");
     }
 
-    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut VGER) {
+    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger) {
         self.child.process(event, id.child(&0), cx, vger);
     }
 
-    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut VGER) {
+    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {
         self.background.draw(id.child(&1), cx, vger);
         self.child.draw(id.child(&0), cx, vger);
     }
 
-    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
+    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {
         let child_size = self.child.layout(id.child(&0), sz, cx, vger);
         self.background.layout(id.child(&1), child_size, cx, vger);
         child_size
@@ -49,7 +49,7 @@ where
         id: ViewId,
         pt: LocalPoint,
         cx: &mut Context,
-        vger: &mut VGER,
+        vger: &mut Vger,
     ) -> Option<ViewId> {
         self.background.hittest(id.child(&1), pt, cx, vger)
     }

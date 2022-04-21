@@ -6,13 +6,13 @@ impl View for EmptyView {
     fn print(&self, _id: ViewId, _cx: &mut Context) {
         println!("EmptyView");
     }
-    fn draw(&self, _id: ViewId, _cx: &mut Context, _vger: &mut VGER) {}
+    fn draw(&self, _id: ViewId, _cx: &mut Context, _vger: &mut Vger) {}
     fn layout(
         &self,
         _id: ViewId,
         _sz: LocalSize,
         _cx: &mut Context,
-        _vger: &mut VGER,
+        _vger: &mut Vger,
     ) -> LocalSize {
         [0.0, 0.0].into()
     }

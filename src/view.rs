@@ -12,13 +12,13 @@ pub trait View: private::Sealed + 'static {
     fn print(&self, id: ViewId, cx: &mut Context);
 
     /// Processes an event.
-    fn process(&self, _event: &Event, _id: ViewId, _cx: &mut Context, _vger: &mut VGER) {}
+    fn process(&self, _event: &Event, _id: ViewId, _cx: &mut Context, _vger: &mut Vger) {}
 
     /// Draws the view using vger.
-    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut VGER);
+    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger);
 
     /// Lays out subviews and return the size of the view.
-    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize;
+    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize;
 
     /// Determines dirty regions which need repainting.
     fn dirty(
@@ -36,7 +36,7 @@ pub trait View: private::Sealed + 'static {
         _id: ViewId,
         _pt: LocalPoint,
         _cx: &mut Context,
-        _vger: &mut VGER,
+        _vger: &mut Vger,
     ) -> Option<ViewId> {
         None
     }

@@ -15,7 +15,7 @@ pub enum Paint {
 }
 
 impl Paint {
-    pub fn vger_paint(&self, vger: &mut VGER) -> PaintIndex {
+    pub fn vger_paint(&self, vger: &mut Vger) -> PaintIndex {
         match self {
             Paint::Color(color) => vger.color_paint(*color),
             Paint::Gradient {

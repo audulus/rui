@@ -18,7 +18,7 @@ impl View for Text {
     fn print(&self, _id: ViewId, _cx: &mut Context) {
         println!("Text({:?})", self.text);
     }
-    fn draw(&self, _id: ViewId, _cx: &mut Context, vger: &mut VGER) {
+    fn draw(&self, _id: ViewId, _cx: &mut Context, vger: &mut Vger) {
         let origin = vger.text_bounds(self.text.as_str(), self.size, None).origin;
 
         vger.save();
@@ -26,7 +26,7 @@ impl View for Text {
         vger.text(self.text.as_str(), self.size, TEXT_COLOR, None);
         vger.restore();
     }
-    fn layout(&self, id: ViewId, _sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
+    fn layout(&self, id: ViewId, _sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {
         let size = vger.text_bounds(self.text.as_str(), self.size, None).size;
 
         cx.layout.insert(
@@ -43,7 +43,7 @@ impl View for Text {
         _id: ViewId,
         _pt: LocalPoint,
         _cx: &mut Context,
-        _vger: &mut VGER,
+        _vger: &mut Vger,
     ) -> Option<ViewId> {
         None
     }
@@ -86,8 +86,8 @@ where
     fn print(&self, _id: ViewId, _cx: &mut Context) {
         println!("Text({:?})", self);
     }
-    fn process(&self, _event: &Event, _id: ViewId, _cx: &mut Context, _vger: &mut VGER) {}
-    fn draw(&self, _id: ViewId, _cx: &mut Context, vger: &mut VGER) {
+    fn process(&self, _event: &Event, _id: ViewId, _cx: &mut Context, _vger: &mut Vger) {}
+    fn draw(&self, _id: ViewId, _cx: &mut Context, vger: &mut Vger) {
         let txt = &format!("{}", self);
         let origin = vger.text_bounds(txt, Text::DEFAULT_SIZE, None).origin;
 
@@ -96,7 +96,7 @@ where
         vger.text(txt, Text::DEFAULT_SIZE, TEXT_COLOR, None);
         vger.restore();
     }
-    fn layout(&self, id: ViewId, _sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
+    fn layout(&self, id: ViewId, _sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {
         let txt = &format!("{}", self);
         let size = vger.text_bounds(txt, Text::DEFAULT_SIZE, None).size;
 
@@ -114,7 +114,7 @@ where
         _id: ViewId,
         _pt: LocalPoint,
         _cx: &mut Context,
-        _vger: &mut VGER,
+        _vger: &mut Vger,
     ) -> Option<ViewId> {
         None
     }

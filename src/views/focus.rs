@@ -16,7 +16,7 @@ where
         println!(")");
     }
 
-    fn process(&self, event: &Event, vid: ViewId, cx: &mut Context, vger: &mut VGER) {
+    fn process(&self, event: &Event, vid: ViewId, cx: &mut Context, vger: &mut Vger) {
         match &event.kind {
             EventKind::TouchBegin { .. } => {
                 if self.hittest(vid, event.position, cx, vger).is_some() {
@@ -35,11 +35,11 @@ where
         (self.func)(Some(vid) == cx.focused_id).process(event, vid.child(&0), cx, vger)
     }
 
-    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut VGER) {
+    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {
         (self.func)(Some(id) == cx.focused_id).draw(id.child(&0), cx, vger)
     }
 
-    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut VGER) -> LocalSize {
+    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {
         (self.func)(Some(id) == cx.focused_id).layout(id.child(&0), sz, cx, vger)
     }
 
@@ -58,7 +58,7 @@ where
         id: ViewId,
         pt: LocalPoint,
         cx: &mut Context,
-        vger: &mut VGER,
+        vger: &mut Vger,
     ) -> Option<ViewId> {
         (self.func)(Some(id) == cx.focused_id).hittest(id.child(&0), pt, cx, vger)
     }
