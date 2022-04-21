@@ -86,7 +86,7 @@ fn main() {
 
 <img src="screenshots/canvas.png" alt="canvas screenshot" style="width:50%;">
 
-slider with a binding (`cargo run --example slider`):
+`slider` with `map` (`cargo run --example slider`):
 
 ```rust
 use rui::*;
@@ -96,17 +96,15 @@ struct MyState {
     value: f32,
 }
 
-make_lens!(ValueLens, MyState, f32, value);
-
 fn main() {
     rui(state(MyState::default, |state, cx| {
         vstack((
-            cx[state].value
-                .font_size(10)
-                .padding(Auto),
-            hslider(bind(state, ValueLens {}))
-                .thumb_color(RED_HIGHLIGHT)
-                .padding(Auto),
+            cx[state].value.font_size(10).padding(Auto),
+            map(
+                cx[state].value,
+                move |v, cx| cx[state].value = v,
+                |s, _| hslider(s).thumb_color(RED_HIGHLIGHT).padding(Auto),
+            ),
         ))
     }));
 }
