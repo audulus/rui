@@ -41,7 +41,7 @@ use std::collections::{HashMap, HashSet};
 use std::iter::FromIterator;
 
 use vger::color::*;
-use vger::*;
+use vger::{LineMetrics, PaintIndex, Vger};
 
 use tao::{
     accelerator::Accelerator,
