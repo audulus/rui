@@ -12,7 +12,7 @@ pub enum StackItem {
 }
 
 /// 1-D stack layout to make the algorithm clear.
-pub fn stack_layout(total: f32, sizes: &[StackItem], intervals: &mut [(f32, f32)]) {
+pub fn stack_layout(total: f32, sizes: &[StackItem], intervals: &mut [(f32, f32)]) -> f32 {
 
     assert_eq!(sizes.len(), intervals.len());
 
@@ -45,6 +45,8 @@ pub fn stack_layout(total: f32, sizes: &[StackItem], intervals: &mut [(f32, f32)
         intervals[i] = (x, x + sz);
         x += sz;
     }
+
+    flex_length
 }
 
 struct Stack<VT> {
@@ -124,7 +126,7 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
                 });
                 let mut intervals = [(0.0, 0.0); VIEW_TUPLE_MAX_ELEMENTS];
                 let n = self.children.len();
-                stack_layout(sz.width, &child_sizes_1d[0..n], &mut intervals[0..n]);
+                let flex_length = stack_layout(sz.width, &child_sizes_1d[0..n], &mut intervals[0..n]);
 
                 for c in 0..(self.children.len() as i32) {
                     let child_id = id.child(&c);
@@ -146,6 +148,8 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
                     cx.layout.entry(child_id).or_default().offset = child_offset;
                 }
 
+                self.layout_flex_children(id, [flex_length, sz.height].into(), cx, vger);
+
                 sz
             }
             StackOrientation::Vertical => {
@@ -162,7 +166,7 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
                 });
                 let mut intervals = [(0.0, 0.0); VIEW_TUPLE_MAX_ELEMENTS];
                 let n = self.children.len();
-                stack_layout(sz.height, &child_sizes_1d[0..n], &mut intervals[0..n]);
+                let flex_length = stack_layout(sz.height, &child_sizes_1d[0..n], &mut intervals[0..n]);
 
                 for c in 0..(self.children.len() as i32) {
                     let child_id = id.child(&c);
@@ -184,6 +188,8 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
 
                     cx.layout.entry(child_id).or_default().offset = child_offset;
                 }
+
+                self.layout_flex_children(id, [sz.width, flex_length].into(), cx, vger);
 
                 sz
             }
@@ -297,6 +303,23 @@ impl<VT: ViewTuple> Stack<VT> {
             } else {
                 Some(child.layout(child_id, proposed_child_size, cx, vger))
             };
+            c += 1;
+        });
+    }
+
+    pub fn layout_flex_children(
+        &self,
+        id: ViewId,
+        flex_size: LocalSize,
+        cx: &mut Context,
+        vger: &mut VGER,
+    ) {
+        let mut c: i32 = 0;
+        self.children.foreach_view(&mut |child| {
+            let child_id = id.child(&c);
+            if child.is_flexible() {
+                child.layout(child_id, flex_size, cx, vger);
+            }
             c += 1;
         });
     }
