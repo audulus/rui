@@ -28,6 +28,8 @@ mod knob;
 pub use knob::*;
 mod list;
 pub use list::*;
+mod map;
+pub use map::*;
 mod modview;
 pub use modview::*;
 mod offset;
