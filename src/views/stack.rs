@@ -8,7 +8,7 @@ pub enum StackOrientation {
 
 pub enum StackItem {
     Fixed(f32),
-    Spacer,
+    Flexible,
 }
 
 /// 1-D stack layout to make the algorithm clear.
@@ -21,7 +21,7 @@ pub fn stack_layout(total: f32, sizes: &[StackItem], intervals: &mut [(f32, f32)
     let mut sizes_sum = 0.0;
     for sz in sizes {
         match sz {
-            StackItem::Spacer => spacers += 1,
+            StackItem::Flexible => spacers += 1,
             StackItem::Fixed(s) => sizes_sum += s,
         }
     }
@@ -32,7 +32,7 @@ pub fn stack_layout(total: f32, sizes: &[StackItem], intervals: &mut [(f32, f32)
     let mut x = 0.0;
     for i in 0..sizes.len() {
         let sz = match sizes[i] {
-            StackItem::Spacer => spacer_length,
+            StackItem::Flexible => spacer_length,
             StackItem::Fixed(s) => {
                 if spacers != 0 {
                     s
@@ -119,7 +119,7 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
                     if let Some(s) = x {
                         StackItem::Fixed(s.width)
                     } else {
-                        StackItem::Spacer
+                        StackItem::Flexible
                     }
                 });
                 let mut intervals = [(0.0, 0.0); VIEW_TUPLE_MAX_ELEMENTS];
@@ -355,7 +355,7 @@ mod tests {
     #[test]
     fn test_layout_basic() {
         use StackItem::Fixed;
-        use StackItem::Spacer;
+        use StackItem::Flexible;
         {
             let sizes = [Fixed(1.0), Fixed(1.0)];
             let mut intervals = [(0.0, 0.0), (0.0, 0.0)];
@@ -366,7 +366,7 @@ mod tests {
         }
 
         {
-            let sizes = [Fixed(1.0), Spacer, Fixed(1.0)];
+            let sizes = [Fixed(1.0), Flexible, Fixed(1.0)];
             let mut intervals = [(0.0, 0.0), (0.0, 0.0), (0.0, 0.0)];
 
             stack_layout(4.0, &sizes, &mut intervals);
@@ -375,7 +375,7 @@ mod tests {
         }
 
         {
-            let sizes = [Fixed(1.0), Fixed(1.0), Spacer];
+            let sizes = [Fixed(1.0), Fixed(1.0), Flexible];
             let mut intervals = [(0.0, 0.0), (0.0, 0.0), (0.0, 0.0)];
 
             stack_layout(4.0, &sizes, &mut intervals);
