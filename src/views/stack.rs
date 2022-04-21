@@ -113,7 +113,7 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
                 let proposed_child_size = LocalSize::new(sz.width / n, sz.height);
 
                 let mut child_sizes = [None; VIEW_TUPLE_MAX_ELEMENTS];
-                self.layout_children2(id, proposed_child_size, cx, vger, &mut child_sizes);
+                self.layout_children(id, proposed_child_size, cx, vger, &mut child_sizes);
 
                 let child_sizes_1d = child_sizes.map(|x| {
                     if let Some(s) = x {
@@ -151,7 +151,7 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
             StackOrientation::Vertical => {
                 let proposed_child_size = LocalSize::new(sz.width, sz.height / n);
                 let mut child_sizes = [None; VIEW_TUPLE_MAX_ELEMENTS];
-                self.layout_children2(id, proposed_child_size, cx, vger, &mut child_sizes);
+                self.layout_children(id, proposed_child_size, cx, vger, &mut child_sizes);
 
                 let child_sizes_1d = child_sizes.map(|x| {
                     if let Some(s) = x {
@@ -282,22 +282,6 @@ impl<VT: ViewTuple> Stack<VT> {
     }
 
     pub fn layout_children(
-        &self,
-        id: ViewId,
-        proposed_child_size: LocalSize,
-        cx: &mut Context,
-        vger: &mut VGER,
-        child_sizes: &mut [LocalSize],
-    ) {
-        let mut c: i32 = 0;
-        self.children.foreach_view(&mut |child| {
-            let child_id = id.child(&c);
-            child_sizes[c as usize] = child.layout(child_id, proposed_child_size, cx, vger);
-            c += 1;
-        });
-    }
-
-    pub fn layout_children2(
         &self,
         id: ViewId,
         proposed_child_size: LocalSize,
