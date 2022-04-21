@@ -128,6 +128,8 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
                 let n = self.children.len();
                 let flex_length = stack_layout(sz.width, &child_sizes_1d[0..n], &mut intervals[0..n]);
 
+                self.layout_flex_children(id, [flex_length, sz.height].into(), cx, vger, &mut child_sizes);
+
                 for c in 0..(self.children.len() as i32) {
                     let child_id = id.child(&c);
                     let ab = intervals[c as usize];
@@ -148,8 +150,6 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
                     cx.layout.entry(child_id).or_default().offset = child_offset;
                 }
 
-                self.layout_flex_children(id, [flex_length, sz.height].into(), cx, vger);
-
                 sz
             }
             StackOrientation::Vertical => {
@@ -167,6 +167,8 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
                 let mut intervals = [(0.0, 0.0); VIEW_TUPLE_MAX_ELEMENTS];
                 let n = self.children.len();
                 let flex_length = stack_layout(sz.height, &child_sizes_1d[0..n], &mut intervals[0..n]);
+
+                self.layout_flex_children(id, [sz.width, flex_length].into(), cx, vger, &mut child_sizes);
 
                 for c in 0..(self.children.len() as i32) {
                     let child_id = id.child(&c);
@@ -188,8 +190,6 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
 
                     cx.layout.entry(child_id).or_default().offset = child_offset;
                 }
-
-                self.layout_flex_children(id, [sz.width, flex_length].into(), cx, vger);
 
                 sz
             }
@@ -298,11 +298,9 @@ impl<VT: ViewTuple> Stack<VT> {
         let mut c: i32 = 0;
         self.children.foreach_view(&mut |child| {
             let child_id = id.child(&c);
-            child_sizes[c as usize] = if child.is_flexible() {
-                None
-            } else {
-                Some(child.layout(child_id, proposed_child_size, cx, vger))
-            };
+            if !child.is_flexible() {
+                child_sizes[c as usize] = Some(child.layout(child_id, proposed_child_size, cx, vger))
+            }
             c += 1;
         });
     }
@@ -313,12 +311,13 @@ impl<VT: ViewTuple> Stack<VT> {
         flex_size: LocalSize,
         cx: &mut Context,
         vger: &mut Vger,
+        child_sizes: &mut [Option<LocalSize>],
     ) {
         let mut c: i32 = 0;
         self.children.foreach_view(&mut |child| {
             let child_id = id.child(&c);
             if child.is_flexible() {
-                child.layout(child_id, flex_size, cx, vger);
+                child_sizes[c as usize] = Some(child.layout(child_id, flex_size, cx, vger));
             }
             c += 1;
         });
