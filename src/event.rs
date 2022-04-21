@@ -5,13 +5,22 @@ use crate::*;
 pub enum EventKind {
 
     /// Touch event, or mouse down.
-    TouchBegin { id: usize },
+    TouchBegin {
+        /// Identifies a touch so we can track it.
+        id: usize
+    },
 
     /// Touch moved or mouse moved while down.
-    TouchMove { id: usize },
+    TouchMove {
+        /// Identifies a touch so we can track it.
+        id: usize
+    },
 
     /// Touch went up or mouse button released.
-    TouchEnd { id: usize },
+    TouchEnd {
+        /// Identifies a touch so we can track it.
+        id: usize
+    },
 
     /// Menu command.
     Command(String),
