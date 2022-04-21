@@ -16,6 +16,8 @@ mod emptyview;
 pub use emptyview::*;
 mod env;
 pub use env::*;
+mod flex;
+pub use flex::*;
 mod focus;
 pub use focus::*;
 mod geom;
