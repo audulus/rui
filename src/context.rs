@@ -58,7 +58,7 @@ pub struct Context {
     pub(crate) key_mods: ModifiersState,
 
     /// The root view ID. This should be randomized for security reasons.
-    pub(crate) root_id: ViewId,
+    root_id: ViewId,
 
     /// The view that has the keybord focus.
     pub(crate) focused_id: Option<ViewId>,
@@ -254,6 +254,11 @@ impl Context {
     /// Process a UI event.
     pub fn process(&mut self, view: &impl View, event: &Event, vger: &mut Vger) {
         view.process(event, self.root_id, self, vger);
+    }
+
+    /// Get menu commands.
+    pub fn commands(&mut self, view: &impl View, cmds: &mut Vec<CommandInfo>) {
+        view.commands(self.root_id, self, cmds);
     }
 
     pub(crate) fn set_dirty(&mut self) {

@@ -256,7 +256,7 @@ pub fn rui(view: impl View) {
     let mut mouse_position = LocalPoint::zero();
 
     let mut commands = Vec::new();
-    view.commands(cx.root_id, &mut cx, &mut commands);
+    cx.commands(&view, &mut commands);
     let mut command_map = HashMap::new();
     cx.window
         .as_ref()
