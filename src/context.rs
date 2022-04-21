@@ -271,10 +271,13 @@ impl Context {
     }
 
     pub(crate) fn set_state<S: 'static>(&mut self, id: ViewId, value: S) {
-        self.state_map.insert(id, StateHolder {
-            state: Box::new(value),
-            dirty: false,
-        });
+        self.state_map.insert(
+            id,
+            StateHolder {
+                state: Box::new(value),
+                dirty: false,
+            },
+        );
     }
 
     pub(crate) fn is_dirty(&self, id: ViewId) -> bool {

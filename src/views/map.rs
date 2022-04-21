@@ -90,14 +90,13 @@ where
 
 impl<S1, SF, F> private::Sealed for MapView<S1, SF, F> {}
 
-pub fn map<S, SF, F>(
-    value: S,
-    set_value: SF,
-    func: F,
-) -> impl View where MapView<S, SF, F>: view::View {
+pub fn map<S, SF, F>(value: S, set_value: SF, func: F) -> impl View
+where
+    MapView<S, SF, F>: view::View,
+{
     MapView {
         value,
         set_value,
-        func
+        func,
     }
 }
