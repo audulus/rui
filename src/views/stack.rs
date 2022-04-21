@@ -292,7 +292,7 @@ impl<VT: ViewTuple> Stack<VT> {
         id: ViewId,
         proposed_child_size: LocalSize,
         cx: &mut Context,
-        vger: &mut VGER,
+        vger: &mut Vger,
         child_sizes: &mut [Option<LocalSize>],
     ) {
         let mut c: i32 = 0;
@@ -312,7 +312,7 @@ impl<VT: ViewTuple> Stack<VT> {
         id: ViewId,
         flex_size: LocalSize,
         cx: &mut Context,
-        vger: &mut VGER,
+        vger: &mut Vger,
     ) {
         let mut c: i32 = 0;
         self.children.foreach_view(&mut |child| {

@@ -231,7 +231,7 @@ fn render(
     queue: &wgpu::Queue,
     view: &impl View,
     cx: &mut Context,
-    vger: &mut VGER,
+    vger: &mut Vger,
     dirty_region: &mut Region<WorldSpace>) {
 
     let frame = match surface.get_current_texture() {
