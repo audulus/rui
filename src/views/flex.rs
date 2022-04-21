@@ -24,25 +24,11 @@ where
     }
 
     fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {
-        self.child.layout(
-            id.child(&0),
-            sz,
-            cx,
-            vger,
-        )
+        self.child.layout(id.child(&0), sz, cx, vger)
     }
 
-    fn dirty(
-        &self,
-        id: ViewId,
-        xform: LocalToWorld,
-        cx: &mut Context,
-    ) {
-        self.child.dirty(
-            id.child(&0),
-            xform,
-            cx,
-        );
+    fn dirty(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) {
+        self.child.dirty(id.child(&0), xform, cx);
     }
 
     fn hittest(
@@ -52,12 +38,7 @@ where
         cx: &mut Context,
         vger: &mut Vger,
     ) -> Option<ViewId> {
-        self.child.hittest(
-            id.child(&0),
-            pt,
-            cx,
-            vger,
-        )
+        self.child.hittest(id.child(&0), pt, cx, vger)
     }
 
     fn commands(&self, id: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {

@@ -41,12 +41,7 @@ impl View for AnyView {
         self.child.layout(id.child(&self.id()), sz, cx, vger)
     }
 
-    fn dirty(
-        &self,
-        id: ViewId,
-        xform: LocalToWorld,
-        cx: &mut Context,
-    ) {
+    fn dirty(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) {
         self.child.dirty(id.child(&self.id()), xform, cx);
     }
 

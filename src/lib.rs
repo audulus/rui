@@ -192,10 +192,7 @@ fn make_menu_rec(
 
 type CommandMap = HashMap<tao::menu::MenuId, String>;
 
-fn build_menubar(
-    commands: &Vec<CommandInfo>,
-    command_map: &mut CommandMap,
-) -> Menu {
+fn build_menubar(commands: &Vec<CommandInfo>, command_map: &mut CommandMap) -> Menu {
     let mut items: Vec<MenuItem2> = vec![MenuItem2 {
         name: "root".into(),
         submenu: vec![],
@@ -315,7 +312,13 @@ pub fn rui(view: impl View) {
                 // applications which do not always need to. Applications that redraw continuously
                 // can just render here instead.
 
-                cx.update(&view, &mut vger, &mut commands, &mut command_map, &mut access_nodes);
+                cx.update(
+                    &view,
+                    &mut vger,
+                    &mut commands,
+                    &mut command_map,
+                    &mut access_nodes,
+                );
             }
             tao::event::Event::RedrawRequested(_) => {
                 // Redraw the application.

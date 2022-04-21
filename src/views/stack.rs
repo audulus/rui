@@ -13,7 +13,6 @@ pub enum StackItem {
 
 /// 1-D stack layout to make the algorithm clear.
 pub fn stack_layout(total: f32, sizes: &[StackItem], intervals: &mut [(f32, f32)]) -> f32 {
-
     assert_eq!(sizes.len(), intervals.len());
 
     // Count the number of flexible items and total of fixed sizes.
@@ -126,19 +125,23 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
                 });
                 let mut intervals = [(0.0, 0.0); VIEW_TUPLE_MAX_ELEMENTS];
                 let n = self.children.len();
-                let flex_length = stack_layout(sz.width, &child_sizes_1d[0..n], &mut intervals[0..n]);
+                let flex_length =
+                    stack_layout(sz.width, &child_sizes_1d[0..n], &mut intervals[0..n]);
 
-                self.layout_flex_children(id, [flex_length, sz.height].into(), cx, vger, &mut child_sizes);
+                self.layout_flex_children(
+                    id,
+                    [flex_length, sz.height].into(),
+                    cx,
+                    vger,
+                    &mut child_sizes,
+                );
 
                 for c in 0..(self.children.len() as i32) {
                     let child_id = id.child(&c);
                     let ab = intervals[c as usize];
 
                     let child_offset = align_h(
-                        LocalRect::new(
-                            LocalPoint::origin(),
-                            child_sizes[c as usize].unwrap(),
-                        ),
+                        LocalRect::new(LocalPoint::origin(), child_sizes[c as usize].unwrap()),
                         LocalRect::new([ab.0, 0.0].into(), [ab.1 - ab.0, sz.height].into()),
                         HAlignment::Center,
                     );
@@ -162,9 +165,16 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
                 });
                 let mut intervals = [(0.0, 0.0); VIEW_TUPLE_MAX_ELEMENTS];
                 let n = self.children.len();
-                let flex_length = stack_layout(sz.height, &child_sizes_1d[0..n], &mut intervals[0..n]);
+                let flex_length =
+                    stack_layout(sz.height, &child_sizes_1d[0..n], &mut intervals[0..n]);
 
-                self.layout_flex_children(id, [sz.width, flex_length].into(), cx, vger, &mut child_sizes);
+                self.layout_flex_children(
+                    id,
+                    [sz.width, flex_length].into(),
+                    cx,
+                    vger,
+                    &mut child_sizes,
+                );
 
                 for c in 0..(self.children.len() as i32) {
                     let child_id = id.child(&c);
@@ -172,10 +182,7 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
 
                     let h = ab.1 - ab.0;
                     let child_offset = align_h(
-                        LocalRect::new(
-                            LocalPoint::origin(),
-                            child_sizes[c as usize].unwrap(),
-                        ),
+                        LocalRect::new(LocalPoint::origin(), child_sizes[c as usize].unwrap()),
                         LocalRect::new([0.0, sz.height - ab.0 - h].into(), [sz.width, h].into()),
                         HAlignment::Center,
                     );
@@ -196,12 +203,7 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
         }
     }
 
-    fn dirty(
-        &self,
-        id: ViewId,
-        xform: LocalToWorld,
-        cx: &mut Context,
-    ) {
+    fn dirty(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) {
         let mut c = 0;
         self.children.foreach_view(&mut |child| {
             let child_id = id.child(&c);
@@ -290,7 +292,8 @@ impl<VT: ViewTuple> Stack<VT> {
         self.children.foreach_view(&mut |child| {
             let child_id = id.child(&c);
             if !child.is_flexible() {
-                child_sizes[c as usize] = Some(child.layout(child_id, proposed_child_size, cx, vger))
+                child_sizes[c as usize] =
+                    Some(child.layout(child_id, proposed_child_size, cx, vger))
             }
             c += 1;
         });

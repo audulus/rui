@@ -37,12 +37,7 @@ where
         child_size
     }
 
-    fn dirty(
-        &self,
-        id: ViewId,
-        xform: LocalToWorld,
-        cx: &mut Context,
-    ) {
+    fn dirty(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) {
         (self.func)(self.value.clone(), cx).dirty(id.child(&0), xform, cx);
     }
 

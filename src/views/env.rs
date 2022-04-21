@@ -39,12 +39,7 @@ where
         child_size
     }
 
-    fn dirty(
-        &self,
-        id: ViewId,
-        xform: LocalToWorld,
-        cx: &mut Context,
-    ) {
+    fn dirty(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) {
         (self.func)(cx.init_env(&S::default), cx).dirty(id.child(&0), xform, cx);
     }
 
@@ -137,12 +132,7 @@ where
         sz
     }
 
-    fn dirty(
-        &self,
-        id: ViewId,
-        xform: LocalToWorld,
-        cx: &mut Context,
-    ) {
+    fn dirty(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) {
         let old = cx.set_env(&self.env_val);
         self.child.dirty(id.child(&0), xform, cx);
         old.and_then(|s| cx.set_env(&s));

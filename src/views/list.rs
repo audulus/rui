@@ -67,12 +67,7 @@ where
         LocalSize::new(sz.width, height_sum)
     }
 
-    fn dirty(
-        &self,
-        id: ViewId,
-        xform: LocalToWorld,
-        cx: &mut Context,
-    ) {
+    fn dirty(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) {
         for child in &self.ids {
             let child_id = id.child(child);
             let offset = cx.layout.entry(child_id).or_default().offset;

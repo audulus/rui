@@ -43,12 +43,7 @@ where
         (self.func)(Some(id) == cx.focused_id).layout(id.child(&0), sz, cx, vger)
     }
 
-    fn dirty(
-        &self,
-        id: ViewId,
-        xform: LocalToWorld,
-        cx: &mut Context,
-    ) {
+    fn dirty(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) {
         (self.func)(Some(id) == cx.focused_id).dirty(id.child(&0), xform, cx);
     }
 

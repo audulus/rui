@@ -112,41 +112,41 @@ impl Context {
         vger: &mut Vger,
         commands: &mut Vec<CommandInfo>,
         command_map: &mut CommandMap,
-        access_nodes: &mut Vec<accesskit::Node>) {
-    
+        access_nodes: &mut Vec<accesskit::Node>,
+    ) {
         // Run any animations.
         let event = Event {
             kind: EventKind::Anim,
             position: LocalPoint::zero(),
         };
         view.process(&event, self.root_id, self, vger);
-    
+
         if self.dirty {
             // Have the commands changed?
             let mut new_commands = Vec::new();
             view.commands(self.root_id, self, &mut new_commands);
-    
+
             if new_commands != *commands {
                 print!("commands changed");
                 *commands = new_commands;
-    
+
                 command_map.clear();
                 self.window
                     .as_ref()
                     .unwrap()
                     .set_menu(Some(build_menubar(commands, command_map)));
             }
-    
+
             // Clean up state.
             let mut keep = vec![];
             view.gc(self.root_id, self, &mut keep);
             let keep_set = HashSet::<ViewId>::from_iter(keep);
             self.state_map.retain(|k, _| keep_set.contains(k));
-    
+
             // Get a new accesskit tree.
             let mut nodes = vec![];
             view.access(self.root_id, self, &mut nodes);
-    
+
             if nodes != *access_nodes {
                 println!("access nodes:");
                 for node in &nodes {
@@ -159,23 +159,19 @@ impl Context {
             } else {
                 // println!("access nodes unchanged");
             }
-    
+
             // XXX: we're doing layout both here and in rendering.
             let window_size = self.window.as_ref().unwrap().inner_size();
             let scale = self.window.as_ref().unwrap().scale_factor() as f32;
             let width = window_size.width as f32 / scale;
             let height = window_size.height as f32 / scale;
             view.layout(self.root_id, [width, height].into(), self, vger);
-    
+
             // Get dirty rectangles.
-            view.dirty(
-                self.root_id,
-                LocalToWorld::identity(),
-                self
-            );
-    
+            view.dirty(self.root_id, LocalToWorld::identity(), self);
+
             self.window.as_ref().unwrap().request_redraw();
-    
+
             self.clear_dirty();
         }
     }
@@ -188,8 +184,8 @@ impl Context {
         config: &wgpu::SurfaceConfiguration,
         queue: &wgpu::Queue,
         view: &impl View,
-        vger: &mut Vger) {
-    
+        vger: &mut Vger,
+    ) {
         let frame = match surface.get_current_texture() {
             Ok(frame) => frame,
             Err(_) => {
@@ -199,22 +195,22 @@ impl Context {
                     .expect("Failed to acquire next surface texture!")
             }
         };
-    
+
         let window_size = self.window.as_ref().unwrap().inner_size();
         let scale = self.window.as_ref().unwrap().scale_factor() as f32;
         // println!("window_size: {:?}", window_size);
         let width = window_size.width as f32 / scale;
         let height = window_size.height as f32 / scale;
-    
+
         vger.begin(width, height, scale);
-    
+
         // Disable dirtying the state during layout and rendering
         // to avoid constantly re-rendering if some state is saved.
         self.enable_dirty = false;
         view.layout(self.root_id, [width, height].into(), self, vger);
         view.draw(self.root_id, self, vger);
         self.enable_dirty = true;
-    
+
         let paint = vger.color_paint(RED_HIGHLIGHT);
         let xf = WorldToLocal::identity();
         for rect in self.dirty_region.rects() {
@@ -226,13 +222,13 @@ impl Context {
                 paint,
             );
         }
-    
+
         self.dirty_region.clear();
-    
+
         let texture_view = frame
             .texture
             .create_view(&wgpu::TextureViewDescriptor::default());
-    
+
         let desc = wgpu::RenderPassDescriptor {
             label: None,
             color_attachments: &[wgpu::RenderPassColorAttachment {
@@ -245,9 +241,9 @@ impl Context {
             }],
             depth_stencil_attachment: None,
         };
-    
+
         vger.encode(device, &desc, queue);
-    
+
         frame.present();
     }
 

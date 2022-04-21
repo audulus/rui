@@ -108,12 +108,7 @@ where
         child_size
     }
 
-    fn dirty(
-        &self,
-        id: ViewId,
-        xform: LocalToWorld,
-        cx: &mut Context,
-    ) {
+    fn dirty(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) {
         let default = &self.default;
         let holder = cx.state_map.entry(id).or_insert_with(|| StateHolder {
             state: Box::new((default)()),
