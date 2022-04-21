@@ -16,7 +16,7 @@ where
     }
 
     fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger) {
-        self.child.process(&event, id.child(&0), cx, vger);
+        self.child.process(event, id.child(&0), cx, vger);
     }
 
     fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {

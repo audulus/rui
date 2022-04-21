@@ -134,7 +134,7 @@ impl Context {
                 self.window
                     .as_ref()
                     .unwrap()
-                    .set_menu(Some(build_menubar(&commands, command_map)));
+                    .set_menu(Some(build_menubar(commands, command_map)));
             }
     
             // Clean up state.
