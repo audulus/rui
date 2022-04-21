@@ -16,25 +16,25 @@ pub fn stack_layout(total: f32, sizes: &[StackItem], intervals: &mut [(f32, f32)
 
     assert_eq!(sizes.len(), intervals.len());
 
-    // Count the number of spacers and total of fixed sizes.
-    let mut spacers = 0;
+    // Count the number of flexible items and total of fixed sizes.
+    let mut flex_count = 0;
     let mut sizes_sum = 0.0;
     for sz in sizes {
         match sz {
-            StackItem::Flexible => spacers += 1,
+            StackItem::Flexible => flex_count += 1,
             StackItem::Fixed(s) => sizes_sum += s,
         }
     }
 
     // length of spacer is remaining size divided equally
-    let spacer_length = (total - sizes_sum) / (spacers as f32);
+    let spacer_length = (total - sizes_sum) / (flex_count as f32);
 
     let mut x = 0.0;
     for i in 0..sizes.len() {
         let sz = match sizes[i] {
             StackItem::Flexible => spacer_length,
             StackItem::Fixed(s) => {
-                if spacers != 0 {
+                if flex_count != 0 {
                     s
                 } else {
                     total / (sizes.len() as f32)
