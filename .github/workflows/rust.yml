@@ -25,3 +25,5 @@ jobs:
         sudo apt-get install -y libappindicator3-dev
     - name: Build
       run: cargo build --verbose
+    - name: Test
+      run: cargo test
