@@ -2,7 +2,7 @@ use crate::*;
 
 /// Type of event.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub(crate) enum EventKind {
+pub enum EventKind {
     TouchBegin { id: usize },
     TouchMove { id: usize },
     TouchEnd { id: usize },
@@ -11,9 +11,9 @@ pub(crate) enum EventKind {
     Anim,
 }
 
-/// Used internally for event processing.
+/// User interface event.
 #[derive(Clone, Debug)]
 pub struct Event {
-    pub(crate) kind: EventKind,
-    pub(crate) position: LocalPoint,
+    pub kind: EventKind,
+    pub position: LocalPoint,
 }
