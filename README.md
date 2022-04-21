@@ -8,7 +8,7 @@
 
 Experimental Rust UI library, inspired by SwiftUI. Early days, but some stuff already works.
 
-rui is immediate mode (there is no retained tree of views), GPU rendered, and has richer layout options than other immediate mode UIs.
+rui is immediate mode (there is no retained tree of views), GPU rendered, updates reacitvely (when your state changes), and has richer layout options than other immediate mode UIs.
 
 [discord server](https://discord.gg/JCVVBU3sCN)
 
