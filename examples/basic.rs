@@ -3,7 +3,8 @@ use rui::*;
 fn main() {
     rui(vstack((
         "This is a test.",
-        spacer(),
+        rectangle().flex(),
         "This is another test.",
+        rectangle().flex(),
     )));
 }
