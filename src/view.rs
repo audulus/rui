@@ -57,8 +57,8 @@ pub trait View: private::Sealed + 'static {
         None
     }
 
-    /// For detecting spacers.
-    fn is_spacer(&self) -> bool {
+    /// For detecting flexible sized things in stacks.
+    fn is_flexible(&self) -> bool {
         false
     }
 }

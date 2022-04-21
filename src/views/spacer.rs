@@ -17,7 +17,7 @@ impl View for Spacer {
         [0.0, 0.0].into()
     }
 
-    fn is_spacer(&self) -> bool {
+    fn is_flexible(&self) -> bool {
         true
     }
 }

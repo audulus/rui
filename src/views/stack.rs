@@ -292,7 +292,7 @@ impl<VT: ViewTuple> Stack<VT> {
         let mut c: i32 = 0;
         self.children.foreach_view(&mut |child| {
             let child_id = id.child(&c);
-            child_sizes[c as usize] = if child.is_spacer() {
+            child_sizes[c as usize] = if child.is_flexible() {
                 None
             } else {
                 Some(child.layout(child_id, proposed_child_size, cx, vger))
