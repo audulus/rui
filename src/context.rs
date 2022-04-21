@@ -106,6 +106,81 @@ impl Context {
         }
     }
 
+    pub fn update(
+        &mut self,
+        view: &impl View,
+        vger: &mut Vger,
+        commands: &mut Vec<CommandInfo>,
+        command_map: &mut CommandMap,
+        mouse_position: LocalPoint,
+        access_nodes: &mut Vec<accesskit::Node>) {
+    
+        // Run any animations.
+        let event = Event {
+            kind: EventKind::Anim,
+            position: mouse_position,
+        };
+        view.process(&event, self.root_id, self, vger);
+    
+        if self.dirty {
+            // Have the commands changed?
+            let mut new_commands = Vec::new();
+            view.commands(self.root_id, self, &mut new_commands);
+    
+            if new_commands != *commands {
+                print!("commands changed");
+                *commands = new_commands;
+    
+                command_map.clear();
+                self.window
+                    .as_ref()
+                    .unwrap()
+                    .set_menu(Some(build_menubar(&commands, command_map)));
+            }
+    
+            // Clean up state.
+            let mut keep = vec![];
+            view.gc(self.root_id, self, &mut keep);
+            let keep_set = HashSet::<ViewId>::from_iter(keep);
+            self.state_map.retain(|k, _| keep_set.contains(k));
+    
+            // Get a new accesskit tree.
+            let mut nodes = vec![];
+            view.access(self.root_id, self, &mut nodes);
+    
+            if nodes != *access_nodes {
+                println!("access nodes:");
+                for node in &nodes {
+                    println!(
+                        "  id: {:?}, role: {:?}, children: {:?}",
+                        node.id, node.role, node.children
+                    );
+                }
+                *access_nodes = nodes;
+            } else {
+                // println!("access nodes unchanged");
+            }
+    
+            // XXX: we're doing layout both here and in rendering.
+            let window_size = self.window.as_ref().unwrap().inner_size();
+            let scale = self.window.as_ref().unwrap().scale_factor() as f32;
+            let width = window_size.width as f32 / scale;
+            let height = window_size.height as f32 / scale;
+            view.layout(self.root_id, [width, height].into(), self, vger);
+    
+            // Get dirty rectangles.
+            view.dirty(
+                self.root_id,
+                LocalToWorld::identity(),
+                self
+            );
+    
+            self.window.as_ref().unwrap().request_redraw();
+    
+            self.clear_dirty();
+        }
+    }
+
     /// Redraw the UI using wgpu.
     pub fn render(
         &mut self,
