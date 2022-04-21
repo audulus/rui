@@ -338,7 +338,7 @@ pub fn rui(view: impl View) {
                             kind: EventKind::TouchBegin { id: 0 },
                             position: mouse_position,
                         };
-                        view.process(&event, cx.root_id, &mut cx, &mut vger)
+                        cx.process(&view, &event, &mut vger)
                     }
                     ElementState::Released => {
                         cx.mouse_button = None;
@@ -346,7 +346,7 @@ pub fn rui(view: impl View) {
                             kind: EventKind::TouchEnd { id: 0 },
                             position: mouse_position,
                         };
-                        view.process(&event, cx.root_id, &mut cx, &mut vger)
+                        cx.process(&view, &event, &mut vger)
                     }
                     _ => {}
                 };
@@ -365,7 +365,7 @@ pub fn rui(view: impl View) {
                     kind: EventKind::TouchMove { id: 0 },
                     position: mouse_position,
                 };
-                view.process(&event, cx.root_id, &mut cx, &mut vger)
+                cx.process(&view, &event, &mut vger)
             }
             tao::event::Event::WindowEvent {
                 event: WindowEvent::KeyboardInput { event, .. },
