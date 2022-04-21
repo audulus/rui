@@ -88,6 +88,11 @@ pub trait Modifiers: View + Sized {
     fn anim<F: Fn(&mut Context, f32) + 'static>(self, func: F) -> AnimView<Self, F> {
         AnimView::new(self, func)
     }
+
+    /// Indicates that this item can expand within a stack.
+    fn flex(self) -> Flex<Self> {
+        Flex::new(self)
+    }
 }
 
 impl<V: View> Modifiers for V {}

@@ -84,4 +84,10 @@ where
     }
 }
 
+impl<V: View> Flex<V> {
+    pub fn new(child: V) -> Self {
+        Self { child }
+    }
+}
+
 impl<V> private::Sealed for Flex<V> {}
