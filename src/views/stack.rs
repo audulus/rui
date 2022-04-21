@@ -137,11 +137,7 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
                     let child_offset = align_h(
                         LocalRect::new(
                             LocalPoint::origin(),
-                            if let Some(sz) = child_sizes[c as usize] {
-                                sz
-                            } else {
-                                LocalSize::zero()
-                            },
+                            child_sizes[c as usize].unwrap(),
                         ),
                         LocalRect::new([ab.0, 0.0].into(), [ab.1 - ab.0, sz.height].into()),
                         HAlignment::Center,
@@ -178,11 +174,7 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
                     let child_offset = align_h(
                         LocalRect::new(
                             LocalPoint::origin(),
-                            if let Some(sz) = child_sizes[c as usize] {
-                                sz
-                            } else {
-                                LocalSize::zero()
-                            },
+                            child_sizes[c as usize].unwrap(),
                         ),
                         LocalRect::new([0.0, sz.height - ab.0 - h].into(), [sz.width, h].into()),
                         HAlignment::Center,
