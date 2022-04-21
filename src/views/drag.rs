@@ -2,6 +2,7 @@ use tao::event::MouseButton;
 
 use crate::*;
 
+#[derive(Clone, Copy, Eq, PartialEq)]
 pub enum GestureState {
     Began,
     Changed,

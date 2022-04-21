@@ -6,6 +6,49 @@ pub enum StackOrientation {
     Z,
 }
 
+pub enum StackItem {
+    Fixed(f32),
+    Flexible,
+}
+
+/// 1-D stack layout to make the algorithm clear.
+pub fn stack_layout(total: f32, sizes: &[StackItem], intervals: &mut [(f32, f32)]) -> f32 {
+
+    assert_eq!(sizes.len(), intervals.len());
+
+    // Count the number of flexible items and total of fixed sizes.
+    let mut flex_count = 0;
+    let mut sizes_sum = 0.0;
+    for sz in sizes {
+        match sz {
+            StackItem::Flexible => flex_count += 1,
+            StackItem::Fixed(s) => sizes_sum += s,
+        }
+    }
+
+    // length of flexible items is remaining size divided equally
+    let flex_length = (total - sizes_sum) / (flex_count as f32);
+
+    let mut x = 0.0;
+    for i in 0..sizes.len() {
+        let sz = match sizes[i] {
+            StackItem::Flexible => flex_length,
+            StackItem::Fixed(s) => {
+                if flex_count != 0 {
+                    s
+                } else {
+                    total / (sizes.len() as f32)
+                }
+            }
+        };
+
+        intervals[i] = (x, x + sz);
+        x += sz;
+    }
+
+    flex_length
+}
+
 struct Stack<VT> {
     orientation: StackOrientation,
     children: VT,
@@ -40,7 +83,7 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
         let mut c = 0;
         self.children.foreach_view(&mut |child| {
             let child_id = id.child(&c);
-            let layout_box = *cx.layout.entry(child_id).or_default();
+            let layout_box = cx.layout[&child_id];
 
             vger.save();
 
@@ -71,47 +114,82 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
             StackOrientation::Horizontal => {
                 let proposed_child_size = LocalSize::new(sz.width / n, sz.height);
 
-                let mut c = 0;
-                let mut x = 0.0;
-                self.children.foreach_view(&mut |child| {
-                    let child_id = id.child(&c);
-                    let child_rect = LocalRect::new([x, 0.0].into(), proposed_child_size);
-                    let child_size = child.layout(child_id, proposed_child_size, cx, vger);
+                let mut child_sizes = [None; VIEW_TUPLE_MAX_ELEMENTS];
+                self.layout_children(id, proposed_child_size, cx, vger, &mut child_sizes);
 
-                    cx.layout.entry(child_id).or_default().offset = align_h(
-                        LocalRect::new(LocalPoint::origin(), child_size),
-                        child_rect,
+                let child_sizes_1d = child_sizes.map(|x| {
+                    if let Some(s) = x {
+                        StackItem::Fixed(s.width)
+                    } else {
+                        StackItem::Flexible
+                    }
+                });
+                let mut intervals = [(0.0, 0.0); VIEW_TUPLE_MAX_ELEMENTS];
+                let n = self.children.len();
+                let flex_length = stack_layout(sz.width, &child_sizes_1d[0..n], &mut intervals[0..n]);
+
+                for c in 0..(self.children.len() as i32) {
+                    let child_id = id.child(&c);
+                    let ab = intervals[c as usize];
+
+                    let child_offset = align_h(
+                        LocalRect::new(
+                            LocalPoint::origin(),
+                            if let Some(sz) = child_sizes[c as usize] {
+                                sz
+                            } else {
+                                LocalSize::zero()
+                            },
+                        ),
+                        LocalRect::new([ab.0, 0.0].into(), [ab.1 - ab.0, sz.height].into()),
                         HAlignment::Center,
                     );
 
-                    x += proposed_child_size.width;
-                    c += 1;
-                });
+                    cx.layout.entry(child_id).or_default().offset = child_offset;
+                }
+
+                self.layout_flex_children(id, [flex_length, sz.height].into(), cx, vger);
 
                 sz
             }
             StackOrientation::Vertical => {
                 let proposed_child_size = LocalSize::new(sz.width, sz.height / n);
+                let mut child_sizes = [None; VIEW_TUPLE_MAX_ELEMENTS];
+                self.layout_children(id, proposed_child_size, cx, vger, &mut child_sizes);
 
-                let mut c = 0;
-                let mut y = sz.height;
-                self.children.foreach_view(&mut |child| {
-                    let child_id = id.child(&c);
-                    let child_rect = LocalRect::new(
-                        [0.0, y - proposed_child_size.height].into(),
-                        proposed_child_size,
-                    );
-                    let child_size = child.layout(child_id, proposed_child_size, cx, vger);
-
-                    y -= proposed_child_size.height;
-                    cx.layout.entry(child_id).or_default().offset = align_v(
-                        LocalRect::new(LocalPoint::origin(), child_size),
-                        child_rect,
-                        VAlignment::Middle,
-                    );
-
-                    c += 1;
+                let child_sizes_1d = child_sizes.map(|x| {
+                    if let Some(s) = x {
+                        StackItem::Fixed(s.height)
+                    } else {
+                        StackItem::Flexible
+                    }
                 });
+                let mut intervals = [(0.0, 0.0); VIEW_TUPLE_MAX_ELEMENTS];
+                let n = self.children.len();
+                let flex_length = stack_layout(sz.height, &child_sizes_1d[0..n], &mut intervals[0..n]);
+
+                for c in 0..(self.children.len() as i32) {
+                    let child_id = id.child(&c);
+                    let ab = intervals[c as usize];
+
+                    let h = ab.1 - ab.0;
+                    let child_offset = align_h(
+                        LocalRect::new(
+                            LocalPoint::origin(),
+                            if let Some(sz) = child_sizes[c as usize] {
+                                sz
+                            } else {
+                                LocalSize::zero()
+                            },
+                        ),
+                        LocalRect::new([0.0, sz.height - ab.0 - h].into(), [sz.width, h].into()),
+                        HAlignment::Center,
+                    );
+
+                    cx.layout.entry(child_id).or_default().offset = child_offset;
+                }
+
+                self.layout_flex_children(id, [sz.width, flex_length].into(), cx, vger);
 
                 sz
             }
@@ -208,6 +286,43 @@ impl<VT: ViewTuple> Stack<VT> {
             children,
         }
     }
+
+    pub fn layout_children(
+        &self,
+        id: ViewId,
+        proposed_child_size: LocalSize,
+        cx: &mut Context,
+        vger: &mut VGER,
+        child_sizes: &mut [Option<LocalSize>],
+    ) {
+        let mut c: i32 = 0;
+        self.children.foreach_view(&mut |child| {
+            let child_id = id.child(&c);
+            child_sizes[c as usize] = if child.is_flexible() {
+                None
+            } else {
+                Some(child.layout(child_id, proposed_child_size, cx, vger))
+            };
+            c += 1;
+        });
+    }
+
+    pub fn layout_flex_children(
+        &self,
+        id: ViewId,
+        flex_size: LocalSize,
+        cx: &mut Context,
+        vger: &mut VGER,
+    ) {
+        let mut c: i32 = 0;
+        self.children.foreach_view(&mut |child| {
+            let child_id = id.child(&c);
+            if child.is_flexible() {
+                child.layout(child_id, flex_size, cx, vger);
+            }
+            c += 1;
+        });
+    }
 }
 
 impl<VT> private::Sealed for Stack<VT> {}
@@ -225,4 +340,42 @@ pub fn vstack<VT: ViewTuple + 'static>(children: VT) -> impl View {
 /// Stack of up to 8 overlaid Views in a tuple. Each item can be a different view type.
 pub fn zstack<VT: ViewTuple + 'static>(children: VT) -> impl View {
     Stack::new(StackOrientation::Z, children)
+}
+
+#[cfg(test)]
+mod tests {
+
+    use super::*;
+
+    #[test]
+    fn test_layout_basic() {
+        use StackItem::Fixed;
+        use StackItem::Flexible;
+        {
+            let sizes = [Fixed(1.0), Fixed(1.0)];
+            let mut intervals = [(0.0, 0.0), (0.0, 0.0)];
+
+            stack_layout(4.0, &sizes, &mut intervals);
+
+            println!("intervals: {:?}", intervals);
+        }
+
+        {
+            let sizes = [Fixed(1.0), Flexible, Fixed(1.0)];
+            let mut intervals = [(0.0, 0.0), (0.0, 0.0), (0.0, 0.0)];
+
+            stack_layout(4.0, &sizes, &mut intervals);
+
+            println!("intervals: {:?}", intervals);
+        }
+
+        {
+            let sizes = [Fixed(1.0), Fixed(1.0), Flexible];
+            let mut intervals = [(0.0, 0.0), (0.0, 0.0), (0.0, 0.0)];
+
+            stack_layout(4.0, &sizes, &mut intervals);
+
+            println!("intervals: {:?}", intervals);
+        }
+    }
 }
