@@ -315,7 +315,7 @@ pub fn rui(view: impl View) {
                 // applications which do not always need to. Applications that redraw continuously
                 // can just render here instead.
 
-                cx.update(&view, &mut vger, &mut commands, &mut command_map, mouse_position, &mut access_nodes);
+                cx.update(&view, &mut vger, &mut commands, &mut command_map, &mut access_nodes);
             }
             tao::event::Event::RedrawRequested(_) => {
                 // Redraw the application.

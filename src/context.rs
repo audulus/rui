@@ -112,13 +112,12 @@ impl Context {
         vger: &mut Vger,
         commands: &mut Vec<CommandInfo>,
         command_map: &mut CommandMap,
-        mouse_position: LocalPoint,
         access_nodes: &mut Vec<accesskit::Node>) {
     
         // Run any animations.
         let event = Event {
             kind: EventKind::Anim,
-            position: mouse_position,
+            position: LocalPoint::zero(),
         };
         view.process(&event, self.root_id, self, vger);
     
