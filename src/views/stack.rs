@@ -6,13 +6,13 @@ pub enum StackOrientation {
     Z,
 }
 
-pub enum StackSize {
+pub enum StackItem {
     Fixed(f32),
     Spacer,
 }
 
 /// 1-D stack layout to make the algorithm clear.
-pub fn stack_layout(total: f32, sizes: &[StackSize], intervals: &mut [(f32, f32)]) {
+pub fn stack_layout(total: f32, sizes: &[StackItem], intervals: &mut [(f32, f32)]) {
 
     assert_eq!(sizes.len(), intervals.len());
 
@@ -21,8 +21,8 @@ pub fn stack_layout(total: f32, sizes: &[StackSize], intervals: &mut [(f32, f32)
     let mut sizes_sum = 0.0;
     for sz in sizes {
         match sz {
-            StackSize::Spacer => spacers += 1,
-            StackSize::Fixed(s) => sizes_sum += s,
+            StackItem::Spacer => spacers += 1,
+            StackItem::Fixed(s) => sizes_sum += s,
         }
     }
 
@@ -32,8 +32,8 @@ pub fn stack_layout(total: f32, sizes: &[StackSize], intervals: &mut [(f32, f32)
     let mut x = 0.0;
     for i in 0..sizes.len() {
         let sz = match sizes[i] {
-            StackSize::Spacer => spacer_length,
-            StackSize::Fixed(s) => {
+            StackItem::Spacer => spacer_length,
+            StackItem::Fixed(s) => {
                 if spacers != 0 {
                     s
                 } else {
@@ -117,9 +117,9 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
 
                 let child_sizes_1d = child_sizes.map(|x| {
                     if let Some(s) = x {
-                        StackSize::Fixed(s.width)
+                        StackItem::Fixed(s.width)
                     } else {
-                        StackSize::Spacer
+                        StackItem::Spacer
                     }
                 });
                 let mut intervals = [(0.0, 0.0); VIEW_TUPLE_MAX_ELEMENTS];
@@ -354,8 +354,8 @@ mod tests {
 
     #[test]
     fn test_layout_basic() {
-        use StackSize::Fixed;
-        use StackSize::Spacer;
+        use StackItem::Fixed;
+        use StackItem::Spacer;
         {
             let sizes = [Fixed(1.0), Fixed(1.0)];
             let mut intervals = [(0.0, 0.0), (0.0, 0.0)];
