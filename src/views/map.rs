@@ -90,6 +90,31 @@ where
 
 impl<S1, SF, F> private::Sealed for MapView<S1, SF, F> {}
 
+/// Maps state into local state.
+/// 
+/// For example:
+/// 
+/// ```no_run
+/// use rui::*;
+///
+/// #[derive(Debug, Default)]
+/// struct MyState {
+///     x: f32,
+/// }
+///
+/// fn main() {
+///     rui(state(MyState::default, |state, cx| {
+///         vstack((
+///             format!("value: {:?}", cx[state]).padding(Auto),
+///             map(
+///                 cx[state].x * 0.01,
+///                 move |v, cx| cx[state].x = v * 100.0,
+///                 |s, _| knob(s).padding(Auto),
+///             ),
+///         ))
+///     }));
+/// }
+/// ```
 pub fn map<S, SF, F>(value: S, set_value: SF, func: F) -> impl View
 where
     MapView<S, SF, F>: view::View,
