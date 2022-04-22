@@ -3,9 +3,6 @@
 use vger::color::*;
 use vger::{LineMetrics, PaintIndex, Vger};
 
-use std::collections::{HashMap, HashSet};
-use std::iter::FromIterator;
-
 #[macro_use]
 extern crate lazy_static;
 

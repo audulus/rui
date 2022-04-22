@@ -2,7 +2,7 @@
 use crate::*;
 
 use futures::executor::block_on;
-
+use std::collections::{HashMap};
 
 use tao::{
     accelerator::Accelerator,

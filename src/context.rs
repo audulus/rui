@@ -2,7 +2,8 @@ use crate::*;
 use euclid::*;
 use std::any::Any;
 use std::any::TypeId;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
+use std::iter::FromIterator;
 use std::ops;
 
 pub type LocalSpace = vger::defs::LocalSpace;
