@@ -12,7 +12,7 @@ pub fn knob(value: impl Binding<f32>) -> impl View {
     zstack((
         circle()
             .color(CLEAR_COLOR)
-            .drag(move |cx, off, _state, _key_mods, _mouse_button| {
+            .drag(move |cx, off, _state, _mouse_button| {
                 value.with_mut(cx, |v| *v = (*v + (off.x + off.y) / 400.0).clamp(0.0, 1.0));
             }),
         canvas(move |cx, sz, vger| {

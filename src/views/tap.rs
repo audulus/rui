@@ -9,7 +9,7 @@ pub struct Tap<V, F> {
 impl<V, F> Tap<V, F>
 where
     V: View,
-    F: Fn(&mut Context, KeyboardModifiers) + 'static,
+    F: Fn(&mut Context) + 'static,
 {
     pub fn new(v: V, f: F) -> Self {
         Self { child: v, func: f }
@@ -19,7 +19,7 @@ where
 impl<V, F> View for Tap<V, F>
 where
     V: View,
-    F: Fn(&mut Context, KeyboardModifiers) + 'static,
+    F: Fn(&mut Context) + 'static,
 {
     fn print(&self, id: ViewId, cx: &mut Context) {
         println!("Tap {{");
@@ -37,7 +37,7 @@ where
             Event::TouchEnd { id, position: _ } => {
                 if cx.touches[*id] == vid {
                     cx.touches[*id] = ViewId::default();
-                    (self.func)(cx, cx.key_mods);
+                    (self.func)(cx);
                 }
             }
             _ => (),

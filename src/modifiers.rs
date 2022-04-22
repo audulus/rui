@@ -8,7 +8,7 @@ pub trait Modifiers: View + Sized {
     }
 
     /// Calls a function in response to a tap.
-    fn tap<F: Fn(&mut Context, KeyboardModifiers) + 'static>(self, f: F) -> Tap<Self, F> {
+    fn tap<F: Fn(&mut Context) + 'static>(self, f: F) -> Tap<Self, F> {
         Tap::new(self, f)
     }
 
@@ -25,7 +25,7 @@ pub trait Modifiers: View + Sized {
 
     /// Calls a function in response to a drag.
     fn drag<
-        F: Fn(&mut Context, LocalOffset, GestureState, KeyboardModifiers, Option<MouseButton>) + 'static,
+        F: Fn(&mut Context, LocalOffset, GestureState, Option<MouseButton>) + 'static,
     >(
         self,
         f: F,
@@ -59,7 +59,7 @@ pub trait Modifiers: View + Sized {
     }
 
     /// Responds to keyboard events
-    fn key<F: Fn(&mut Context, KeyPress, KeyboardModifiers) + 'static>(self, f: F) -> Key<Self, F> {
+    fn key<F: Fn(&mut Context, KeyPress) + 'static>(self, f: F) -> Key<Self, F> {
         Key::new(self, f)
     }
 

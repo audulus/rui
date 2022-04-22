@@ -163,7 +163,7 @@ pub fn text_editor(text: impl Binding<String>) -> impl View {
                     cx[state].lines = lines;
                 }
             })
-            .key(move |cx, k, _| {
+            .key(move |cx, k| {
                 if has_focus {
                     let t = text.with(cx, |t| t.clone());
                     let new_t = cx[state].key(&k, t);

@@ -60,7 +60,7 @@ pub fn hslider(value: impl Binding<f32>) -> impl SliderMods {
                         cx[width] = sz.width;
                     }
                 })
-                .drag(move |cx, off, _state, _key_mods, _mouse_button| {
+                .drag(move |cx, off, _state, _mouse_button| {
                     value.with_mut(cx, |v| *v = (*v + off.x / w).clamp(0.0, 1.0));
                 })
             },
@@ -111,7 +111,7 @@ pub fn vslider(
                         cx[height] = sz.height;
                     }
                 })
-                .drag(move |cx, off, _state, _key_mods, _mouse_button| {
+                .drag(move |cx, off, _state, _mouse_button| {
                     (set_value)(cx, (value + off.y / h).clamp(0.0, 1.0));
                 })
             },

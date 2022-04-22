@@ -8,7 +8,7 @@ fn digit_button(title: &str, state: State<String>) -> impl View {
         rectangle()
             .corner_radius(10.0)
             .color(RED_HIGHLIGHT)
-            .tap(move |cx, _| cx[state].push_str(&t)),
+            .tap(move |cx| cx[state].push_str(&t)),
         text(title),
     ))
     .padding(Auto)
@@ -16,7 +16,7 @@ fn digit_button(title: &str, state: State<String>) -> impl View {
 
 fn calc_button(
     title: &str,
-    callback: impl Fn(&mut Context, KeyboardModifiers) + 'static,
+    callback: impl Fn(&mut Context) + 'static,
 ) -> impl View {
     zstack((
         rectangle()
@@ -35,33 +35,33 @@ fn main() {
             vstack((
                 text(&cx[s].to_string()),
                 hstack((
-                    calc_button("AC", move |cx, _| cx[s] = "0".into()),
-                    calc_button("+/-", |_, _| ()),
-                    calc_button("%", |_, _| ()),
-                    calc_button("/", |_, _| ()),
+                    calc_button("AC", move |cx| cx[s] = "0".into()),
+                    calc_button("+/-", |_| ()),
+                    calc_button("%", |_| ()),
+                    calc_button("/", |_| ()),
                 )),
                 hstack((
                     digit_button("7", s),
                     digit_button("8", s),
                     digit_button("9", s),
-                    calc_button("*", |_, _| ()),
+                    calc_button("*", |_| ()),
                 )),
                 hstack((
                     digit_button("4", s),
                     digit_button("5", s),
                     digit_button("6", s),
-                    calc_button("-", |_, _| ()),
+                    calc_button("-", |_| ()),
                 )),
                 hstack((
                     digit_button("1", s),
                     digit_button("2", s),
                     digit_button("3", s),
-                    calc_button("+", |_, _| ()),
+                    calc_button("+", |_| ()),
                 )),
                 hstack((
                     digit_button("0", s),
-                    calc_button(".", move |cx, _| cx[s].push('.')),
-                    calc_button("=", |_, _| ()),
+                    calc_button(".", move |cx| cx[s].push('.')),
+                    calc_button("=", |_| ()),
                 )),
             ))
         },

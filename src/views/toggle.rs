@@ -15,7 +15,7 @@ pub fn toggle(on: impl Binding<bool>) -> impl View {
                     })
                     .corner_radius(10.0)
                     .size([40.0, 20.0])
-                    .tap(move |cx, _key_mods| on.with_mut(cx, |b| *b = !*b)),
+                    .tap(move |cx| on.with_mut(cx, |b| *b = !*b)),
                 circle()
                     .color(if b { AZURE_HIGHLIGHT } else { MEDIUM_GRAY })
                     .size([10.0, 10.0])

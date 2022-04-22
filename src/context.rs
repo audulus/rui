@@ -54,7 +54,7 @@ pub struct Context {
     pub(crate) mouse_button: Option<MouseButton>,
 
     /// Keyboard modifiers state.
-    pub(crate) key_mods: KeyboardModifiers,
+    pub key_mods: KeyboardModifiers,
 
     /// The root view ID. This should be randomized for security reasons.
     root_id: ViewId,

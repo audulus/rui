@@ -17,7 +17,7 @@ fn main() {
     rui(hstack((
         circle()
             .color(RED_HIGHLIGHT.alpha(0.8))
-            .tap(|_cx, _key_mods| println!("tapped circle"))
+            .tap(|_cx| println!("tapped circle"))
             .padding(Auto),
         state(LocalOffset::zero, move |off, _| {
             // target offset
@@ -27,7 +27,7 @@ fn main() {
                     .corner_radius(5.0)
                     .color(AZURE_HIGHLIGHT.alpha(0.8))
                     .offset(cx[anim_off])
-                    .drag(move |cx, delta, state, _, _| {
+                    .drag(move |cx, delta, state, _| {
                         cx[off] += delta;
                         cx[anim_off] = cx[off];
                         if state == GestureState::Ended {
