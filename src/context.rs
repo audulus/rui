@@ -23,7 +23,7 @@ pub type CommandMap = HashMap<tao::menu::MenuId, String>;
 #[derive(Clone, Eq, PartialEq)]
 pub struct CommandInfo {
     pub path: String,
-    pub key: Option<KeyCode>,
+    pub key: Option<HotKey>,
 }
 
 pub const DEBUG_LAYOUT: bool = false;

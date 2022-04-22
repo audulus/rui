@@ -3,7 +3,7 @@ use crate::*;
 pub struct Command<V, F> {
     child: V,
     name: String,
-    key: Option<KeyCode>,
+    key: Option<HotKey>,
     func: F,
 }
 
@@ -12,7 +12,7 @@ where
     V: View,
     F: Fn(&mut Context) + 'static,
 {
-    pub fn new(v: V, name: String, key: Option<KeyCode>, f: F) -> Self {
+    pub fn new(v: V, name: String, key: Option<HotKey>, f: F) -> Self {
         Self {
             child: v,
             name,
@@ -93,7 +93,7 @@ where
 pub trait CommandBase {
     fn exec(&self);
     fn name(&self) -> String;
-    fn key(&self) -> Option<KeyCode>;
+    fn key(&self) -> Option<HotKey>;
 }
 
 pub trait CommandTuple {
@@ -316,7 +316,7 @@ impl<V, C> private::Sealed for CommandGroup<V, C> {}
 
 pub struct NullCommand {
     name: String,
-    key: Option<KeyCode>,
+    key: Option<HotKey>,
 }
 
 /// Specifies a menu command.
@@ -332,14 +332,14 @@ impl CommandBase for NullCommand {
     fn name(&self) -> String {
         self.name.clone()
     }
-    fn key(&self) -> Option<KeyCode> {
+    fn key(&self) -> Option<HotKey> {
         None
     }
 }
 
 impl NullCommand {
     /// Adds a hotkey to the menu command.
-    pub fn hotkey(self, key: KeyCode) -> Self {
+    pub fn hotkey(self, key: HotKey) -> Self {
         Self {
             name: self.name,
             key: Some(key),
@@ -357,7 +357,7 @@ impl NullCommand {
 
 pub struct Command2<F: Fn()> {
     name: String,
-    key: Option<KeyCode>,
+    key: Option<HotKey>,
     func: F,
 }
 
@@ -371,7 +371,7 @@ where
     fn name(&self) -> String {
         self.name.clone()
     }
-    fn key(&self) -> Option<KeyCode> {
+    fn key(&self) -> Option<HotKey> {
         self.key
     }
 }
@@ -381,7 +381,7 @@ where
     F: Fn(),
 {
     /// Adds a hotkey to the menu command.
-    pub fn hotkey(self, key: KeyCode) -> Self {
+    pub fn hotkey(self, key: HotKey) -> Self {
         Self {
             name: self.name,
             key: Some(key),

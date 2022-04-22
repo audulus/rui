@@ -155,7 +155,37 @@ fn make_menu_rec(
         } else {
             let mut attrs = MenuItemAttributes::new(item.name.as_str());
             if let Some(key) = item.command.key {
-                let accel = Accelerator::new(ModifiersState::SUPER, key);
+
+                let key_code = match key {
+                    HotKey::KeyA => KeyCode::KeyA,
+                    HotKey::KeyB => KeyCode::KeyB,
+                    HotKey::KeyC => KeyCode::KeyC,
+                    HotKey::KeyD => KeyCode::KeyD,
+                    HotKey::KeyE => KeyCode::KeyE,
+                    HotKey::KeyF => KeyCode::KeyF,
+                    HotKey::KeyG => KeyCode::KeyG,
+                    HotKey::KeyH => KeyCode::KeyH,
+                    HotKey::KeyI => KeyCode::KeyI,
+                    HotKey::KeyJ => KeyCode::KeyJ,
+                    HotKey::KeyK => KeyCode::KeyK,
+                    HotKey::KeyL => KeyCode::KeyL,
+                    HotKey::KeyM => KeyCode::KeyM,
+                    HotKey::KeyN => KeyCode::KeyN,
+                    HotKey::KeyO => KeyCode::KeyO,
+                    HotKey::KeyP => KeyCode::KeyP,
+                    HotKey::KeyQ => KeyCode::KeyQ,
+                    HotKey::KeyR => KeyCode::KeyR,
+                    HotKey::KeyS => KeyCode::KeyS,
+                    HotKey::KeyT => KeyCode::KeyT,
+                    HotKey::KeyU => KeyCode::KeyU,
+                    HotKey::KeyV => KeyCode::KeyV,
+                    HotKey::KeyW => KeyCode::KeyW,
+                    HotKey::KeyX => KeyCode::KeyX,
+                    HotKey::KeyY => KeyCode::KeyY,
+                    HotKey::KeyZ => KeyCode::KeyZ,
+                };
+
+                let accel = Accelerator::new(ModifiersState::SUPER, key_code);
                 attrs = attrs.with_accelerators(&accel);
             }
             let id = menu.add_item(attrs).id();

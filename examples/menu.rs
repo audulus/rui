@@ -4,7 +4,7 @@ fn main() {
     rui(hstack((
         circle().color(RED_HIGHLIGHT).padding(Auto).command(
             "File:New",
-            Some(KeyCode::KeyN),
+            Some(HotKey::KeyN),
             |_| println!("new"),
         ),
         rectangle()
@@ -17,6 +17,6 @@ fn main() {
             .command("Custom:Submenu:Two", None, |_| println!("submenu two"))
             .command_group((command("Custom 2:Four")
                 .action(|| println!("four"))
-                .hotkey(KeyCode::KeyF),)),
+                .hotkey(HotKey::KeyF),)),
     )));
 }

@@ -45,7 +45,7 @@ pub trait Modifiers: View + Sized {
     fn command<F: Fn(&mut Context) + 'static>(
         self,
         name: &str,
-        key: Option<KeyCode>,
+        key: Option<HotKey>,
         f: F,
     ) -> Command<Self, F> {
         Command::new(self, name.into(), key, f)

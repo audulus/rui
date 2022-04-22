@@ -94,7 +94,7 @@ pub enum Key {
     F12,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq, Copy)]
 pub enum HotKey {
     KeyA,
     KeyB,
