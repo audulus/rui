@@ -46,3 +46,10 @@ impl Event {
         event
     }
 }
+
+#[derive(Copy, Clone, Debug)]
+pub enum MouseButton {
+    Left,
+    Right,
+    Center
+}

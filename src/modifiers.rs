@@ -1,6 +1,5 @@
 use crate::*;
 use accesskit::Role;
-use tao::event::MouseButton;
 
 pub trait Modifiers: View + Sized {
     /// Adds space around a view. Can be either `Auto` or `Px(number_of_pixels)`

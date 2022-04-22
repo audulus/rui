@@ -4,7 +4,6 @@ use std::any::Any;
 use std::any::TypeId;
 use std::collections::HashMap;
 use std::ops;
-use tao::event::MouseButton;
 
 pub type LocalSpace = vger::defs::LocalSpace;
 pub type WorldSpace = vger::defs::WorldSpace;

@@ -337,7 +337,12 @@ pub fn rui(view: impl View) {
             } => {
                 match state {
                     ElementState::Pressed => {
-                        cx.mouse_button = Some(button);
+                        cx.mouse_button = match button {
+                            tao::event::MouseButton::Left => Some(MouseButton::Left),
+                            tao::event::MouseButton::Right => Some(MouseButton::Right),
+                            tao::event::MouseButton::Middle => Some(MouseButton::Center),
+                            _ => None
+                        };
                         let event = Event::TouchBegin { id: 0, position: mouse_position };
                         cx.process(&view, &event, &mut vger)
                     }
