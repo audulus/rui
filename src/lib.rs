@@ -45,6 +45,11 @@ pub use region::*;
 mod event_loop;
 pub use event_loop::*;
 
+// See https://rust-lang.github.io/api-guidelines/future-proofing.html
+pub(crate) mod private {
+    pub trait Sealed {}
+}
+
 #[cfg(test)]
 mod tests {
 

@@ -13,11 +13,6 @@ use tao::{
     window::{Window, WindowBuilder},
 };
 
-// See https://rust-lang.github.io/api-guidelines/future-proofing.html
-pub(crate) mod private {
-    pub trait Sealed {}
-}
-
 pub type KeyCode = tao::keyboard::KeyCode;
 type KeyPress = tao::keyboard::Key<'static>;
 type WEvent<'a, T> = tao::event::Event<'a, T>;
