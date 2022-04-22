@@ -1,7 +1,10 @@
 use crate::*;
 
 use futures::executor::block_on;
-use std::{collections::{VecDeque, HashMap}, sync::Mutex};
+use std::{
+    collections::{HashMap, VecDeque},
+    sync::Mutex,
+};
 
 use tao::{
     accelerator::Accelerator,
