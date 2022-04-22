@@ -16,6 +16,11 @@ exclude = [ "screenshots/*" ]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+default = ["tao"]
+tao = []
+winit = []
+
 [dependencies]
 euclid = "0.22.6"
 tao = "0.8.2"
