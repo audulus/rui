@@ -12,7 +12,11 @@ env:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
 
     steps:
     - uses: actions/checkout@v2
@@ -22,9 +26,11 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y libgtk-3-dev
     - name: Install ayatana-libappindicator (ubuntu[default/tray] only)
+      if: matrix.platform.os == 'ubuntu-latest'
       run: |
         sudo apt-get install -y libayatana-appindicator3-dev
     - name: Install GCC Multilib
+      if: matrix.platform.os == 'ubuntu-latest'
       run: sudo apt-get install gcc-multilib
     - name: Build
       run: cargo build --verbose
