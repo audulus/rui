@@ -1,22 +1,22 @@
 use crate::*;
 
 /// Struct for the `key` modifier.
-pub struct Key<V, F> {
+pub struct KeyView<V, F> {
     child: V,
     func: F,
 }
 
-impl<V, F> Key<V, F>
+impl<V, F> KeyView<V, F>
 where
     V: View,
     F: Fn(&mut Context, KeyPress) + 'static,
 {
     pub fn new(v: V, f: F) -> Self {
-        Self { child: v, func: f }
+        KeyView { child: v, func: f }
     }
 }
 
-impl<V, F> View for Key<V, F>
+impl<V, F> View for KeyView<V, F>
 where
     V: View,
     F: Fn(&mut Context, KeyPress) + 'static,
@@ -73,4 +73,4 @@ where
     }
 }
 
-impl<V, F> private::Sealed for Key<V, F> {}
+impl<V, F> private::Sealed for KeyView<V, F> {}
