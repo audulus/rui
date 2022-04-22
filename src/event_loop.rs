@@ -22,6 +22,7 @@ pub(crate) mod private {
 pub type KeyCode = tao::keyboard::KeyCode;
 pub type KeyPress = tao::keyboard::Key<'static>;
 pub type WEvent<'a, T> = tao::event::Event<'a, T>;
+pub type WMouseButton = tao::event::MouseButton;
 
 struct Setup {
     size: PhysicalSize<u32>,
@@ -289,9 +290,9 @@ pub fn rui(view: impl View) {
                 match state {
                     ElementState::Pressed => {
                         cx.mouse_button = match button {
-                            tao::event::MouseButton::Left => Some(MouseButton::Left),
-                            tao::event::MouseButton::Right => Some(MouseButton::Right),
-                            tao::event::MouseButton::Middle => Some(MouseButton::Center),
+                            WMouseButton::Left => Some(MouseButton::Left),
+                            WMouseButton::Right => Some(MouseButton::Right),
+                            WMouseButton::Middle => Some(MouseButton::Center),
                             _ => None,
                         };
                         let event = Event::TouchBegin {
