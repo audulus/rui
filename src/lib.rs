@@ -381,8 +381,40 @@ pub fn rui(view: impl View) {
                 ..
             } => {
                 if event.state == ElementState::Pressed {
-                    let event = Event::Key(event.logical_key);
-                    cx.process(&view, &event, &mut vger)
+                    let key = match event.logical_key {
+                        KeyPress::Character(c) => Some(Key::Character(c)),
+                        KeyPress::Enter => Some(Key::Enter),
+                        KeyPress::Tab => Some(Key::Tab),
+                        KeyPress::Space => Some(Key::Space),
+                        KeyPress::ArrowDown => Some(Key::ArrowDown),
+                        KeyPress::ArrowLeft => Some(Key::ArrowLeft),
+                        KeyPress::ArrowRight => Some(Key::ArrowRight),
+                        KeyPress::ArrowUp => Some(Key::ArrowUp),
+                        KeyPress::End => Some(Key::End),
+                        KeyPress::Home => Some(Key::Home),
+                        KeyPress::PageDown => Some(Key::PageDown),
+                        KeyPress::PageUp => Some(Key::PageUp),
+                        KeyPress::Backspace => Some(Key::Backspace),
+                        KeyPress::Delete => Some(Key::Delete),
+                        KeyPress::Escape => Some(Key::Escape),
+                        KeyPress::F1 => Some(Key::F1),
+                        KeyPress::F2 => Some(Key::F2),
+                        KeyPress::F3 => Some(Key::F3),
+                        KeyPress::F4 => Some(Key::F4),
+                        KeyPress::F5 => Some(Key::F5),
+                        KeyPress::F6 => Some(Key::F6),
+                        KeyPress::F7 => Some(Key::F7),
+                        KeyPress::F8 => Some(Key::F8),
+                        KeyPress::F9 => Some(Key::F9),
+                        KeyPress::F10 => Some(Key::F10),
+                        KeyPress::F11 => Some(Key::F11),
+                        KeyPress::F12 => Some(Key::F12),
+                        _ => None,
+                    };
+
+                    if let Some(key) = key {
+                        cx.process(&view, &Event::Key(key), &mut vger)
+                    }
                 }
             }
             tao::event::Event::WindowEvent {

@@ -70,25 +70,25 @@ impl TextEditorState {
         }
     }
 
-    fn key(&mut self, k: &KeyPress, text: String) -> String {
+    fn key(&mut self, k: &Key, text: String) -> String {
         match k {
-            KeyPress::ArrowLeft => {
+            Key::ArrowLeft => {
                 self.back();
                 text
             }
-            KeyPress::ArrowRight => {
+            Key::ArrowRight => {
                 self.fwd(text.len());
                 text
             }
-            KeyPress::ArrowUp => {
+            Key::ArrowUp => {
                 self.up();
                 text
             }
-            KeyPress::ArrowDown => {
+            Key::ArrowDown => {
                 self.down();
                 text
             }
-            KeyPress::Backspace => {
+            Key::Backspace => {
                 if self.cursor > 0 {
                     let mut t = text;
                     t.remove(self.cursor - 1);
@@ -98,23 +98,23 @@ impl TextEditorState {
                     text
                 }
             }
-            KeyPress::Character(c) => {
+            Key::Character(c) => {
                 let mut t = text;
                 t.insert_str(self.cursor, c);
                 self.cursor += c.len();
                 t
             }
-            KeyPress::Space => {
+            Key::Space => {
                 let mut t = text;
                 t.insert(self.cursor, ' ');
                 self.cursor += 1;
                 t
             }
-            KeyPress::Home => {
+            Key::Home => {
                 self.cursor = 0;
                 text
             }
-            KeyPress::End => {
+            Key::End => {
                 self.cursor = text.len();
                 text
             }

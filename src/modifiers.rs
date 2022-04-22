@@ -57,7 +57,7 @@ pub trait Modifiers: View + Sized {
     }
 
     /// Responds to keyboard events
-    fn key<F: Fn(&mut Context, KeyPress) + 'static>(self, f: F) -> KeyView<Self, F> {
+    fn key<F: Fn(&mut Context, Key) + 'static>(self, f: F) -> KeyView<Self, F> {
         KeyView::new(self, f)
     }
 

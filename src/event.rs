@@ -28,7 +28,7 @@ pub enum Event {
     Command(String),
 
     /// Key press.
-    Key(KeyPress),
+    Key(Key),
 
     /// Animation.
     Anim,
@@ -62,8 +62,9 @@ pub struct KeyboardModifiers {
     pub command: bool,
 }
 
-pub enum Key<'a> {
-    Character(&'a str),
+#[derive(Clone, Debug)]
+pub enum Key {
+    Character(&'static str),
 
     Enter,
     Tab,
