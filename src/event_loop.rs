@@ -21,6 +21,7 @@ pub(crate) mod private {
 
 pub type KeyCode = tao::keyboard::KeyCode;
 pub type KeyPress = tao::keyboard::Key<'static>;
+pub type WEvent<'a, T> = tao::event::Event<'a, T>;
 
 struct Setup {
     size: PhysicalSize<u32>,
@@ -224,14 +225,14 @@ pub fn rui(view: impl View) {
         *control_flow = ControlFlow::Wait;
 
         match event {
-            tao::event::Event::WindowEvent {
+            WEvent::WindowEvent {
                 event: WindowEvent::CloseRequested,
                 ..
             } => {
                 println!("The close button was pressed; stopping");
                 *control_flow = ControlFlow::Exit
             }
-            tao::event::Event::WindowEvent {
+            WEvent::WindowEvent {
                 event:
                     WindowEvent::Resized(size)
                     | WindowEvent::ScaleFactorChanged {
@@ -246,7 +247,7 @@ pub fn rui(view: impl View) {
                 surface.configure(&device, &config);
                 cx.window.as_ref().unwrap().request_redraw();
             }
-            tao::event::Event::UserEvent(_) => {
+            WEvent::UserEvent(_) => {
                 // println!("received user event");
 
                 // Process the work queue.
@@ -254,7 +255,7 @@ pub fn rui(view: impl View) {
                     f(&mut cx);
                 }
             }
-            tao::event::Event::MainEventsCleared => {
+            WEvent::MainEventsCleared => {
                 // Application update code.
 
                 // Queue a RedrawRequested event.
@@ -271,7 +272,7 @@ pub fn rui(view: impl View) {
                     &mut access_nodes,
                 );
             }
-            tao::event::Event::RedrawRequested(_) => {
+            WEvent::RedrawRequested(_) => {
                 // Redraw the application.
                 //
                 // It's preferable for applications that do not render continuously to render in
@@ -281,7 +282,7 @@ pub fn rui(view: impl View) {
                 // println!("RedrawRequested");
                 cx.render(&device, &surface, &config, &queue, &view, &mut vger);
             }
-            tao::event::Event::WindowEvent {
+            WEvent::WindowEvent {
                 event: WindowEvent::MouseInput { state, button, .. },
                 ..
             } => {
@@ -310,7 +311,7 @@ pub fn rui(view: impl View) {
                     _ => {}
                 };
             }
-            tao::event::Event::WindowEvent {
+            WEvent::WindowEvent {
                 event: WindowEvent::CursorMoved { position, .. },
                 ..
             } => {
@@ -326,7 +327,7 @@ pub fn rui(view: impl View) {
                 };
                 cx.process(&view, &event, &mut vger)
             }
-            tao::event::Event::WindowEvent {
+            WEvent::WindowEvent {
                 event: WindowEvent::KeyboardInput { event, .. },
                 ..
             } => {
@@ -367,7 +368,7 @@ pub fn rui(view: impl View) {
                     }
                 }
             }
-            tao::event::Event::WindowEvent {
+            WEvent::WindowEvent {
                 event: WindowEvent::ModifiersChanged(mods),
                 ..
             } => {
@@ -379,7 +380,7 @@ pub fn rui(view: impl View) {
                     command: mods.super_key(),
                 };
             }
-            tao::event::Event::MenuEvent { menu_id, .. } => {
+            WEvent::MenuEvent { menu_id, .. } => {
                 //println!("menu event");
 
                 if let Some(command) = command_map.get(&menu_id) {
