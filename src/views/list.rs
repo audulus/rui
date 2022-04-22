@@ -24,11 +24,7 @@ where
         for child in &self.ids {
             let child_id = id.child(child);
             let offset = cx.layout.entry(child_id).or_default().offset;
-
-            let mut local_event = event.clone();
-            local_event.position -= offset;
-
-            ((self.func)(child)).process(&local_event, child_id, cx, vger);
+            ((self.func)(child)).process(&event.offset(-offset), child_id, cx, vger);
         }
     }
 

@@ -337,18 +337,12 @@ pub fn rui(view: impl View) {
                 match state {
                     ElementState::Pressed => {
                         cx.mouse_button = Some(button);
-                        let event = Event {
-                            kind: EventKind::TouchBegin { id: 0 },
-                            position: mouse_position,
-                        };
+                        let event = Event::TouchBegin { id: 0, position: mouse_position };
                         cx.process(&view, &event, &mut vger)
                     }
                     ElementState::Released => {
                         cx.mouse_button = None;
-                        let event = Event {
-                            kind: EventKind::TouchEnd { id: 0 },
-                            position: mouse_position,
-                        };
+                        let event = Event::TouchEnd { id: 0, position: mouse_position };
                         cx.process(&view, &event, &mut vger)
                     }
                     _ => {}
@@ -364,10 +358,7 @@ pub fn rui(view: impl View) {
                     (config.height as f32 - position.y as f32) / scale,
                 ]
                 .into();
-                let event = Event {
-                    kind: EventKind::TouchMove { id: 0 },
-                    position: mouse_position,
-                };
+                let event = Event::TouchMove { id: 0, position: mouse_position };
                 cx.process(&view, &event, &mut vger)
             }
             tao::event::Event::WindowEvent {
@@ -375,10 +366,7 @@ pub fn rui(view: impl View) {
                 ..
             } => {
                 if event.state == ElementState::Pressed {
-                    let event = Event {
-                        kind: EventKind::Key(event.logical_key),
-                        position: mouse_position,
-                    };
+                    let event = Event::Key(event.logical_key);
                     cx.process(&view, &event, &mut vger)
                 }
             }
@@ -394,10 +382,7 @@ pub fn rui(view: impl View) {
 
                 if let Some(command) = command_map.get(&menu_id) {
                     //println!("found command {:?}", command);
-                    let event = Event {
-                        kind: EventKind::Command(command.clone()),
-                        position: mouse_position,
-                    };
+                    let event = Event::Command(command.clone());
                     cx.process(&view, &event, &mut vger)
                 }
             }

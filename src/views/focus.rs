@@ -17,14 +17,14 @@ where
     }
 
     fn process(&self, event: &Event, vid: ViewId, cx: &mut Context, vger: &mut Vger) {
-        match &event.kind {
-            EventKind::TouchBegin { .. } => {
-                if self.hittest(vid, event.position, cx, vger).is_some() {
+        match &event {
+            Event::TouchBegin { id: _, position } => {
+                if self.hittest(vid, *position, cx, vger).is_some() {
                     cx.focused_id = Some(vid);
                     cx.set_dirty();
                 }
             }
-            EventKind::Key(KeyPress::Escape) => {
+            Event::Key(KeyPress::Escape) => {
                 if cx.focused_id == Some(vid) {
                     cx.focused_id = None;
                     cx.set_dirty();

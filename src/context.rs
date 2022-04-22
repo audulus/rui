@@ -115,11 +115,7 @@ impl Context {
         access_nodes: &mut Vec<accesskit::Node>,
     ) {
         // Run any animations.
-        let event = Event {
-            kind: EventKind::Anim,
-            position: LocalPoint::zero(),
-        };
-        view.process(&event, self.root_id, self, vger);
+        view.process(&Event::Anim, self.root_id, self, vger);
 
         if self.dirty {
             // Have the commands changed?

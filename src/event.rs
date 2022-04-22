@@ -1,24 +1,27 @@
 use crate::*;
 
-/// Type of event.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum EventKind {
+/// User interface event.
+#[derive(Clone, Debug)]
+pub enum Event {
     /// Touch event, or mouse down.
     TouchBegin {
         /// Identifies a touch so we can track it.
         id: usize,
+        position: LocalPoint,
     },
 
     /// Touch moved or mouse moved while down.
     TouchMove {
         /// Identifies a touch so we can track it.
         id: usize,
+        position: LocalPoint,
     },
 
     /// Touch went up or mouse button released.
     TouchEnd {
         /// Identifies a touch so we can track it.
         id: usize,
+        position: LocalPoint,
     },
 
     /// Menu command.
@@ -31,9 +34,15 @@ pub enum EventKind {
     Anim,
 }
 
-/// User interface event.
-#[derive(Clone, Debug)]
-pub struct Event {
-    pub kind: EventKind,
-    pub position: LocalPoint,
+impl Event {
+    pub fn offset(&self, offset: LocalOffset) -> Event {
+        let mut event = self.clone();
+        match &mut event {
+            Event::TouchBegin{ id: _, position} => *position += offset,
+            Event::TouchMove{ id: _, position} => *position += offset,
+            Event::TouchEnd{ id: _, position} => *position += offset,
+            _ => (),
+        }
+        event
+    }
 }

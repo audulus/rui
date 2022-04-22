@@ -34,7 +34,7 @@ where
     }
 
     fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger) {
-        if let EventKind::Command(name) = &event.kind {
+        if let Event::Command(name) = &event {
             if *name == self.name {
                 (self.func)(cx);
             }
@@ -260,7 +260,7 @@ where
     }
 
     fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger) {
-        if let EventKind::Command(name) = &event.kind {
+        if let Event::Command(name) = &event {
             self.cmds.foreach_cmd(&mut |cmd| {
                 if cmd.name() == *name {
                     cmd.exec();

@@ -25,7 +25,7 @@ where
     }
 
     fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger) {
-        if event.kind == EventKind::Anim {
+        if let Event::Anim = event {
             (self.func)(cx, 1.0 / 60.0) // XXX: assume 60fps for now.
         }
 

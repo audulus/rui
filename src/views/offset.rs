@@ -17,9 +17,7 @@ where
     }
 
     fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger) {
-        let mut local_event = event.clone();
-        local_event.position -= self.offset;
-        self.child.process(&local_event, id.child(&0), cx, vger);
+        self.child.process(&event.offset(-self.offset), id.child(&0), cx, vger);
     }
 
     fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {

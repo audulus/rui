@@ -28,13 +28,13 @@ where
     }
 
     fn process(&self, event: &Event, vid: ViewId, cx: &mut Context, vger: &mut Vger) {
-        match &event.kind {
-            EventKind::TouchBegin { id } => {
-                if self.hittest(vid, event.position, cx, vger).is_some() {
+        match &event {
+            Event::TouchBegin { id, position } => {
+                if self.hittest(vid, *position, cx, vger).is_some() {
                     cx.touches[*id] = vid;
                 }
             }
-            EventKind::TouchEnd { id } => {
+            Event::TouchEnd { id, position: _ } => {
                 if cx.touches[*id] == vid {
                     cx.touches[*id] = ViewId::default();
                     (self.func)(cx, cx.key_mods);

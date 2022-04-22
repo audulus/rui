@@ -28,7 +28,7 @@ where
     }
 
     fn process(&self, event: &Event, _vid: ViewId, cx: &mut Context, _vger: &mut Vger) {
-        if let EventKind::Key(key) = &event.kind {
+        if let Event::Key(key) = &event {
             (self.func)(cx, key.clone(), cx.key_mods)
         }
     }

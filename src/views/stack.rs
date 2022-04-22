@@ -69,11 +69,7 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
         self.children.foreach_view(&mut |child| {
             let child_id = id.child(&c);
             let offset = cx.layout.entry(child_id).or_default().offset;
-
-            let mut local_event = event.clone();
-            local_event.position -= offset;
-
-            (*child).process(&local_event, child_id, cx, vger);
+            (*child).process(&event.offset(-offset), child_id, cx, vger);
             c += 1;
         })
     }

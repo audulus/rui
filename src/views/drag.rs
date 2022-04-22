@@ -37,17 +37,17 @@ where
     }
 
     fn process(&self, event: &Event, vid: ViewId, cx: &mut Context, vger: &mut Vger) {
-        match &event.kind {
-            EventKind::TouchBegin { id } => {
-                if self.hittest(vid, event.position, cx, vger).is_some() {
+        match &event {
+            Event::TouchBegin { id, position } => {
+                if self.hittest(vid, *position, cx, vger).is_some() {
                     cx.touches[*id] = vid;
-                    cx.starts[*id] = event.position;
-                    cx.previous_position[*id] = event.position;
+                    cx.starts[*id] = *position;
+                    cx.previous_position[*id] = *position;
                 }
             }
-            EventKind::TouchMove { id } => {
+            Event::TouchMove { id, position } => {
                 if cx.touches[*id] == vid {
-                    let delta = event.position - cx.previous_position[*id];
+                    let delta = *position - cx.previous_position[*id];
                     (self.func)(
                         cx,
                         delta,
@@ -55,15 +55,15 @@ where
                         cx.key_mods,
                         cx.mouse_button,
                     );
-                    cx.previous_position[*id] = event.position;
+                    cx.previous_position[*id] = *position;
                 }
             }
-            EventKind::TouchEnd { id } => {
+            Event::TouchEnd { id, position } => {
                 if cx.touches[*id] == vid {
                     cx.touches[*id] = ViewId::default();
                     (self.func)(
                         cx,
-                        event.position - cx.previous_position[*id],
+                        *position - cx.previous_position[*id],
                         GestureState::Ended,
                         cx.key_mods,
                         cx.mouse_button,
