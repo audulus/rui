@@ -17,6 +17,13 @@ pub type LocalToWorld = Transform2D<f32, LocalSpace, WorldSpace>;
 pub type WorldToLocal = Transform2D<f32, WorldSpace, LocalSpace>;
 
 use tao::window::Window;
+pub type CommandMap = HashMap<tao::menu::MenuId, String>;
+
+#[derive(Clone, Eq, PartialEq)]
+pub struct CommandInfo {
+    pub path: String,
+    pub key: Option<KeyCode>,
+}
 
 pub const DEBUG_LAYOUT: bool = false;
 
