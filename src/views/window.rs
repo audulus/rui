@@ -106,10 +106,7 @@ where
 
     fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {
         self.child.draw(id.child(&0), cx, vger);
-        cx.window
-            .as_ref()
-            .unwrap()
-            .set_fullscreen(Some(tao::window::Fullscreen::Borderless(None)))
+        cx.fullscreen();
     }
 
     fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {
