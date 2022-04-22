@@ -39,6 +39,11 @@ pub(crate) struct StateHolder {
     pub dirty: bool,
 }
 
+pub trait WindowInterface {
+    fn set_title(title: String);
+    fn set_fullscreen();
+}
+
 pub(crate) type StateMap = HashMap<ViewId, StateHolder>;
 
 pub(crate) type EnvMap = HashMap<TypeId, Box<dyn Any>>;
