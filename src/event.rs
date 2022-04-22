@@ -53,3 +53,11 @@ pub enum MouseButton {
     Right,
     Center,
 }
+
+#[derive(Copy, Clone, Debug, Default)]
+pub struct KeyboardModifiers {
+    pub shift: bool,
+    pub control: bool,
+    pub alt: bool,
+    pub command: bool,
+}

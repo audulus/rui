@@ -16,7 +16,7 @@ pub struct Drag<V, F> {
 impl<V, F> Drag<V, F>
 where
     V: View,
-    F: Fn(&mut Context, LocalOffset, GestureState, ModifiersState, Option<MouseButton>) + 'static,
+    F: Fn(&mut Context, LocalOffset, GestureState, KeyboardModifiers, Option<MouseButton>) + 'static,
 {
     pub fn new(v: V, f: F) -> Self {
         Self { child: v, func: f }
@@ -26,7 +26,7 @@ where
 impl<V, F> View for Drag<V, F>
 where
     V: View,
-    F: Fn(&mut Context, LocalOffset, GestureState, ModifiersState, Option<MouseButton>) + 'static,
+    F: Fn(&mut Context, LocalOffset, GestureState, KeyboardModifiers, Option<MouseButton>) + 'static,
 {
     fn print(&self, id: ViewId, cx: &mut Context) {
         println!("Drag {{");

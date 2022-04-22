@@ -1,5 +1,4 @@
 use rui::*;
-use tao::keyboard::ModifiersState;
 
 // XXX: WIP
 
@@ -17,7 +16,7 @@ fn digit_button(title: &str, state: State<String>) -> impl View {
 
 fn calc_button(
     title: &str,
-    callback: impl Fn(&mut Context, ModifiersState) + 'static,
+    callback: impl Fn(&mut Context, KeyboardModifiers) + 'static,
 ) -> impl View {
     zstack((
         rectangle()

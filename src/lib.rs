@@ -390,7 +390,12 @@ pub fn rui(view: impl View) {
                 ..
             } => {
                 // println!("modifiers changed: {:?}", mods);
-                cx.key_mods = mods;
+                cx.key_mods = KeyboardModifiers {
+                    shift: mods.shift_key(),
+                    control: mods.control_key(),
+                    alt: mods.alt_key(),
+                    command: mods.super_key()
+                };
             }
             tao::event::Event::MenuEvent { menu_id, .. } => {
                 //println!("menu event");

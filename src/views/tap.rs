@@ -9,7 +9,7 @@ pub struct Tap<V, F> {
 impl<V, F> Tap<V, F>
 where
     V: View,
-    F: Fn(&mut Context, ModifiersState) + 'static,
+    F: Fn(&mut Context, KeyboardModifiers) + 'static,
 {
     pub fn new(v: V, f: F) -> Self {
         Self { child: v, func: f }
@@ -19,7 +19,7 @@ where
 impl<V, F> View for Tap<V, F>
 where
     V: View,
-    F: Fn(&mut Context, ModifiersState) + 'static,
+    F: Fn(&mut Context, KeyboardModifiers) + 'static,
 {
     fn print(&self, id: ViewId, cx: &mut Context) {
         println!("Tap {{");

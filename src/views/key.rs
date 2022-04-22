@@ -9,7 +9,7 @@ pub struct Key<V, F> {
 impl<V, F> Key<V, F>
 where
     V: View,
-    F: Fn(&mut Context, KeyPress, ModifiersState) + 'static,
+    F: Fn(&mut Context, KeyPress, KeyboardModifiers) + 'static,
 {
     pub fn new(v: V, f: F) -> Self {
         Self { child: v, func: f }
@@ -19,7 +19,7 @@ where
 impl<V, F> View for Key<V, F>
 where
     V: View,
-    F: Fn(&mut Context, KeyPress, ModifiersState) + 'static,
+    F: Fn(&mut Context, KeyPress, KeyboardModifiers) + 'static,
 {
     fn print(&self, id: ViewId, cx: &mut Context) {
         println!("Key {{");

@@ -54,7 +54,7 @@ pub struct Context {
     pub(crate) mouse_button: Option<MouseButton>,
 
     /// Keyboard modifiers state.
-    pub(crate) key_mods: ModifiersState,
+    pub(crate) key_mods: KeyboardModifiers,
 
     /// The root view ID. This should be randomized for security reasons.
     root_id: ViewId,
@@ -92,7 +92,7 @@ impl Context {
             starts: [LocalPoint::zero(); 16],
             previous_position: [LocalPoint::zero(); 16],
             mouse_button: None,
-            key_mods: ModifiersState::default(),
+            key_mods: Default::default(),
             root_id: ViewId { id: 1 },
             focused_id: None,
             window,
