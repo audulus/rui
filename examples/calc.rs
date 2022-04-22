@@ -14,10 +14,7 @@ fn digit_button(title: &str, state: State<String>) -> impl View {
     .padding(Auto)
 }
 
-fn calc_button(
-    title: &str,
-    callback: impl Fn(&mut Context) + 'static,
-) -> impl View {
+fn calc_button(title: &str, callback: impl Fn(&mut Context) + 'static) -> impl View {
     zstack((
         rectangle()
             .corner_radius(10.0)

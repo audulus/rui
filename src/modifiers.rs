@@ -24,9 +24,7 @@ pub trait Modifiers: View + Sized {
     }
 
     /// Calls a function in response to a drag.
-    fn drag<
-        F: Fn(&mut Context, LocalOffset, GestureState, Option<MouseButton>) + 'static,
-    >(
+    fn drag<F: Fn(&mut Context, LocalOffset, GestureState, Option<MouseButton>) + 'static>(
         self,
         f: F,
     ) -> Drag<Self, F> {

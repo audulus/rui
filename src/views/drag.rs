@@ -46,12 +46,7 @@ where
             Event::TouchMove { id, position } => {
                 if cx.touches[*id] == vid {
                     let delta = *position - cx.previous_position[*id];
-                    (self.func)(
-                        cx,
-                        delta,
-                        GestureState::Changed,
-                        cx.mouse_button,
-                    );
+                    (self.func)(cx, delta, GestureState::Changed, cx.mouse_button);
                     cx.previous_position[*id] = *position;
                 }
             }

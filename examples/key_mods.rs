@@ -14,7 +14,10 @@ fn main() {
                 .corner_radius(5.0)
                 .color(AZURE_HIGHLIGHT_BACKGROUND)
                 .drag(|cx, delta, _state, _mouse_button| {
-                    println!("dragging: {:?}, key modifiers state: {:?}", delta, cx.key_mods)
+                    println!(
+                        "dragging: {:?}, key modifiers state: {:?}",
+                        delta, cx.key_mods
+                    )
                 })
                 .padding(Auto),
             "Drag (inside rectangle)".padding(Auto),
