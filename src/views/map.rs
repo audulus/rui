@@ -91,9 +91,9 @@ where
 impl<S1, SF, F> private::Sealed for MapView<S1, SF, F> {}
 
 /// Maps state into local state.
-/// 
+///
 /// For example:
-/// 
+///
 /// ```no_run
 /// # use rui::*;
 ///

@@ -18,7 +18,8 @@ where
 
     fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger) {
         let off = LocalOffset::new(self.padding, self.padding);
-        self.child.process(&event.offset(-off), id.child(&0), cx, vger);
+        self.child
+            .process(&event.offset(-off), id.child(&0), cx, vger);
     }
 
     fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {

@@ -341,14 +341,20 @@ pub fn rui(view: impl View) {
                             tao::event::MouseButton::Left => Some(MouseButton::Left),
                             tao::event::MouseButton::Right => Some(MouseButton::Right),
                             tao::event::MouseButton::Middle => Some(MouseButton::Center),
-                            _ => None
+                            _ => None,
                         };
-                        let event = Event::TouchBegin { id: 0, position: mouse_position };
+                        let event = Event::TouchBegin {
+                            id: 0,
+                            position: mouse_position,
+                        };
                         cx.process(&view, &event, &mut vger)
                     }
                     ElementState::Released => {
                         cx.mouse_button = None;
-                        let event = Event::TouchEnd { id: 0, position: mouse_position };
+                        let event = Event::TouchEnd {
+                            id: 0,
+                            position: mouse_position,
+                        };
                         cx.process(&view, &event, &mut vger)
                     }
                     _ => {}
@@ -364,7 +370,10 @@ pub fn rui(view: impl View) {
                     (config.height as f32 - position.y as f32) / scale,
                 ]
                 .into();
-                let event = Event::TouchMove { id: 0, position: mouse_position };
+                let event = Event::TouchMove {
+                    id: 0,
+                    position: mouse_position,
+                };
                 cx.process(&view, &event, &mut vger)
             }
             tao::event::Event::WindowEvent {

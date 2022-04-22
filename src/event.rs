@@ -38,9 +38,9 @@ impl Event {
     pub fn offset(&self, offset: LocalOffset) -> Event {
         let mut event = self.clone();
         match &mut event {
-            Event::TouchBegin{ id: _, position} => *position += offset,
-            Event::TouchMove{ id: _, position} => *position += offset,
-            Event::TouchEnd{ id: _, position} => *position += offset,
+            Event::TouchBegin { id: _, position } => *position += offset,
+            Event::TouchMove { id: _, position } => *position += offset,
+            Event::TouchEnd { id: _, position } => *position += offset,
             _ => (),
         }
         event
@@ -51,5 +51,5 @@ impl Event {
 pub enum MouseButton {
     Left,
     Right,
-    Center
+    Center,
 }

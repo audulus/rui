@@ -255,9 +255,9 @@ impl Context {
     /// Enter full-screen mode (if available)
     pub fn fullscreen(&mut self) {
         self.window
-        .as_ref()
-        .unwrap()
-        .set_fullscreen(Some(tao::window::Fullscreen::Borderless(None)))
+            .as_ref()
+            .unwrap()
+            .set_fullscreen(Some(tao::window::Fullscreen::Borderless(None)))
     }
 
     pub(crate) fn set_dirty(&mut self) {
