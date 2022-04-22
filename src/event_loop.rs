@@ -19,9 +19,9 @@ pub(crate) mod private {
 }
 
 pub type KeyCode = tao::keyboard::KeyCode;
-pub type KeyPress = tao::keyboard::Key<'static>;
-pub type WEvent<'a, T> = tao::event::Event<'a, T>;
-pub type WMouseButton = tao::event::MouseButton;
+type KeyPress = tao::keyboard::Key<'static>;
+type WEvent<'a, T> = tao::event::Event<'a, T>;
+type WMouseButton = tao::event::MouseButton;
 
 struct Setup {
     size: PhysicalSize<u32>,
