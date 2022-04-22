@@ -113,6 +113,7 @@ impl Context {
         }
     }
 
+    /// Call this after the event queue is cleared.
     pub fn update(
         &mut self,
         view: &impl View,
