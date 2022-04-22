@@ -163,7 +163,8 @@ fn make_menu_rec(
             Ok(exe_path) => exe_path.file_name().unwrap().to_str().unwrap().to_string(),
             Err(_) => "rui".to_string(),
         };
-        app_menu.add_native_item(MenuItem::About(app_name));
+
+        app_menu.add_native_item(MenuItem::About(app_name, Default::default()));
         app_menu.add_native_item(MenuItem::Quit);
         menu.add_submenu("rui", true, app_menu);
     }

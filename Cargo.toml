@@ -18,7 +18,7 @@ exclude = [ "screenshots/*" ]
 
 [dependencies]
 euclid = "0.22.6"
-tao = "0.6.3"
+tao = "0.8.2"
 wgpu = "0.12.0"
 futures = "0.3"
 vger = "0.2.0"
