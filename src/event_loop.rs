@@ -1,13 +1,13 @@
 use crate::*;
 
 use futures::executor::block_on;
-use std::collections::HashMap;
+use std::{collections::{VecDeque, HashMap}, sync::Mutex};
 
 use tao::{
     accelerator::Accelerator,
     dpi::PhysicalSize,
     event::{ElementState, WindowEvent},
-    event_loop::{ControlFlow, EventLoop},
+    event_loop::{ControlFlow, EventLoop, EventLoopProxy},
     keyboard::ModifiersState,
     menu::{MenuBar as Menu, MenuItem, MenuItemAttributes},
     window::{Window, WindowBuilder},
@@ -17,6 +17,30 @@ pub type KeyCode = tao::keyboard::KeyCode;
 type KeyPress = tao::keyboard::Key<'static>;
 type WEvent<'a, T> = tao::event::Event<'a, T>;
 type WMouseButton = tao::event::MouseButton;
+
+type WorkQueue = VecDeque<Box<dyn FnOnce(&mut Context) + Send>>;
+
+lazy_static! {
+    /// Allows us to wake the event loop whenever we want.
+    static ref GLOBAL_EVENT_LOOP_PROXY: Mutex<Option<EventLoopProxy<()>>> = Mutex::new(None);
+
+    static ref GLOBAL_WORK_QUEUE: Mutex<WorkQueue> = Mutex::new(WorkQueue::new());
+}
+
+fn wake_event_loop() {
+    // Wake up the event loop.
+    let opt_proxy = GLOBAL_EVENT_LOOP_PROXY.lock().unwrap();
+    if let Some(proxy) = &*opt_proxy {
+        if let Err(err) = proxy.send_event(()) {
+            println!("error waking up event loop: {:?}", err);
+        }
+    }
+}
+
+pub fn on_main(f: impl FnOnce(&mut Context) + Send + 'static) {
+    GLOBAL_WORK_QUEUE.lock().unwrap().push_back(Box::new(f));
+    wake_event_loop();
+}
 
 struct Setup {
     size: PhysicalSize<u32>,

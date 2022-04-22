@@ -1,32 +1,4 @@
-use {
-    crate::*,
-    std::{collections::VecDeque, sync::Mutex},
-    tao::event_loop::EventLoopProxy,
-};
-
-pub(crate) type WorkQueue = VecDeque<Box<dyn FnOnce(&mut Context) + Send>>;
-
-lazy_static! {
-    /// Allows us to wake the event loop whenever we want.
-    pub(crate) static ref GLOBAL_EVENT_LOOP_PROXY: Mutex<Option<EventLoopProxy<()>>> = Mutex::new(None);
-
-    pub(crate) static ref GLOBAL_WORK_QUEUE: Mutex<WorkQueue> = Mutex::new(WorkQueue::new());
-}
-
-fn wake_event_loop() {
-    // Wake up the event loop.
-    let opt_proxy = GLOBAL_EVENT_LOOP_PROXY.lock().unwrap();
-    if let Some(proxy) = &*opt_proxy {
-        if let Err(err) = proxy.send_event(()) {
-            println!("error waking up event loop: {:?}", err);
-        }
-    }
-}
-
-pub fn on_main(f: impl FnOnce(&mut Context) + Send + 'static) {
-    GLOBAL_WORK_QUEUE.lock().unwrap().push_back(Box::new(f));
-    wake_event_loop();
-}
+use crate::*;
 
 /// Weak reference to app state.
 pub struct State<S> {
