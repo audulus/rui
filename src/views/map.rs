@@ -95,7 +95,7 @@ impl<S1, SF, F> private::Sealed for MapView<S1, SF, F> {}
 /// For example:
 /// 
 /// ```no_run
-/// use rui::*;
+/// # use rui::*;
 ///
 /// #[derive(Debug, Default)]
 /// struct MyState {
