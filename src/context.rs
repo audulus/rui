@@ -124,7 +124,7 @@ impl Context {
         vger: &mut Vger,
         access_nodes: &mut Vec<accesskit::Node>,
         window_size: Size2D<f32, WorldSpace>,
-    ) {
+    ) -> bool {
         // Run any animations.
         view.process(&Event::Anim, self.root_id, self, vger);
 
@@ -158,9 +158,11 @@ impl Context {
             // Get dirty rectangles.
             view.dirty(self.root_id, LocalToWorld::identity(), self);
 
-            self.window.as_ref().unwrap().request_redraw();
-
             self.clear_dirty();
+
+            true
+        } else {
+            false
         }
     }
 

@@ -323,7 +323,9 @@ pub fn rui(view: impl View) {
                 let width = window_size.width as f32 / scale;
                 let height = window_size.height as f32 / scale;
 
-                cx.update(&view, &mut vger, &mut access_nodes, [width, height].into());
+                if cx.update(&view, &mut vger, &mut access_nodes, [width, height].into()) {
+                    cx.window.as_ref().unwrap().request_redraw();
+                }
 
                 let mut new_commands = vec![];
                 cx.commands(&view, &mut new_commands);
