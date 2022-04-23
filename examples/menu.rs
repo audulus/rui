@@ -2,11 +2,10 @@ use rui::*;
 
 fn main() {
     rui(hstack((
-        circle().color(RED_HIGHLIGHT).padding(Auto).command(
-            "File:New",
-            Some(HotKey::KeyN),
-            |_| println!("new"),
-        ),
+        circle()
+            .color(RED_HIGHLIGHT)
+            .padding(Auto)
+            .command("File:New", Some(HotKey::KeyN), |_| println!("new")),
         rectangle()
             .corner_radius(5.0)
             .color(AZURE_HIGHLIGHT)

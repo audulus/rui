@@ -129,8 +129,6 @@ impl Context {
         view.process(&Event::Anim, self.root_id, self, vger);
 
         if self.dirty {
-            
-
             // Clean up state.
             let mut keep = vec![];
             view.gc(self.root_id, self, &mut keep);

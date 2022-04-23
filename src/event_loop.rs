@@ -155,7 +155,6 @@ fn make_menu_rec(
         } else {
             let mut attrs = MenuItemAttributes::new(item.name.as_str());
             if let Some(key) = item.command.key {
-
                 let key_code = match key {
                     HotKey::KeyA => KeyCode::KeyA,
                     HotKey::KeyB => KeyCode::KeyB,
@@ -316,11 +315,7 @@ pub fn rui(view: impl View) {
                 // applications which do not always need to. Applications that redraw continuously
                 // can just render here instead.
 
-                cx.update(
-                    &view,
-                    &mut vger,
-                    &mut access_nodes,
-                );
+                cx.update(&view, &mut vger, &mut access_nodes);
 
                 let mut new_commands = vec![];
                 cx.commands(&view, &mut new_commands);
@@ -328,7 +323,7 @@ pub fn rui(view: impl View) {
                 if new_commands != *commands {
                     print!("commands changed");
                     commands = new_commands;
-    
+
                     command_map.clear();
                     cx.window
                         .as_ref()
