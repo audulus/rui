@@ -129,7 +129,7 @@ widget gallery (`cargo run --example gallery`):
 ## Optional Features
 
 - `tao` - (*enabled by default*) use tao for windowing.
-- `winit` - use winit for windowing
+- `winit` - use winit for windowing.
 - Use `default-features = false` if you are embedding rui.
 
 ## Why?
