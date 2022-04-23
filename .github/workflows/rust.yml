@@ -34,3 +34,5 @@ jobs:
       run: cargo test
     - name: Build w/o default features
       run: cargo build --no-default-features
+    - name: Test w/winit
+      run: cargo test --no-default-features --features winit
