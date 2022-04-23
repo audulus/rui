@@ -126,6 +126,12 @@ widget gallery (`cargo run --example gallery`):
 - No `unsafe`.
 - Accessible.
 
+## Optional Features
+
+- `tao` - (*enabled by default*) use tao for windowing.
+- `winit` - use winit for windowing
+- Use `default-features = false` if you are embedding rui.
+
 ## Why?
 
 In the long term, I'd like to move Audulus over to Rust. After looking at other available UI options, it seemed best to implement something resembling the existing immediate mode UI system I already have working in Audulus, but better.
