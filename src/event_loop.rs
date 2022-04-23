@@ -315,7 +315,13 @@ pub fn rui(view: impl View) {
                 // applications which do not always need to. Applications that redraw continuously
                 // can just render here instead.
 
-                cx.update(&view, &mut vger, &mut access_nodes);
+                let window_size = cx.window.as_ref().unwrap().inner_size();
+                let scale = cx.window.as_ref().unwrap().scale_factor() as f32;
+                // println!("window_size: {:?}", window_size);
+                let width = window_size.width as f32 / scale;
+                let height = window_size.height as f32 / scale;
+
+                cx.update(&view, &mut vger, &mut access_nodes, [width, height].into());
 
                 let mut new_commands = vec![];
                 cx.commands(&view, &mut new_commands);

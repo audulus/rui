@@ -124,6 +124,7 @@ impl Context {
         view: &impl View,
         vger: &mut Vger,
         access_nodes: &mut Vec<accesskit::Node>,
+        window_size: Size2D<f32, WorldSpace>,
     ) {
         // Run any animations.
         view.process(&Event::Anim, self.root_id, self, vger);
@@ -153,11 +154,7 @@ impl Context {
             }
 
             // XXX: we're doing layout both here and in rendering.
-            let window_size = self.window.as_ref().unwrap().inner_size();
-            let scale = self.window.as_ref().unwrap().scale_factor() as f32;
-            let width = window_size.width as f32 / scale;
-            let height = window_size.height as f32 / scale;
-            view.layout(self.root_id, [width, height].into(), self, vger);
+            view.layout(self.root_id, [window_size.width, window_size.height].into(), self, vger);
 
             // Get dirty rectangles.
             view.dirty(self.root_id, LocalToWorld::identity(), self);
