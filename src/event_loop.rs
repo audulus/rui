@@ -17,7 +17,7 @@ use tao::{
     window::{Window, WindowBuilder},
 };
 
-pub type KeyCode = tao::keyboard::KeyCode;
+type KeyCode = tao::keyboard::KeyCode;
 type KeyPress = tao::keyboard::Key<'static>;
 type WEvent<'a, T> = tao::event::Event<'a, T>;
 type WMouseButton = tao::event::MouseButton;
