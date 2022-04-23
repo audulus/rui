@@ -3,6 +3,7 @@
 use vger::color::*;
 use vger::{LineMetrics, PaintIndex, Vger};
 
+#[cfg(feature = "tao")]
 #[macro_use]
 extern crate lazy_static;
 
@@ -42,7 +43,10 @@ pub use align::*;
 mod region;
 pub use region::*;
 
+#[cfg(feature = "tao")]
 mod event_loop;
+
+#[cfg(feature = "tao")]
 pub use event_loop::*;
 
 // See https://rust-lang.github.io/api-guidelines/future-proofing.html
