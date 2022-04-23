@@ -6,6 +6,7 @@ use std::{
     sync::Mutex,
 };
 
+#[cfg(feature = "tao")]
 use tao::{
     accelerator::Accelerator,
     dpi::PhysicalSize,
