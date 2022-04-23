@@ -17,8 +17,6 @@ pub type WorldPoint = Point2D<f32, WorldSpace>;
 pub type LocalToWorld = Transform2D<f32, LocalSpace, WorldSpace>;
 pub type WorldToLocal = Transform2D<f32, WorldSpace, LocalSpace>;
 
-use tao::window::Window;
-
 #[derive(Clone, Eq, PartialEq)]
 pub struct CommandInfo {
     pub path: String,
@@ -36,11 +34,6 @@ pub(crate) struct LayoutBox {
 pub(crate) struct StateHolder {
     pub state: Box<dyn Any>,
     pub dirty: bool,
-}
-
-pub trait WindowInterface {
-    fn set_title(title: String);
-    fn set_fullscreen();
 }
 
 pub(crate) type StateMap = HashMap<ViewId, StateHolder>;
@@ -74,11 +67,11 @@ pub struct Context {
     /// The view that has the keybord focus.
     pub(crate) focused_id: Option<ViewId>,
 
-    /// The tao window
-    pub(crate) window: Option<Window>,
-
     /// The current title of the window
-    pub(crate) window_title: String,
+    pub window_title: String,
+
+    /// Are we fullscreen?
+    pub fullscreen: bool,
 
     /// User state created by `state`.
     pub(crate) state_map: StateMap,
@@ -97,7 +90,7 @@ pub struct Context {
 }
 
 impl Context {
-    pub fn new(window: Option<Window>) -> Self {
+    pub fn new() -> Self {
         Self {
             layout: HashMap::new(),
             touches: [ViewId::default(); 16],
@@ -107,8 +100,8 @@ impl Context {
             key_mods: Default::default(),
             root_id: ViewId { id: 1 },
             focused_id: None,
-            window,
             window_title: "rui".into(),
+            fullscreen: false,
             state_map: HashMap::new(),
             dirty: false,
             enable_dirty: true,
@@ -241,14 +234,6 @@ impl Context {
     /// Get menu commands.
     pub fn commands(&mut self, view: &impl View, cmds: &mut Vec<CommandInfo>) {
         view.commands(self.root_id, self, cmds);
-    }
-
-    /// Enter full-screen mode (if available)
-    pub fn fullscreen(&mut self) {
-        self.window
-            .as_ref()
-            .unwrap()
-            .set_fullscreen(Some(tao::window::Fullscreen::Borderless(None)))
     }
 
     pub(crate) fn set_dirty(&mut self) {

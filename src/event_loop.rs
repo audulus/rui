@@ -232,7 +232,8 @@ pub(crate) fn build_menubar(commands: &Vec<CommandInfo>, command_map: &mut Comma
 pub fn rui(view: impl View) {
     let event_loop = EventLoop::new();
 
-    let builder = WindowBuilder::new().with_title("rui");
+    let mut window_title = String::from("rui");
+    let builder = WindowBuilder::new().with_title(&window_title);
     let window = builder.build(&event_loop).unwrap();
 
     let setup = block_on(setup(&window));
@@ -254,16 +255,13 @@ pub fn rui(view: impl View) {
     *GLOBAL_EVENT_LOOP_PROXY.lock().unwrap() = Some(event_loop.create_proxy());
 
     let mut vger = Vger::new(&device, wgpu::TextureFormat::Bgra8UnormSrgb);
-    let mut cx = Context::new(Some(window));
+    let mut cx = Context::new();
     let mut mouse_position = LocalPoint::zero();
 
     let mut commands = Vec::new();
     cx.commands(&view, &mut commands);
     let mut command_map = HashMap::new();
-    cx.window
-        .as_ref()
-        .unwrap()
-        .set_menu(Some(build_menubar(&commands, &mut command_map)));
+    window.set_menu(Some(build_menubar(&commands, &mut command_map)));
 
     let mut access_nodes = vec![];
 
@@ -298,7 +296,7 @@ pub fn rui(view: impl View) {
                 config.width = size.width.max(1);
                 config.height = size.height.max(1);
                 surface.configure(&device, &config);
-                cx.window.as_ref().unwrap().request_redraw();
+                window.request_redraw();
             }
             WEvent::UserEvent(_) => {
                 // println!("received user event");
@@ -317,14 +315,19 @@ pub fn rui(view: impl View) {
                 // applications which do not always need to. Applications that redraw continuously
                 // can just render here instead.
 
-                let window_size = cx.window.as_ref().unwrap().inner_size();
-                let scale = cx.window.as_ref().unwrap().scale_factor() as f32;
+                let window_size =window.inner_size();
+                let scale = window.scale_factor() as f32;
                 // println!("window_size: {:?}", window_size);
                 let width = window_size.width as f32 / scale;
                 let height = window_size.height as f32 / scale;
 
                 if cx.update(&view, &mut vger, &mut access_nodes, [width, height].into()) {
-                    cx.window.as_ref().unwrap().request_redraw();
+                    window.request_redraw();
+                }
+
+                if cx.window_title != window_title {
+                    window_title = cx.window_title.clone();
+                    window.set_title(&cx.window_title);
                 }
 
                 let mut new_commands = vec![];
@@ -335,10 +338,7 @@ pub fn rui(view: impl View) {
                     commands = new_commands;
 
                     command_map.clear();
-                    cx.window
-                        .as_ref()
-                        .unwrap()
-                        .set_menu(Some(build_menubar(&commands, &mut command_map)));
+                    window.set_menu(Some(build_menubar(&commands, &mut command_map)));
                 }
             }
             WEvent::RedrawRequested(_) => {
@@ -348,8 +348,8 @@ pub fn rui(view: impl View) {
                 // this event rather than in MainEventsCleared, since rendering in here allows
                 // the program to gracefully handle redraws requested by the OS.
 
-                let window_size = cx.window.as_ref().unwrap().inner_size();
-                let scale = cx.window.as_ref().unwrap().scale_factor() as f32;
+                let window_size = window.inner_size();
+                let scale = window.scale_factor() as f32;
                 // println!("window_size: {:?}", window_size);
                 let width = window_size.width as f32 / scale;
                 let height = window_size.height as f32 / scale;
@@ -390,7 +390,7 @@ pub fn rui(view: impl View) {
                 event: WindowEvent::CursorMoved { position, .. },
                 ..
             } => {
-                let scale = cx.window.as_ref().unwrap().scale_factor() as f32;
+                let scale = window.scale_factor() as f32;
                 mouse_position = [
                     position.x as f32 / scale,
                     (config.height as f32 - position.y as f32) / scale,

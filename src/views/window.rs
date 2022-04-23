@@ -35,7 +35,6 @@ where
         self.child.draw(id.child(&0), cx, vger);
         if cx.window_title != self.title {
             cx.window_title = self.title.clone();
-            cx.window.as_ref().unwrap().set_title(&self.title)
         }
     }
 
@@ -106,7 +105,7 @@ where
 
     fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {
         self.child.draw(id.child(&0), cx, vger);
-        cx.fullscreen();
+        cx.fullscreen = true;
     }
 
     fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {

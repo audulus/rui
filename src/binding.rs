@@ -128,7 +128,7 @@ mod tests {
 
     #[test]
     fn test_bind() {
-        let mut cx = Context::new(None);
+        let mut cx = Context::new();
         let id = ViewId::default();
         cx.init_state(id, &MyState::default);
         let s = State::new(id);
