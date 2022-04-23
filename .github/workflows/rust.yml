@@ -32,3 +32,5 @@ jobs:
       run: cargo build --verbose
     - name: Test
       run: cargo test
+    - name: Build w/o default features
+      run: cargo build --no-default-features
