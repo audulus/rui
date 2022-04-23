@@ -27,3 +27,4 @@ futures = "0.3"
 vger = "0.2.0"
 accesskit = "0.3.0"
 lazy_static = "1.4.0"
+winit = { version = "0.26.1", optional = true }
