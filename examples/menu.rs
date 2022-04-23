@@ -1,5 +1,8 @@
 use rui::*;
 
+// Requires tao instead of winit for menus.
+// Run with: cargo run --example menu --no-default-features --features tao
+
 fn main() {
     rui(hstack((
         circle()
