@@ -12,21 +12,19 @@ use tao::{
     dpi::PhysicalSize,
     event::{ElementState, WindowEvent, MouseButton as WMouseButton},
     event_loop::{ControlFlow, EventLoop, EventLoopProxy},
-    keyboard::ModifiersState,
+    keyboard::{ModifiersState, KeyCode},
     menu::{MenuBar as Menu, MenuItem, MenuItemAttributes},
     window::{Window, WindowBuilder},
 };
 
 #[cfg(feature = "winit")]
 use winit::{
-    accelerator::Accelerator,
     dpi::PhysicalSize,
     event::{ElementState, WindowEvent, MouseButton as WMouseButton},
     event_loop::{ControlFlow, EventLoop, EventLoopProxy},
     window::{Window, WindowBuilder},
 };
 
-type KeyCode = tao::keyboard::KeyCode;
 type KeyPress = tao::keyboard::Key<'static>;
 type WEvent<'a, T> = tao::event::Event<'a, T>;
 
