@@ -409,6 +409,7 @@ pub fn rui(view: impl View) {
                         };
                         cx.process(&view, &event, &mut vger)
                     }
+                    #[cfg(feature = "tao")]
                     _ => {}
                 };
             }
