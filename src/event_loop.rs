@@ -20,7 +20,7 @@ use tao::{
 #[cfg(feature = "winit")]
 use winit::{
     dpi::PhysicalSize,
-    event::{ElementState, Event as WEvent, MouseButton as WMouseButton, WindowEvent},
+    event::{ElementState, Event as WEvent, MouseButton as WMouseButton, WindowEvent, VirtualKeyCode},
     event_loop::{ControlFlow, EventLoop, EventLoopProxy},
     window::{Window, WindowBuilder},
 };
@@ -471,6 +471,52 @@ pub fn rui(view: impl View) {
                     }
                 }
             }
+
+            #[cfg(feature = "winit")]
+            WEvent::WindowEvent {
+                event: WindowEvent::KeyboardInput { input, .. },
+                ..
+            } => {
+                if input.state == ElementState::Pressed {
+                    if let Some(code) = input.virtual_keycode {
+                        let key = match code {
+                            // VirtualKeyCode::Character(c) => Some(Key::Character(c)),
+                            VirtualKeyCode::Return => Some(Key::Enter),
+                            VirtualKeyCode::Tab => Some(Key::Tab),
+                            VirtualKeyCode::Space => Some(Key::Space),
+                            VirtualKeyCode::Down => Some(Key::ArrowDown),
+                            VirtualKeyCode::Left => Some(Key::ArrowLeft),
+                            VirtualKeyCode::Right => Some(Key::ArrowRight),
+                            VirtualKeyCode::Up => Some(Key::ArrowUp),
+                            VirtualKeyCode::End => Some(Key::End),
+                            VirtualKeyCode::Home => Some(Key::Home),
+                            VirtualKeyCode::PageDown => Some(Key::PageDown),
+                            VirtualKeyCode::PageUp => Some(Key::PageUp),
+                            VirtualKeyCode::Back => Some(Key::Backspace),
+                            VirtualKeyCode::Delete => Some(Key::Delete),
+                            VirtualKeyCode::Escape => Some(Key::Escape),
+                            VirtualKeyCode::F1 => Some(Key::F1),
+                            VirtualKeyCode::F2 => Some(Key::F2),
+                            VirtualKeyCode::F3 => Some(Key::F3),
+                            VirtualKeyCode::F4 => Some(Key::F4),
+                            VirtualKeyCode::F5 => Some(Key::F5),
+                            VirtualKeyCode::F6 => Some(Key::F6),
+                            VirtualKeyCode::F7 => Some(Key::F7),
+                            VirtualKeyCode::F8 => Some(Key::F8),
+                            VirtualKeyCode::F9 => Some(Key::F9),
+                            VirtualKeyCode::F10 => Some(Key::F10),
+                            VirtualKeyCode::F11 => Some(Key::F11),
+                            VirtualKeyCode::F12 => Some(Key::F12),
+                            _ => None,
+                        };
+    
+                        if let Some(key) = key {
+                            cx.process(&view, &Event::Key(key), &mut vger)
+                        }
+                    }
+                }
+            }
+
             WEvent::WindowEvent {
                 event: WindowEvent::ModifiersChanged(mods),
                 ..
