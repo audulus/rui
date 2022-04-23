@@ -263,10 +263,13 @@ pub fn rui(view: impl View) {
     let mut cx = Context::new();
     let mut mouse_position = LocalPoint::zero();
 
-    let mut commands = Vec::new();
-    cx.commands(&view, &mut commands);
-    let mut command_map = HashMap::new();
-    window.set_menu(Some(menus::build_menubar(&commands, &mut command_map)));
+    #[cfg(feature = "tao")]
+    {
+        let mut commands = Vec::new();
+        cx.commands(&view, &mut commands);
+        let mut command_map = HashMap::new();
+        window.set_menu(Some(menus::build_menubar(&commands, &mut command_map)));
+    }
 
     let mut access_nodes = vec![];
 
@@ -335,15 +338,18 @@ pub fn rui(view: impl View) {
                     window.set_title(&cx.window_title);
                 }
 
-                let mut new_commands = vec![];
-                cx.commands(&view, &mut new_commands);
+                #[cfg(feature = "tao")]
+                {
+                    let mut new_commands = vec![];
+                    cx.commands(&view, &mut new_commands);
 
-                if new_commands != *commands {
-                    print!("commands changed");
-                    commands = new_commands;
+                    if new_commands != *commands {
+                        print!("commands changed");
+                        commands = new_commands;
 
-                    command_map.clear();
-                    window.set_menu(Some(menus::build_menubar(&commands, &mut command_map)));
+                        command_map.clear();
+                        window.set_menu(Some(menus::build_menubar(&commands, &mut command_map)));
+                    }
                 }
             }
             WEvent::RedrawRequested(_) => {
