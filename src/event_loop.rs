@@ -10,9 +10,9 @@ use std::{
 use tao::{
     accelerator::Accelerator,
     dpi::PhysicalSize,
-    event::{Event as WEvent, ElementState, WindowEvent, MouseButton as WMouseButton},
+    event::{ElementState, Event as WEvent, MouseButton as WMouseButton, WindowEvent},
     event_loop::{ControlFlow, EventLoop, EventLoopProxy},
-    keyboard::{ModifiersState, KeyCode, Key as KeyPress},
+    keyboard::{Key as KeyPress, KeyCode, ModifiersState},
     menu::{MenuBar as Menu, MenuItem, MenuItemAttributes},
     window::{Window, WindowBuilder},
 };
@@ -20,7 +20,7 @@ use tao::{
 #[cfg(feature = "winit")]
 use winit::{
     dpi::PhysicalSize,
-    event::{Event as WEvent, ElementState, WindowEvent, MouseButton as WMouseButton},
+    event::{ElementState, Event as WEvent, MouseButton as WMouseButton, WindowEvent},
     event_loop::{ControlFlow, EventLoop, EventLoopProxy},
     window::{Window, WindowBuilder},
 };
@@ -122,114 +122,115 @@ async fn setup(window: &Window) -> Setup {
     }
 }
 
-struct MenuItem2 {
-    name: String,
-    submenu: Vec<usize>,
-    command: CommandInfo,
-}
+#[cfg(feature = "tao")]
+mod menus {
+    use super::*;
 
-type CommandMap = HashMap<tao::menu::MenuId, String>;
-
-fn make_menu_rec(
-    items: &Vec<MenuItem2>,
-    i: usize,
-    command_map: &mut CommandMap,
-) -> Menu {
-    let mut menu = Menu::new();
-
-    if i == 0 {
-        let mut app_menu = Menu::new();
-
-        let app_name = match std::env::current_exe() {
-            Ok(exe_path) => exe_path.file_name().unwrap().to_str().unwrap().to_string(),
-            Err(_) => "rui".to_string(),
-        };
-
-        app_menu.add_native_item(MenuItem::About(app_name, Default::default()));
-        app_menu.add_native_item(MenuItem::Quit);
-        menu.add_submenu("rui", true, app_menu);
+    struct MenuItem2 {
+        name: String,
+        submenu: Vec<usize>,
+        command: CommandInfo,
     }
 
-    for j in &items[i].submenu {
-        let item = &items[*j];
-        if !item.submenu.is_empty() {
-            menu.add_submenu(
-                item.name.as_str(),
-                true,
-                make_menu_rec(items, *j, command_map),
-            );
-        } else {
-            let mut attrs = MenuItemAttributes::new(item.name.as_str());
-            if let Some(key) = item.command.key {
-                let key_code = match key {
-                    HotKey::KeyA => KeyCode::KeyA,
-                    HotKey::KeyB => KeyCode::KeyB,
-                    HotKey::KeyC => KeyCode::KeyC,
-                    HotKey::KeyD => KeyCode::KeyD,
-                    HotKey::KeyE => KeyCode::KeyE,
-                    HotKey::KeyF => KeyCode::KeyF,
-                    HotKey::KeyG => KeyCode::KeyG,
-                    HotKey::KeyH => KeyCode::KeyH,
-                    HotKey::KeyI => KeyCode::KeyI,
-                    HotKey::KeyJ => KeyCode::KeyJ,
-                    HotKey::KeyK => KeyCode::KeyK,
-                    HotKey::KeyL => KeyCode::KeyL,
-                    HotKey::KeyM => KeyCode::KeyM,
-                    HotKey::KeyN => KeyCode::KeyN,
-                    HotKey::KeyO => KeyCode::KeyO,
-                    HotKey::KeyP => KeyCode::KeyP,
-                    HotKey::KeyQ => KeyCode::KeyQ,
-                    HotKey::KeyR => KeyCode::KeyR,
-                    HotKey::KeyS => KeyCode::KeyS,
-                    HotKey::KeyT => KeyCode::KeyT,
-                    HotKey::KeyU => KeyCode::KeyU,
-                    HotKey::KeyV => KeyCode::KeyV,
-                    HotKey::KeyW => KeyCode::KeyW,
-                    HotKey::KeyX => KeyCode::KeyX,
-                    HotKey::KeyY => KeyCode::KeyY,
-                    HotKey::KeyZ => KeyCode::KeyZ,
-                };
+    type CommandMap = HashMap<tao::menu::MenuId, String>;
 
-                let accel = Accelerator::new(ModifiersState::SUPER, key_code);
-                attrs = attrs.with_accelerators(&accel);
-            }
-            let id = menu.add_item(attrs).id();
-            command_map.insert(id, item.command.path.clone());
+    fn make_menu_rec(items: &Vec<MenuItem2>, i: usize, command_map: &mut CommandMap) -> Menu {
+        let mut menu = Menu::new();
+
+        if i == 0 {
+            let mut app_menu = Menu::new();
+
+            let app_name = match std::env::current_exe() {
+                Ok(exe_path) => exe_path.file_name().unwrap().to_str().unwrap().to_string(),
+                Err(_) => "rui".to_string(),
+            };
+
+            app_menu.add_native_item(MenuItem::About(app_name, Default::default()));
+            app_menu.add_native_item(MenuItem::Quit);
+            menu.add_submenu("rui", true, app_menu);
         }
-    }
 
-    menu
-}
-
-pub(crate) fn build_menubar(commands: &Vec<CommandInfo>, command_map: &mut CommandMap) -> Menu {
-    let mut items: Vec<MenuItem2> = vec![MenuItem2 {
-        name: "root".into(),
-        submenu: vec![],
-        command: CommandInfo {
-            path: "".into(),
-            key: None,
-        },
-    }];
-
-    for command in commands {
-        let mut v = 0;
-        for name in command.path.split(':') {
-            if let Some(item) = items[v].submenu.iter().find(|x| items[**x].name == name) {
-                v = *item;
+        for j in &items[i].submenu {
+            let item = &items[*j];
+            if !item.submenu.is_empty() {
+                menu.add_submenu(
+                    item.name.as_str(),
+                    true,
+                    make_menu_rec(items, *j, command_map),
+                );
             } else {
-                let n = items.len();
-                items[v].submenu.push(n);
-                v = n;
-                items.push(MenuItem2 {
-                    name: name.into(),
-                    submenu: vec![],
-                    command: command.clone(),
-                });
+                let mut attrs = MenuItemAttributes::new(item.name.as_str());
+                if let Some(key) = item.command.key {
+                    let key_code = match key {
+                        HotKey::KeyA => KeyCode::KeyA,
+                        HotKey::KeyB => KeyCode::KeyB,
+                        HotKey::KeyC => KeyCode::KeyC,
+                        HotKey::KeyD => KeyCode::KeyD,
+                        HotKey::KeyE => KeyCode::KeyE,
+                        HotKey::KeyF => KeyCode::KeyF,
+                        HotKey::KeyG => KeyCode::KeyG,
+                        HotKey::KeyH => KeyCode::KeyH,
+                        HotKey::KeyI => KeyCode::KeyI,
+                        HotKey::KeyJ => KeyCode::KeyJ,
+                        HotKey::KeyK => KeyCode::KeyK,
+                        HotKey::KeyL => KeyCode::KeyL,
+                        HotKey::KeyM => KeyCode::KeyM,
+                        HotKey::KeyN => KeyCode::KeyN,
+                        HotKey::KeyO => KeyCode::KeyO,
+                        HotKey::KeyP => KeyCode::KeyP,
+                        HotKey::KeyQ => KeyCode::KeyQ,
+                        HotKey::KeyR => KeyCode::KeyR,
+                        HotKey::KeyS => KeyCode::KeyS,
+                        HotKey::KeyT => KeyCode::KeyT,
+                        HotKey::KeyU => KeyCode::KeyU,
+                        HotKey::KeyV => KeyCode::KeyV,
+                        HotKey::KeyW => KeyCode::KeyW,
+                        HotKey::KeyX => KeyCode::KeyX,
+                        HotKey::KeyY => KeyCode::KeyY,
+                        HotKey::KeyZ => KeyCode::KeyZ,
+                    };
+
+                    let accel = Accelerator::new(ModifiersState::SUPER, key_code);
+                    attrs = attrs.with_accelerators(&accel);
+                }
+                let id = menu.add_item(attrs).id();
+                command_map.insert(id, item.command.path.clone());
             }
         }
+
+        menu
     }
 
-    make_menu_rec(&items, 0, command_map)
+    pub(crate) fn build_menubar(commands: &Vec<CommandInfo>, command_map: &mut CommandMap) -> Menu {
+        let mut items: Vec<MenuItem2> = vec![MenuItem2 {
+            name: "root".into(),
+            submenu: vec![],
+            command: CommandInfo {
+                path: "".into(),
+                key: None,
+            },
+        }];
+
+        for command in commands {
+            let mut v = 0;
+            for name in command.path.split(':') {
+                if let Some(item) = items[v].submenu.iter().find(|x| items[**x].name == name) {
+                    v = *item;
+                } else {
+                    let n = items.len();
+                    items[v].submenu.push(n);
+                    v = n;
+                    items.push(MenuItem2 {
+                        name: name.into(),
+                        submenu: vec![],
+                        command: command.clone(),
+                    });
+                }
+            }
+        }
+
+        make_menu_rec(&items, 0, command_map)
+    }
 }
 
 /// Call this function to run your UI.
@@ -265,7 +266,7 @@ pub fn rui(view: impl View) {
     let mut commands = Vec::new();
     cx.commands(&view, &mut commands);
     let mut command_map = HashMap::new();
-    window.set_menu(Some(build_menubar(&commands, &mut command_map)));
+    window.set_menu(Some(menus::build_menubar(&commands, &mut command_map)));
 
     let mut access_nodes = vec![];
 
@@ -319,7 +320,7 @@ pub fn rui(view: impl View) {
                 // applications which do not always need to. Applications that redraw continuously
                 // can just render here instead.
 
-                let window_size =window.inner_size();
+                let window_size = window.inner_size();
                 let scale = window.scale_factor() as f32;
                 // println!("window_size: {:?}", window_size);
                 let width = window_size.width as f32 / scale;
@@ -342,7 +343,7 @@ pub fn rui(view: impl View) {
                     commands = new_commands;
 
                     command_map.clear();
-                    window.set_menu(Some(build_menubar(&commands, &mut command_map)));
+                    window.set_menu(Some(menus::build_menubar(&commands, &mut command_map)));
                 }
             }
             WEvent::RedrawRequested(_) => {
@@ -359,7 +360,16 @@ pub fn rui(view: impl View) {
                 let height = window_size.height as f32 / scale;
 
                 // println!("RedrawRequested");
-                cx.render(&device, &surface, &config, &queue, &view, &mut vger, [width, height].into(), scale);
+                cx.render(
+                    &device,
+                    &surface,
+                    &config,
+                    &queue,
+                    &view,
+                    &mut vger,
+                    [width, height].into(),
+                    scale,
+                );
             }
             WEvent::WindowEvent {
                 event: WindowEvent::MouseInput { state, button, .. },
