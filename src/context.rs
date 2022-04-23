@@ -146,7 +146,12 @@ impl Context {
             }
 
             // XXX: we're doing layout both here and in rendering.
-            view.layout(self.root_id, [window_size.width, window_size.height].into(), self, vger);
+            view.layout(
+                self.root_id,
+                [window_size.width, window_size.height].into(),
+                self,
+                vger,
+            );
 
             // Get dirty rectangles.
             view.dirty(self.root_id, LocalToWorld::identity(), self);
@@ -169,7 +174,7 @@ impl Context {
         view: &impl View,
         vger: &mut Vger,
         window_size: Size2D<f32, WorldSpace>,
-        scale: f32
+        scale: f32,
     ) {
         let frame = match surface.get_current_texture() {
             Ok(frame) => frame,
@@ -186,7 +191,12 @@ impl Context {
         // Disable dirtying the state during layout and rendering
         // to avoid constantly re-rendering if some state is saved.
         self.enable_dirty = false;
-        view.layout(self.root_id, [window_size.width, window_size.height].into(), self, vger);
+        view.layout(
+            self.root_id,
+            [window_size.width, window_size.height].into(),
+            self,
+            vger,
+        );
         view.draw(self.root_id, self, vger);
         self.enable_dirty = true;
 
