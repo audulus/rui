@@ -347,7 +347,7 @@ pub fn rui(view: impl View) {
                         print!("commands changed");
                         commands = new_commands;
 
-                        let mut command_map = HashMap::new();
+                        command_map.clear();
                         window.set_menu(Some(menus::build_menubar(&commands, &mut command_map)));
                     }
                 }
