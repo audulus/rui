@@ -319,10 +319,22 @@ pub fn rui(view: impl View) {
                 cx.update(
                     &view,
                     &mut vger,
-                    &mut commands,
-                    &mut command_map,
                     &mut access_nodes,
                 );
+
+                let mut new_commands = vec![];
+                cx.commands(&view, &mut new_commands);
+
+                if new_commands != *commands {
+                    print!("commands changed");
+                    commands = new_commands;
+    
+                    command_map.clear();
+                    cx.window
+                        .as_ref()
+                        .unwrap()
+                        .set_menu(Some(build_menubar(&commands, &mut command_map)));
+                }
             }
             WEvent::RedrawRequested(_) => {
                 // Redraw the application.

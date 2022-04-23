@@ -123,28 +123,13 @@ impl Context {
         &mut self,
         view: &impl View,
         vger: &mut Vger,
-        commands: &mut Vec<CommandInfo>,
-        command_map: &mut CommandMap,
         access_nodes: &mut Vec<accesskit::Node>,
     ) {
         // Run any animations.
         view.process(&Event::Anim, self.root_id, self, vger);
 
         if self.dirty {
-            // Have the commands changed?
-            let mut new_commands = Vec::new();
-            view.commands(self.root_id, self, &mut new_commands);
-
-            if new_commands != *commands {
-                print!("commands changed");
-                *commands = new_commands;
-
-                command_map.clear();
-                self.window
-                    .as_ref()
-                    .unwrap()
-                    .set_menu(Some(build_menubar(commands, command_map)));
-            }
+            
 
             // Clean up state.
             let mut keep = vec![];
