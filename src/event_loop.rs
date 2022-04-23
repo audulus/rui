@@ -338,8 +338,14 @@ pub fn rui(view: impl View) {
                 // this event rather than in MainEventsCleared, since rendering in here allows
                 // the program to gracefully handle redraws requested by the OS.
 
+                let window_size = cx.window.as_ref().unwrap().inner_size();
+                let scale = cx.window.as_ref().unwrap().scale_factor() as f32;
+                // println!("window_size: {:?}", window_size);
+                let width = window_size.width as f32 / scale;
+                let height = window_size.height as f32 / scale;
+
                 // println!("RedrawRequested");
-                cx.render(&device, &surface, &config, &queue, &view, &mut vger);
+                cx.render(&device, &surface, &config, &queue, &view, &mut vger, [width, height].into(), scale);
             }
             WEvent::WindowEvent {
                 event: WindowEvent::MouseInput { state, button, .. },

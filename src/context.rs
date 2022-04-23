@@ -177,6 +177,8 @@ impl Context {
         queue: &wgpu::Queue,
         view: &impl View,
         vger: &mut Vger,
+        window_size: Size2D<f32, WorldSpace>,
+        scale: f32
     ) {
         let frame = match surface.get_current_texture() {
             Ok(frame) => frame,
@@ -188,18 +190,12 @@ impl Context {
             }
         };
 
-        let window_size = self.window.as_ref().unwrap().inner_size();
-        let scale = self.window.as_ref().unwrap().scale_factor() as f32;
-        // println!("window_size: {:?}", window_size);
-        let width = window_size.width as f32 / scale;
-        let height = window_size.height as f32 / scale;
-
-        vger.begin(width, height, scale);
+        vger.begin(window_size.width, window_size.height, scale);
 
         // Disable dirtying the state during layout and rendering
         // to avoid constantly re-rendering if some state is saved.
         self.enable_dirty = false;
-        view.layout(self.root_id, [width, height].into(), self, vger);
+        view.layout(self.root_id, [window_size.width, window_size.height].into(), self, vger);
         view.draw(self.root_id, self, vger);
         self.enable_dirty = true;
 
