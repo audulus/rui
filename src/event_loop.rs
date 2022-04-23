@@ -124,10 +124,12 @@ struct MenuItem2 {
     command: CommandInfo,
 }
 
+type CommandMap = HashMap<tao::menu::MenuId, String>;
+
 fn make_menu_rec(
     items: &Vec<MenuItem2>,
     i: usize,
-    command_map: &mut HashMap<tao::menu::MenuId, String>,
+    command_map: &mut CommandMap,
 ) -> Menu {
     let mut menu = Menu::new();
 
