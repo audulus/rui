@@ -10,7 +10,7 @@ use std::{
 use tao::{
     accelerator::Accelerator,
     dpi::PhysicalSize,
-    event::{ElementState, WindowEvent, MouseButton as WMouseButton},
+    event::{Event as WEvent, ElementState, WindowEvent, MouseButton as WMouseButton},
     event_loop::{ControlFlow, EventLoop, EventLoopProxy},
     keyboard::{ModifiersState, KeyCode, Key as WKey},
     menu::{MenuBar as Menu, MenuItem, MenuItemAttributes},
@@ -20,13 +20,12 @@ use tao::{
 #[cfg(feature = "winit")]
 use winit::{
     dpi::PhysicalSize,
-    event::{ElementState, WindowEvent, MouseButton as WMouseButton},
+    event::{Event as WEvent, ElementState, WindowEvent, MouseButton as WMouseButton},
     event_loop::{ControlFlow, EventLoop, EventLoopProxy},
     window::{Window, WindowBuilder},
 };
 
 type KeyPress = WKey<'static>;
-type WEvent<'a, T> = tao::event::Event<'a, T>;
 
 type WorkQueue = VecDeque<Box<dyn FnOnce(&mut Context) + Send>>;
 
