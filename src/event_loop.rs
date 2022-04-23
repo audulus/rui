@@ -12,7 +12,7 @@ use tao::{
     dpi::PhysicalSize,
     event::{Event as WEvent, ElementState, WindowEvent, MouseButton as WMouseButton},
     event_loop::{ControlFlow, EventLoop, EventLoopProxy},
-    keyboard::{ModifiersState, KeyCode, Key as WKey},
+    keyboard::{ModifiersState, KeyCode, Key as KeyPress},
     menu::{MenuBar as Menu, MenuItem, MenuItemAttributes},
     window::{Window, WindowBuilder},
 };
@@ -24,8 +24,6 @@ use winit::{
     event_loop::{ControlFlow, EventLoop, EventLoopProxy},
     window::{Window, WindowBuilder},
 };
-
-type KeyPress = WKey<'static>;
 
 type WorkQueue = VecDeque<Box<dyn FnOnce(&mut Context) + Send>>;
 
