@@ -15,6 +15,7 @@ rui is immediate mode (there is no retained tree of views), GPU rendered, update
 - macOS ✅ 
 - Windows ✅
 - Linux ✅ 
+- iOS (WIP: see https://github.com/audulus/rui-ios)
 
 ## Examples
 
