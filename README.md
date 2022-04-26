@@ -125,7 +125,7 @@ widget gallery (`cargo run --example gallery`):
 - Minimal boilerplate.
 - Good looking.
 - No `unsafe`.
-- Accessible.
+- Accessibility for assistive technologies.
 
 ## Optional Features
 
