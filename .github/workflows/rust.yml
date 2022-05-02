@@ -36,3 +36,5 @@ jobs:
       run: cargo build --no-default-features
     - name: Test w/tao
       run: cargo test --no-default-features --features tao
+    - name: Build for wasm
+      run: RUSTFLAGS=--cfg=web_sys_unstable_apis cargo build --target wasm32-unknown-unknown
