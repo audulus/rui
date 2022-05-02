@@ -27,6 +27,7 @@ use winit::{
 
 type WorkQueue = VecDeque<Box<dyn FnOnce(&mut Context) + Send>>;
 
+#[cfg(not(target_arch = "wasm32"))]
 lazy_static! {
     /// Allows us to wake the event loop whenever we want.
     static ref GLOBAL_EVENT_LOOP_PROXY: Mutex<Option<EventLoopProxy<()>>> = Mutex::new(None);
@@ -34,7 +35,10 @@ lazy_static! {
     static ref GLOBAL_WORK_QUEUE: Mutex<WorkQueue> = Mutex::new(WorkQueue::new());
 }
 
-fn wake_event_loop() {
+#[cfg(not(target_arch = "wasm32"))]
+pub fn on_main(f: impl FnOnce(&mut Context) + Send + 'static) {
+    GLOBAL_WORK_QUEUE.lock().unwrap().push_back(Box::new(f));
+
     // Wake up the event loop.
     let opt_proxy = GLOBAL_EVENT_LOOP_PROXY.lock().unwrap();
     if let Some(proxy) = &*opt_proxy {
@@ -42,11 +46,6 @@ fn wake_event_loop() {
             println!("error waking up event loop: {:?}", err);
         }
     }
-}
-
-pub fn on_main(f: impl FnOnce(&mut Context) + Send + 'static) {
-    GLOBAL_WORK_QUEUE.lock().unwrap().push_back(Box::new(f));
-    wake_event_loop();
 }
 
 struct Setup {
@@ -257,7 +256,9 @@ pub fn rui(view: impl View) {
     };
     surface.configure(&device, &config);
 
-    *GLOBAL_EVENT_LOOP_PROXY.lock().unwrap() = Some(event_loop.create_proxy());
+    #[cfg(not(target_arch = "wasm32"))] {
+        *GLOBAL_EVENT_LOOP_PROXY.lock().unwrap() = Some(event_loop.create_proxy());
+    }    
 
     let mut vger = Vger::new(&device, wgpu::TextureFormat::Bgra8UnormSrgb);
     let mut cx = Context::new();
@@ -316,8 +317,10 @@ pub fn rui(view: impl View) {
                 // println!("received user event");
 
                 // Process the work queue.
-                while let Some(f) = GLOBAL_WORK_QUEUE.lock().unwrap().pop_front() {
-                    f(&mut cx);
+                #[cfg(not(target_arch = "wasm32"))] {
+                    while let Some(f) = GLOBAL_WORK_QUEUE.lock().unwrap().pop_front() {
+                        f(&mut cx);
+                    }
                 }
             }
             WEvent::MainEventsCleared => {
@@ -595,4 +598,23 @@ pub fn rui(view: impl View) {
             _ => (),
         }
     });
+}
+
+#[cfg(target_arch = "wasm32")]
+/// Parse the query string as returned by `web_sys::window()?.location().search()?` and get a
+/// specific key out of it.
+pub fn parse_url_query_string<'a>(query: &'a str, search_key: &str) -> Option<&'a str> {
+    let query_string = query.strip_prefix('?')?;
+
+    for pair in query_string.split('&') {
+        let mut pair = pair.split('=');
+        let key = pair.next()?;
+        let value = pair.next()?;
+
+        if key == search_key {
+            return Some(value);
+        }
+    }
+
+    None
 }
