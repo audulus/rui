@@ -6,7 +6,7 @@
 
 ![build status](https://github.com/audulus/rui/actions/workflows/rust.yml/badge.svg)
 
-Experimental Rust UI library, inspired by SwiftUI. Early days, but some stuff already works.
+Experimental Rust UI library, inspired by SwiftUI. Early days, but some stuff already works. rui will be used for a future version of [Audulus](http://audulus.com/)
 
 rui is immediate mode (there is no retained tree of views), GPU rendered, updates reacitvely (when your state changes), and has richer layout options than other immediate mode UIs.
 
@@ -135,7 +135,7 @@ widget gallery (`cargo run --example gallery`):
 
 ## Why?
 
-In the long term, I'd like to move Audulus over to Rust. After looking at other available UI options, it seemed best to implement something resembling the existing immediate mode UI system I already have working in Audulus, but better.
+In the long term, I'd like to move [Audulus](http://audulus.com/) over to Rust. After looking at other available UI options, it seemed best to implement something resembling the existing immediate mode UI system I already have working in Audulus, but better.
 
 ## Status
 
