@@ -169,3 +169,5 @@ In the long term, I'd like to move [Audulus](http://audulus.com/) over to Rust. 
 [Static Types in SwiftUI](https://www.objc.io/blog/2019/11/05/static-types-in-swiftui/)
 
 [How Layout Works in SwiftUI](https://www.hackingwithswift.com/books/ios-swiftui/how-layout-works-in-swiftui)
+
+[Xilem: an architecture for UI in Rust](https://raphlinus.github.io/rust/gui/2022/05/07/ui-architecture.html)
