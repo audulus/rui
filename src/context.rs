@@ -90,6 +90,9 @@ pub struct Context {
 
     /// State dependencies.
     pub(crate) deps: HashMap<ViewId, Vec<ViewId>>,
+
+    /// A stack of ids for states.
+    pub(crate) id_stack: Vec<ViewId>,
 }
 
 impl Context {
@@ -111,6 +114,7 @@ impl Context {
             env: HashMap::new(),
             dirty_region: Region::EMPTY,
             deps: HashMap::new(),
+            id_stack: vec![],
         }
     }
 

@@ -67,6 +67,8 @@ where
     fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {
         cx.init_state(id, &self.default);
 
+        cx.id_stack.push(id);
+
         let child_size = (self.func)(State::new(id), cx).layout(id.child(&0), sz, cx, vger);
 
         // Compute layout dependencies.
@@ -83,6 +85,8 @@ where
                 offset: LocalOffset::zero(),
             },
         );
+
+        cx.id_stack.pop();
 
         child_size
     }
