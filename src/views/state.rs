@@ -69,12 +69,14 @@ where
 
         cx.id_stack.push(id);
 
-        let child_size = (self.func)(State::new(id), cx).layout(id.child(&0), sz, cx, vger);
+        let view = (self.func)(State::new(id), cx);
+
+        let child_size = view.layout(id.child(&0), sz, cx, vger);
 
         // Compute layout dependencies.
         let mut deps = vec![];
         deps.append(&mut cx.id_stack.clone());
-        (self.func)(State::new(id), cx).gc(id.child(&0), cx, &mut deps);
+        view.gc(id.child(&0), cx, &mut deps);
 
         cx.deps.insert(id, deps);
 
