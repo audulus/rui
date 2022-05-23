@@ -74,10 +74,7 @@ where
         deps.push(id);
         (self.func)(State::new(id), cx).gc(id.child(&0), cx, &mut deps);
 
-        cx.deps.insert(
-            id,
-            deps
-        );
+        cx.deps.insert(id, deps);
 
         cx.layout.insert(
             id,
