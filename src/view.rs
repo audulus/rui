@@ -3,25 +3,27 @@ use std::any::TypeId;
 
 /// Trait for the unit of UI composition.
 pub trait View: private::Sealed + 'static {
-    /// Returns the type ID of the underlying view.
-    fn tid(&self) -> TypeId {
-        TypeId::of::<Self>()
+    /// Builds an AccessKit tree. The node ID for the subtree is returned. All generated nodes are accumulated.
+    fn access(
+        &self,
+        _id: ViewId,
+        _cx: &mut Context,
+        _nodes: &mut Vec<accesskit::Node>,
+    ) -> Option<accesskit::NodeId> {
+        None
     }
 
-    /// Prints a description of the view for debugging.
-    fn print(&self, id: ViewId, cx: &mut Context);
+    /// Accumulates information about menu bar commands.
+    fn commands(&self, _id: ViewId, _cx: &mut Context, _cmds: &mut Vec<CommandInfo>) {}
 
-    /// Processes an event.
-    fn process(&self, _event: &Event, _id: ViewId, _cx: &mut Context, _vger: &mut Vger) {}
+    /// Determines dirty regions which need repainting.
+    fn dirty(&self, _id: ViewId, _xform: LocalToWorld, _cx: &mut Context) {}
 
     /// Draws the view using vger.
     fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger);
 
-    /// Lays out subviews and return the size of the view.
-    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize;
-
-    /// Determines dirty regions which need repainting.
-    fn dirty(&self, _id: ViewId, _xform: LocalToWorld, _cx: &mut Context) {}
+    /// Copies state currently in use to a new StateMap (the rest are dropped).
+    fn gc(&self, _id: ViewId, _cx: &mut Context, _map: &mut Vec<ViewId>) {}
 
     /// Returns the topmost view which the point intersects.
     fn hittest(
@@ -34,24 +36,22 @@ pub trait View: private::Sealed + 'static {
         None
     }
 
-    /// Accumulates information about menu bar commands.
-    fn commands(&self, _id: ViewId, _cx: &mut Context, _cmds: &mut Vec<CommandInfo>) {}
-
-    /// Copies state currently in use to a new StateMap (the rest are dropped).
-    fn gc(&self, _id: ViewId, _cx: &mut Context, _map: &mut Vec<ViewId>) {}
-
-    /// Builds an AccessKit tree. The node ID for the subtree is returned. All generated nodes are accumulated.
-    fn access(
-        &self,
-        _id: ViewId,
-        _cx: &mut Context,
-        _nodes: &mut Vec<accesskit::Node>,
-    ) -> Option<accesskit::NodeId> {
-        None
-    }
-
     /// For detecting flexible sized things in stacks.
     fn is_flexible(&self) -> bool {
         false
+    }
+
+    /// Lays out subviews and return the size of the view.
+    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize;
+
+    /// Prints a description of the view for debugging.
+    fn print(&self, id: ViewId, cx: &mut Context);
+
+    /// Processes an event.
+    fn process(&self, _event: &Event, _id: ViewId, _cx: &mut Context, _vger: &mut Vger) {}
+
+    /// Returns the type ID of the underlying view.
+    fn tid(&self) -> TypeId {
+        TypeId::of::<Self>()
     }
 }
