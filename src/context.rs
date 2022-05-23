@@ -134,6 +134,7 @@ impl Context {
         // If the window size has changed, force a relayout.
         if window_size != self.window_size {
             self.deps.clear();
+            self.window_size = window_size;
         }
 
         // Run any animations.
