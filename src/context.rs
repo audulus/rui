@@ -91,7 +91,7 @@ pub struct Context {
     /// State dependencies.
     pub(crate) deps: HashMap<ViewId, Vec<ViewId>>,
 
-    /// A stack of ids for states.
+    /// A stack of ids for states to get parent dependencies.
     pub(crate) id_stack: Vec<ViewId>,
 }
 
