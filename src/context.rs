@@ -87,6 +87,9 @@ pub struct Context {
 
     /// Regions of window that needs repainting.
     pub(crate) dirty_region: Region<WorldSpace>,
+
+    /// State dependencies.
+    pub(crate) deps: HashMap<ViewId, Vec<ViewId>>,
 }
 
 impl Context {
@@ -107,6 +110,7 @@ impl Context {
             enable_dirty: true,
             env: HashMap::new(),
             dirty_region: Region::EMPTY,
+            deps: HashMap::new(),
         }
     }
 

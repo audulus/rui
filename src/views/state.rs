@@ -69,6 +69,16 @@ where
 
         let child_size = (self.func)(State::new(id), cx).layout(id.child(&0), sz, cx, vger);
 
+        // Compute layout dependencies.
+        let mut deps = vec![];
+        deps.push(id);
+        (self.func)(State::new(id), cx).gc(id.child(&0), cx, &mut deps);
+
+        cx.deps.insert(
+            id,
+            deps
+        );
+
         cx.layout.insert(
             id,
             LayoutBox {
