@@ -37,7 +37,7 @@ pub trait View: private::Sealed + 'static {
     /// Accumulates information about menu bar commands.
     fn commands(&self, _id: ViewId, _cx: &mut Context, _cmds: &mut Vec<CommandInfo>) {}
 
-    // /// Copies state currently in use to a new StateMap (the rest are dropped).
+    /// Copies state currently in use to a new StateMap (the rest are dropped).
     fn gc(&self, _id: ViewId, _cx: &mut Context, _map: &mut Vec<ViewId>) {}
 
     /// Builds an AccessKit tree. The node ID for the subtree is returned. All generated nodes are accumulated.
