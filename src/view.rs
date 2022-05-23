@@ -22,7 +22,7 @@ pub trait View: private::Sealed + 'static {
     /// Draws the view using vger.
     fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger);
 
-    /// Copies state currently in use to a new StateMap (the rest are dropped).
+    /// Gets IDs for state currently in use.
     fn gc(&self, _id: ViewId, _cx: &mut Context, _map: &mut Vec<ViewId>) {}
 
     /// Returns the topmost view which the point intersects.
