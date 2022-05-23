@@ -73,7 +73,7 @@ where
 
         // Compute layout dependencies.
         let mut deps = vec![];
-        deps.push(id);
+        deps.append(&mut cx.id_stack.clone());
         (self.func)(State::new(id), cx).gc(id.child(&0), cx, &mut deps);
 
         cx.deps.insert(id, deps);
