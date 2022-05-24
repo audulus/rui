@@ -121,7 +121,7 @@ widget gallery (`cargo run --example gallery`):
 ## Goals
 
 - Encode UI in types to ensure stable identity.
-- Use immediate mode initially, then optimize to reduce redraw later.
+- Optimize to reduce redraw.
 - Use [vger-rs](https://github.com/audulus/vger-rs) for rendering.
 - Minimal boilerplate.
 - Good looking.
