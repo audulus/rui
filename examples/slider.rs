@@ -5,15 +5,23 @@ struct MyState {
     value: f32,
 }
 
-fn main() {
-    rui(state(MyState::default, |state, cx| {
+/// A slider with a value.
+fn my_slider(s: State<f32>) -> impl View {
+    // Just to get the context.
+    state(||(), move |_, cx|
         vstack((
-            cx[state].value.font_size(10).padding(Auto),
-            map(
-                cx[state].value,
-                move |v, cx| cx[state].value = v,
-                |s, _| hslider(s).thumb_color(RED_HIGHLIGHT).padding(Auto),
-            ),
+            cx[s].font_size(10).padding(Auto),
+            hslider(s).thumb_color(RED_HIGHLIGHT).padding(Auto)
         ))
-    }));
+    )
+}
+
+fn main() {
+    rui(state(MyState::default, |state, cx| 
+        map(
+            cx[state].value,
+            move |v, cx| cx[state].value = v,
+            |s, _| my_slider(s),
+        ),
+    ));
 }
