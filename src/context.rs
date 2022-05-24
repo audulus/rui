@@ -87,6 +87,15 @@ pub struct Context {
 
     /// Regions of window that needs repainting.
     pub(crate) dirty_region: Region<WorldSpace>,
+
+    /// State dependencies.
+    pub(crate) deps: HashMap<ViewId, Vec<ViewId>>,
+
+    /// A stack of ids for states to get parent dependencies.
+    pub(crate) id_stack: Vec<ViewId>,
+
+    /// Previous window size.
+    window_size: Size2D<f32, WorldSpace>,
 }
 
 impl Context {
@@ -107,6 +116,9 @@ impl Context {
             enable_dirty: true,
             env: HashMap::new(),
             dirty_region: Region::EMPTY,
+            deps: HashMap::new(),
+            id_stack: vec![],
+            window_size: Size2D::default(),
         }
     }
 
@@ -118,6 +130,13 @@ impl Context {
         access_nodes: &mut Vec<accesskit::Node>,
         window_size: Size2D<f32, WorldSpace>,
     ) -> bool {
+
+        // If the window size has changed, force a relayout.
+        if window_size != self.window_size {
+            self.deps.clear();
+            self.window_size = window_size;
+        }
+
         // Run any animations.
         view.process(&Event::Anim, self.root_id, self, vger);
 

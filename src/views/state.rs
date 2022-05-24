@@ -67,17 +67,51 @@ where
     fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {
         cx.init_state(id, &self.default);
 
-        let child_size = (self.func)(State::new(id), cx).layout(id.child(&0), sz, cx, vger);
+        // Do we need to recompute layout?
+        let mut compute_layout = true;
 
-        cx.layout.insert(
-            id,
-            LayoutBox {
-                rect: LocalRect::new(LocalPoint::zero(), child_size),
-                offset: LocalOffset::zero(),
-            },
-        );
+        if let Some(deps) = (cx.deps.get(&id)).clone() {
+            let mut any_dirty = false;
+            for dep in deps {
+                if let Some(holder) = cx.state_map.get_mut(&dep) {
+                    if holder.dirty {
+                        any_dirty = true;
+                        break;
+                    }
+                }
+            }
 
-        child_size
+            compute_layout = any_dirty;
+        }
+
+        if compute_layout {
+
+            cx.id_stack.push(id);
+
+            let view = (self.func)(State::new(id), cx);
+
+            let child_size = view.layout(id.child(&0), sz, cx, vger);
+
+            // Compute layout dependencies.
+            let mut deps = vec![];
+            deps.append(&mut cx.id_stack.clone());
+            view.gc(id.child(&0), cx, &mut deps);
+
+            cx.deps.insert(id, deps);
+
+            cx.layout.insert(
+                id,
+                LayoutBox {
+                    rect: LocalRect::new(LocalPoint::zero(), child_size),
+                    offset: LocalOffset::zero(),
+                },
+            );
+
+            cx.id_stack.pop();
+
+        }
+
+        cx.layout[&id].rect.size
     }
 
     fn dirty(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) {
