@@ -10,6 +10,8 @@ mod canvas;
 pub use canvas::*;
 mod command;
 pub use command::*;
+mod cond;
+pub use cond::*;
 mod drag;
 pub use drag::*;
 mod emptyview;
