@@ -4,7 +4,7 @@ resolver = "2" # What does this do?
 [package]
 name = "rui"
 description = "Experimental Declarative UI library"
-version = "0.3.2"
+version = "0.3.3"
 license = "MIT"
 readme = "README.md"
 authors = ["Taylor Holliday <taylor@audulus.com>"]
