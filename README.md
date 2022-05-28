@@ -49,7 +49,7 @@ some shapes (`cargo run --example shapes`):
 use rui::*;
 
 fn main() {
-    rui(hstack((
+    rui(vstack((
         circle()
             .color(RED_HIGHLIGHT)
             .padding(Auto),
