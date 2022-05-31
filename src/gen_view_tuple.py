@@ -1,6 +1,10 @@
 # Generates macro invocations in viewtuple.rs
 
-for i in range(1, 128):
+max_elements = 128
+
+print("pub const VIEW_TUPLE_MAX_ELEMENTS: usize = %d;" % max_elements)
+
+for i in range(1, max_elements+1):
     # impl_view_tuple!(3; V0, V1, V2; 0, 1, 2);
     print("impl_view_tuple!(%d; " % i, end="")
     for j in range(i-1):
