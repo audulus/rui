@@ -316,17 +316,17 @@ impl<VT: ViewTuple> Stack<VT> {
 
 impl<VT> private::Sealed for Stack<VT> {}
 
-/// Horizontal stack of up to 8 Views in a tuple. Each item can be a different view type.
+/// Horizontal stack of up to 128 Views in a tuple. Each item can be a different view type.
 pub fn hstack<VT: ViewTuple + 'static>(children: VT) -> impl View {
     Stack::new(StackOrientation::Horizontal, children)
 }
 
-/// Vertical stack of up to 8 Views in a tuple. Each item can be a different view type.
+/// Vertical stack of up to 128 Views in a tuple. Each item can be a different view type.
 pub fn vstack<VT: ViewTuple + 'static>(children: VT) -> impl View {
     Stack::new(StackOrientation::Vertical, children)
 }
 
-/// Stack of up to 8 overlaid Views in a tuple. Each item can be a different view type.
+/// Stack of up to 128 overlaid Views in a tuple. Each item can be a different view type.
 pub fn zstack<VT: ViewTuple + 'static>(children: VT) -> impl View {
     Stack::new(StackOrientation::Z, children)
 }
