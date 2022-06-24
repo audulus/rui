@@ -73,7 +73,24 @@ impl View for AnyView {
     }
 }
 
-/// Switches between views according to a boolean.
+/// Erases the underlying view type, allowing 
+/// the function to return multiple different view types
+/// 
+/// Usage:
+/// ```
+/// use rui::*;
+/// 
+/// fn main() {
+///     rui(list(vec![7, 42], |i| {
+///         if *i == 7 {
+///             any_view(circle())
+///         } else {
+///             any_view(rectangle())
+///         }
+///         .padding(Auto)
+///     }));
+/// }
+/// ```
 pub fn any_view(view: impl View) -> AnyView {
     AnyView {
         child: Box::new(view),
