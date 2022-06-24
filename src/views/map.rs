@@ -90,10 +90,14 @@ where
 
 impl<S1, SF, F> private::Sealed for MapView<S1, SF, F> {}
 
-/// Maps state into local state.
+/// Creates local derived state with a setter.
 ///
-/// For example:
-///
+/// Arguments:
+/// - `value` - local state value
+/// - `set_value` - a function that will run each time the local state changes
+/// - `func` - view function using the local state
+/// 
+/// Usage:
 /// ```no_run
 /// # use rui::*;
 ///
