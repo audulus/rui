@@ -100,7 +100,7 @@ where
 /// - `field` - name of the field
 /// 
 /// Usage:
-/// ```
+/// ```no_run
 /// use rui::*;
 /// 
 /// #[derive(Default)]

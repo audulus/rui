@@ -77,7 +77,7 @@ impl View for AnyView {
 /// the function to return multiple different view types
 /// 
 /// Usage:
-/// ```
+/// ```no_run
 /// use rui::*;
 /// 
 /// fn main() {
