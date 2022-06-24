@@ -49,7 +49,7 @@ where
     }
 }
 
-/// Canvas for GPU drawing with Vger. See https://github.com/audulus/vger-rs.
+/// Canvas for GPU drawing with Vger. See <https://github.com/audulus/vger-rs>.
 pub fn canvas<F: Fn(&mut Context, LocalRect, &mut Vger) + 'static>(f: F) -> impl View {
     Canvas { func: f }
 }
