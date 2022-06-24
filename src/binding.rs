@@ -91,6 +91,37 @@ where
     }
 }
 
+/// Generates a lens to a struct field
+/// 
+/// Parameters:
+/// - `lens_name` - name of the resulting lens struct
+/// - `from` - type for which the lens is implemented
+/// - `to` - type of the field
+/// - `field` - name of the field
+/// 
+/// Usage:
+/// ```
+/// use rui::*;
+/// 
+/// #[derive(Default)]
+/// struct MyState {
+///    value: f32,
+/// }
+/// 
+/// make_lens!(ValueLens, MyState, f32, value);
+/// 
+/// fn my_view() -> impl View {
+///     state(MyState::default, |state, cx| {
+///         vstack((
+///             cx[state].value.font_size(10).padding(Auto),
+///             hslider(bind(state, ValueLens {}))
+///                 .thumb_color(RED_HIGHLIGHT)
+///                 .padding(Auto),
+///         ))
+///     })
+/// }
+/// ```
+
 #[macro_export]
 macro_rules! make_lens {
     ($lens_name: ident, $from: ty, $to: ty, $field: ident) => {
