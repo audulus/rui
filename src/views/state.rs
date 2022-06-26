@@ -85,7 +85,6 @@ where
         }
 
         if compute_layout {
-
             cx.id_stack.push(id);
 
             let view = (self.func)(State::new(id), cx);
@@ -108,7 +107,6 @@ where
             );
 
             cx.id_stack.pop();
-
         }
 
         cx.layout[&id].rect.size
@@ -192,4 +190,9 @@ pub fn state<
         default: initial,
         func: f,
     }
+}
+
+/// Convenience to get the context.
+pub fn get_cx<V: View, F: Fn(&mut Context) -> V + 'static>(f: F) -> impl View {
+    state(|| (), move |_, cx| f(cx))
 }

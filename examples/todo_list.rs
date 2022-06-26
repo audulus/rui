@@ -18,21 +18,15 @@ fn add_button(todos: impl Binding<Vec<String>>) -> impl View {
 }
 
 fn todo_list(todos: impl Binding<Vec<String>>) -> impl View {
-    state(
-        || (),
-        move |_, cx| {
-            let len = todos.with(cx, |todos| todos.len());
-            let ids = (0usize..len).collect();
+    get_cx(move |cx| {
+        let len = todos.with(cx, |todos| todos.len());
+        let ids = (0usize..len).collect();
 
-            list(ids, move |id| {
-                let id = *id;
-                state(
-                    || (),
-                    move |_, cx| todos.with(cx, |todos| todos[id].clone()),
-                )
-            })
-        },
-    )
+        list(ids, move |id| {
+            let id = *id;
+            get_cx(move |cx| todos.with(cx, |todos| todos[id].clone()))
+        })
+    })
 }
 
 fn main() {
