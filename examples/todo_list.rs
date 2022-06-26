@@ -32,6 +32,6 @@ fn todo_list(todos: impl Binding<Vec<String>>) -> impl View {
 fn main() {
     rui(state(
         || vec![],
-        move |todos: State<Vec<String>>, _| vstack((add_button(todos), todo_list(todos))),
+        move |todos, _| vstack((add_button(todos), todo_list(todos))),
     ));
 }
