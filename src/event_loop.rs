@@ -20,7 +20,7 @@ use tao::{
 #[cfg(feature = "winit")]
 use winit::{
     dpi::PhysicalSize,
-    event::{ElementState, Event as WEvent, MouseButton as WMouseButton, WindowEvent, VirtualKeyCode},
+    event::{ElementState, Event as WEvent, MouseButton as WMouseButton, Touch, TouchPhase, WindowEvent, VirtualKeyCode},
     event_loop::{ControlFlow, EventLoop, EventLoopProxy},
     window::{Window, WindowBuilder},
 };
@@ -415,6 +415,31 @@ pub fn rui(view: impl View) {
                     #[cfg(feature = "tao")]
                     _ => {}
                 };
+            }
+            WEvent::WindowEvent {
+                window_id,
+                event: WindowEvent::Touch(Touch { phase, location, .. }),
+            } => {
+                // Do not handle events from other windows.
+                if window_id != window.id() {
+                    return;
+                }
+
+                let scale = window.scale_factor() as f32;
+                let position = [
+                    location.x as f32 / scale,
+                    (config.height as f32 - location.y as f32) / scale,
+                ]
+                .into();
+
+                // TODO: Multi-Touch management
+                let event = match phase {
+                    TouchPhase::Started => Event::TouchBegin { id: 0, position },
+                    TouchPhase::Moved => Event::TouchMove { id: 0, position },
+                    TouchPhase::Ended | TouchPhase::Cancelled => Event::TouchEnd { id: 0, position }
+                };
+
+                cx.process(&view, &event, &mut vger);
             }
             WEvent::WindowEvent {
                 event: WindowEvent::CursorMoved { position, .. },
