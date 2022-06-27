@@ -115,7 +115,7 @@ where
         vid: ViewId,
         cx: &mut Context,
         vger: &mut Vger,
-        data: &mut Data,
+        state: State<Data>,
     ) {
         match &event {
             Event::TouchBegin { id, position } => {
@@ -126,7 +126,7 @@ where
             Event::TouchEnd { id, position: _ } => {
                 if cx.touches[*id] == vid {
                     cx.touches[*id] = ViewId::default();
-                    (self.func)(data);
+                    (self.func)(cx.get_mut(state));
                 }
             }
             _ => (),

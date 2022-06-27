@@ -70,7 +70,7 @@ pub trait View2<Data>: 'static {
         _id: ViewId,
         _cx: &mut Context,
         _vger: &mut Vger,
-        _data: &mut Data,
+        _data: State<Data>,
     ) {
     }
 

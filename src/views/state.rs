@@ -196,3 +196,93 @@ pub fn state<
 pub fn get_cx<V: View, F: Fn(&mut Context) -> V + 'static>(f: F) -> impl View {
     state(|| (), move |_, cx| f(cx))
 }
+
+struct StateView2<D, F> {
+    default: D,
+    func: F,
+}
+
+impl<S, V, D, F, Data> View2<Data> for StateView2<D, F>
+where
+    V: View2<S>,
+    S: 'static,
+    D: Fn() -> S + 'static,
+    F: Fn(&S) -> V + 'static,
+{
+    fn process(
+        &self,
+        event: &Event,
+        id: ViewId,
+        cx: &mut Context,
+        vger: &mut Vger,
+        _state: State<Data>,
+    ) {
+        cx.init_state(id, &self.default);
+        let v = (self.func)(cx.get(State::new(id)));
+        v.process(event, id.child(&0), cx, vger, State::new(id));
+    }
+
+    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {
+        cx.init_state(id, &self.default);
+        (self.func)(cx.get(State::new(id))).draw(id.child(&0), cx, vger);
+    }
+
+    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {
+        cx.init_state(id, &self.default);
+
+        // Do we need to recompute layout?
+        let mut compute_layout = true;
+
+        if let Some(deps) = (cx.deps.get(&id)).clone() {
+            let mut any_dirty = false;
+            for dep in deps {
+                if let Some(holder) = cx.state_map.get_mut(&dep) {
+                    if holder.dirty {
+                        any_dirty = true;
+                        break;
+                    }
+                }
+            }
+
+            compute_layout = any_dirty;
+        }
+
+        if compute_layout {
+            cx.id_stack.push(id);
+
+            let view = (self.func)(cx.get(State::new(id)));
+
+            let child_size = view.layout(id.child(&0), sz, cx, vger);
+
+            // Compute layout dependencies.
+            let mut deps = vec![];
+            deps.append(&mut cx.id_stack.clone());
+            // view.gc(id.child(&0), cx, &mut deps);
+
+            cx.deps.insert(id, deps);
+
+            cx.layout.insert(
+                id,
+                LayoutBox {
+                    rect: LocalRect::new(LocalPoint::zero(), child_size),
+                    offset: LocalOffset::zero(),
+                },
+            );
+
+            cx.id_stack.pop();
+        }
+
+        cx.layout[&id].rect.size
+    }
+
+    fn hittest(
+        &self,
+        id: ViewId,
+        pt: LocalPoint,
+        cx: &mut Context,
+        vger: &mut Vger,
+    ) -> Option<ViewId> {
+        cx.init_state(id, &self.default);
+        (self.func)(cx.get(State::new(id))).hittest(id.child(&0), pt, cx, vger)
+    }
+}
