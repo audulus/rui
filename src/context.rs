@@ -2,6 +2,7 @@ use crate::*;
 use euclid::*;
 use std::any::Any;
 use std::any::TypeId;
+use std::cell::{RefCell, RefMut};
 use std::collections::{HashMap, HashSet};
 use std::iter::FromIterator;
 use std::ops;
@@ -391,5 +392,50 @@ impl StateStorage {
         let mut holder = self.state_map.get_mut(&id.id).unwrap();
         holder.dirty = true;
         holder.state.downcast_mut::<S>().unwrap()
+    }
+
+    pub fn with_mut<S, F>(&mut self, id: State<S>, f: F)
+    where
+        S: 'static,
+        F: Fn(&mut S),
+    {
+        let holder = self.state_map.get_mut(&id.id).unwrap();
+        f(holder.state.downcast_mut::<S>().unwrap())
+    }
+}
+
+pub(crate) type MutableStateMap = HashMap<ViewId, Box<RefCell<dyn Any + 'static>>>;
+
+pub struct MutableStateStorage {
+    state_map: MutableStateMap,
+}
+
+impl MutableStateStorage {
+    pub fn new() -> Self {
+        Self {
+            state_map: MutableStateMap::new(),
+        }
+    }
+
+    pub fn with<S, F, U>(&self, id: State<S>, f: F) -> U
+    where
+        S: 'static,
+        F: Fn(&S) -> U,
+    {
+        let holder = self.state_map.get(&id.id).unwrap();
+        let mut b = holder.borrow();
+
+        f(b.downcast_ref::<S>().unwrap())
+    }
+
+    pub fn with_mut<S, F, U>(&self, id: State<S>, f: F) -> U
+    where
+        S: 'static,
+        F: Fn(&mut S) -> U,
+    {
+        let holder = self.state_map.get(&id.id).unwrap();
+        let mut b = holder.borrow_mut();
+
+        f(b.downcast_mut::<S>().unwrap())
     }
 }
