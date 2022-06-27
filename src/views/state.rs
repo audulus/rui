@@ -236,11 +236,11 @@ where
     }
 }
 
-impl<S, V, D, F, Data> View2<Data> for StateView2<D, F>
+impl<S, V, DefaultFn, F, Data> View2<Data> for StateView2<DefaultFn, F>
 where
     V: View2<S>,
     S: 'static,
-    D: Fn() -> S + 'static,
+    DefaultFn: Fn() -> S + 'static,
     F: Fn(&S) -> V + 'static,
 {
     fn process(
