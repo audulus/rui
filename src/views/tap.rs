@@ -133,6 +133,7 @@ where
                         state1,
                         state2,
                         state_level,
+                        data,
                     )
                     .is_some()
                 {
@@ -158,9 +159,18 @@ where
         state1: &mut StateStorage,
         state2: &mut StateStorage,
         state_level: usize,
+        data: State<Data>,
     ) {
-        self.child
-            .draw(id.child(&0), cx, vger, state0, state1, state2, state_level)
+        self.child.draw(
+            id.child(&0),
+            cx,
+            vger,
+            state0,
+            state1,
+            state2,
+            state_level,
+            data,
+        )
     }
 
     fn layout(
@@ -173,6 +183,7 @@ where
         state1: &mut StateStorage,
         state2: &mut StateStorage,
         state_level: usize,
+        data: State<Data>,
     ) -> LocalSize {
         self.child.layout(
             id.child(&0),
@@ -183,6 +194,7 @@ where
             state1,
             state2,
             state_level,
+            data,
         )
     }
 }

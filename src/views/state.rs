@@ -198,17 +198,19 @@ pub fn get_cx<V: View, F: Fn(&mut Context) -> V + 'static>(f: F) -> impl View {
     state(|| (), move |_, cx| f(cx))
 }
 
-struct StateView2<D, F> {
-    default: D,
+struct StateView2<DefaultFn, F, OuterData> {
+    default: DefaultFn,
     func: F,
+    phantom: std::marker::PhantomData<OuterData>,
 }
 
-impl<S, V, D, F> StateView2<D, F>
+impl<S, V, DefaultFn, F, Data> StateView2<DefaultFn, F, Data>
 where
     V: View2<S>,
     S: 'static,
-    D: Fn() -> S + 'static,
-    F: Fn(&S) -> V + 'static,
+    Data: 'static,
+    DefaultFn: Fn() -> S + 'static,
+    F: Fn(&S, &Data) -> V + 'static,
 {
     fn get_view(
         &self,
@@ -217,31 +219,33 @@ where
         state1: &mut StateStorage,
         state2: &mut StateStorage,
         state_level: usize,
+        data: State<Data>,
     ) -> impl View2<S> {
         match state_level {
             0 => {
                 state0.init_state(id, &self.default);
-                (self.func)(state0.get(State::new(id)))
+                (self.func)(state0.get(State::new(id)), state0.get(data))
             }
             1 => {
                 state1.init_state(id, &self.default);
-                (self.func)(state1.get(State::new(id)))
+                (self.func)(state1.get(State::new(id)), state0.get(data))
             }
             2 => {
                 state2.init_state(id, &self.default);
-                (self.func)(state2.get(State::new(id)))
+                (self.func)(state2.get(State::new(id)), state1.get(data))
             }
             _ => panic!(),
         }
     }
 }
 
-impl<S, V, DefaultFn, F, Data> View2<Data> for StateView2<DefaultFn, F>
+impl<S, V, DefaultFn, F, Data> View2<Data> for StateView2<DefaultFn, F, Data>
 where
     V: View2<S>,
     S: 'static,
+    Data: 'static,
     DefaultFn: Fn() -> S + 'static,
-    F: Fn(&S) -> V + 'static,
+    F: Fn(&S, &Data) -> V + 'static,
 {
     fn process(
         &self,
@@ -255,7 +259,7 @@ where
         state_level: usize,
         data: State<Data>,
     ) {
-        let v = self.get_view(id, state0, state1, state2, state_level);
+        let v = self.get_view(id, state0, state1, state2, state_level, data);
 
         v.process(
             event,
@@ -279,8 +283,9 @@ where
         state1: &mut StateStorage,
         state2: &mut StateStorage,
         state_level: usize,
+        data: State<Data>,
     ) {
-        let v = self.get_view(id, state0, state1, state2, state_level);
+        let v = self.get_view(id, state0, state1, state2, state_level, data);
 
         v.draw(
             id.child(&0),
@@ -290,6 +295,7 @@ where
             state1,
             state2,
             state_level + 1,
+            State::new(id),
         );
     }
 
@@ -303,6 +309,7 @@ where
         state1: &mut StateStorage,
         state2: &mut StateStorage,
         state_level: usize,
+        data: State<Data>,
     ) -> LocalSize {
         cx.init_state(id, &self.default);
 
@@ -326,7 +333,7 @@ where
         if compute_layout {
             cx.id_stack.push(id);
 
-            let view = (self.func)(cx.get(State::new(id)));
+            let view = self.get_view(id, state0, state1, state2, state_level, data);
 
             let child_size = view.layout(
                 id.child(&0),
@@ -337,6 +344,7 @@ where
                 state1,
                 state2,
                 state_level + 1,
+                State::new(id),
             );
 
             // Compute layout dependencies.
@@ -370,8 +378,9 @@ where
         state1: &mut StateStorage,
         state2: &mut StateStorage,
         state_level: usize,
+        data: State<Data>,
     ) -> Option<ViewId> {
-        let v = self.get_view(id, state0, state1, state2, state_level);
+        let v = self.get_view(id, state0, state1, state2, state_level, data);
         v.hittest(
             id.child(&0),
             pt,
@@ -381,6 +390,7 @@ where
             state1,
             state2,
             state_level + 1,
+            State::new(id),
         )
     }
 }

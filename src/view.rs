@@ -67,6 +67,7 @@ pub trait View2<Data>: 'static {
         state1: &mut StateStorage,
         state2: &mut StateStorage,
         state_level: usize,
+        data: State<Data>,
     );
 
     /// Lays out subviews and return the size of the view.
@@ -80,6 +81,7 @@ pub trait View2<Data>: 'static {
         state1: &mut StateStorage,
         state2: &mut StateStorage,
         state_level: usize,
+        data: State<Data>,
     ) -> LocalSize;
 
     /// Processes an event.
@@ -108,6 +110,7 @@ pub trait View2<Data>: 'static {
         _state1: &mut StateStorage,
         _state2: &mut StateStorage,
         _state_level: usize,
+        _data: State<Data>,
     ) -> Option<ViewId> {
         None
     }
