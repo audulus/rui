@@ -206,7 +206,7 @@ struct StateView2<DefaultFn, F, OuterData> {
 
 impl<S, V, DefaultFn, F, Data> StateView2<DefaultFn, F, Data>
 where
-    V: View2<S>,
+    V: View2<(S, Data)>,
     S: 'static,
     Data: 'static,
     DefaultFn: Fn() -> S + 'static,
@@ -220,7 +220,7 @@ where
         state2: &mut StateStorage,
         state_level: usize,
         data: State<Data>,
-    ) -> impl View2<S> {
+    ) -> impl View2<(S, Data)> {
         match state_level {
             0 => {
                 state0.init_state(id, &self.default);
@@ -241,7 +241,7 @@ where
 
 impl<S, V, DefaultFn, F, Data> View2<Data> for StateView2<DefaultFn, F, Data>
 where
-    V: View2<S>,
+    V: View2<(S, Data)>,
     S: 'static,
     Data: 'static,
     DefaultFn: Fn() -> S + 'static,
