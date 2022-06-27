@@ -212,30 +212,11 @@ where
     DefaultFn: Fn() -> S + 'static,
     F: Fn(&S, &Data) -> V + 'static,
 {
-    fn get_view(
-        &self,
-        id: ViewId,
-        state0: &mut StateStorage,
-        state1: &mut StateStorage,
-        state2: &mut StateStorage,
-        state_level: usize,
-        data: State<Data>,
-    ) -> impl View2<(S, Data)> {
-        match state_level {
-            0 => {
-                state0.init_state(id, &self.default);
-                (self.func)(state0.get(State::new(id)), state0.get(data))
-            }
-            1 => {
-                state1.init_state(id, &self.default);
-                (self.func)(state1.get(State::new(id)), state0.get(data))
-            }
-            2 => {
-                state2.init_state(id, &self.default);
-                (self.func)(state2.get(State::new(id)), state1.get(data))
-            }
-            _ => panic!(),
-        }
+    fn get_view(&self, id: ViewId, cx: &Context, data: State<Data>) -> impl View2<(S, Data)> {
+        let state = &cx.store;
+        state.with(data, |data| {
+            state.with(State::new(id), |local_data| (self.func)(local_data, data))
+        })
     }
 }
 
@@ -253,50 +234,17 @@ where
         id: ViewId,
         cx: &mut Context,
         vger: &mut Vger,
-        state0: &mut StateStorage,
-        state1: &mut StateStorage,
-        state2: &mut StateStorage,
-        state_level: usize,
         data: State<Data>,
     ) {
-        let v = self.get_view(id, state0, state1, state2, state_level, data);
+        let v = self.get_view(id, cx, data);
 
-        v.process(
-            event,
-            id.child(&0),
-            cx,
-            vger,
-            state0,
-            state1,
-            state2,
-            state_level + 1,
-            State::new(id),
-        );
+        v.process(event, id.child(&0), cx, vger, State::new(id));
     }
 
-    fn draw(
-        &self,
-        id: ViewId,
-        cx: &mut Context,
-        vger: &mut Vger,
-        state0: &mut StateStorage,
-        state1: &mut StateStorage,
-        state2: &mut StateStorage,
-        state_level: usize,
-        data: State<Data>,
-    ) {
-        let v = self.get_view(id, state0, state1, state2, state_level, data);
+    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger, data: State<Data>) {
+        let v = self.get_view(id, cx, data);
 
-        v.draw(
-            id.child(&0),
-            cx,
-            vger,
-            state0,
-            state1,
-            state2,
-            state_level + 1,
-            State::new(id),
-        );
+        v.draw(id.child(&0), cx, vger, State::new(id));
     }
 
     fn layout(
@@ -305,10 +253,6 @@ where
         sz: LocalSize,
         cx: &mut Context,
         vger: &mut Vger,
-        state0: &mut StateStorage,
-        state1: &mut StateStorage,
-        state2: &mut StateStorage,
-        state_level: usize,
         data: State<Data>,
     ) -> LocalSize {
         cx.init_state(id, &self.default);
@@ -333,19 +277,9 @@ where
         if compute_layout {
             cx.id_stack.push(id);
 
-            let view = self.get_view(id, state0, state1, state2, state_level, data);
+            let view = self.get_view(id, cx, data);
 
-            let child_size = view.layout(
-                id.child(&0),
-                sz,
-                cx,
-                vger,
-                state0,
-                state1,
-                state2,
-                state_level + 1,
-                State::new(id),
-            );
+            let child_size = view.layout(id.child(&0), sz, cx, vger, State::new(id));
 
             // Compute layout dependencies.
             let mut deps = vec![];
@@ -374,24 +308,10 @@ where
         pt: LocalPoint,
         cx: &mut Context,
         vger: &mut Vger,
-        state0: &mut StateStorage,
-        state1: &mut StateStorage,
-        state2: &mut StateStorage,
-        state_level: usize,
         data: State<Data>,
     ) -> Option<ViewId> {
-        let v = self.get_view(id, state0, state1, state2, state_level, data);
-        v.hittest(
-            id.child(&0),
-            pt,
-            cx,
-            vger,
-            state0,
-            state1,
-            state2,
-            state_level + 1,
-            State::new(id),
-        )
+        let v = self.get_view(id, cx, data);
+        v.hittest(id.child(&0), pt, cx, vger, State::new(id))
     }
 }
 

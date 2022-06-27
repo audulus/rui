@@ -58,17 +58,7 @@ pub trait View: private::Sealed + 'static {
 
 pub trait View2<Data>: 'static {
     /// Draws the view using vger.
-    fn draw(
-        &self,
-        id: ViewId,
-        cx: &mut Context,
-        vger: &mut Vger,
-        state0: &mut StateStorage,
-        state1: &mut StateStorage,
-        state2: &mut StateStorage,
-        state_level: usize,
-        data: State<Data>,
-    );
+    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger, data: State<Data>);
 
     /// Lays out subviews and return the size of the view.
     fn layout(
@@ -77,10 +67,6 @@ pub trait View2<Data>: 'static {
         sz: LocalSize,
         cx: &mut Context,
         vger: &mut Vger,
-        state0: &mut StateStorage,
-        state1: &mut StateStorage,
-        state2: &mut StateStorage,
-        state_level: usize,
         data: State<Data>,
     ) -> LocalSize;
 
@@ -91,10 +77,6 @@ pub trait View2<Data>: 'static {
         _id: ViewId,
         _cx: &mut Context,
         _vger: &mut Vger,
-        _state0: &mut StateStorage,
-        _state1: &mut StateStorage,
-        _state2: &mut StateStorage,
-        _state_level: usize,
         _data: State<Data>,
     ) {
     }
@@ -106,10 +88,6 @@ pub trait View2<Data>: 'static {
         _pt: LocalPoint,
         _cx: &mut Context,
         _vger: &mut Vger,
-        _state0: &mut StateStorage,
-        _state1: &mut StateStorage,
-        _state2: &mut StateStorage,
-        _state_level: usize,
         _data: State<Data>,
     ) -> Option<ViewId> {
         None

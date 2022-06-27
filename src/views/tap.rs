@@ -115,28 +115,11 @@ where
         vid: ViewId,
         cx: &mut Context,
         vger: &mut Vger,
-        state0: &mut StateStorage,
-        state1: &mut StateStorage,
-        state2: &mut StateStorage,
-        state_level: usize,
         data: State<Data>,
     ) {
         match &event {
             Event::TouchBegin { id, position } => {
-                if self
-                    .hittest(
-                        vid,
-                        *position,
-                        cx,
-                        vger,
-                        state0,
-                        state1,
-                        state2,
-                        state_level,
-                        data,
-                    )
-                    .is_some()
-                {
+                if self.hittest(vid, *position, cx, vger, data).is_some() {
                     cx.touches[*id] = vid;
                 }
             }
@@ -150,27 +133,8 @@ where
         }
     }
 
-    fn draw(
-        &self,
-        id: ViewId,
-        cx: &mut Context,
-        vger: &mut Vger,
-        state0: &mut StateStorage,
-        state1: &mut StateStorage,
-        state2: &mut StateStorage,
-        state_level: usize,
-        data: State<Data>,
-    ) {
-        self.child.draw(
-            id.child(&0),
-            cx,
-            vger,
-            state0,
-            state1,
-            state2,
-            state_level,
-            data,
-        )
+    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger, data: State<Data>) {
+        self.child.draw(id.child(&0), cx, vger, data)
     }
 
     fn layout(
@@ -179,22 +143,8 @@ where
         sz: LocalSize,
         cx: &mut Context,
         vger: &mut Vger,
-        state0: &mut StateStorage,
-        state1: &mut StateStorage,
-        state2: &mut StateStorage,
-        state_level: usize,
         data: State<Data>,
     ) -> LocalSize {
-        self.child.layout(
-            id.child(&0),
-            sz,
-            cx,
-            vger,
-            state0,
-            state1,
-            state2,
-            state_level,
-            data,
-        )
+        self.child.layout(id.child(&0), sz, cx, vger, data)
     }
 }

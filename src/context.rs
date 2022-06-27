@@ -97,6 +97,9 @@ pub struct Context {
 
     /// Previous window size.
     window_size: Size2D<f32, WorldSpace>,
+
+    /// New state storage.
+    pub(crate) store: MutableStateStorage,
 }
 
 impl Context {
@@ -120,6 +123,7 @@ impl Context {
             deps: HashMap::new(),
             id_stack: vec![],
             window_size: Size2D::default(),
+            store: MutableStateStorage::new(),
         }
     }
 
