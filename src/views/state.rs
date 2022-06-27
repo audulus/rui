@@ -1,4 +1,5 @@
 use crate::*;
+use std::any::Any;
 
 /// Weak reference to app state.
 pub struct State<S> {
@@ -381,5 +382,20 @@ where
             state2,
             state_level + 1,
         )
+    }
+}
+
+struct StateNode {
+    index: usize,
+    state: Box<dyn Any>,
+    children: Vec<StateNode>,
+}
+
+impl StateNode {
+    pub fn get_mut<S>(&mut self) -> &mut S
+    where
+        S: 'static,
+    {
+        self.state.downcast_mut::<S>().unwrap()
     }
 }
