@@ -429,7 +429,7 @@ impl MutableStateStorage {
         F: Fn(&S) -> U,
     {
         let holder = self.state_map.get(&id.id).unwrap();
-        let mut b = holder.borrow();
+        let b = holder.borrow();
 
         f(b.downcast_ref::<S>().unwrap())
     }
