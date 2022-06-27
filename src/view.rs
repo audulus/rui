@@ -55,3 +55,33 @@ pub trait View: private::Sealed + 'static {
         TypeId::of::<Self>()
     }
 }
+
+pub trait View2<Data>: 'static {
+    /// Draws the view using vger.
+    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger);
+
+    /// Lays out subviews and return the size of the view.
+    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize;
+
+    /// Processes an event.
+    fn process(
+        &self,
+        _event: &Event,
+        _id: ViewId,
+        _cx: &mut Context,
+        _vger: &mut Vger,
+        _data: &mut Data,
+    ) {
+    }
+
+    /// Returns the topmost view which the point intersects.
+    fn hittest(
+        &self,
+        _id: ViewId,
+        _pt: LocalPoint,
+        _cx: &mut Context,
+        _vger: &mut Vger,
+    ) -> Option<ViewId> {
+        None
+    }
+}
