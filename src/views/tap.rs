@@ -115,29 +115,37 @@ where
         vid: ViewId,
         cx: &mut Context,
         vger: &mut Vger,
-        state: State<Data>,
+        state: &[&mut StateStorage],
+        data: State<Data>,
     ) {
         match &event {
             Event::TouchBegin { id, position } => {
-                if self.hittest(vid, *position, cx, vger).is_some() {
+                if self.hittest(vid, *position, cx, vger, state).is_some() {
                     cx.touches[*id] = vid;
                 }
             }
             Event::TouchEnd { id, position: _ } => {
                 if cx.touches[*id] == vid {
                     cx.touches[*id] = ViewId::default();
-                    (self.func)(cx.get_mut(state));
+                    (self.func)(cx.get_mut(data));
                 }
             }
             _ => (),
         }
     }
 
-    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {
-        self.child.draw(id.child(&0), cx, vger)
+    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger, state: &[&mut StateStorage]) {
+        self.child.draw(id.child(&0), cx, vger, state)
     }
 
-    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {
-        self.child.layout(id.child(&0), sz, cx, vger)
+    fn layout(
+        &self,
+        id: ViewId,
+        sz: LocalSize,
+        cx: &mut Context,
+        vger: &mut Vger,
+        state: &[&mut StateStorage],
+    ) -> LocalSize {
+        self.child.layout(id.child(&0), sz, cx, vger, state)
     }
 }

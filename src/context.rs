@@ -130,7 +130,6 @@ impl Context {
         access_nodes: &mut Vec<accesskit::Node>,
         window_size: Size2D<f32, WorldSpace>,
     ) -> bool {
-
         // If the window size has changed, force a relayout.
         if window_size != self.window_size {
             self.deps.clear();
@@ -354,5 +353,43 @@ where
 {
     fn index_mut(&mut self, index: State<S>) -> &mut Self::Output {
         self.get_mut(index)
+    }
+}
+
+pub struct StateStorage {
+    /// User state created by `state`.
+    pub(crate) state_map: StateMap,
+}
+
+impl StateStorage {
+    pub fn new() -> Self {
+        Self {
+            state_map: StateMap::new(),
+        }
+    }
+
+    pub(crate) fn init_state<S: 'static, D: Fn() -> S + 'static>(&mut self, id: ViewId, func: &D) {
+        self.state_map.entry(id).or_insert_with(|| StateHolder {
+            state: Box::new((func)()),
+            dirty: false,
+        });
+    }
+
+    pub fn get<S>(&self, id: State<S>) -> &S
+    where
+        S: 'static,
+    {
+        self.state_map[&id.id].state.downcast_ref::<S>().unwrap()
+    }
+
+    pub fn get_mut<S>(&mut self, id: State<S>) -> &mut S
+    where
+        S: 'static,
+    {
+        // self.set_dirty();
+
+        let mut holder = self.state_map.get_mut(&id.id).unwrap();
+        holder.dirty = true;
+        holder.state.downcast_mut::<S>().unwrap()
     }
 }

@@ -215,19 +215,27 @@ where
         id: ViewId,
         cx: &mut Context,
         vger: &mut Vger,
-        _state: State<Data>,
+        state: &[&mut StateStorage],
+        data: State<Data>,
     ) {
         cx.init_state(id, &self.default);
         let v = (self.func)(cx.get(State::new(id)));
-        v.process(event, id.child(&0), cx, vger, State::new(id));
+        v.process(event, id.child(&0), cx, vger, state, State::new(id));
     }
 
-    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {
+    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger, state: &[&mut StateStorage]) {
         cx.init_state(id, &self.default);
-        (self.func)(cx.get(State::new(id))).draw(id.child(&0), cx, vger);
+        (self.func)(cx.get(State::new(id))).draw(id.child(&0), cx, vger, state);
     }
 
-    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {
+    fn layout(
+        &self,
+        id: ViewId,
+        sz: LocalSize,
+        cx: &mut Context,
+        vger: &mut Vger,
+        state: &[&mut StateStorage],
+    ) -> LocalSize {
         cx.init_state(id, &self.default);
 
         // Do we need to recompute layout?
@@ -252,7 +260,7 @@ where
 
             let view = (self.func)(cx.get(State::new(id)));
 
-            let child_size = view.layout(id.child(&0), sz, cx, vger);
+            let child_size = view.layout(id.child(&0), sz, cx, vger, state);
 
             // Compute layout dependencies.
             let mut deps = vec![];
@@ -281,8 +289,9 @@ where
         pt: LocalPoint,
         cx: &mut Context,
         vger: &mut Vger,
+        state: &[&mut StateStorage],
     ) -> Option<ViewId> {
         cx.init_state(id, &self.default);
-        (self.func)(cx.get(State::new(id))).hittest(id.child(&0), pt, cx, vger)
+        (self.func)(cx.get(State::new(id))).hittest(id.child(&0), pt, cx, vger, state)
     }
 }

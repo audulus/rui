@@ -58,10 +58,17 @@ pub trait View: private::Sealed + 'static {
 
 pub trait View2<Data>: 'static {
     /// Draws the view using vger.
-    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger);
+    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger, state: &[&mut StateStorage]);
 
     /// Lays out subviews and return the size of the view.
-    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize;
+    fn layout(
+        &self,
+        id: ViewId,
+        sz: LocalSize,
+        cx: &mut Context,
+        vger: &mut Vger,
+        state: &[&mut StateStorage],
+    ) -> LocalSize;
 
     /// Processes an event.
     fn process(
@@ -70,6 +77,7 @@ pub trait View2<Data>: 'static {
         _id: ViewId,
         _cx: &mut Context,
         _vger: &mut Vger,
+        _state: &[&mut StateStorage],
         _data: State<Data>,
     ) {
     }
@@ -81,6 +89,7 @@ pub trait View2<Data>: 'static {
         _pt: LocalPoint,
         _cx: &mut Context,
         _vger: &mut Vger,
+        _state: &[&mut StateStorage],
     ) -> Option<ViewId> {
         None
     }
