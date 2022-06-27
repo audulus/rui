@@ -81,3 +81,63 @@ where
 }
 
 impl<V, F> private::Sealed for Tap<V, F> {}
+
+pub struct Tap2<V, F, Data> {
+    child: V,
+    func: F,
+    data: std::marker::PhantomData<Data>,
+}
+
+impl<V, F, Data> Tap2<V, F, Data>
+where
+    V: View2<Data>,
+    Data: Sized,
+    F: Fn(&mut Data) + 'static,
+{
+    pub fn new(v: V, f: F) -> Self {
+        Self {
+            child: v,
+            func: f,
+            data: Default::default(),
+        }
+    }
+}
+
+impl<V, F, Data> View2<Data> for Tap2<V, F, Data>
+where
+    V: View2<Data>,
+    Data: 'static,
+    F: Fn(&mut Data) + 'static,
+{
+    fn process(
+        &self,
+        event: &Event,
+        vid: ViewId,
+        cx: &mut Context,
+        vger: &mut Vger,
+        data: &mut Data,
+    ) {
+        match &event {
+            Event::TouchBegin { id, position } => {
+                if self.hittest(vid, *position, cx, vger).is_some() {
+                    cx.touches[*id] = vid;
+                }
+            }
+            Event::TouchEnd { id, position: _ } => {
+                if cx.touches[*id] == vid {
+                    cx.touches[*id] = ViewId::default();
+                    (self.func)(data);
+                }
+            }
+            _ => (),
+        }
+    }
+
+    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {
+        self.child.draw(id.child(&0), cx, vger)
+    }
+
+    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {
+        self.child.layout(id.child(&0), sz, cx, vger)
+    }
+}
