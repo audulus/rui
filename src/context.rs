@@ -417,6 +417,12 @@ impl MutableStateStorage {
         }
     }
 
+    pub fn init_state<S: 'static, D: Fn() -> S + 'static>(&mut self, id: ViewId, func: &D) {
+        self.state_map
+            .entry(id)
+            .or_insert_with(|| Box::new(RefCell::new((func)())));
+    }
+
     pub fn with<S, F, U>(&self, id: State<S>, f: F) -> U
     where
         S: 'static,
