@@ -23,12 +23,6 @@ impl View for AnyView {
         self.child.tid()
     }
 
-    fn print(&self, id: ViewId, cx: &mut Context) {
-        println!("AnyView {{");
-        (self.child).print(id.child(&self.id()), cx);
-        println!("}}");
-    }
-
     fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger) {
         self.child.process(event, id.child(&self.id()), cx, vger);
     }

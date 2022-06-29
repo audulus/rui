@@ -11,13 +11,6 @@ where
     V: View,
     BG: View,
 {
-    fn print(&self, id: ViewId, cx: &mut Context) {
-        println!("Background {{");
-        (self.child).print(id.child(&0), cx);
-        (self.background).print(id.child(&1), cx);
-        println!("}}");
-    }
-
     fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger) {
         self.child.process(event, id.child(&0), cx, vger);
     }

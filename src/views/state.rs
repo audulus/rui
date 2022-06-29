@@ -49,11 +49,6 @@ where
     D: Fn() -> S + 'static,
     F: Fn(State<S>, &mut Context) -> V + 'static,
 {
-    fn print(&self, id: ViewId, cx: &mut Context) {
-        cx.init_state(id, &self.default);
-        (self.func)(State::new(id), cx).print(id.child(&0), cx);
-    }
-
     fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger) {
         cx.init_state(id, &self.default);
         (self.func)(State::new(id), cx).process(event, id.child(&0), cx, vger);

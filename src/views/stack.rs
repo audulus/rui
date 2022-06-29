@@ -54,15 +54,6 @@ struct Stack<VT> {
 }
 
 impl<VT: ViewTuple + 'static> View for Stack<VT> {
-    fn print(&self, id: ViewId, cx: &mut Context) {
-        println!("Stack {{");
-        let mut c = 0;
-        self.children.foreach_view(&mut |child| {
-            (*child).print(id.child(&c), cx);
-            c += 1;
-        });
-        println!("}}");
-    }
 
     fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger) {
         self.children.process(event, id, cx, vger);

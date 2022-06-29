@@ -21,12 +21,6 @@ where
     V: View,
     F: Fn(&mut Context, Key) + 'static,
 {
-    fn print(&self, id: ViewId, cx: &mut Context) {
-        println!("Key {{");
-        (self.child).print(id.child(&0), cx);
-        println!("}}");
-    }
-
     fn process(&self, event: &Event, _vid: ViewId, cx: &mut Context, _vger: &mut Vger) {
         if let Event::Key(key) = &event {
             (self.func)(cx, key.clone())

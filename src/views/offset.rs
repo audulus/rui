@@ -10,12 +10,6 @@ impl<V> View for Offset<V>
 where
     V: View,
 {
-    fn print(&self, id: ViewId, cx: &mut Context) {
-        println!("Offset {{");
-        (self.child).print(id.child(&0), cx);
-        println!("}}");
-    }
-
     fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger) {
         self.child
             .process(&event.offset(-self.offset), id.child(&0), cx, vger);
