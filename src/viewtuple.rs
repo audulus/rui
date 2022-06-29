@@ -7,6 +7,8 @@ pub trait ViewTuple {
     fn is_empty(&self) -> bool {
         false
     } // satisfy clippy
+
+    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger);
 }
 
 macro_rules! impl_view_tuple {
@@ -18,6 +20,32 @@ macro_rules! impl_view_tuple {
             }
             fn len(&self) -> usize {
                 $n
+            }
+
+            fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {
+                $({
+                    let child_id = id.child(&$s);
+                    let layout_box = cx.layout[&child_id];
+        
+                    vger.save();
+        
+                    vger.translate(layout_box.offset);
+        
+                    self.$s.draw(child_id, cx, vger);
+        
+                    if DEBUG_LAYOUT {
+                        let paint = vger.color_paint(CONTROL_BACKGROUND);
+                        vger.stroke_rect(
+                            layout_box.rect.min(),
+                            layout_box.rect.max(),
+                            0.0,
+                            1.0,
+                            paint,
+                        );
+                    }
+        
+                    vger.restore();
+                })*
             }
         }
     }
