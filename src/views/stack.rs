@@ -65,13 +65,7 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
     }
 
     fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger) {
-        let mut c = 0;
-        self.children.foreach_view(&mut |child| {
-            let child_id = id.child(&c);
-            let offset = cx.layout.entry(child_id).or_default().offset;
-            (*child).process(&event.offset(-offset), child_id, cx, vger);
-            c += 1;
-        })
+        self.children.process(event, id, cx, vger);
     }
 
     fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {

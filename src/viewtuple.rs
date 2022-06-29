@@ -8,6 +8,7 @@ pub trait ViewTuple {
         false
     } // satisfy clippy
 
+    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger);
     fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger);
 }
 
@@ -20,6 +21,14 @@ macro_rules! impl_view_tuple {
             }
             fn len(&self) -> usize {
                 $n
+            }
+
+            fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger) {
+                $({
+                    let child_id = id.child(&$s);
+                    let offset = cx.layout.entry(child_id).or_default().offset;
+                    self.$s.process(&event.offset(-offset), child_id, cx, vger);
+                })*
             }
 
             fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {
