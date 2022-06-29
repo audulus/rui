@@ -75,31 +75,7 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
     }
 
     fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {
-        let mut c = 0;
-        self.children.foreach_view(&mut |child| {
-            let child_id = id.child(&c);
-            let layout_box = cx.layout[&child_id];
-
-            vger.save();
-
-            vger.translate(layout_box.offset);
-
-            (*child).draw(child_id, cx, vger);
-            c += 1;
-
-            if DEBUG_LAYOUT {
-                let paint = vger.color_paint(CONTROL_BACKGROUND);
-                vger.stroke_rect(
-                    layout_box.rect.min(),
-                    layout_box.rect.max(),
-                    0.0,
-                    1.0,
-                    paint,
-                );
-            }
-
-            vger.restore();
-        })
+        self.children.draw(id, cx, vger);
     }
 
     fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {
