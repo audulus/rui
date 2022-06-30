@@ -91,6 +91,10 @@ pub trait Modifiers: View + Sized {
     fn window_title(self, title: &str) -> TitleView<Self> {
         TitleView::new(self, title)
     }
+
+    fn handle<A: 'static, F: Fn(&A) + 'static>(self, handler: F) -> Handle<Self, F, A> {
+        Handle::new(self, handler)
+    }
 }
 
 impl<V: View> Modifiers for V {}
