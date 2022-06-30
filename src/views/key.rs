@@ -1,4 +1,5 @@
 use crate::*;
+use std::any::Any;
 
 /// Struct for the `key` modifier.
 pub struct KeyView<V, F> {
@@ -21,7 +22,7 @@ where
     V: View,
     F: Fn(&mut Context, Key) + 'static,
 {
-    fn process(&self, event: &Event, _vid: ViewId, cx: &mut Context, _vger: &mut Vger) {
+    fn process(&self, event: &Event, _vid: ViewId, cx: &mut Context, _vger: &mut Vger, _actions: &mut Vec<Box<dyn Any>>) {
         if let Event::Key(key) = &event {
             (self.func)(cx, key.clone())
         }

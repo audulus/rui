@@ -1,4 +1,5 @@
 use crate::*;
+use std::any::Any;
 
 pub struct AnimView<V, F> {
     child: V,
@@ -20,12 +21,12 @@ where
     V: View,
     F: Fn(&mut Context, f32) + 'static,
 {
-    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger) {
+    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger, actions: &mut Vec<Box<dyn Any>>) {
         if let Event::Anim = event {
             (self.func)(cx, 1.0 / 60.0) // XXX: assume 60fps for now.
         }
 
-        self.child.process(event, id.child(&0), cx, vger);
+        self.child.process(event, id.child(&0), cx, vger, actions);
     }
 
     fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {

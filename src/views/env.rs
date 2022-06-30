@@ -1,4 +1,5 @@
 use crate::*;
+use std::any::Any;
 
 struct EnvView<S, V, F> {
     func: F,
@@ -12,8 +13,8 @@ where
     S: Clone + Default + 'static,
     F: Fn(S, &mut Context) -> V + 'static,
 {
-    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger) {
-        (self.func)(cx.init_env(&S::default), cx).process(event, id.child(&0), cx, vger);
+    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger, actions: &mut Vec<Box<dyn Any>>) {
+        (self.func)(cx.init_env(&S::default), cx).process(event, id.child(&0), cx, vger, actions);
     }
 
     fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {
@@ -102,9 +103,9 @@ where
     V: View,
     E: Clone + 'static,
 {
-    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger) {
+    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger, actions: &mut Vec<Box<dyn Any>>) {
         let old = cx.set_env(&self.env_val);
-        self.child.process(event, id.child(&0), cx, vger);
+        self.child.process(event, id.child(&0), cx, vger, actions);
         old.and_then(|s| cx.set_env(&s));
     }
 

@@ -1,4 +1,5 @@
 use crate::*;
+use std::any::Any;
 
 /// Struct for `cond`
 pub struct Cond<V0, V1> {
@@ -12,11 +13,11 @@ where
     V0: View,
     V1: View,
 {
-    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger) {
+    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger, actions: &mut Vec<Box<dyn Any>>) {
         if self.cond {
-            self.if_true.process(event, id.child(&0), cx, vger)
+            self.if_true.process(event, id.child(&0), cx, vger, actions)
         } else {
-            self.if_false.process(event, id.child(&1), cx, vger)
+            self.if_false.process(event, id.child(&1), cx, vger, actions)
         }
     }
 

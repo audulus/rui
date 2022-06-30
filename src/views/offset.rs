@@ -1,4 +1,5 @@
 use crate::*;
+use std::any::Any;
 
 /// Struct for the `offset` modifier.
 pub struct Offset<V> {
@@ -10,9 +11,9 @@ impl<V> View for Offset<V>
 where
     V: View,
 {
-    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger) {
+    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger, actions: &mut Vec<Box<dyn Any>>) {
         self.child
-            .process(&event.offset(-self.offset), id.child(&0), cx, vger);
+            .process(&event.offset(-self.offset), id.child(&0), cx, vger, actions);
     }
 
     fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {

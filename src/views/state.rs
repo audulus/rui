@@ -1,4 +1,5 @@
 use crate::*;
+use std::any::Any;
 
 /// Weak reference to app state.
 pub struct State<S> {
@@ -49,9 +50,9 @@ where
     D: Fn() -> S + 'static,
     F: Fn(State<S>, &mut Context) -> V + 'static,
 {
-    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger) {
+    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger, actions: &mut Vec<Box<dyn Any>>) {
         cx.init_state(id, &self.default);
-        (self.func)(State::new(id), cx).process(event, id.child(&0), cx, vger);
+        (self.func)(State::new(id), cx).process(event, id.child(&0), cx, vger, actions);
     }
 
     fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {

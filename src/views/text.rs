@@ -80,7 +80,6 @@ impl<V> View for V
 where
     V: std::fmt::Display + std::fmt::Debug + 'static,
 {
-    fn process(&self, _event: &Event, _id: ViewId, _cx: &mut Context, _vger: &mut Vger) {}
     fn draw(&self, _id: ViewId, _cx: &mut Context, vger: &mut Vger) {
         let txt = &format!("{}", self);
         let origin = vger.text_bounds(txt, Text::DEFAULT_SIZE, None).origin;

@@ -1,43 +1,51 @@
 use crate::*;
 use std::any::Any;
 
-/// Struct for the `tap` gesture.
-pub struct Tap<V, F> {
+/// Struct for an action handler.
+pub struct Handle<V, F, A> {
     child: V,
     func: F,
+    phantom_action: std::marker::PhantomData<A>,
 }
 
-impl<V, F, A> Tap<V, F>
+impl<V, F, A> Handle<V, F, A>
 where
     V: View,
-    F: Fn(&mut Context) -> A + 'static,
+    F: Fn(&A) + 'static,
 {
     pub fn new(v: V, f: F) -> Self {
-        Self { child: v, func: f }
+        Self {
+            child: v,
+            func: f,
+            phantom_action: Default::default(),
+        }
     }
 }
 
-impl<V, F, A> View for Tap<V, F>
+impl<V, F, A> View for Handle<V, F, A>
 where
     V: View,
-    F: Fn(&mut Context) -> A + 'static,
+    F: Fn(&A) + 'static,
     A: 'static,
 {
+    fn process(
+        &self,
+        event: &Event,
+        vid: ViewId,
+        cx: &mut Context,
+        vger: &mut Vger,
+        actions: &mut Vec<Box<dyn Any>>,
+    ) {
+        let mut child_actions = vec![];
+        self.child
+            .process(event, vid.child(&0), cx, vger, &mut child_actions);
 
-    fn process(&self, event: &Event, vid: ViewId, cx: &mut Context, vger: &mut Vger, actions: &mut Vec<Box<dyn Any>>) {
-        match &event {
-            Event::TouchBegin { id, position } => {
-                if self.hittest(vid, *position, cx, vger).is_some() {
-                    cx.touches[*id] = vid;
-                }
+        for action in child_actions {
+            if let Some(a) = action.downcast_ref::<A>() {
+                (self.func)(a);
+            } else {
+                actions.push(action);
             }
-            Event::TouchEnd { id, position: _ } => {
-                if cx.touches[*id] == vid {
-                    cx.touches[*id] = ViewId::default();
-                    actions.push(Box::new((self.func)(cx)))
-                }
-            }
-            _ => (),
         }
     }
 
@@ -77,4 +85,4 @@ where
     }
 }
 
-impl<V, F> private::Sealed for Tap<V, F> {}
+impl<V, F, A> private::Sealed for Handle<V, F, A> {}

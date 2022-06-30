@@ -24,6 +24,8 @@ mod focus;
 pub use focus::*;
 mod geom;
 pub use geom::*;
+mod handle;
+pub use handle::*;
 mod key;
 pub use key::*;
 mod knob;

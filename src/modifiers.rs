@@ -83,13 +83,18 @@ pub trait Modifiers: View + Sized {
     }
 
     /// Calls a function in response to a tap.
-    fn tap<F: Fn(&mut Context) + 'static>(self, f: F) -> Tap<Self, F> {
+    fn tap<A: 'static, F: Fn(&mut Context) -> A + 'static>(self, f: F) -> Tap<Self, F> {
         Tap::new(self, f)
     }
 
     /// Specify the title of the window.
     fn window_title(self, title: &str) -> TitleView<Self> {
         TitleView::new(self, title)
+    }
+
+    /// Handle an action from a child view.
+    fn handle<A: 'static, F: Fn(&A) + 'static>(self, handler: F) -> Handle<Self, F, A> {
+        Handle::new(self, handler)
     }
 }
 
