@@ -9,8 +9,8 @@ fn main() {
                 println!("rect tapped");
                 MyAction {}
             })
-            .padding(Auto)
-            .handle(|_: &MyAction| println!("action received")),
+            .padding(Auto),
         text("tap the rectangle to send an action"),
-    )));
+    ))
+    .handle(|_: &MyAction| println!("action received")));
 }
