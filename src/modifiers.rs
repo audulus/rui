@@ -92,6 +92,7 @@ pub trait Modifiers: View + Sized {
         TitleView::new(self, title)
     }
 
+    /// Handle an action from a child view.
     fn handle<A: 'static, F: Fn(&A) + 'static>(self, handler: F) -> Handle<Self, F, A> {
         Handle::new(self, handler)
     }
