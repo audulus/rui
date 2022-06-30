@@ -83,7 +83,7 @@ pub trait Modifiers: View + Sized {
     }
 
     /// Calls a function in response to a tap.
-    fn tap<F: Fn(&mut Context) + 'static>(self, f: F) -> Tap<Self, F> {
+    fn tap<A: 'static, F: Fn(&mut Context) -> A + 'static>(self, f: F) -> Tap<Self, F> {
         Tap::new(self, f)
     }
 
