@@ -130,7 +130,6 @@ impl Context {
         access_nodes: &mut Vec<accesskit::Node>,
         window_size: Size2D<f32, WorldSpace>,
     ) -> bool {
-
         // If the window size has changed, force a relayout.
         if window_size != self.window_size {
             self.deps.clear();
@@ -260,8 +259,11 @@ impl Context {
     pub fn process(&mut self, view: &impl View, event: &Event, vger: &mut Vger) {
         let mut actions = vec![];
         view.process(event, self.root_id, self, vger, &mut actions);
-        if !actions.is_empty() {
-            println!("warning: {} unhandled actions", actions.len());
+
+        for action in actions {
+            if !action.is::<()>() {
+                println!("unhandled action: {:?}", action.type_id());
+            }
         }
     }
 
