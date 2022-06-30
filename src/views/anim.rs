@@ -20,10 +20,6 @@ where
     V: View,
     F: Fn(&mut Context, f32) + 'static,
 {
-    fn print(&self, id: ViewId, cx: &mut Context) {
-        self.child.print(id.child(&0), cx);
-    }
-
     fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger) {
         if let Event::Anim = event {
             (self.func)(cx, 1.0 / 60.0) // XXX: assume 60fps for now.

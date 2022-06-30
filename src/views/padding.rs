@@ -10,12 +10,6 @@ impl<V> View for Padding<V>
 where
     V: View,
 {
-    fn print(&self, id: ViewId, cx: &mut Context) {
-        println!("Padding {{");
-        (self.child).print(id.child(&0), cx);
-        println!("}}");
-    }
-
     fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger) {
         let off = LocalOffset::new(self.padding, self.padding);
         self.child

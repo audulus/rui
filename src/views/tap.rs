@@ -21,11 +21,6 @@ where
     V: View,
     F: Fn(&mut Context) + 'static,
 {
-    fn print(&self, id: ViewId, cx: &mut Context) {
-        println!("Tap {{");
-        (self.child).print(id.child(&0), cx);
-        println!("}}");
-    }
 
     fn process(&self, event: &Event, vid: ViewId, cx: &mut Context, vger: &mut Vger) {
         match &event {

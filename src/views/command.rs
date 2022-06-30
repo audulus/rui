@@ -27,12 +27,6 @@ where
     V: View,
     F: Fn(&mut Context) + 'static,
 {
-    fn print(&self, id: ViewId, cx: &mut Context) {
-        println!("Command {{");
-        (self.child).print(id.child(&0), cx);
-        println!("}}");
-    }
-
     fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger) {
         if let Event::Command(name) = &event {
             if *name == self.name {
@@ -253,12 +247,6 @@ where
     V: View,
     C: CommandTuple + 'static,
 {
-    fn print(&self, id: ViewId, cx: &mut Context) {
-        println!("Command {{");
-        (self.child).print(id.child(&0), cx);
-        println!("}}");
-    }
-
     fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger) {
         if let Event::Command(name) = &event {
             self.cmds.foreach_cmd(&mut |cmd| {

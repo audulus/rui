@@ -12,14 +12,6 @@ where
     V: View,
     F: Fn(&ID) -> V + 'static,
 {
-    fn print(&self, id: ViewId, cx: &mut Context) {
-        println!("List {{");
-        for child in &self.ids {
-            ((self.func)(child)).print(id.child(child), cx);
-        }
-        println!("}}");
-    }
-
     fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger) {
         for child in &self.ids {
             let child_id = id.child(child);

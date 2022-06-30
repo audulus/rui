@@ -12,14 +12,6 @@ where
     V0: View,
     V1: View,
 {
-    fn print(&self, id: ViewId, cx: &mut Context) {
-        if self.cond {
-            self.if_true.print(id.child(&0), cx)
-        } else {
-            self.if_false.print(id.child(&1), cx)
-        }
-    }
-
     fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger) {
         if self.cond {
             self.if_true.process(event, id.child(&0), cx, vger)

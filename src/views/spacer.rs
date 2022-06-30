@@ -3,9 +3,6 @@ use crate::*;
 pub struct Spacer {}
 
 impl View for Spacer {
-    fn print(&self, _id: ViewId, _cx: &mut Context) {
-        println!("Spacer");
-    }
     fn draw(&self, _id: ViewId, _cx: &mut Context, _vger: &mut Vger) {}
     fn layout(
         &self,

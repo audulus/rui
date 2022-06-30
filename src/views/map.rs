@@ -13,11 +13,6 @@ where
     SF: Fn(S1, &mut Context) + 'static,
     F: Fn(State<S1>, &mut Context) -> V + 'static,
 {
-    fn print(&self, id: ViewId, cx: &mut Context) {
-        cx.set_state(id, self.value.clone());
-        (self.func)(State::new(id), cx).print(id.child(&0), cx);
-    }
-
     fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger) {
         cx.set_state(id, self.value.clone());
         let s = State::new(id);

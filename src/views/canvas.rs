@@ -9,10 +9,6 @@ impl<F> View for Canvas<F>
 where
     F: Fn(&mut Context, LocalRect, &mut Vger) + 'static,
 {
-    fn print(&self, _id: ViewId, _cx: &mut Context) {
-        println!("canvas");
-    }
-
     fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {
         let rect = cx.layout.entry(id).or_default().rect;
 
