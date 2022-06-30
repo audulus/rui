@@ -10,7 +10,7 @@ use std::{
 use tao::{
     accelerator::Accelerator,
     dpi::PhysicalSize,
-    event::{ElementState, Event as WEvent, MouseButton as WMouseButton, WindowEvent},
+    event::{ElementState, Event as WEvent, MouseButton as WMouseButton, Touch, TouchPhase, WindowEvent},
     event_loop::{ControlFlow, EventLoop, EventLoopProxy},
     keyboard::{Key as KeyPress, KeyCode, ModifiersState},
     menu::{MenuBar as Menu, MenuItem, MenuItemAttributes},
@@ -20,7 +20,7 @@ use tao::{
 #[cfg(feature = "winit")]
 use winit::{
     dpi::PhysicalSize,
-    event::{ElementState, Event as WEvent, MouseButton as WMouseButton, WindowEvent, VirtualKeyCode},
+    event::{ElementState, Event as WEvent, MouseButton as WMouseButton, Touch, TouchPhase, WindowEvent, VirtualKeyCode},
     event_loop::{ControlFlow, EventLoop, EventLoopProxy},
     window::{Window, WindowBuilder},
 };
@@ -258,7 +258,7 @@ pub fn rui(view: impl View) {
 
     #[cfg(not(target_arch = "wasm32"))] {
         *GLOBAL_EVENT_LOOP_PROXY.lock().unwrap() = Some(event_loop.create_proxy());
-    }    
+    }
 
     let mut vger = Vger::new(&device, wgpu::TextureFormat::Bgra8UnormSrgb);
     let mut cx = Context::new();
@@ -275,7 +275,7 @@ pub fn rui(view: impl View) {
     #[cfg(feature = "winit")]
     {
         // So we can infer a type for CommandMap when winit is enabled.
-        command_map.insert("", ""); 
+        command_map.insert("", "");
     }
 
     let mut access_nodes = vec![];
@@ -417,6 +417,35 @@ pub fn rui(view: impl View) {
                 };
             }
             WEvent::WindowEvent {
+                window_id,
+                event: WindowEvent::Touch(Touch { phase, location, .. }),
+                ..
+            } => {
+                // Do not handle events from other windows.
+                if window_id != window.id() {
+                    return;
+                }
+
+                let scale = window.scale_factor() as f32;
+                let position = [
+                    location.x as f32 / scale,
+                    (config.height as f32 - location.y as f32) / scale,
+                ]
+                .into();
+
+                // TODO: Multi-Touch management
+                let event = match phase {
+                    TouchPhase::Started => Some(Event::TouchBegin { id: 0, position }),
+                    TouchPhase::Moved => Some(Event::TouchMove { id: 0, position }),
+                    TouchPhase::Ended | TouchPhase::Cancelled => Some(Event::TouchEnd { id: 0, position }),
+                    _ => None
+                };
+
+                if let Some(event) = event {
+                    cx.process(&view, &event, &mut vger);
+                }
+            }
+            WEvent::WindowEvent {
                 event: WindowEvent::CursorMoved { position, .. },
                 ..
             } => {
@@ -551,7 +580,7 @@ pub fn rui(view: impl View) {
                             VirtualKeyCode::F12 => Some(Key::F12),
                             _ => None,
                         };
-    
+
                         if let Some(key) = key {
                             cx.process(&view, &Event::Key(key), &mut vger)
                         }
