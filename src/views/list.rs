@@ -1,5 +1,6 @@
 use crate::*;
 use std::hash::Hash;
+use std::any::Any;
 
 pub struct List<ID, F> {
     ids: Vec<ID>,
@@ -12,11 +13,11 @@ where
     V: View,
     F: Fn(&ID) -> V + 'static,
 {
-    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger) {
+    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger, actions: &mut Vec<Box<dyn Any>>) {
         for child in &self.ids {
             let child_id = id.child(child);
             let offset = cx.layout.entry(child_id).or_default().offset;
-            ((self.func)(child)).process(&event.offset(-offset), child_id, cx, vger);
+            ((self.func)(child)).process(&event.offset(-offset), child_id, cx, vger, actions);
         }
     }
 

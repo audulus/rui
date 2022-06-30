@@ -1,4 +1,5 @@
 use crate::*;
+use std::any::Any;
 
 /// Struct for the `tap` gesture.
 pub struct Tap<V, F> {
@@ -22,7 +23,7 @@ where
     F: Fn(&mut Context) + 'static,
 {
 
-    fn process(&self, event: &Event, vid: ViewId, cx: &mut Context, vger: &mut Vger) {
+    fn process(&self, event: &Event, vid: ViewId, cx: &mut Context, vger: &mut Vger, _actions: &mut Vec<Box<dyn Any>>) {
         match &event {
             Event::TouchBegin { id, position } => {
                 if self.hittest(vid, *position, cx, vger).is_some() {

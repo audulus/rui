@@ -1,4 +1,5 @@
 use crate::*;
+use std::any::Any;
 
 /// Struct for the `padding` modifier.
 pub struct Padding<V> {
@@ -10,10 +11,10 @@ impl<V> View for Padding<V>
 where
     V: View,
 {
-    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger) {
+    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger, actions: &mut Vec<Box<dyn Any>>) {
         let off = LocalOffset::new(self.padding, self.padding);
         self.child
-            .process(&event.offset(-off), id.child(&0), cx, vger);
+            .process(&event.offset(-off), id.child(&0), cx, vger, actions);
     }
 
     fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {

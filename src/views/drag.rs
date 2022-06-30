@@ -1,4 +1,5 @@
 use crate::*;
+use std::any::Any;
 
 #[derive(Clone, Copy, Eq, PartialEq)]
 pub enum GestureState {
@@ -28,7 +29,7 @@ where
     V: View,
     F: Fn(&mut Context, LocalOffset, GestureState, Option<MouseButton>) + 'static,
 {
-    fn process(&self, event: &Event, vid: ViewId, cx: &mut Context, vger: &mut Vger) {
+    fn process(&self, event: &Event, vid: ViewId, cx: &mut Context, vger: &mut Vger, _actions: &mut Vec<Box<dyn Any>>) {
         match &event {
             Event::TouchBegin { id, position } => {
                 if self.hittest(vid, *position, cx, vger).is_some() {
