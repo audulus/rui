@@ -14,10 +14,10 @@ impl ViewId {
     /// which don't have dynamic children (e.g. `vstack` etc.) the value
     /// will be the integer index of the child. Dynamic
     /// views (e.g. `list`) will hash an item identifier.
-    pub fn child<T: Hash>(&self, value: &T) -> Self {
+    pub fn child<Index: Hash>(&self, index: &Index) -> Self {
         let mut hasher = DefaultHasher::new();
         hasher.write_u64(self.id);
-        value.hash(&mut hasher);
+        index.hash(&mut hasher);
         Self {
             id: hasher.finish(),
         }
