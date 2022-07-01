@@ -1,4 +1,5 @@
 use crate::*;
+use std::any::Any;
 
 pub struct MapView<S1, SF, F> {
     value: S1,
@@ -13,15 +14,10 @@ where
     SF: Fn(S1, &mut Context) + 'static,
     F: Fn(State<S1>, &mut Context) -> V + 'static,
 {
-    fn print(&self, id: ViewId, cx: &mut Context) {
-        cx.set_state(id, self.value.clone());
-        (self.func)(State::new(id), cx).print(id.child(&0), cx);
-    }
-
-    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger) {
+    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger, actions: &mut Vec<Box<dyn Any>>) {
         cx.set_state(id, self.value.clone());
         let s = State::new(id);
-        (self.func)(s, cx).process(event, id.child(&0), cx, vger);
+        (self.func)(s, cx).process(event, id.child(&0), cx, vger, actions);
 
         // If processing the event changed the state, then call the set_value function.
         if cx.is_dirty(id) {

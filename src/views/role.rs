@@ -1,5 +1,6 @@
 use crate::*;
 use accesskit::Role;
+use std::any::Any;
 
 /// Struct for the `role` modifier.
 pub struct RoleView<V> {
@@ -20,13 +21,8 @@ impl<V> View for RoleView<V>
 where
     V: View,
 {
-    fn print(&self, id: ViewId, cx: &mut Context) {
-        (self.child).print(id.child(&0), cx);
-        println!(".role()");
-    }
-
-    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger) {
-        self.child.process(event, id.child(&0), cx, vger);
+    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger, actions: &mut Vec<Box<dyn Any>>) {
+        self.child.process(event, id.child(&0), cx, vger, actions);
     }
 
     fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {

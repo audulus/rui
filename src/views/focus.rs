@@ -1,4 +1,5 @@
 use crate::*;
+use std::any::Any;
 
 /// Struct for the `focus` modifier.
 pub struct Focus<F> {
@@ -10,13 +11,7 @@ where
     V: View,
     F: Fn(bool) -> V + 'static,
 {
-    fn print(&self, id: ViewId, cx: &mut Context) {
-        println!("focus(");
-        (self.func)(Some(id) == cx.focused_id).print(id.child(&0), cx);
-        println!(")");
-    }
-
-    fn process(&self, event: &Event, vid: ViewId, cx: &mut Context, vger: &mut Vger) {
+    fn process(&self, event: &Event, vid: ViewId, cx: &mut Context, vger: &mut Vger, actions: &mut Vec<Box<dyn Any>>) {
         match &event {
             Event::TouchBegin { id: _, position } => {
                 if self.hittest(vid, *position, cx, vger).is_some() {
@@ -32,7 +27,7 @@ where
             }
             _ => (),
         }
-        (self.func)(Some(vid) == cx.focused_id).process(event, vid.child(&0), cx, vger)
+        (self.func)(Some(vid) == cx.focused_id).process(event, vid.child(&0), cx, vger, actions)
     }
 
     fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {

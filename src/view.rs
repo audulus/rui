@@ -1,5 +1,5 @@
 use crate::*;
-use std::any::TypeId;
+use std::any::{Any, TypeId};
 
 /// Trait for the unit of UI composition.
 pub trait View: private::Sealed + 'static {
@@ -44,11 +44,8 @@ pub trait View: private::Sealed + 'static {
     /// Lays out subviews and return the size of the view.
     fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize;
 
-    /// Prints a description of the view for debugging.
-    fn print(&self, id: ViewId, cx: &mut Context);
-
     /// Processes an event.
-    fn process(&self, _event: &Event, _id: ViewId, _cx: &mut Context, _vger: &mut Vger) {}
+    fn process(&self, _event: &Event, _id: ViewId, _cx: &mut Context, _vger: &mut Vger, _actions: &mut Vec<Box<dyn Any>>) {}
 
     /// Returns the type ID of the underlying view.
     fn tid(&self) -> TypeId {

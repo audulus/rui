@@ -142,7 +142,8 @@ impl Context {
         }
 
         // Run any animations.
-        view.process(&Event::Anim, self.root_id, self, vger);
+        let mut actions = vec![];
+        view.process(&Event::Anim, self.root_id, self, vger, &mut actions);
 
         if self.dirty {
             // Clean up state.
@@ -261,7 +262,14 @@ impl Context {
 
     /// Process a UI event.
     pub fn process(&mut self, view: &impl View, event: &Event, vger: &mut Vger) {
-        view.process(event, self.root_id, self, vger);
+        let mut actions = vec![];
+        view.process(event, self.root_id, self, vger, &mut actions);
+
+        for action in actions {
+            if !action.is::<()>() {
+                println!("unhandled action: {:?}", action.type_id());
+            }
+        }
     }
 
     /// Get menu commands.

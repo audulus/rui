@@ -1,4 +1,5 @@
 use crate::*;
+use std::any::Any;
 
 pub struct ModView<S, F> {
     pub func: F,
@@ -11,12 +12,8 @@ where
     S: Clone + Default + 'static,
     F: Fn(S, &mut Context) -> V + 'static,
 {
-    fn print(&self, id: ViewId, cx: &mut Context) {
-        (self.func)(self.value.clone(), cx).print(id.child(&0), cx);
-    }
-
-    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger) {
-        (self.func)(self.value.clone(), cx).process(event, id.child(&0), cx, vger);
+    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger, actions: &mut Vec<Box<dyn Any>>) {
+        (self.func)(self.value.clone(), cx).process(event, id.child(&0), cx, vger, actions);
     }
 
     fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {

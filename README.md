@@ -100,8 +100,7 @@ struct MyState {
 
 /// A slider with a value.
 fn my_slider(s: State<f32>) -> impl View {
-    // Just to get the context.
-    state(||(), move |_, cx|
+    get_cx(move |cx|
         vstack((
             cx[s].font_size(10).padding(Auto),
             hslider(s).thumb_color(RED_HIGHLIGHT).padding(Auto)

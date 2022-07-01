@@ -1,4 +1,5 @@
 use crate::*;
+use std::any::Any;
 
 /// Struct for the `tap` gesture.
 pub struct Tap<V, F> {
@@ -6,28 +7,24 @@ pub struct Tap<V, F> {
     func: F,
 }
 
-impl<V, F> Tap<V, F>
+impl<V, F, A> Tap<V, F>
 where
     V: View,
-    F: Fn(&mut Context) + 'static,
+    F: Fn(&mut Context) -> A + 'static,
 {
     pub fn new(v: V, f: F) -> Self {
         Self { child: v, func: f }
     }
 }
 
-impl<V, F> View for Tap<V, F>
+impl<V, F, A> View for Tap<V, F>
 where
     V: View,
-    F: Fn(&mut Context) + 'static,
+    F: Fn(&mut Context) -> A + 'static,
+    A: 'static,
 {
-    fn print(&self, id: ViewId, cx: &mut Context) {
-        println!("Tap {{");
-        (self.child).print(id.child(&0), cx);
-        println!("}}");
-    }
 
-    fn process(&self, event: &Event, vid: ViewId, cx: &mut Context, vger: &mut Vger) {
+    fn process(&self, event: &Event, vid: ViewId, cx: &mut Context, vger: &mut Vger, actions: &mut Vec<Box<dyn Any>>) {
         match &event {
             Event::TouchBegin { id, position } => {
                 if self.hittest(vid, *position, cx, vger).is_some() {
@@ -37,7 +34,7 @@ where
             Event::TouchEnd { id, position: _ } => {
                 if cx.touches[*id] == vid {
                     cx.touches[*id] = ViewId::default();
-                    (self.func)(cx);
+                    actions.push(Box::new((self.func)(cx)))
                 }
             }
             _ => (),

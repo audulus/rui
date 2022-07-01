@@ -20,10 +20,6 @@ impl Circle {
 }
 
 impl View for Circle {
-    fn print(&self, _id: ViewId, _cx: &mut Context) {
-        println!("circle");
-    }
-
     fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {
         let (center, radius) = self.geom(id, cx);
 
@@ -97,10 +93,6 @@ impl Rectangle {
 }
 
 impl View for Rectangle {
-    fn print(&self, _id: ViewId, _cx: &mut Context) {
-        println!("rectangle");
-    }
-
     fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {
         let rect = self.geom(id, cx);
 

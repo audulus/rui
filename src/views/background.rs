@@ -1,4 +1,5 @@
 use crate::*;
+use std::any::Any;
 
 /// Struct for the `background` modifier.
 pub struct Background<V, BG> {
@@ -11,15 +12,8 @@ where
     V: View,
     BG: View,
 {
-    fn print(&self, id: ViewId, cx: &mut Context) {
-        println!("Background {{");
-        (self.child).print(id.child(&0), cx);
-        (self.background).print(id.child(&1), cx);
-        println!("}}");
-    }
-
-    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger) {
-        self.child.process(event, id.child(&0), cx, vger);
+    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger, actions: &mut Vec<Box<dyn Any>>) {
+        self.child.process(event, id.child(&0), cx, vger, actions);
     }
 
     fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {

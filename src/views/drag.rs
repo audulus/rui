@@ -1,4 +1,5 @@
 use crate::*;
+use std::any::Any;
 
 #[derive(Clone, Copy, Eq, PartialEq)]
 pub enum GestureState {
@@ -13,28 +14,30 @@ pub struct Drag<V, F> {
     func: F,
 }
 
-impl<V, F> Drag<V, F>
+impl<V, F, A> Drag<V, F>
 where
     V: View,
-    F: Fn(&mut Context, LocalOffset, GestureState, Option<MouseButton>) + 'static,
+    F: Fn(&mut Context, LocalOffset, GestureState, Option<MouseButton>) -> A + 'static,
 {
     pub fn new(v: V, f: F) -> Self {
         Self { child: v, func: f }
     }
 }
 
-impl<V, F> View for Drag<V, F>
+impl<V, F, A> View for Drag<V, F>
 where
     V: View,
-    F: Fn(&mut Context, LocalOffset, GestureState, Option<MouseButton>) + 'static,
+    F: Fn(&mut Context, LocalOffset, GestureState, Option<MouseButton>) -> A + 'static,
+    A: 'static,
 {
-    fn print(&self, id: ViewId, cx: &mut Context) {
-        println!("Drag {{");
-        (self.child).print(id.child(&0), cx);
-        println!("}}");
-    }
-
-    fn process(&self, event: &Event, vid: ViewId, cx: &mut Context, vger: &mut Vger) {
+    fn process(
+        &self,
+        event: &Event,
+        vid: ViewId,
+        cx: &mut Context,
+        vger: &mut Vger,
+        actions: &mut Vec<Box<dyn Any>>,
+    ) {
         match &event {
             Event::TouchBegin { id, position } => {
                 if self.hittest(vid, *position, cx, vger).is_some() {
@@ -46,19 +49,24 @@ where
             Event::TouchMove { id, position } => {
                 if cx.touches[*id] == vid {
                     let delta = *position - cx.previous_position[*id];
-                    (self.func)(cx, delta, GestureState::Changed, cx.mouse_button);
+                    actions.push(Box::new((self.func)(
+                        cx,
+                        delta,
+                        GestureState::Changed,
+                        cx.mouse_button,
+                    )));
                     cx.previous_position[*id] = *position;
                 }
             }
             Event::TouchEnd { id, position } => {
                 if cx.touches[*id] == vid {
                     cx.touches[*id] = ViewId::default();
-                    (self.func)(
+                    actions.push(Box::new((self.func)(
                         cx,
                         *position - cx.previous_position[*id],
                         GestureState::Ended,
                         cx.mouse_button,
-                    );
+                    )));
                 }
             }
             _ => (),

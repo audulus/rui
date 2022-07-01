@@ -1,4 +1,5 @@
 use crate::*;
+use std::any::Any;
 
 pub struct Command<V, F> {
     child: V,
@@ -27,19 +28,13 @@ where
     V: View,
     F: Fn(&mut Context) + 'static,
 {
-    fn print(&self, id: ViewId, cx: &mut Context) {
-        println!("Command {{");
-        (self.child).print(id.child(&0), cx);
-        println!("}}");
-    }
-
-    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger) {
+    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger, actions: &mut Vec<Box<dyn Any>>) {
         if let Event::Command(name) = &event {
             if *name == self.name {
                 (self.func)(cx);
             }
         }
-        self.child.process(event, id.child(&0), cx, vger)
+        self.child.process(event, id.child(&0), cx, vger, actions)
     }
 
     fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {
@@ -253,13 +248,7 @@ where
     V: View,
     C: CommandTuple + 'static,
 {
-    fn print(&self, id: ViewId, cx: &mut Context) {
-        println!("Command {{");
-        (self.child).print(id.child(&0), cx);
-        println!("}}");
-    }
-
-    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger) {
+    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger, actions: &mut Vec<Box<dyn Any>>) {
         if let Event::Command(name) = &event {
             self.cmds.foreach_cmd(&mut |cmd| {
                 if cmd.name() == *name {
@@ -267,7 +256,7 @@ where
                 }
             });
         }
-        self.child.process(event, id.child(&0), cx, vger)
+        self.child.process(event, id.child(&0), cx, vger, actions)
     }
 
     fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {

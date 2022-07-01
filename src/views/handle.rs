@@ -1,38 +1,51 @@
 use crate::*;
 use std::any::Any;
 
-/// Struct for the `key` modifier.
-pub struct KeyView<V, F> {
+/// Struct for an action handler.
+pub struct Handle<V, F, A> {
     child: V,
     func: F,
+    phantom_action: std::marker::PhantomData<A>,
 }
 
-impl<V, F, A> KeyView<V, F>
+impl<V, F, A> Handle<V, F, A>
 where
     V: View,
-    F: Fn(&mut Context, Key) -> A + 'static,
+    F: Fn(&A) + 'static,
 {
     pub fn new(v: V, f: F) -> Self {
-        KeyView { child: v, func: f }
+        Self {
+            child: v,
+            func: f,
+            phantom_action: Default::default(),
+        }
     }
 }
 
-impl<V, F, A> View for KeyView<V, F>
+impl<V, F, A> View for Handle<V, F, A>
 where
     V: View,
-    F: Fn(&mut Context, Key) -> A + 'static,
+    F: Fn(&A) + 'static,
     A: 'static,
 {
     fn process(
         &self,
         event: &Event,
-        _vid: ViewId,
+        vid: ViewId,
         cx: &mut Context,
-        _vger: &mut Vger,
+        vger: &mut Vger,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
-        if let Event::Key(key) = &event {
-            actions.push(Box::new((self.func)(cx, key.clone())));
+        let mut child_actions = vec![];
+        self.child
+            .process(event, vid.child(&0), cx, vger, &mut child_actions);
+
+        for action in child_actions {
+            if let Some(a) = action.downcast_ref::<A>() {
+                (self.func)(a);
+            } else {
+                actions.push(action);
+            }
         }
     }
 
@@ -42,10 +55,6 @@ where
 
     fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {
         self.child.layout(id.child(&0), sz, cx, vger)
-    }
-
-    fn dirty(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) {
-        self.child.dirty(id.child(&0), xform, cx);
     }
 
     fn hittest(
@@ -76,4 +85,4 @@ where
     }
 }
 
-impl<V, F> private::Sealed for KeyView<V, F> {}
+impl<V, F, A> private::Sealed for Handle<V, F, A> {}

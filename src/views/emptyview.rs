@@ -3,9 +3,6 @@ use crate::*;
 pub struct EmptyView {}
 
 impl View for EmptyView {
-    fn print(&self, _id: ViewId, _cx: &mut Context) {
-        println!("EmptyView");
-    }
     fn draw(&self, _id: ViewId, _cx: &mut Context, _vger: &mut Vger) {}
     fn layout(
         &self,
