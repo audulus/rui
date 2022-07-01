@@ -7,24 +7,32 @@ pub struct KeyView<V, F> {
     func: F,
 }
 
-impl<V, F> KeyView<V, F>
+impl<V, F, A> KeyView<V, F>
 where
     V: View,
-    F: Fn(&mut Context, Key) + 'static,
+    F: Fn(&mut Context, Key) -> A + 'static,
 {
     pub fn new(v: V, f: F) -> Self {
         KeyView { child: v, func: f }
     }
 }
 
-impl<V, F> View for KeyView<V, F>
+impl<V, F, A> View for KeyView<V, F>
 where
     V: View,
-    F: Fn(&mut Context, Key) + 'static,
+    F: Fn(&mut Context, Key) -> A + 'static,
+    A: 'static,
 {
-    fn process(&self, event: &Event, _vid: ViewId, cx: &mut Context, _vger: &mut Vger, _actions: &mut Vec<Box<dyn Any>>) {
+    fn process(
+        &self,
+        event: &Event,
+        _vid: ViewId,
+        cx: &mut Context,
+        _vger: &mut Vger,
+        actions: &mut Vec<Box<dyn Any>>,
+    ) {
         if let Event::Key(key) = &event {
-            (self.func)(cx, key.clone())
+            actions.push(Box::new((self.func)(cx, key.clone())));
         }
     }
 
