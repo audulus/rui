@@ -214,7 +214,7 @@ where
     DefaultFn: Fn() -> S + 'static,
     F: Fn(&S) -> V + 'static,
 {
-    type State = (S, V::State);
+    type State = (Option<S>, V::State);
 
     fn process(
         &self,
@@ -225,8 +225,9 @@ where
         state: &mut Self::State,
         _data: &mut Data,
     ) {
-        let v = (self.func)(&mut state.0);
-        v.process(event, id.child(&0), cx, vger, &mut state.1, &mut state.0);
+        let s = state.0.get_or_insert_with(|| (self.default)());
+        let v = (self.func)(s);
+        v.process(event, id.child(&0), cx, vger, &mut state.1, s);
     }
 
     fn draw(
@@ -234,11 +235,12 @@ where
         id: ViewId,
         cx: &mut Context,
         vger: &mut Vger,
-        state: &Self::State,
+        state: &mut Self::State,
         _data: &Data,
     ) {
-        let v = (self.func)(&state.0);
-        v.draw(id.child(&0), cx, vger, &state.1, &state.0);
+        let s = state.0.get_or_insert_with(|| (self.default)());
+        let v = (self.func)(s);
+        v.draw(id.child(&0), cx, vger, &mut state.1, s);
     }
 
     fn layout(
@@ -247,7 +249,7 @@ where
         sz: LocalSize,
         cx: &mut Context,
         vger: &mut Vger,
-        state: &Self::State,
+        state: &mut Self::State,
         _data: &Data,
     ) -> LocalSize {
         // Do we need to recompute layout?
@@ -270,9 +272,10 @@ where
         if compute_layout {
             cx.id_stack.push(id);
 
-            let v = (self.func)(&state.0);
+            let s = state.0.get_or_insert_with(|| (self.default)());
+            let v = (self.func)(s);
 
-            let child_size = v.layout(id.child(&0), sz, cx, vger, &state.1, &state.0);
+            let child_size = v.layout(id.child(&0), sz, cx, vger, &mut state.1, s);
 
             // Compute layout dependencies.
             let mut deps = vec![];
@@ -301,10 +304,11 @@ where
         pt: LocalPoint,
         cx: &mut Context,
         vger: &mut Vger,
-        state: &Self::State,
+        state: &mut Self::State,
         _data: &Data,
     ) -> Option<ViewId> {
-        let v = (self.func)(&state.0);
-        v.hittest(id.child(&0), pt, cx, vger, &state.1, &state.0)
+        let s = state.0.get_or_insert_with(|| (self.default)());
+        let v = (self.func)(s);
+        v.hittest(id.child(&0), pt, cx, vger, &mut state.1, s)
     }
 }

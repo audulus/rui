@@ -147,7 +147,7 @@ where
         id: ViewId,
         cx: &mut Context,
         vger: &mut Vger,
-        state: &Self::State,
+        state: &mut Self::State,
         data: &Data,
     ) {
         self.child.draw(id.child(&0), cx, vger, state, data)
@@ -159,7 +159,7 @@ where
         sz: LocalSize,
         cx: &mut Context,
         vger: &mut Vger,
-        state: &Self::State,
+        state: &mut Self::State,
         data: &Data,
     ) -> LocalSize {
         self.child.layout(id.child(&0), sz, cx, vger, state, data)

@@ -66,7 +66,14 @@ pub trait View2<Data>: 'static {
     type State;
 
     /// Draws the view using vger.
-    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger, state: &Self::State, data: &Data);
+    fn draw(
+        &self,
+        id: ViewId,
+        cx: &mut Context,
+        vger: &mut Vger,
+        state: &mut Self::State,
+        data: &Data,
+    );
 
     /// Lays out subviews and return the size of the view.
     fn layout(
@@ -75,7 +82,7 @@ pub trait View2<Data>: 'static {
         sz: LocalSize,
         cx: &mut Context,
         vger: &mut Vger,
-        state: &Self::State,
+        state: &mut Self::State,
         data: &Data,
     ) -> LocalSize;
 
@@ -98,7 +105,7 @@ pub trait View2<Data>: 'static {
         _pt: LocalPoint,
         _cx: &mut Context,
         _vger: &mut Vger,
-        _state: &Self::State,
+        _state: &mut Self::State,
         _data: &Data,
     ) -> Option<ViewId> {
         None
