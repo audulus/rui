@@ -248,7 +248,7 @@ where
         cx: &mut Context,
         vger: &mut Vger,
         state: &Self::State,
-        data: &Data,
+        _data: &Data,
     ) -> LocalSize {
         // Do we need to recompute layout?
         let mut compute_layout = true;
@@ -302,7 +302,7 @@ where
         cx: &mut Context,
         vger: &mut Vger,
         state: &Self::State,
-        data: &Data,
+        _data: &Data,
     ) -> Option<ViewId> {
         let v = (self.func)(&state.0);
         v.hittest(id.child(&0), pt, cx, vger, &state.1, &state.0)
