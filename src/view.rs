@@ -45,7 +45,15 @@ pub trait View: private::Sealed + 'static {
     fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize;
 
     /// Processes an event.
-    fn process(&self, _event: &Event, _id: ViewId, _cx: &mut Context, _vger: &mut Vger, _actions: &mut Vec<Box<dyn Any>>) {}
+    fn process(
+        &self,
+        _event: &Event,
+        _id: ViewId,
+        _cx: &mut Context,
+        _vger: &mut Vger,
+        _actions: &mut Vec<Box<dyn Any>>,
+    ) {
+    }
 
     /// Returns the type ID of the underlying view.
     fn tid(&self) -> TypeId {
@@ -54,8 +62,11 @@ pub trait View: private::Sealed + 'static {
 }
 
 pub trait View2<Data>: 'static {
+    /// State which lives longer than the view.
+    type State;
+
     /// Draws the view using vger.
-    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger, data: State<Data>);
+    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger, state: &Self::State, data: &Data);
 
     /// Lays out subviews and return the size of the view.
     fn layout(
@@ -64,7 +75,8 @@ pub trait View2<Data>: 'static {
         sz: LocalSize,
         cx: &mut Context,
         vger: &mut Vger,
-        data: State<Data>,
+        state: &Self::State,
+        data: &Data,
     ) -> LocalSize;
 
     /// Processes an event.
@@ -74,7 +86,8 @@ pub trait View2<Data>: 'static {
         _id: ViewId,
         _cx: &mut Context,
         _vger: &mut Vger,
-        _data: State<Data>,
+        _state: &mut Self::State,
+        _data: &mut Data,
     ) {
     }
 
@@ -85,7 +98,8 @@ pub trait View2<Data>: 'static {
         _pt: LocalPoint,
         _cx: &mut Context,
         _vger: &mut Vger,
-        _data: State<Data>,
+        _state: &Self::State,
+        _data: &Data,
     ) -> Option<ViewId> {
         None
     }

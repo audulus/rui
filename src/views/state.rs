@@ -50,7 +50,14 @@ where
     D: Fn() -> S + 'static,
     F: Fn(State<S>, &mut Context) -> V + 'static,
 {
-    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger, actions: &mut Vec<Box<dyn Any>>) {
+    fn process(
+        &self,
+        event: &Event,
+        id: ViewId,
+        cx: &mut Context,
+        vger: &mut Vger,
+        actions: &mut Vec<Box<dyn Any>>,
+    ) {
         cx.init_state(id, &self.default);
         (self.func)(State::new(id), cx).process(event, id.child(&0), cx, vger, actions);
     }
@@ -199,47 +206,39 @@ struct StateView2<DefaultFn, F, OuterData> {
     phantom: std::marker::PhantomData<OuterData>,
 }
 
-impl<S, V, DefaultFn, F, Data> StateView2<DefaultFn, F, Data>
-where
-    V: View2<(S, Data)>,
-    S: 'static,
-    Data: 'static,
-    DefaultFn: Fn() -> S + 'static,
-    F: Fn(&S, &Data) -> V + 'static,
-{
-    fn get_view(&self, id: ViewId, cx: &Context, data: State<Data>) -> impl View2<(S, Data)> {
-        let state = &cx.store;
-        state.with(data, |data| {
-            state.with(State::new(id), |local_data| (self.func)(local_data, data))
-        })
-    }
-}
-
 impl<S, V, DefaultFn, F, Data> View2<Data> for StateView2<DefaultFn, F, Data>
 where
-    V: View2<(S, Data)>,
+    V: View2<S>,
     S: 'static,
     Data: 'static,
     DefaultFn: Fn() -> S + 'static,
-    F: Fn(&S, &Data) -> V + 'static,
+    F: Fn(&S) -> V + 'static,
 {
+    type State = (S, V::State);
+
     fn process(
         &self,
         event: &Event,
         id: ViewId,
         cx: &mut Context,
         vger: &mut Vger,
-        data: State<Data>,
+        state: &mut Self::State,
+        _data: &mut Data,
     ) {
-        let v = self.get_view(id, cx, data);
-
-        v.process(event, id.child(&0), cx, vger, State::new(id));
+        let v = (self.func)(&mut state.0);
+        v.process(event, id.child(&0), cx, vger, &mut state.1, &mut state.0);
     }
 
-    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger, data: State<Data>) {
-        let v = self.get_view(id, cx, data);
-
-        v.draw(id.child(&0), cx, vger, State::new(id));
+    fn draw(
+        &self,
+        id: ViewId,
+        cx: &mut Context,
+        vger: &mut Vger,
+        state: &Self::State,
+        _data: &Data,
+    ) {
+        let v = (self.func)(&state.0);
+        v.draw(id.child(&0), cx, vger, &state.1, &state.0);
     }
 
     fn layout(
@@ -248,10 +247,9 @@ where
         sz: LocalSize,
         cx: &mut Context,
         vger: &mut Vger,
-        data: State<Data>,
+        state: &Self::State,
+        data: &Data,
     ) -> LocalSize {
-        cx.init_state(id, &self.default);
-
         // Do we need to recompute layout?
         let mut compute_layout = true;
 
@@ -272,9 +270,9 @@ where
         if compute_layout {
             cx.id_stack.push(id);
 
-            let view = self.get_view(id, cx, data);
+            let v = (self.func)(&state.0);
 
-            let child_size = view.layout(id.child(&0), sz, cx, vger, State::new(id));
+            let child_size = v.layout(id.child(&0), sz, cx, vger, &state.1, &state.0);
 
             // Compute layout dependencies.
             let mut deps = vec![];
@@ -303,9 +301,10 @@ where
         pt: LocalPoint,
         cx: &mut Context,
         vger: &mut Vger,
-        data: State<Data>,
+        state: &Self::State,
+        data: &Data,
     ) -> Option<ViewId> {
-        let v = self.get_view(id, cx, data);
-        v.hittest(id.child(&0), pt, cx, vger, State::new(id))
+        let v = (self.func)(&state.0);
+        v.hittest(id.child(&0), pt, cx, vger, &state.1, &state.0)
     }
 }

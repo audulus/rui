@@ -23,8 +23,14 @@ where
     F: Fn(&mut Context) -> A + 'static,
     A: 'static,
 {
-
-    fn process(&self, event: &Event, vid: ViewId, cx: &mut Context, vger: &mut Vger, actions: &mut Vec<Box<dyn Any>>) {
+    fn process(
+        &self,
+        event: &Event,
+        vid: ViewId,
+        cx: &mut Context,
+        vger: &mut Vger,
+        actions: &mut Vec<Box<dyn Any>>,
+    ) {
         match &event {
             Event::TouchBegin { id, position } => {
                 if self.hittest(vid, *position, cx, vger).is_some() {
@@ -106,32 +112,45 @@ where
     Data: 'static,
     F: Fn(&mut Data) + 'static,
 {
+    type State = V::State;
+
     fn process(
         &self,
         event: &Event,
         vid: ViewId,
         cx: &mut Context,
         vger: &mut Vger,
-        data: State<Data>,
+        state: &mut Self::State,
+        data: &mut Data,
     ) {
         match &event {
             Event::TouchBegin { id, position } => {
-                if self.hittest(vid, *position, cx, vger, data).is_some() {
+                if self
+                    .hittest(vid, *position, cx, vger, state, data)
+                    .is_some()
+                {
                     cx.touches[*id] = vid;
                 }
             }
             Event::TouchEnd { id, position: _ } => {
                 if cx.touches[*id] == vid {
                     cx.touches[*id] = ViewId::default();
-                    (self.func)(cx.get_mut(data));
+                    (self.func)(data);
                 }
             }
             _ => (),
         }
     }
 
-    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger, data: State<Data>) {
-        self.child.draw(id.child(&0), cx, vger, data)
+    fn draw(
+        &self,
+        id: ViewId,
+        cx: &mut Context,
+        vger: &mut Vger,
+        state: &Self::State,
+        data: &Data,
+    ) {
+        self.child.draw(id.child(&0), cx, vger, state, data)
     }
 
     fn layout(
@@ -140,8 +159,9 @@ where
         sz: LocalSize,
         cx: &mut Context,
         vger: &mut Vger,
-        data: State<Data>,
+        state: &Self::State,
+        data: &Data,
     ) -> LocalSize {
-        self.child.layout(id.child(&0), sz, cx, vger, data)
+        self.child.layout(id.child(&0), sz, cx, vger, state, data)
     }
 }
