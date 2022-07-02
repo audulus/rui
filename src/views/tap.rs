@@ -95,11 +95,11 @@ where
     phantom: std::marker::PhantomData<fn() -> (Data, &'a i32)>,
 }
 
-impl<V, F, Data> Tap2<'static, V, F, Data>
+impl<'a, V, F, Data> Tap2<'a, V, F, Data>
 where
     V: View2<Data>,
     Data: Sized,
-    F: Fn(&mut Data) + 'static,
+    F: Fn(&mut Data) + 'a,
 {
     pub fn new(v: V, f: F) -> Self {
         Self {
@@ -110,11 +110,11 @@ where
     }
 }
 
-impl<V, F, Data> View2<Data> for Tap2<'static, V, F, Data>
+impl<'a, V, F, Data> View2<Data> for Tap2<'a, V, F, Data>
 where
     V: View2<Data>,
     Data: 'static,
-    F: Fn(&mut Data) + 'static,
+    F: Fn(&mut Data) + 'a,
 {
     type State = V::State;
 

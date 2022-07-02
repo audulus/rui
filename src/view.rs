@@ -61,7 +61,7 @@ pub trait View: private::Sealed + 'static {
     }
 }
 
-pub trait View2<Data>: 'static {
+pub trait View2<Data> {
     /// State which lives longer than the view.
     type State;
 
