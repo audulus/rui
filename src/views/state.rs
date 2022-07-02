@@ -312,3 +312,33 @@ where
         v.hittest(id.child(&0), pt, cx, vger, &mut state.1, s)
     }
 }
+
+pub fn state2<
+    S: 'static,
+    Data: 'static,
+    V: View2<S>,
+    D: Fn() -> S + 'static,
+    F: Fn(&S) -> V + 'static,
+>(
+    initial: D,
+    f: F,
+) -> impl View2<Data> {
+    StateView2 {
+        default: initial,
+        func: f,
+        phantom: Default::default(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+
+    use super::*;
+
+    fn gui_func(_view: impl View2<()>) {}
+
+    #[test]
+    fn test_state2() {
+        gui_func(state2(|| 1, |_| empty_view2()));
+    }
+}
