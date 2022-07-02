@@ -200,13 +200,17 @@ pub fn get_cx<V: View, F: Fn(&mut Context) -> V + 'static>(f: F) -> impl View {
     state(|| (), move |_, cx| f(cx))
 }
 
-struct StateView2<'a, DefaultFn, F, OuterData> {
+struct StateView2<'a, S, V, DefaultFn, F, OuterData>
+where
+    S: 'static,
+    F: Fn(&S) -> V + 'a,
+{
     default: DefaultFn,
     func: F,
-    phantom: std::marker::PhantomData<fn() -> (OuterData, &'a i32)>,
+    phantom: std::marker::PhantomData<fn() -> (OuterData, &'a i32, S)>,
 }
 
-impl<'a, S, V, DefaultFn, F, Data> View2<Data> for StateView2<'a, DefaultFn, F, Data>
+impl<'a, S, V, DefaultFn, F, Data> View2<Data> for StateView2<'a, S, V, DefaultFn, F, Data>
 where
     V: View2<S>,
     S: 'static,
@@ -314,16 +318,17 @@ where
 }
 
 pub fn state2<
+    'a,
     S: 'static,
     Data: 'static,
-    V: View2<S>,
+    V: View2<S> + 'a,
     D: Fn() -> S + 'static,
-    F: Fn(&S) -> V + 'static,
+    F: Fn(&S) -> V + 'a,
 >(
     initial: D,
     f: F,
-) -> impl View2<Data> {
-    StateView2 {
+) -> impl View2<Data> + 'a {
+    StateView2::<'a, S, V, D, F, Data> {
         default: initial,
         func: f,
         phantom: Default::default(),
