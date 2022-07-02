@@ -206,13 +206,13 @@ struct StateView2<'a, DefaultFn, F, OuterData> {
     phantom: std::marker::PhantomData<fn() -> (OuterData, &'a i32)>,
 }
 
-impl<S, V, DefaultFn, F, Data> View2<Data> for StateView2<'static, DefaultFn, F, Data>
+impl<'a, S, V, DefaultFn, F, Data> View2<Data> for StateView2<'a, DefaultFn, F, Data>
 where
     V: View2<S>,
     S: 'static,
     Data: 'static,
     DefaultFn: Fn() -> S + 'static,
-    F: Fn(&S) -> V + 'static,
+    F: Fn(&S) -> V + 'a,
 {
     type State = (Option<S>, V::State);
 
