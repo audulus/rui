@@ -341,4 +341,20 @@ mod tests {
     fn test_state2() {
         gui_func(state2(|| 1, |_| empty_view2()));
     }
+
+    #[test]
+    fn test_state_nested() {
+        gui_func(state2(
+            || 1,
+            |x| {
+                state2(
+                    || 1,
+                    |_| {
+                        //println!("{}", x);
+                        empty_view2()
+                    },
+                )
+            },
+        ));
+    }
 }
