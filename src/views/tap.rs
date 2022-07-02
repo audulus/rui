@@ -85,13 +85,17 @@ where
 
 impl<V, F> private::Sealed for Tap<V, F> {}
 
-pub struct Tap2<V, F, Data> {
+pub struct Tap2<'a, V, F, Data>
+where
+    F: Fn(&mut Data) + 'a,
+{
     child: V,
     func: F,
-    data: std::marker::PhantomData<Data>,
+    // XXX: seems a bit sketchy to use &'a i32 to satisfy the compiler.
+    phantom: std::marker::PhantomData<fn() -> (Data, &'a i32)>,
 }
 
-impl<V, F, Data> Tap2<V, F, Data>
+impl<V, F, Data> Tap2<'static, V, F, Data>
 where
     V: View2<Data>,
     Data: Sized,
@@ -101,12 +105,12 @@ where
         Self {
             child: v,
             func: f,
-            data: Default::default(),
+            phantom: Default::default(),
         }
     }
 }
 
-impl<V, F, Data> View2<Data> for Tap2<V, F, Data>
+impl<V, F, Data> View2<Data> for Tap2<'static, V, F, Data>
 where
     V: View2<Data>,
     Data: 'static,
