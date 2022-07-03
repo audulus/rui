@@ -351,12 +351,13 @@ mod tests {
         fn draw(&self);
     }
 
-    struct State<F> {
+    struct State<F, V> {
         f: F,
         state: String,
+        phantom: std::marker::PhantomData<V>,
     }
 
-    impl<F> View for State<F> {
+    impl<'a, V: View, F: Fn(&'a String) -> V + 'a> View for State<F, V> {
         fn draw(&self) {
             // (self.f)(&self.state)).draw();
         }
@@ -368,10 +369,11 @@ mod tests {
         fn draw(&self) {}
     }
 
-    fn state<'a, V: View, F: Fn(&'a String) -> V + 'a>(f: F) -> impl View + 'a {
+    fn state<'a, V: View + 'a, F: Fn(&'a String) -> V + 'a>(f: F) -> impl View + 'a {
         State {
             f,
             state: "Hello world".to_string(),
+            phantom: Default::default(),
         }
     }
 
