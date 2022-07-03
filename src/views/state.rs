@@ -347,19 +347,29 @@ mod tests {
         gui_func(state2(|| 1, |_| empty_view2()));
     }
 
+    trait View {}
+
+    struct State<F> {
+        f: F,
+    }
+
+    impl<F> View for State<F> {}
+
+    struct Empty {}
+
+    impl View for Empty {}
+
+    fn state<'a: 'b, 'b, V: View, F: Fn(&'b String) -> V + 'a>(f: F) -> impl View + 'a {
+        State { f }
+    }
+
     #[test]
     fn test_state_nested() {
-        gui_func(state2(
-            || 1,
-            |x| {
-                state2(
-                    || 1,
-                    |_| {
-                        //println!("{}", x);
-                        empty_view2()
-                    },
-                )
-            },
-        ));
+        state(move |x| {
+            state(move |_| {
+                println!("{}", x);
+                Empty {}
+            })
+        });
     }
 }
