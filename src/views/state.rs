@@ -358,7 +358,7 @@ mod tests {
 
     impl<F> View for State<F> {
         fn draw(&self) {
-            // (self.f)(&String::new()).draw();
+            // (self.f)(&self.state)).draw();
         }
     }
 
