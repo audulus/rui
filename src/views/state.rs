@@ -353,6 +353,7 @@ mod tests {
 
     struct State<F> {
         f: F,
+        state: String,
     }
 
     impl<F> View for State<F> {
@@ -368,7 +369,10 @@ mod tests {
     }
 
     fn state<'a, V: View, F: Fn(&'a String) -> V + 'a>(f: F) -> impl View + 'a {
-        State { f }
+        State {
+            f,
+            state: "Hello world".to_string(),
+        }
     }
 
     fn my_ui(x: &String) -> impl View + '_ {
