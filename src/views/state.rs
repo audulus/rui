@@ -359,7 +359,7 @@ mod tests {
 
     impl View for Empty {}
 
-    fn state<'a: 'b, 'b, V: View, F: Fn(&'b String) -> V + 'a>(f: F) -> impl View + 'a {
+    fn state<'a, 'b, V: View, F: Fn(&'b String) -> V + 'a>(f: F) -> impl View + 'a {
         State { f }
     }
 
