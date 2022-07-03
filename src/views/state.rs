@@ -367,7 +367,7 @@ mod tests {
         fn draw(&self) {}
     }
 
-    fn state<'a, 'b, V: View, F: Fn(&'b String) -> V + 'a>(f: F) -> impl View + 'a {
+    fn state<'a, V: View, F: Fn(&'a String) -> V + 'a>(f: F) -> impl View + 'a {
         State { f }
     }
 
@@ -381,11 +381,11 @@ mod tests {
     #[test]
     fn test_state_nested() {
         state(move |x| {
-            my_ui(x)
-            // state(move |y| {
-            //     println!("{} {}", x, y);
-            //     Empty {}
-            // })
+            // my_ui(x)
+            state(move |y| {
+                println!("{} {}", x, y);
+                Empty {}
+            })
         });
     }
 }
