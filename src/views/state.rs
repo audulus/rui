@@ -371,13 +371,21 @@ mod tests {
         State { f }
     }
 
+    fn my_ui(x: &String) -> impl View + '_ {
+        state(move |y| {
+            println!("{} {}", x, y);
+            Empty {}
+        })
+    }
+
     #[test]
     fn test_state_nested() {
         state(move |x| {
-            state(move |y| {
-                println!("{} {}", x, y);
-                Empty {}
-            })
+            my_ui(x)
+            // state(move |y| {
+            //     println!("{} {}", x, y);
+            //     Empty {}
+            // })
         });
     }
 }
