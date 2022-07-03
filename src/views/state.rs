@@ -347,17 +347,25 @@ mod tests {
         gui_func(state2(|| 1, |_| empty_view2()));
     }
 
-    trait View {}
+    trait View {
+        fn draw(&self);
+    }
 
     struct State<F> {
         f: F,
     }
 
-    impl<F> View for State<F> {}
+    impl<F> View for State<F> {
+        fn draw(&self) {
+            // (self.f)(&String::new()).draw();
+        }
+    }
 
     struct Empty {}
 
-    impl View for Empty {}
+    impl View for Empty {
+        fn draw(&self) {}
+    }
 
     fn state<'a, 'b, V: View, F: Fn(&'b String) -> V + 'a>(f: F) -> impl View + 'a {
         State { f }
