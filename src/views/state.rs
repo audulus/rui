@@ -366,8 +366,8 @@ mod tests {
     #[test]
     fn test_state_nested() {
         state(move |x| {
-            state(move |_| {
-                println!("{}", x);
+            state(move |y| {
+                println!("{} {}", x, y);
                 Empty {}
             })
         });
