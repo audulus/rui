@@ -357,9 +357,9 @@ mod tests {
         phantom: std::marker::PhantomData<V>,
     }
 
-    impl<'a, V: View, F: Fn(&'a String) -> V + 'a> View for State<F, V> {
+    impl<'a, V: View + 'a, F: Fn(&'a String) -> V + 'a> View for State<F, V> {
         fn draw(&self) {
-            // (self.f)(&self.state)).draw();
+            // (self.f)(&self.state).draw();
         }
     }
 
