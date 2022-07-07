@@ -353,15 +353,16 @@ mod tests {
 
     struct State<F> {
         f: F,
-        state: String,
     }
 
     impl<F> View for State<F>
     where
-        F: for<'a> Fn(&'a String) -> Box<dyn View+'a>,
+        F: for<'a> Fn(&'a String) -> Box<dyn View + 'a>,
     {
         fn draw(&self) {
-            (self.f)(&self.state).draw();
+            // Get the state from somewhere.
+            let s = "hello world".to_string();
+            (self.f)(&s).draw();
         }
     }
 
@@ -371,15 +372,12 @@ mod tests {
         fn draw(&self) {}
     }
 
-    fn state<'b, F: 'b + for<'a> Fn(&'a String) -> Box<dyn View+'a> >(f: F) -> Box<dyn View+'b> {
-        Box::new(State {
-            f,
-            state: "Hello world".to_string(),
-        })
+    fn state<'b, F: 'b + for<'a> Fn(&'a String) -> Box<dyn View + 'a>>(f: F) -> Box<dyn View + 'b> {
+        Box::new(State { f })
     }
 
     fn empty_view() -> Box<dyn View> {
-        Box::new(Empty{})
+        Box::new(Empty {})
     }
 
     fn my_ui<'a>(x: &'a String) -> Box<dyn View + 'a> {
@@ -397,6 +395,7 @@ mod tests {
                 println!("{} {}", x, y);
                 empty_view()
             })
-        }).draw();
+        })
+        .draw();
     }
 }
