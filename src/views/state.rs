@@ -378,13 +378,24 @@ mod tests {
         })
     }
 
+    fn empty_view() -> Box<dyn View> {
+        Box::new(Empty{})
+    }
+
+    fn my_ui<'a>(x: &'a String) -> Box<dyn View + 'a> {
+        state(move |y| {
+            println!("{} {}", x, y);
+            empty_view()
+        })
+    }
+
     #[test]
     fn test_state_nested() {
         state(move |x| {
-            // my_ui(x)
+            my_ui(x);
             state(move |y| {
                 println!("{} {}", x, y);
-                Box::new(Empty {})
+                empty_view()
             })
         }).draw();
     }
