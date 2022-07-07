@@ -349,6 +349,7 @@ mod tests {
 
     trait View {
         fn draw(&self);
+        fn process(&self, data: &String) -> Option<String>;
     }
 
     struct State<F> {
@@ -364,12 +365,28 @@ mod tests {
             let s = "hello world".to_string();
             (self.f)(&s).draw();
         }
+
+        fn process(&self, _data: &String) -> Option<String> {
+            let mut s = "hello world".to_string();
+            let r = {
+                let v = (self.f)(&s);
+                v.process(&s)
+            };
+
+            if let Some(n) = r {
+                s = n;
+            }
+            None
+        }
     }
 
     struct Empty {}
 
     impl View for Empty {
         fn draw(&self) {}
+        fn process(&self, _data: &String) -> Option<String> {
+            None
+        }
     }
 
     fn state<'b, F: 'b + for<'a> Fn(&'a String) -> Box<dyn View + 'a>>(f: F) -> Box<dyn View + 'b> {
