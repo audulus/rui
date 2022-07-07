@@ -351,19 +351,17 @@ mod tests {
         fn draw(&self);
     }
 
-    struct State<F, V> {
+    struct State<F> {
         f: F,
         state: String,
-        phantom: std::marker::PhantomData<V>,
     }
 
-    impl<'a, V, F> View for State<F, V>
+    impl<F> View for State<F>
     where
-        V: View + 'a,
-        F: Fn(&'a String) -> V,
+        F: for<'a> Fn(&'a String) -> Box<dyn View+'a>,
     {
         fn draw(&self) {
-            // (self.f)(&self.state).draw();
+            (self.f)(&self.state).draw();
         }
     }
 
@@ -373,18 +371,10 @@ mod tests {
         fn draw(&self) {}
     }
 
-    fn state<'a, V: View + 'a, F: Fn(&'a String) -> V + 'a>(f: F) -> impl View + 'a {
-        State {
+    fn state<'b, F: 'b + for<'a> Fn(&'a String) -> Box<dyn View+'a> >(f: F) -> Box<dyn View+'b> {
+        Box::new(State {
             f,
             state: "Hello world".to_string(),
-            phantom: Default::default(),
-        }
-    }
-
-    fn my_ui(x: &String) -> impl View + '_ {
-        state(move |y| {
-            println!("{} {}", x, y);
-            Empty {}
         })
     }
 
@@ -394,8 +384,8 @@ mod tests {
             // my_ui(x)
             state(move |y| {
                 println!("{} {}", x, y);
-                Empty {}
+                Box::new(Empty {})
             })
-        });
+        }).draw();
     }
 }
