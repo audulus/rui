@@ -360,7 +360,7 @@ mod tests {
     impl<'a, V, F> View for State<F, V>
     where
         V: View + 'a,
-        F: Fn(&'a String) -> V + 'a,
+        F: Fn(&'a String) -> V,
     {
         fn draw(&self) {
             // (self.f)(&self.state).draw();
