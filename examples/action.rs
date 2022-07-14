@@ -12,5 +12,5 @@ fn main() {
             .padding(Auto),
         text("tap the rectangle to send an action"),
     ))
-    .handle(|_: &MyAction| println!("action received")));
+    .handle(|_, _: &MyAction| println!("action received")));
 }

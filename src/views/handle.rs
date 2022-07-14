@@ -11,7 +11,7 @@ pub struct Handle<V, F, A> {
 impl<V, F, A> Handle<V, F, A>
 where
     V: View,
-    F: Fn(&A) + 'static,
+    F: Fn(&mut Context, &A) + 'static,
 {
     pub fn new(v: V, f: F) -> Self {
         Self {
@@ -25,7 +25,7 @@ where
 impl<V, F, A> View for Handle<V, F, A>
 where
     V: View,
-    F: Fn(&A) + 'static,
+    F: Fn(&mut Context, &A) + 'static,
     A: 'static,
 {
     fn process(
@@ -42,7 +42,7 @@ where
 
         for action in child_actions {
             if let Some(a) = action.downcast_ref::<A>() {
-                (self.func)(a);
+                (self.func)(cx, a);
             } else {
                 actions.push(action);
             }
