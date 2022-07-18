@@ -10,7 +10,9 @@ use std::{
 use tao::{
     accelerator::Accelerator,
     dpi::PhysicalSize,
-    event::{ElementState, Event as WEvent, MouseButton as WMouseButton, Touch, TouchPhase, WindowEvent},
+    event::{
+        ElementState, Event as WEvent, MouseButton as WMouseButton, Touch, TouchPhase, WindowEvent,
+    },
     event_loop::{ControlFlow, EventLoop, EventLoopProxy},
     keyboard::{Key as KeyPress, KeyCode, ModifiersState},
     menu::{MenuBar as Menu, MenuItem, MenuItemAttributes},
@@ -20,7 +22,10 @@ use tao::{
 #[cfg(feature = "winit")]
 use winit::{
     dpi::PhysicalSize,
-    event::{ElementState, Event as WEvent, MouseButton as WMouseButton, Touch, TouchPhase, WindowEvent, VirtualKeyCode},
+    event::{
+        ElementState, Event as WEvent, MouseButton as WMouseButton, Touch, TouchPhase,
+        VirtualKeyCode, WindowEvent,
+    },
     event_loop::{ControlFlow, EventLoop, EventLoopProxy},
     window::{Window, WindowBuilder},
 };
@@ -249,14 +254,15 @@ pub fn rui(view: impl View) {
 
     let mut config = wgpu::SurfaceConfiguration {
         usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-        format: surface.get_preferred_format(&adapter).unwrap(),
+        format: surface.get_supported_formats(&adapter)[0],
         width: size.width,
         height: size.height,
-        present_mode: wgpu::PresentMode::Mailbox,
+        present_mode: wgpu::PresentMode::Fifo,
     };
     surface.configure(&device, &config);
 
-    #[cfg(not(target_arch = "wasm32"))] {
+    #[cfg(not(target_arch = "wasm32"))]
+    {
         *GLOBAL_EVENT_LOOP_PROXY.lock().unwrap() = Some(event_loop.create_proxy());
     }
 
@@ -317,7 +323,8 @@ pub fn rui(view: impl View) {
                 // println!("received user event");
 
                 // Process the work queue.
-                #[cfg(not(target_arch = "wasm32"))] {
+                #[cfg(not(target_arch = "wasm32"))]
+                {
                     while let Some(f) = GLOBAL_WORK_QUEUE.lock().unwrap().pop_front() {
                         f(&mut cx);
                     }
@@ -418,7 +425,10 @@ pub fn rui(view: impl View) {
             }
             WEvent::WindowEvent {
                 window_id,
-                event: WindowEvent::Touch(Touch { phase, location, .. }),
+                event:
+                    WindowEvent::Touch(Touch {
+                        phase, location, ..
+                    }),
                 ..
             } => {
                 // Do not handle events from other windows.
@@ -437,8 +447,10 @@ pub fn rui(view: impl View) {
                 let event = match phase {
                     TouchPhase::Started => Some(Event::TouchBegin { id: 0, position }),
                     TouchPhase::Moved => Some(Event::TouchMove { id: 0, position }),
-                    TouchPhase::Ended | TouchPhase::Cancelled => Some(Event::TouchEnd { id: 0, position }),
-                    _ => None
+                    TouchPhase::Ended | TouchPhase::Cancelled => {
+                        Some(Event::TouchEnd { id: 0, position })
+                    }
+                    _ => None,
                 };
 
                 if let Some(event) = event {
@@ -524,32 +536,84 @@ pub fn rui(view: impl View) {
                             VirtualKeyCode::Key8 => Some(Key::Character("8")),
                             VirtualKeyCode::Key9 => Some(Key::Character("9")),
                             VirtualKeyCode::Key0 => Some(Key::Character("0")),
-                            VirtualKeyCode::A => Some(Key::Character(if cx.key_mods.shift { "A"} else { "a" })),
-                            VirtualKeyCode::B => Some(Key::Character(if cx.key_mods.shift { "B"} else { "b" })),
-                            VirtualKeyCode::C => Some(Key::Character(if cx.key_mods.shift { "C"} else { "c" })),
-                            VirtualKeyCode::D => Some(Key::Character(if cx.key_mods.shift { "D"} else { "d" })),
-                            VirtualKeyCode::E => Some(Key::Character(if cx.key_mods.shift { "E"} else { "e" })),
-                            VirtualKeyCode::F => Some(Key::Character(if cx.key_mods.shift { "F"} else { "f" })),
-                            VirtualKeyCode::G => Some(Key::Character(if cx.key_mods.shift { "G"} else { "g" })),
-                            VirtualKeyCode::H => Some(Key::Character(if cx.key_mods.shift { "H"} else { "h" })),
-                            VirtualKeyCode::I => Some(Key::Character(if cx.key_mods.shift { "I"} else { "i" })),
-                            VirtualKeyCode::J => Some(Key::Character(if cx.key_mods.shift { "J"} else { "j" })),
-                            VirtualKeyCode::K => Some(Key::Character(if cx.key_mods.shift { "K"} else { "k" })),
-                            VirtualKeyCode::L => Some(Key::Character(if cx.key_mods.shift { "L"} else { "l" })),
-                            VirtualKeyCode::M => Some(Key::Character(if cx.key_mods.shift { "M"} else { "m" })),
-                            VirtualKeyCode::N => Some(Key::Character(if cx.key_mods.shift { "N"} else { "n" })),
-                            VirtualKeyCode::O => Some(Key::Character(if cx.key_mods.shift { "O"} else { "o" })),
-                            VirtualKeyCode::P => Some(Key::Character(if cx.key_mods.shift { "P"} else { "p" })),
-                            VirtualKeyCode::Q => Some(Key::Character(if cx.key_mods.shift { "Q"} else { "q" })),
-                            VirtualKeyCode::R => Some(Key::Character(if cx.key_mods.shift { "R"} else { "r" })),
-                            VirtualKeyCode::S => Some(Key::Character(if cx.key_mods.shift { "S"} else { "s" })),
-                            VirtualKeyCode::T => Some(Key::Character(if cx.key_mods.shift { "T"} else { "t" })),
-                            VirtualKeyCode::U => Some(Key::Character(if cx.key_mods.shift { "U"} else { "u" })),
-                            VirtualKeyCode::V => Some(Key::Character(if cx.key_mods.shift { "V"} else { "v" })),
-                            VirtualKeyCode::W => Some(Key::Character(if cx.key_mods.shift { "W"} else { "w" })),
-                            VirtualKeyCode::X => Some(Key::Character(if cx.key_mods.shift { "X"} else { "x" })),
-                            VirtualKeyCode::Y => Some(Key::Character(if cx.key_mods.shift { "Y"} else { "y" })),
-                            VirtualKeyCode::Z => Some(Key::Character(if cx.key_mods.shift { "Z"} else { "z" })),
+                            VirtualKeyCode::A => {
+                                Some(Key::Character(if cx.key_mods.shift { "A" } else { "a" }))
+                            }
+                            VirtualKeyCode::B => {
+                                Some(Key::Character(if cx.key_mods.shift { "B" } else { "b" }))
+                            }
+                            VirtualKeyCode::C => {
+                                Some(Key::Character(if cx.key_mods.shift { "C" } else { "c" }))
+                            }
+                            VirtualKeyCode::D => {
+                                Some(Key::Character(if cx.key_mods.shift { "D" } else { "d" }))
+                            }
+                            VirtualKeyCode::E => {
+                                Some(Key::Character(if cx.key_mods.shift { "E" } else { "e" }))
+                            }
+                            VirtualKeyCode::F => {
+                                Some(Key::Character(if cx.key_mods.shift { "F" } else { "f" }))
+                            }
+                            VirtualKeyCode::G => {
+                                Some(Key::Character(if cx.key_mods.shift { "G" } else { "g" }))
+                            }
+                            VirtualKeyCode::H => {
+                                Some(Key::Character(if cx.key_mods.shift { "H" } else { "h" }))
+                            }
+                            VirtualKeyCode::I => {
+                                Some(Key::Character(if cx.key_mods.shift { "I" } else { "i" }))
+                            }
+                            VirtualKeyCode::J => {
+                                Some(Key::Character(if cx.key_mods.shift { "J" } else { "j" }))
+                            }
+                            VirtualKeyCode::K => {
+                                Some(Key::Character(if cx.key_mods.shift { "K" } else { "k" }))
+                            }
+                            VirtualKeyCode::L => {
+                                Some(Key::Character(if cx.key_mods.shift { "L" } else { "l" }))
+                            }
+                            VirtualKeyCode::M => {
+                                Some(Key::Character(if cx.key_mods.shift { "M" } else { "m" }))
+                            }
+                            VirtualKeyCode::N => {
+                                Some(Key::Character(if cx.key_mods.shift { "N" } else { "n" }))
+                            }
+                            VirtualKeyCode::O => {
+                                Some(Key::Character(if cx.key_mods.shift { "O" } else { "o" }))
+                            }
+                            VirtualKeyCode::P => {
+                                Some(Key::Character(if cx.key_mods.shift { "P" } else { "p" }))
+                            }
+                            VirtualKeyCode::Q => {
+                                Some(Key::Character(if cx.key_mods.shift { "Q" } else { "q" }))
+                            }
+                            VirtualKeyCode::R => {
+                                Some(Key::Character(if cx.key_mods.shift { "R" } else { "r" }))
+                            }
+                            VirtualKeyCode::S => {
+                                Some(Key::Character(if cx.key_mods.shift { "S" } else { "s" }))
+                            }
+                            VirtualKeyCode::T => {
+                                Some(Key::Character(if cx.key_mods.shift { "T" } else { "t" }))
+                            }
+                            VirtualKeyCode::U => {
+                                Some(Key::Character(if cx.key_mods.shift { "U" } else { "u" }))
+                            }
+                            VirtualKeyCode::V => {
+                                Some(Key::Character(if cx.key_mods.shift { "V" } else { "v" }))
+                            }
+                            VirtualKeyCode::W => {
+                                Some(Key::Character(if cx.key_mods.shift { "W" } else { "w" }))
+                            }
+                            VirtualKeyCode::X => {
+                                Some(Key::Character(if cx.key_mods.shift { "X" } else { "x" }))
+                            }
+                            VirtualKeyCode::Y => {
+                                Some(Key::Character(if cx.key_mods.shift { "Y" } else { "y" }))
+                            }
+                            VirtualKeyCode::Z => {
+                                Some(Key::Character(if cx.key_mods.shift { "Z" } else { "z" }))
+                            }
                             VirtualKeyCode::Period => Some(Key::Character(".")),
                             VirtualKeyCode::Comma => Some(Key::Character(",")),
                             VirtualKeyCode::Return => Some(Key::Enter),
@@ -592,7 +656,6 @@ pub fn rui(view: impl View) {
                 event: WindowEvent::ModifiersChanged(mods),
                 ..
             } => {
-
                 #[cfg(feature = "tao")]
                 {
                     cx.key_mods = KeyboardModifiers {
