@@ -17,5 +17,5 @@ Rui is experimental and not yet (or ever) intended for shipping products.
 ## Key Concepts
 
 - `View` -- your UI is expressed as a tree of views
-- `State` -- stores your applicaiton state
+- `State` -- stores your application state
 - `Binding` -- a view into your application state which can be passed to controls

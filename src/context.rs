@@ -55,7 +55,7 @@ pub struct Context {
     /// Previous touch/mouse positions.
     pub(crate) previous_position: [LocalPoint; 16],
 
-    /// Pressed mouse buton.
+    /// Pressed mouse button.
     pub(crate) mouse_button: Option<MouseButton>,
 
     /// Keyboard modifiers state.
@@ -64,7 +64,7 @@ pub struct Context {
     /// The root view ID. This should be randomized for security reasons.
     root_id: ViewId,
 
-    /// The view that has the keybord focus.
+    /// The view that has the keyboard focus.
     pub(crate) focused_id: Option<ViewId>,
 
     /// The current title of the window
