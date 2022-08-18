@@ -8,6 +8,8 @@ mod button;
 pub use button::*;
 mod canvas;
 pub use canvas::*;
+mod clip;
+pub use clip::*;
 mod command;
 pub use command::*;
 mod cond;
