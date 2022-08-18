@@ -14,7 +14,14 @@ where
     SF: Fn(S1, &mut Context) + 'static,
     F: Fn(State<S1>, &mut Context) -> V + 'static,
 {
-    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger, actions: &mut Vec<Box<dyn Any>>) {
+    fn process(
+        &self,
+        event: &Event,
+        id: ViewId,
+        cx: &mut Context,
+        vger: &mut Vger,
+        actions: &mut Vec<Box<dyn Any>>,
+    ) {
         cx.set_state(id, self.value.clone());
         let s = State::new(id);
         (self.func)(s, cx).process(event, id.child(&0), cx, vger, actions);

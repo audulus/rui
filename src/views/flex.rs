@@ -10,7 +10,14 @@ impl<V> View for Flex<V>
 where
     V: View,
 {
-    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger, actions: &mut Vec<Box<dyn Any>>) {
+    fn process(
+        &self,
+        event: &Event,
+        id: ViewId,
+        cx: &mut Context,
+        vger: &mut Vger,
+        actions: &mut Vec<Box<dyn Any>>,
+    ) {
         self.child.process(event, id.child(&0), cx, vger, actions);
     }
 

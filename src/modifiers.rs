@@ -93,7 +93,10 @@ pub trait Modifiers: View + Sized {
     }
 
     /// Handle an action from a child view.
-    fn handle<A: 'static, F: Fn(&mut Context, &A) + 'static>(self, handler: F) -> Handle<Self, F, A> {
+    fn handle<A: 'static, F: Fn(&mut Context, &A) + 'static>(
+        self,
+        handler: F,
+    ) -> Handle<Self, F, A> {
         Handle::new(self, handler)
     }
 }

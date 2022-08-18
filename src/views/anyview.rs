@@ -1,6 +1,6 @@
 use crate::*;
-use std::any::TypeId;
 use std::any::Any;
+use std::any::TypeId;
 
 /// Struct for `any_view`
 pub struct AnyView {
@@ -24,8 +24,16 @@ impl View for AnyView {
         self.child.tid()
     }
 
-    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger, actions: &mut Vec<Box<dyn Any>>) {
-        self.child.process(event, id.child(&self.id()), cx, vger, actions);
+    fn process(
+        &self,
+        event: &Event,
+        id: ViewId,
+        cx: &mut Context,
+        vger: &mut Vger,
+        actions: &mut Vec<Box<dyn Any>>,
+    ) {
+        self.child
+            .process(event, id.child(&self.id()), cx, vger, actions);
     }
 
     fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {

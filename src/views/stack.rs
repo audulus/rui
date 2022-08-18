@@ -55,7 +55,14 @@ struct Stack<VT> {
 }
 
 impl<VT: ViewTuple + 'static> View for Stack<VT> {
-    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger, actions: &mut Vec<Box<dyn Any>>) {
+    fn process(
+        &self,
+        event: &Event,
+        id: ViewId,
+        cx: &mut Context,
+        vger: &mut Vger,
+        actions: &mut Vec<Box<dyn Any>>,
+    ) {
         let mut c = 0;
         self.children.foreach_view(&mut |child| {
             let child_id = id.child(&c);

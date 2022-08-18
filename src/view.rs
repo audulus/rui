@@ -45,7 +45,15 @@ pub trait View: private::Sealed + 'static {
     fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize;
 
     /// Processes an event.
-    fn process(&self, _event: &Event, _id: ViewId, _cx: &mut Context, _vger: &mut Vger, _actions: &mut Vec<Box<dyn Any>>) {}
+    fn process(
+        &self,
+        _event: &Event,
+        _id: ViewId,
+        _cx: &mut Context,
+        _vger: &mut Vger,
+        _actions: &mut Vec<Box<dyn Any>>,
+    ) {
+    }
 
     /// Returns the type ID of the underlying view.
     fn tid(&self) -> TypeId {

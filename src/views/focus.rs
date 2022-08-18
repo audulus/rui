@@ -11,7 +11,14 @@ where
     V: View,
     F: Fn(bool) -> V + 'static,
 {
-    fn process(&self, event: &Event, vid: ViewId, cx: &mut Context, vger: &mut Vger, actions: &mut Vec<Box<dyn Any>>) {
+    fn process(
+        &self,
+        event: &Event,
+        vid: ViewId,
+        cx: &mut Context,
+        vger: &mut Vger,
+        actions: &mut Vec<Box<dyn Any>>,
+    ) {
         match &event {
             Event::TouchBegin { id: _, position } => {
                 if self.hittest(vid, *position, cx, vger).is_some() {

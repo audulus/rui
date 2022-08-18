@@ -28,7 +28,14 @@ where
     V: View,
     F: Fn(&mut Context) + 'static,
 {
-    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger, actions: &mut Vec<Box<dyn Any>>) {
+    fn process(
+        &self,
+        event: &Event,
+        id: ViewId,
+        cx: &mut Context,
+        vger: &mut Vger,
+        actions: &mut Vec<Box<dyn Any>>,
+    ) {
         if let Event::Command(name) = &event {
             if *name == self.name {
                 (self.func)(cx);
@@ -248,7 +255,14 @@ where
     V: View,
     C: CommandTuple + 'static,
 {
-    fn process(&self, event: &Event, id: ViewId, cx: &mut Context, vger: &mut Vger, actions: &mut Vec<Box<dyn Any>>) {
+    fn process(
+        &self,
+        event: &Event,
+        id: ViewId,
+        cx: &mut Context,
+        vger: &mut Vger,
+        actions: &mut Vec<Box<dyn Any>>,
+    ) {
         if let Event::Command(name) = &event {
             self.cmds.foreach_cmd(&mut |cmd| {
                 if cmd.name() == *name {
