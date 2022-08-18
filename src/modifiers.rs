@@ -99,6 +99,11 @@ pub trait Modifiers: View + Sized {
     ) -> Handle<Self, F, A> {
         Handle::new(self, handler)
     }
+
+    /// Clip to bounds.
+    fn clip(self) -> Clip<Self> {
+        Clip::new(self)
+    }
 }
 
 impl<V: View> Modifiers for V {}
