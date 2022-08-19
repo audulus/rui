@@ -6,15 +6,15 @@ pub struct Clip<V> {
 }
 
 impl<V> Clip<V>
-where V: View, {
+where
+    V: View,
+{
     fn geom(&self, id: ViewId, cx: &mut Context) -> LocalRect {
         cx.layout.entry(id).or_default().rect
     }
 
     pub fn new(child: V) -> Self {
-        Self {
-            child,
-        }
+        Self { child }
     }
 }
 
