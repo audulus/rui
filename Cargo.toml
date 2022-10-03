@@ -24,7 +24,7 @@ euclid = "0.22.6"
 tao = { version = "0.8.2", optional = true }
 wgpu = "0.13.1"
 futures = "0.3"
-vger = "0.2.2"
+vger = "0.2.3"
 accesskit = "0.3.0"
 lazy_static = "1.4.0"
 winit = { version = "0.26.1", optional = true }
