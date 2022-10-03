@@ -98,6 +98,12 @@ pub struct Context {
     window_size: Size2D<f32, WorldSpace>,
 }
 
+impl Default for Context {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Context {
     pub fn new() -> Self {
         Self {
