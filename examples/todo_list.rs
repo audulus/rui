@@ -1,20 +1,17 @@
 use rui::*;
 
 fn add_button(todos: impl Binding<Vec<String>>) -> impl View {
-    state(
-        String::new,
-        move |name, _| {
-            hstack((
-                text_editor(name),
-                button(text("Add Item"), move |cx| {
-                    let name_str = cx[name].clone();
-                    todos.with_mut(cx, |todos| todos.push(name_str));
-                    // Gotta fix a bug in text_editor!
-                    // cx[name] = String::new();
-                }),
-            ))
-        },
-    )
+    state(String::new, move |name, _| {
+        hstack((
+            text_editor(name),
+            button(text("Add Item"), move |cx| {
+                let name_str = cx[name].clone();
+                todos.with_mut(cx, |todos| todos.push(name_str));
+                // Gotta fix a bug in text_editor!
+                // cx[name] = String::new();
+            }),
+        ))
+    })
 }
 
 fn todo_list(todos: impl Binding<Vec<String>>) -> impl View {
@@ -30,8 +27,7 @@ fn todo_list(todos: impl Binding<Vec<String>>) -> impl View {
 }
 
 fn main() {
-    rui(state(
-        std::vec::Vec::new,
-        move |todos, _| vstack((add_button(todos), todo_list(todos))),
-    ));
+    rui(state(std::vec::Vec::new, move |todos, _| {
+        vstack((add_button(todos), todo_list(todos)))
+    }));
 }
