@@ -2,7 +2,13 @@ use crate::*;
 use std::any::Any;
 use std::hash::Hash;
 
+pub enum ListOrientation {
+    Vertical,
+    Z,
+}
+
 pub struct List<ID, F> {
+    orientation: ListOrientation,
     ids: Vec<ID>,
     func: F,
 }
@@ -44,23 +50,35 @@ where
     }
 
     fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {
-        let n = self.ids.len() as f32;
-        let proposed_child_size = LocalSize::new(sz.width, sz.height / n);
+        match self.orientation {
+            ListOrientation::Vertical => {
+                let n = self.ids.len() as f32;
+                let proposed_child_size = LocalSize::new(sz.width, sz.height / n);
 
-        let mut y = sz.height;
-        let mut height_sum = 0.0;
-        for child in &self.ids {
-            let child_id = id.child(child);
-            let child_size = ((self.func)(child)).layout(child_id, proposed_child_size, cx, vger);
+                let mut y = sz.height;
+                let mut height_sum = 0.0;
+                for child in &self.ids {
+                    let child_id = id.child(child);
+                    let child_size =
+                        ((self.func)(child)).layout(child_id, proposed_child_size, cx, vger);
 
-            y -= child_size.height;
-            cx.layout.entry(child_id).or_default().offset =
-                [(sz.width - child_size.width) / 2.0, y].into();
+                    y -= child_size.height;
+                    cx.layout.entry(child_id).or_default().offset =
+                        [(sz.width - child_size.width) / 2.0, y].into();
 
-            height_sum += child_size.height;
+                    height_sum += child_size.height;
+                }
+
+                LocalSize::new(sz.width, height_sum)
+            }
+            ListOrientation::Z => {
+                for child in &self.ids {
+                    let child_id = id.child(child);
+                    ((self.func)(child)).layout(child_id, sz, cx, vger);
+                }
+                sz
+            }
         }
-
-        LocalSize::new(sz.width, height_sum)
     }
 
     fn dirty(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) {
@@ -141,5 +159,17 @@ impl<ID, F> private::Sealed for List<ID, F> {}
 /// }));
 /// ```
 pub fn list<ID: Hash, V: View, F: Fn(&ID) -> V + 'static>(ids: Vec<ID>, f: F) -> List<ID, F> {
-    List { ids, func: f }
+    List {
+        orientation: ListOrientation::Vertical,
+        ids,
+        func: f,
+    }
+}
+
+pub fn zlist<ID: Hash, V: View, F: Fn(&ID) -> V + 'static>(ids: Vec<ID>, f: F) -> List<ID, F> {
+    List {
+        orientation: ListOrientation::Z,
+        ids,
+        func: f,
+    }
 }
