@@ -19,6 +19,9 @@ pub use viewtuple::*;
 mod event;
 pub use event::*;
 
+mod lens;
+pub use lens::*;
+
 mod binding;
 pub use binding::*;
 

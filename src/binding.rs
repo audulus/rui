@@ -1,10 +1,5 @@
 use crate::*;
 
-pub trait Lens<T, U>: Clone + Copy + 'static {
-    fn focus<'a>(&self, data: &'a T) -> &'a U;
-    fn focus_mut<'a>(&self, data: &'a mut T) -> &'a mut U;
-}
-
 /// Reads or writes a value owned by a source-of-truth.
 pub trait Binding<S>: Clone + Copy + 'static {
     fn get<'a>(&self, cx: &'a mut Context) -> &'a S;
