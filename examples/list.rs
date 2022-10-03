@@ -6,6 +6,6 @@ fn main() {
     let ids = (0usize..data.len()).collect();
 
     rui(list(ids, move |id| {
-        hstack((circle(), format!("{}", &data[*id])))
+        hstack((circle(), data[*id].to_string()))
     }));
 }
