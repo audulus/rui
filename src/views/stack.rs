@@ -339,7 +339,7 @@ mod tests {
         use StackItem::Flexible;
         {
             let sizes = [Fixed(1.0), Fixed(1.0)];
-            let mut intervals = [(0.0, 0.0), (0.0, 0.0)];
+            let mut intervals = [(0.0, 0.0); 2];
 
             stack_layout(4.0, &sizes, &mut intervals);
 
@@ -348,7 +348,7 @@ mod tests {
 
         {
             let sizes = [Fixed(1.0), Flexible, Fixed(1.0)];
-            let mut intervals = [(0.0, 0.0), (0.0, 0.0), (0.0, 0.0)];
+            let mut intervals = [(0.0, 0.0); 3];
 
             stack_layout(4.0, &sizes, &mut intervals);
 
@@ -357,7 +357,7 @@ mod tests {
 
         {
             let sizes = [Fixed(1.0), Fixed(1.0), Flexible];
-            let mut intervals = [(0.0, 0.0), (0.0, 0.0), (0.0, 0.0)];
+            let mut intervals = [(0.0, 0.0); 3];
 
             stack_layout(4.0, &sizes, &mut intervals);
 
