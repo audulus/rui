@@ -255,10 +255,9 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
         let mut c = 0;
         let mut node = accesskit::Node::new(id.access_id(), accesskit::Role::List);
         self.children.foreach_view(&mut |child| {
-            match child.access(id.child(&c), cx, nodes) {
-                Some(id) => node.children.push(id),
-                None => (),
-            };
+            if let Some(id) = child.access(id.child(&c), cx, nodes) {
+                node.children.push(id)
+            }
             c += 1;
         });
         nodes.push(node);
