@@ -216,12 +216,18 @@ impl Context {
         // Disable dirtying the state during layout and rendering
         // to avoid constantly re-rendering if some state is saved.
         self.enable_dirty = false;
-        view.layout(
+        let local_window_size = window_size.cast_unit::<LocalSpace>();
+        let sz = view.layout(
             self.root_id,
-            [window_size.width, window_size.height].into(),
+            local_window_size,
             self,
             vger,
         );
+
+        // Center the root view in the window.
+        let center_offset = (local_window_size - sz) / 2.0;
+
+        vger.translate(center_offset);
         view.draw(self.root_id, self, vger);
         self.enable_dirty = true;
 
