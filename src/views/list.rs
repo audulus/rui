@@ -55,21 +55,41 @@ where
                 let n = self.ids.len() as f32;
                 let proposed_child_size = LocalSize::new(sz.width, sz.height / n);
 
-                let mut y = sz.height;
+                let mut sizes = Vec::<LocalSize>::new();
+                sizes.reserve(self.ids.len());
+
                 let mut height_sum = 0.0;
                 for child in &self.ids {
                     let child_id = id.child(child);
                     let child_size =
                         ((self.func)(child)).layout(child_id, proposed_child_size, cx, vger);
-
-                    y -= child_size.height;
-                    cx.layout.entry(child_id).or_default().offset =
-                        [(sz.width - child_size.width) / 2.0, y].into();
+                    sizes.push(child_size);
 
                     height_sum += child_size.height;
                 }
 
-                LocalSize::new(sz.width, height_sum)
+                let mut max_width = 0.0;
+                for size in &sizes {
+                    max_width = size.width.max(max_width)
+                }
+                
+                let mut y = height_sum;
+                for c in 0..self.ids.len() {
+                    let child_id = id.child(&self.ids[c]);
+                    let child_size = sizes[c];
+
+                    let child_offset = align_h(
+                        LocalRect::new(LocalPoint::origin(), child_size),
+                        LocalRect::new([0.0, y - child_size.height].into(), [max_width, child_size.height].into()),
+                        HAlignment::Center,
+                    );
+
+                    cx.layout.entry(child_id).or_default().offset = child_offset;
+
+                    y -= child_size.height;
+                }
+
+                LocalSize::new(max_width, height_sum)
             }
             ListOrientation::Z => {
                 for child in &self.ids {
