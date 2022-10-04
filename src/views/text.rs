@@ -23,7 +23,7 @@ impl View for Text {
         vger.text(self.text.as_str(), self.size, TEXT_COLOR, None);
         vger.restore();
     }
-    fn layout(&self, id: ViewId, _sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {
+    fn layout(&self, _id: ViewId, _sz: LocalSize, _cx: &mut Context, vger: &mut Vger) -> LocalSize {
         vger.text_bounds(self.text.as_str(), self.size, None).size
     }
     fn hittest(
