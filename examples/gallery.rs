@@ -41,7 +41,7 @@ fn text_editor_example() -> impl View {
 
 fn main() {
     rui(vstack((
-        "rui widget gallery",
+        "rui widget gallery".padding(10.0),
         button_example(),
         slider_example(),
         knob_example(),
