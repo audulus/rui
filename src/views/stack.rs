@@ -147,7 +147,7 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
                     cx.layout.entry(child_id).or_default().offset = child_offset;
                 }
 
-                sz
+                [length, sz.height].into()
             }
             StackOrientation::Vertical => {
                 let proposed_child_size = LocalSize::new(sz.width, sz.height / n);
@@ -189,7 +189,7 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
                     cx.layout.entry(child_id).or_default().offset = child_offset;
                 }
 
-                sz
+                [sz.width, length].into()
             }
             StackOrientation::Z => {
                 let mut c = 0;
