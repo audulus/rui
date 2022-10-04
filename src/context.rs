@@ -96,6 +96,9 @@ pub struct Context {
 
     /// Previous window size.
     window_size: Size2D<f32, WorldSpace>,
+
+    /// Offset for events at the root level.
+    root_offset: LocalOffset,
 }
 
 impl Default for Context {
@@ -125,6 +128,7 @@ impl Context {
             deps: HashMap::new(),
             id_stack: vec![],
             window_size: Size2D::default(),
+            root_offset: LocalOffset::zero(),
         }
     }
 
@@ -225,9 +229,9 @@ impl Context {
         );
 
         // Center the root view in the window.
-        let center_offset = (local_window_size - sz) / 2.0;
+        self.root_offset = ((local_window_size - sz) / 2.0).into();
 
-        vger.translate(center_offset);
+        vger.translate(self.root_offset);
         view.draw(self.root_id, self, vger);
         self.enable_dirty = true;
 
@@ -270,7 +274,7 @@ impl Context {
     /// Process a UI event.
     pub fn process(&mut self, view: &impl View, event: &Event, vger: &mut Vger) {
         let mut actions = vec![];
-        view.process(event, self.root_id, self, vger, &mut actions);
+        view.process(&event.offset(-self.root_offset), self.root_id, self, vger, &mut actions);
 
         for action in actions {
             if !action.is::<()>() {
