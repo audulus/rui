@@ -13,7 +13,16 @@ pub enum StackItem {
 }
 
 /// 1-D stack layout to make the algorithm clear.
-pub fn stack_layout(total: f32, sizes: &[StackItem], intervals: &mut [(f32, f32)]) -> f32 {
+///
+/// Returns length used to express the layout. If there are any
+/// flexible items, will return `total`, since the flexible items
+/// will expand to fill the available space.
+pub fn stack_layout(
+    total: f32,
+    sizes: &[StackItem],
+    intervals: &mut [(f32, f32)],
+    flex_length: &mut f32,
+) -> f32 {
     assert_eq!(sizes.len(), intervals.len());
 
     // Count the number of flexible items and total of fixed sizes.
@@ -27,26 +36,20 @@ pub fn stack_layout(total: f32, sizes: &[StackItem], intervals: &mut [(f32, f32)
     }
 
     // length of flexible items is remaining size divided equally
-    let flex_length = (total - sizes_sum) / (flex_count as f32);
+    *flex_length = (total - sizes_sum) / (flex_count as f32);
 
     let mut x = 0.0;
     for i in 0..sizes.len() {
         let sz = match sizes[i] {
-            StackItem::Flexible => flex_length,
-            StackItem::Fixed(s) => {
-                if flex_count != 0 {
-                    s
-                } else {
-                    total / (sizes.len() as f32)
-                }
-            }
+            StackItem::Flexible => *flex_length,
+            StackItem::Fixed(s) => s,
         };
 
         intervals[i] = (x, x + sz);
         x += sz;
     }
 
-    flex_length
+    x
 }
 
 struct Stack<VT> {
@@ -119,8 +122,9 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
                 });
                 let mut intervals = [(0.0, 0.0); VIEW_TUPLE_MAX_ELEMENTS];
                 let n = self.children.len();
-                let flex_length =
-                    stack_layout(sz.width, &child_sizes_1d[0..n], &mut intervals[0..n]);
+                let mut flex_length = 0.0;
+                let length =
+                    stack_layout(sz.width, &child_sizes_1d[0..n], &mut intervals[0..n], &mut flex_length);
 
                 self.layout_flex_children(
                     id,
@@ -159,8 +163,9 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
                 });
                 let mut intervals = [(0.0, 0.0); VIEW_TUPLE_MAX_ELEMENTS];
                 let n = self.children.len();
-                let flex_length =
-                    stack_layout(sz.height, &child_sizes_1d[0..n], &mut intervals[0..n]);
+                let mut flex_length = 0.0;
+                let length =
+                    stack_layout(sz.height, &child_sizes_1d[0..n], &mut intervals[0..n], &mut flex_length);
 
                 self.layout_flex_children(
                     id,
@@ -341,9 +346,11 @@ mod tests {
             let sizes = [Fixed(1.0), Fixed(1.0)];
             let mut intervals = [(0.0, 0.0); 2];
 
-            let flex_length = stack_layout(4.0, &sizes, &mut intervals);
+            let mut flex_length = 0.0;
+            let length = stack_layout(4.0, &sizes, &mut intervals, &mut flex_length);
 
             assert!(flex_length.is_infinite());
+            assert_eq!(length, 2.0);
             println!("intervals: {:?}", intervals);
         }
 
@@ -351,9 +358,11 @@ mod tests {
             let sizes = [Fixed(1.0), Flexible, Fixed(1.0)];
             let mut intervals = [(0.0, 0.0); 3];
 
-            let flex_length = stack_layout(4.0, &sizes, &mut intervals);
+            let mut flex_length = 0.0;
+            let length = stack_layout(4.0, &sizes, &mut intervals, &mut flex_length);
 
             assert_eq!(flex_length, 2.0);
+            assert_eq!(length, 4.0);
             println!("intervals: {:?}", intervals);
         }
 
@@ -361,9 +370,11 @@ mod tests {
             let sizes = [Fixed(1.0), Fixed(1.0), Flexible];
             let mut intervals = [(0.0, 0.0); 3];
 
-            let flex_length = stack_layout(4.0, &sizes, &mut intervals);
+            let mut flex_length = 0.0;
+            let length = stack_layout(4.0, &sizes, &mut intervals, &mut flex_length);
 
             assert_eq!(flex_length, 2.0);
+            assert_eq!(length, 4.0);
             println!("intervals: {:?}", intervals);
         }
     }
