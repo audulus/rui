@@ -24,16 +24,7 @@ impl View for Text {
         vger.restore();
     }
     fn layout(&self, id: ViewId, _sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {
-        let size = vger.text_bounds(self.text.as_str(), self.size, None).size;
-
-        cx.layout.insert(
-            id,
-            LayoutBox {
-                rect: LocalRect::new(LocalPoint::zero(), size),
-                offset: LocalOffset::zero(),
-            },
-        );
-        size
+        vger.text_bounds(self.text.as_str(), self.size, None).size
     }
     fn hittest(
         &self,
