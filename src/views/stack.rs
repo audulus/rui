@@ -138,20 +138,25 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
                     &mut child_sizes,
                 );
 
+                let mut max_height = 0.0;
+                for size in &child_sizes[0..self.children.len()] {
+                    max_height = size.unwrap().height.max(max_height)
+                }
+
                 for c in 0..(self.children.len() as i32) {
                     let child_id = id.child(&c);
                     let ab = intervals[c as usize];
 
                     let child_offset = align_h(
                         LocalRect::new(LocalPoint::origin(), child_sizes[c as usize].unwrap()),
-                        LocalRect::new([ab.0, 0.0].into(), [ab.1 - ab.0, sz.height].into()),
+                        LocalRect::new([ab.0, 0.0].into(), [ab.1 - ab.0, max_height].into()),
                         HAlignment::Center,
                     );
 
                     cx.layout.entry(child_id).or_default().offset = child_offset;
                 }
 
-                [length, sz.height].into()
+                [length, max_height].into()
             }
             StackOrientation::Vertical => {
                 let proposed_child_size = LocalSize::new(sz.width, sz.height / n);
@@ -183,6 +188,11 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
                     &mut child_sizes,
                 );
 
+                let mut max_width = 0.0;
+                for size in &child_sizes[0..self.children.len()] {
+                    max_width = size.unwrap().width.max(max_width)
+                }
+
                 for c in 0..(self.children.len() as i32) {
                     let child_id = id.child(&c);
                     let ab = intervals[c as usize];
@@ -190,14 +200,14 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
                     let h = ab.1 - ab.0;
                     let child_offset = align_h(
                         LocalRect::new(LocalPoint::origin(), child_sizes[c as usize].unwrap()),
-                        LocalRect::new([0.0, length - ab.0 - h].into(), [sz.width, h].into()),
+                        LocalRect::new([0.0, length - ab.0 - h].into(), [max_width, h].into()),
                         HAlignment::Center,
                     );
 
                     cx.layout.entry(child_id).or_default().offset = child_offset;
                 }
 
-                [sz.width, length].into()
+                [max_width, length].into()
             }
             StackOrientation::Z => {
                 let mut c = 0;
