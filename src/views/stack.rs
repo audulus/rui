@@ -147,10 +147,10 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
                     let child_id = id.child(&c);
                     let ab = intervals[c as usize];
 
-                    let child_offset = align_h(
+                    let child_offset = align_v(
                         LocalRect::new(LocalPoint::origin(), child_sizes[c as usize].unwrap()),
                         LocalRect::new([ab.0, 0.0].into(), [ab.1 - ab.0, max_height].into()),
-                        HAlignment::Center,
+                        VAlignment::Middle,
                     );
 
                     cx.layout.entry(child_id).or_default().offset = child_offset;
