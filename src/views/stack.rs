@@ -341,8 +341,9 @@ mod tests {
             let sizes = [Fixed(1.0), Fixed(1.0)];
             let mut intervals = [(0.0, 0.0); 2];
 
-            stack_layout(4.0, &sizes, &mut intervals);
+            let flex_length = stack_layout(4.0, &sizes, &mut intervals);
 
+            assert!(flex_length.is_infinite());
             println!("intervals: {:?}", intervals);
         }
 
@@ -350,8 +351,9 @@ mod tests {
             let sizes = [Fixed(1.0), Flexible, Fixed(1.0)];
             let mut intervals = [(0.0, 0.0); 3];
 
-            stack_layout(4.0, &sizes, &mut intervals);
+            let flex_length = stack_layout(4.0, &sizes, &mut intervals);
 
+            assert_eq!(flex_length, 2.0);
             println!("intervals: {:?}", intervals);
         }
 
@@ -359,8 +361,9 @@ mod tests {
             let sizes = [Fixed(1.0), Fixed(1.0), Flexible];
             let mut intervals = [(0.0, 0.0); 3];
 
-            stack_layout(4.0, &sizes, &mut intervals);
-
+            let flex_length = stack_layout(4.0, &sizes, &mut intervals);
+            
+            assert_eq!(flex_length, 2.0);
             println!("intervals: {:?}", intervals);
         }
     }
