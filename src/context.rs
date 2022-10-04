@@ -40,6 +40,13 @@ pub(crate) type StateMap = HashMap<ViewId, StateHolder>;
 
 pub(crate) type EnvMap = HashMap<TypeId, Box<dyn Any>>;
 
+pub struct RenderInfo<'a> {
+    pub device: &'a wgpu::Device,
+    pub surface: &'a wgpu::Surface,
+    pub config: &'a wgpu::SurfaceConfiguration,
+    pub queue: &'a wgpu::Queue,
+}
+
 /// The Context stores all UI state. A user of the library
 /// shouldn't have to interact with it directly.
 pub struct Context {
@@ -196,15 +203,15 @@ impl Context {
     /// Redraw the UI using wgpu.
     pub fn render(
         &mut self,
-        device: &wgpu::Device,
-        surface: &wgpu::Surface,
-        config: &wgpu::SurfaceConfiguration,
-        queue: &wgpu::Queue,
+        render_info: RenderInfo,
         view: &impl View,
         vger: &mut Vger,
         window_size: Size2D<f32, WorldSpace>,
         scale: f32,
     ) {
+        let surface = render_info.surface;
+        let device = render_info.device;
+        let config = render_info.config;
         let frame = match surface.get_current_texture() {
             Ok(frame) => frame,
             Err(_) => {
@@ -221,12 +228,7 @@ impl Context {
         // to avoid constantly re-rendering if some state is saved.
         self.enable_dirty = false;
         let local_window_size = window_size.cast_unit::<LocalSpace>();
-        let sz = view.layout(
-            self.root_id,
-            local_window_size,
-            self,
-            vger,
-        );
+        let sz = view.layout(self.root_id, local_window_size, self, vger);
 
         // Center the root view in the window.
         self.root_offset = ((local_window_size - sz) / 2.0).into();
@@ -266,7 +268,7 @@ impl Context {
             depth_stencil_attachment: None,
         };
 
-        vger.encode(device, &desc, queue);
+        vger.encode(device, &desc, render_info.queue);
 
         frame.present();
     }
@@ -274,7 +276,13 @@ impl Context {
     /// Process a UI event.
     pub fn process(&mut self, view: &impl View, event: &Event, vger: &mut Vger) {
         let mut actions = vec![];
-        view.process(&event.offset(-self.root_offset), self.root_id, self, vger, &mut actions);
+        view.process(
+            &event.offset(-self.root_offset),
+            self.root_id,
+            self,
+            vger,
+            &mut actions,
+        );
 
         for action in actions {
             if !action.is::<()>() {

@@ -123,8 +123,12 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
                 let mut intervals = [(0.0, 0.0); VIEW_TUPLE_MAX_ELEMENTS];
                 let n = self.children.len();
                 let mut flex_length = 0.0;
-                let length =
-                    stack_layout(sz.width, &child_sizes_1d[0..n], &mut intervals[0..n], &mut flex_length);
+                let length = stack_layout(
+                    sz.width,
+                    &child_sizes_1d[0..n],
+                    &mut intervals[0..n],
+                    &mut flex_length,
+                );
 
                 self.layout_flex_children(
                     id,
@@ -164,8 +168,12 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
                 let mut intervals = [(0.0, 0.0); VIEW_TUPLE_MAX_ELEMENTS];
                 let n = self.children.len();
                 let mut flex_length = 0.0;
-                let length =
-                    stack_layout(sz.height, &child_sizes_1d[0..n], &mut intervals[0..n], &mut flex_length);
+                let length = stack_layout(
+                    sz.height,
+                    &child_sizes_1d[0..n],
+                    &mut intervals[0..n],
+                    &mut flex_length,
+                );
 
                 self.layout_flex_children(
                     id,

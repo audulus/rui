@@ -383,10 +383,12 @@ pub fn rui(view: impl View) {
 
                 // println!("RedrawRequested");
                 cx.render(
-                    &device,
-                    &surface,
-                    &config,
-                    &queue,
+                    RenderInfo {
+                        device: &device,
+                        surface: &surface,
+                        config: &config,
+                        queue: &queue,
+                    },
                     &view,
                     &mut vger,
                     [width, height].into(),
