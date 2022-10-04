@@ -182,7 +182,7 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
                     let h = ab.1 - ab.0;
                     let child_offset = align_h(
                         LocalRect::new(LocalPoint::origin(), child_sizes[c as usize].unwrap()),
-                        LocalRect::new([0.0, sz.height - ab.0 - h].into(), [sz.width, h].into()),
+                        LocalRect::new([0.0, length - ab.0 - h].into(), [sz.width, h].into()),
                         HAlignment::Center,
                     );
 
