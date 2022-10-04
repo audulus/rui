@@ -108,7 +108,7 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
                 let proposed_child_size = LocalSize::new(sz.width / n, sz.height);
 
                 let mut child_sizes = [None; VIEW_TUPLE_MAX_ELEMENTS];
-                self.layout_children(id, proposed_child_size, cx, vger, &mut child_sizes);
+                self.layout_fixed_children(id, proposed_child_size, cx, vger, &mut child_sizes);
 
                 let child_sizes_1d = child_sizes.map(|x| {
                     if let Some(s) = x {
@@ -148,7 +148,7 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
             StackOrientation::Vertical => {
                 let proposed_child_size = LocalSize::new(sz.width, sz.height / n);
                 let mut child_sizes = [None; VIEW_TUPLE_MAX_ELEMENTS];
-                self.layout_children(id, proposed_child_size, cx, vger, &mut child_sizes);
+                self.layout_fixed_children(id, proposed_child_size, cx, vger, &mut child_sizes);
 
                 let child_sizes_1d = child_sizes.map(|x| {
                     if let Some(s) = x {
@@ -273,7 +273,7 @@ impl<VT: ViewTuple> Stack<VT> {
         }
     }
 
-    pub fn layout_children(
+    pub fn layout_fixed_children(
         &self,
         id: ViewId,
         proposed_child_size: LocalSize,
@@ -362,7 +362,7 @@ mod tests {
             let mut intervals = [(0.0, 0.0); 3];
 
             let flex_length = stack_layout(4.0, &sizes, &mut intervals);
-            
+
             assert_eq!(flex_length, 2.0);
             println!("intervals: {:?}", intervals);
         }
