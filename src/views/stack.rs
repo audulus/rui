@@ -8,12 +8,21 @@ pub enum StackOrientation {
     Z,
 }
 
-struct Stack<VT> {
+struct Stack<VT, D> {
     orientation: StackOrientation,
     children: VT,
+    phantom_direction: std::marker::PhantomData<D>,
 }
 
-impl<VT: ViewTuple + 'static> View for Stack<VT> {
+trait StackDirection { }
+struct HorizontalDirection {}
+impl StackDirection for HorizontalDirection {}
+struct VerticalDirection {}
+impl StackDirection for VerticalDirection {}
+struct ZDirection {}
+impl StackDirection for ZDirection {}
+
+impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D> {
     fn process(
         &self,
         event: &Event,
@@ -244,11 +253,12 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
     }
 }
 
-impl<VT: ViewTuple> Stack<VT> {
+impl<VT: ViewTuple, D: StackDirection> Stack<VT, D> {
     pub fn new(orientation: StackOrientation, children: VT) -> Self {
         Self {
             orientation,
             children,
+            phantom_direction: std::marker::PhantomData::default()
         }
     }
 
@@ -290,19 +300,19 @@ impl<VT: ViewTuple> Stack<VT> {
     }
 }
 
-impl<VT> private::Sealed for Stack<VT> {}
+impl<VT, D> private::Sealed for Stack<VT, D> {}
 
 /// Horizontal stack of up to 128 Views in a tuple. Each item can be a different view type.
 pub fn hstack<VT: ViewTuple + 'static>(children: VT) -> impl View {
-    Stack::new(StackOrientation::Horizontal, children)
+    Stack::<VT, HorizontalDirection>::new(StackOrientation::Horizontal, children)
 }
 
 /// Vertical stack of up to 128 Views in a tuple. Each item can be a different view type.
 pub fn vstack<VT: ViewTuple + 'static>(children: VT) -> impl View {
-    Stack::new(StackOrientation::Vertical, children)
+    Stack::<VT, VerticalDirection>::new(StackOrientation::Vertical, children)
 }
 
 /// Stack of up to 128 overlaid Views in a tuple. Each item can be a different view type.
 pub fn zstack<VT: ViewTuple + 'static>(children: VT) -> impl View {
-    Stack::new(StackOrientation::Z, children)
+    Stack::<VT, VerticalDirection>::new(StackOrientation::Z, children)
 }
