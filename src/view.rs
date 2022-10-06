@@ -42,6 +42,13 @@ pub trait View: private::Sealed + 'static {
     }
 
     /// Lays out subviews and return the size of the view.
+    /// 
+    /// `sz` is the available size for the view
+    /// `vger` can be used to get text sizing
+    /// 
+    /// Note that we should probably have a separate text
+    /// sizing interface so we don't need a GPU and graphics
+    /// context set up to test layout.
     fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize;
 
     /// Processes an event.
