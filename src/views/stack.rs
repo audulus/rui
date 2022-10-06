@@ -1,19 +1,35 @@
+use crate::views::stack_layout::*;
 use crate::*;
 use std::any::Any;
-use crate::views::stack_layout::*;
 
-pub enum StackOrientation {
+enum StackOrientation {
     Horizontal,
     Vertical,
     Z,
 }
 
-struct Stack<VT> {
-    orientation: StackOrientation,
+struct Stack<VT, D> {
     children: VT,
+    phantom_direction: std::marker::PhantomData<D>,
 }
 
-impl<VT: ViewTuple + 'static> View for Stack<VT> {
+trait StackDirection {
+    const ORIENTATION: StackOrientation;
+}
+struct HorizontalDirection {}
+impl StackDirection for HorizontalDirection {
+    const ORIENTATION: StackOrientation = StackOrientation::Horizontal;
+}
+struct VerticalDirection {}
+impl StackDirection for VerticalDirection {
+    const ORIENTATION: StackOrientation = StackOrientation::Vertical;
+}
+struct ZDirection {}
+impl StackDirection for ZDirection {
+    const ORIENTATION: StackOrientation = StackOrientation::Z;
+}
+
+impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D> {
     fn process(
         &self,
         event: &Event,
@@ -62,7 +78,7 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
     fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {
         let n = self.children.len() as f32;
 
-        match self.orientation {
+        match D::ORIENTATION {
             StackOrientation::Horizontal => {
                 let proposed_child_size = LocalSize::new(sz.width / n, sz.height);
 
@@ -244,11 +260,11 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
     }
 }
 
-impl<VT: ViewTuple> Stack<VT> {
-    pub fn new(orientation: StackOrientation, children: VT) -> Self {
+impl<VT: ViewTuple, D: StackDirection> Stack<VT, D> {
+    pub fn new(children: VT) -> Self {
         Self {
-            orientation,
             children,
+            phantom_direction: std::marker::PhantomData::default(),
         }
     }
 
@@ -290,19 +306,19 @@ impl<VT: ViewTuple> Stack<VT> {
     }
 }
 
-impl<VT> private::Sealed for Stack<VT> {}
+impl<VT, D> private::Sealed for Stack<VT, D> {}
 
 /// Horizontal stack of up to 128 Views in a tuple. Each item can be a different view type.
 pub fn hstack<VT: ViewTuple + 'static>(children: VT) -> impl View {
-    Stack::new(StackOrientation::Horizontal, children)
+    Stack::<VT, HorizontalDirection>::new(children)
 }
 
 /// Vertical stack of up to 128 Views in a tuple. Each item can be a different view type.
 pub fn vstack<VT: ViewTuple + 'static>(children: VT) -> impl View {
-    Stack::new(StackOrientation::Vertical, children)
+    Stack::<VT, VerticalDirection>::new(children)
 }
 
 /// Stack of up to 128 overlaid Views in a tuple. Each item can be a different view type.
 pub fn zstack<VT: ViewTuple + 'static>(children: VT) -> impl View {
-    Stack::new(StackOrientation::Z, children)
+    Stack::<VT, ZDirection>::new(children)
 }
