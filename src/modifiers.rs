@@ -36,6 +36,17 @@ pub trait Modifiers: View + Sized {
         Drag::new(self, f)
     }
 
+    /// Calls a function in response to a drag. Version which passes in a binding.
+    fn drag_s<T: 'static,
+              B: Binding<T>,
+              F: Fn(&mut T, LocalOffset, GestureState, Option<MouseButton>) + 'static>(
+        self,
+        s: B,
+        f: F,
+    ) -> DragS<Self, F, B, T> {
+        DragS::new(self, s, f)
+    }
+
     /// Add an environment value.
     fn env<E: Clone + 'static>(self, value: E) -> SetenvView<Self, E> {
         SetenvView::new(self, value)
