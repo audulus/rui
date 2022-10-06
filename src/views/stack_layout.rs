@@ -1,4 +1,3 @@
-
 pub enum StackItem {
     Fixed(f32),
     Flexible,
@@ -43,7 +42,6 @@ pub fn stack_layout(
 
     x
 }
-
 
 #[cfg(test)]
 mod tests {

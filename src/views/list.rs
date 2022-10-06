@@ -72,7 +72,7 @@ where
                 for size in &sizes {
                     max_width = size.width.max(max_width)
                 }
-                
+
                 let mut y = height_sum;
                 for c in 0..self.ids.len() {
                     let child_id = id.child(&self.ids[c]);
@@ -80,7 +80,10 @@ where
 
                     let child_offset = align_h(
                         LocalRect::new(LocalPoint::origin(), child_size),
-                        LocalRect::new([0.0, y - child_size.height].into(), [max_width, child_size.height].into()),
+                        LocalRect::new(
+                            [0.0, y - child_size.height].into(),
+                            [max_width, child_size.height].into(),
+                        ),
                         HAlignment::Center,
                     );
 

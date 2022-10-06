@@ -1,6 +1,6 @@
+use crate::views::stack_layout::*;
 use crate::*;
 use std::any::Any;
-use crate::views::stack_layout::*;
 
 enum StackOrientation {
     Horizontal,
@@ -13,7 +13,7 @@ struct Stack<VT, D> {
     phantom_direction: std::marker::PhantomData<D>,
 }
 
-trait StackDirection { 
+trait StackDirection {
     const ORIENTATION: StackOrientation;
 }
 struct HorizontalDirection {}
@@ -264,7 +264,7 @@ impl<VT: ViewTuple, D: StackDirection> Stack<VT, D> {
     pub fn new(children: VT) -> Self {
         Self {
             children,
-            phantom_direction: std::marker::PhantomData::default()
+            phantom_direction: std::marker::PhantomData::default(),
         }
     }
 
