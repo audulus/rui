@@ -196,6 +196,6 @@ pub fn state<
 }
 
 /// Convenience to get the context.
-pub fn get_cx<V: View, F: Fn(&mut Context) -> V + 'static>(f: F) -> impl View {
+pub fn with_cx<V: View, F: Fn(&mut Context) -> V + 'static>(f: F) -> impl View {
     state(|| (), move |_, cx| f(cx))
 }

@@ -7,7 +7,7 @@ struct MyState {
 
 /// A slider with a value.
 fn my_slider(s: State<f32>) -> impl View {
-    get_cx(move |cx| {
+    with_cx(move |cx| {
         vstack((
             cx[s].font_size(10).padding(Auto),
             hslider(s).thumb_color(RED_HIGHLIGHT).padding(Auto),
