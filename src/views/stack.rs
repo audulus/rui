@@ -2,7 +2,7 @@ use crate::*;
 use std::any::Any;
 use crate::views::stack_layout::*;
 
-pub enum StackOrientation {
+enum StackOrientation {
     Horizontal,
     Vertical,
     Z,
