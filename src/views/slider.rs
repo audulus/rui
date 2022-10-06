@@ -60,8 +60,8 @@ pub fn hslider(value: impl Binding<f32>) -> impl SliderMods {
                         cx[width] = sz.width;
                     }
                 })
-                .drag(move |cx, off, _state, _mouse_button| {
-                    value.with_mut(cx, |v| *v = (*v + off.x / w).clamp(0.0, 1.0));
+                .drag_s(value, move |v, delta, _, _| {
+                    *v = (*v + delta.x / w).clamp(0.0, 1.0)
                 })
             },
         )
