@@ -13,7 +13,10 @@ struct Stack<VT> {
     children: VT,
 }
 
-impl<VT: ViewTuple + 'static> View for Stack<VT> {
+/// Common functions shared between stack types.
+trait StackCommon<VT: ViewTuple> {
+    fn with_children(&self, f: impl FnOnce(&VT));
+
     fn process(
         &self,
         event: &Event,
@@ -23,13 +26,101 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
         actions: &mut Vec<Box<dyn Any>>,
     ) {
         let mut c = 0;
-        self.children.foreach_view(&mut |child| {
-            let child_id = id.child(&c);
-            let offset = cx.layout.entry(child_id).or_default().offset;
-            (*child).process(&event.offset(-offset), child_id, cx, vger, actions);
-            c += 1;
+        self.with_children(&mut |children: &VT| {
+            children.foreach_view(&mut |child| {
+                let child_id = id.child(&c);
+                let offset = cx.layout.entry(child_id).or_default().offset;
+                (*child).process(&event.offset(-offset), child_id, cx, vger, actions);
+                c += 1;
+            })
         })
     }
+
+    fn dirty(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) {
+        let mut c = 0;
+        self.with_children(&mut |children: &VT| {
+            children.foreach_view(&mut |child| {
+                let child_id = id.child(&c);
+                let offset = cx.layout.entry(child_id).or_default().offset;
+                let xf = xform.pre_translate(offset);
+                child.dirty(child_id, xf, cx);
+                c += 1;
+            })
+        })
+    }
+
+    fn hittest(
+        &self,
+        id: ViewId,
+        pt: LocalPoint,
+        cx: &mut Context,
+        vger: &mut Vger,
+    ) -> Option<ViewId> {
+        let mut c = 0;
+        let mut hit = None;
+        self.with_children(&mut |children: &VT| {
+            children.foreach_view(&mut |child| {
+                let child_id = id.child(&c);
+                let offset = cx.layout.entry(child_id).or_default().offset;
+
+                if let Some(h) = child.hittest(child_id, pt - offset, cx, vger) {
+                    hit = Some(h)
+                }
+
+                c += 1;
+            })
+        });
+        hit
+    }
+
+    fn commands(&self, id: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
+        let mut c = 0;
+        self.with_children(&mut |children: &VT| {
+            children.foreach_view(&mut |child| {
+                child.commands(id.child(&c), cx, cmds);
+                c += 1;
+            })
+        })
+    }
+
+    fn gc(&self, id: ViewId, cx: &mut Context, map: &mut Vec<ViewId>) {
+        let mut c = 0;
+        self.with_children(&mut |children: &VT| {
+            children.foreach_view(&mut |child| {
+                child.gc(id.child(&c), cx, map);
+                c += 1;
+            })
+        })
+    }
+
+    fn access(
+        &self,
+        id: ViewId,
+        cx: &mut Context,
+        nodes: &mut Vec<accesskit::Node>,
+    ) -> Option<accesskit::NodeId> {
+        let mut c = 0;
+        let mut node = accesskit::Node::new(id.access_id(), accesskit::Role::List);
+        self.with_children(&mut |children: &VT| {
+            children.foreach_view(&mut |child| {
+                if let Some(id) = child.access(id.child(&c), cx, nodes) {
+                    node.children.push(id)
+                }
+                c += 1;
+            })
+        });
+        nodes.push(node);
+        Some(id.access_id())
+    }
+}
+
+impl<VT: ViewTuple + 'static> StackCommon<VT> for Stack<VT> {
+    fn with_children(&self, f: impl FnOnce(&VT)) {
+        f(&self.children)
+    }
+}
+
+impl<VT: ViewTuple + 'static> View for Stack<VT> {
 
     fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {
         let mut c = 0;
@@ -176,72 +267,6 @@ impl<VT: ViewTuple + 'static> View for Stack<VT> {
         }
     }
 
-    fn dirty(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) {
-        let mut c = 0;
-        self.children.foreach_view(&mut |child| {
-            let child_id = id.child(&c);
-            let offset = cx.layout.entry(child_id).or_default().offset;
-            let xf = xform.pre_translate(offset);
-            child.dirty(child_id, xf, cx);
-            c += 1;
-        })
-    }
-
-    fn hittest(
-        &self,
-        id: ViewId,
-        pt: LocalPoint,
-        cx: &mut Context,
-        vger: &mut Vger,
-    ) -> Option<ViewId> {
-        let mut c = 0;
-        let mut hit = None;
-        self.children.foreach_view(&mut |child| {
-            let child_id = id.child(&c);
-            let offset = cx.layout.entry(child_id).or_default().offset;
-
-            if let Some(h) = child.hittest(child_id, pt - offset, cx, vger) {
-                hit = Some(h)
-            }
-
-            c += 1;
-        });
-        hit
-    }
-
-    fn commands(&self, id: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
-        let mut c = 0;
-        self.children.foreach_view(&mut |child| {
-            child.commands(id.child(&c), cx, cmds);
-            c += 1;
-        });
-    }
-
-    fn gc(&self, id: ViewId, cx: &mut Context, map: &mut Vec<ViewId>) {
-        let mut c = 0;
-        self.children.foreach_view(&mut |child| {
-            child.gc(id.child(&c), cx, map);
-            c += 1;
-        });
-    }
-
-    fn access(
-        &self,
-        id: ViewId,
-        cx: &mut Context,
-        nodes: &mut Vec<accesskit::Node>,
-    ) -> Option<accesskit::NodeId> {
-        let mut c = 0;
-        let mut node = accesskit::Node::new(id.access_id(), accesskit::Role::List);
-        self.children.foreach_view(&mut |child| {
-            if let Some(id) = child.access(id.child(&c), cx, nodes) {
-                node.children.push(id)
-            }
-            c += 1;
-        });
-        nodes.push(node);
-        Some(id.access_id())
-    }
 }
 
 impl<VT: ViewTuple> Stack<VT> {
