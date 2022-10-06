@@ -12,8 +12,8 @@ pub fn knob(value: impl Binding<f32>) -> impl View {
     zstack((
         circle()
             .color(CLEAR_COLOR)
-            .drag_s(value, move |v, off, _state, _mouse_button| {
-                *v = (*v + (off.x + off.y) / 400.0).clamp(0.0, 1.0)
+            .drag_s(value, move |v, delta, _, _| {
+                *v = (*v + (delta.x + delta.y) / 400.0).clamp(0.0, 1.0)
             }),
         canvas(move |cx, sz, vger| {
             let c = sz.center();
