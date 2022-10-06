@@ -320,5 +320,5 @@ pub fn vstack<VT: ViewTuple + 'static>(children: VT) -> impl View {
 
 /// Stack of up to 128 overlaid Views in a tuple. Each item can be a different view type.
 pub fn zstack<VT: ViewTuple + 'static>(children: VT) -> impl View {
-    Stack::<VT, VerticalDirection>::new(children)
+    Stack::<VT, ZDirection>::new(children)
 }
