@@ -111,8 +111,8 @@ pub fn vslider(
                         cx[height] = sz.height;
                     }
                 })
-                .drag(move |cx, off, _state, _mouse_button| {
-                    (set_value)(cx, (value + off.y / h).clamp(0.0, 1.0));
+                .drag(move |cx, delta, _, _| {
+                    (set_value)(cx, (value + delta.y / h).clamp(0.0, 1.0));
                 })
             },
         )
