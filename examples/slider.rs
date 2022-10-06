@@ -6,7 +6,7 @@ struct MyState {
 }
 
 /// A slider with a value.
-fn my_slider(s: State<f32>) -> impl View {
+fn my_slider(s: impl Binding<f32>) -> impl View {
     with_ref(s, move |v| {
         vstack((
             v.to_string().font_size(10).padding(Auto),
