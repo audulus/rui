@@ -32,9 +32,9 @@ where
         }
     }
 
-    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {
-        cx.set_state(id, self.value.clone());
-        (self.func)(State::new(id), cx).draw(id.child(&0), cx, vger);
+    fn draw(&self, id: ViewId, args: &mut DrawArgs) {
+        args.cx.set_state(id, self.value.clone());
+        (self.func)(State::new(id), args.cx).draw(id.child(&0), args);
     }
 
     fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {

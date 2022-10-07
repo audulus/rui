@@ -15,7 +15,8 @@ impl Text {
 }
 
 impl View for Text {
-    fn draw(&self, _id: ViewId, _cx: &mut Context, vger: &mut Vger) {
+    fn draw(&self, _id: ViewId, args: &mut DrawArgs) {
+        let vger = &mut args.vger;
         let origin = vger.text_bounds(self.text.as_str(), self.size, None).origin;
 
         vger.save();
@@ -71,8 +72,9 @@ impl<V> View for V
 where
     V: std::fmt::Display + std::fmt::Debug + 'static,
 {
-    fn draw(&self, _id: ViewId, _cx: &mut Context, vger: &mut Vger) {
+    fn draw(&self, _id: ViewId, args: &mut DrawArgs) {
         let txt = &format!("{}", self);
+        let vger = &mut args.vger;
         let origin = vger.text_bounds(txt, Text::DEFAULT_SIZE, None).origin;
 
         vger.save();

@@ -1,6 +1,11 @@
 use crate::*;
 use std::any::{Any, TypeId};
 
+pub struct DrawArgs<'a> {
+    pub cx: &'a mut Context,
+    pub vger: &'a mut Vger
+}
+
 /// Trait for the unit of UI composition.
 pub trait View: private::Sealed + 'static {
     /// Builds an AccessKit tree. The node ID for the subtree is returned. All generated nodes are accumulated.
@@ -20,7 +25,7 @@ pub trait View: private::Sealed + 'static {
     fn dirty(&self, _id: ViewId, _xform: LocalToWorld, _cx: &mut Context) {}
 
     /// Draws the view using vger.
-    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger);
+    fn draw(&self, id: ViewId, args: &mut DrawArgs);
 
     /// Gets IDs for state currently in use.
     fn gc(&self, _id: ViewId, _cx: &mut Context, _map: &mut Vec<ViewId>) {}

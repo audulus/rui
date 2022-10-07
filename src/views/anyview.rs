@@ -36,8 +36,8 @@ impl View for AnyView {
             .process(event, id.child(&self.id()), cx, vger, actions);
     }
 
-    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {
-        self.child.draw(id.child(&self.id()), cx, vger);
+    fn draw(&self, id: ViewId, args: &mut DrawArgs) {
+        self.child.draw(id.child(&self.id()), args);
     }
 
     fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {

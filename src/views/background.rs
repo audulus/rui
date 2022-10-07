@@ -23,9 +23,9 @@ where
         self.child.process(event, id.child(&0), cx, vger, actions);
     }
 
-    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {
-        self.background.draw(id.child(&1), cx, vger);
-        self.child.draw(id.child(&0), cx, vger);
+    fn draw(&self, id: ViewId, args: &mut DrawArgs) {
+        self.background.draw(id.child(&1), args);
+        self.child.draw(id.child(&0), args);
     }
 
     fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {

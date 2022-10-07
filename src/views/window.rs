@@ -34,8 +34,9 @@ where
         self.child.process(event, id.child(&0), cx, vger, actions);
     }
 
-    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {
-        self.child.draw(id.child(&0), cx, vger);
+    fn draw(&self, id: ViewId, args: &mut DrawArgs) {
+        self.child.draw(id.child(&0), args);
+        let cx = &mut args.cx;
         if cx.window_title != self.title {
             cx.window_title = self.title.clone();
         }
@@ -108,9 +109,9 @@ where
         self.child.process(event, id.child(&0), cx, vger, actions);
     }
 
-    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {
-        self.child.draw(id.child(&0), cx, vger);
-        cx.fullscreen = true;
+    fn draw(&self, id: ViewId, args: &mut DrawArgs) {
+        self.child.draw(id.child(&0), args);
+        args.cx.fullscreen = true;
     }
 
     fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {

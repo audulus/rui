@@ -62,9 +62,9 @@ where
         (self.func)(State::new(id), cx).process(event, id.child(&0), cx, vger, actions);
     }
 
-    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {
-        cx.init_state(id, &self.default);
-        (self.func)(State::new(id), cx).draw(id.child(&0), cx, vger);
+    fn draw(&self, id: ViewId, args: &mut DrawArgs) {
+        args.cx.init_state(id, &self.default);
+        (self.func)(State::new(id), args.cx).draw(id.child(&0), args);
     }
 
     fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {

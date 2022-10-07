@@ -37,8 +37,8 @@ where
         (self.func)(Some(vid) == cx.focused_id).process(event, vid.child(&0), cx, vger, actions)
     }
 
-    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {
-        (self.func)(Some(id) == cx.focused_id).draw(id.child(&0), cx, vger)
+    fn draw(&self, id: ViewId, args: &mut DrawArgs) {
+        (self.func)(Some(id) == args.cx.focused_id).draw(id.child(&0), args)
     }
 
     fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {

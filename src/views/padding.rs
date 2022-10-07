@@ -24,11 +24,11 @@ where
             .process(&event.offset(-off), id.child(&0), cx, vger, actions);
     }
 
-    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {
-        vger.save();
-        vger.translate([self.padding, self.padding]);
-        self.child.draw(id.child(&0), cx, vger);
-        vger.restore();
+    fn draw(&self, id: ViewId, args: &mut DrawArgs) {
+        args.vger.save();
+        args.vger.translate([self.padding, self.padding]);
+        self.child.draw(id.child(&0), args);
+        args.vger.restore();
     }
 
     fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {

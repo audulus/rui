@@ -234,7 +234,7 @@ impl Context {
         self.root_offset = ((local_window_size - sz) / 2.0).into();
 
         vger.translate(self.root_offset);
-        view.draw(self.root_id, self, vger);
+        view.draw(self.root_id, &mut DrawArgs { cx: self, vger });
         self.enable_dirty = true;
 
         let paint = vger.color_paint(RED_HIGHLIGHT);

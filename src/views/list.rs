@@ -34,18 +34,18 @@ where
         }
     }
 
-    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {
+    fn draw(&self, id: ViewId, args: &mut DrawArgs) {
         for child in &self.ids {
             let child_id = id.child(child);
-            let offset = cx.layout.entry(child_id).or_default().offset;
+            let offset = args.cx.layout.entry(child_id).or_default().offset;
 
-            vger.save();
+            args.vger.save();
 
-            vger.translate(offset);
+            args.vger.translate(offset);
 
-            ((self.func)(child)).draw(child_id, cx, vger);
+            ((self.func)(child)).draw(child_id, args);
 
-            vger.restore();
+            args.vger.restore();
         }
     }
 

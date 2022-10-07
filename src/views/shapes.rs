@@ -20,9 +20,10 @@ impl Circle {
 }
 
 impl View for Circle {
-    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {
-        let (center, radius) = self.geom(id, cx);
+    fn draw(&self, id: ViewId, args: &mut DrawArgs) {
+        let (center, radius) = self.geom(id, args.cx);
 
+        let vger = &mut args.vger;
         let paint = self.paint.vger_paint(vger);
         vger.fill_circle(center, radius, paint);
     }
@@ -93,9 +94,10 @@ impl Rectangle {
 }
 
 impl View for Rectangle {
-    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {
-        let rect = self.geom(id, cx);
+    fn draw(&self, id: ViewId, args: &mut DrawArgs) {
+        let rect = self.geom(id, args.cx);
 
+        let vger = &mut args.vger;
         let paint = self.paint.vger_paint(vger);
         vger.fill_rect(rect, self.corner_radius, paint);
     }

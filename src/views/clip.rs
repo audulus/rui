@@ -33,13 +33,13 @@ where
         self.child.process(event, id.child(&0), cx, vger, actions);
     }
 
-    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {
-        let rect = self.geom(id, cx);
+    fn draw(&self, id: ViewId, args: &mut DrawArgs) {
+        let rect = self.geom(id, args.cx);
 
-        vger.save();
-        vger.scissor(rect);
-        self.child.draw(id.child(&0), cx, vger);
-        vger.restore();
+        args.vger.save();
+        args.vger.scissor(rect);
+        self.child.draw(id.child(&0), args);
+        args.vger.restore();
     }
 
     fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {

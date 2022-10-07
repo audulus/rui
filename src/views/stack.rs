@@ -47,22 +47,22 @@ impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D>
         })
     }
 
-    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {
+    fn draw(&self, id: ViewId, args: &mut DrawArgs) {
         let mut c = 0;
         self.children.foreach_view(&mut |child| {
             let child_id = id.child(&c);
-            let layout_box = cx.layout[&child_id];
+            let layout_box = args.cx.layout[&child_id];
 
-            vger.save();
+            args.vger.save();
 
-            vger.translate(layout_box.offset);
+            args.vger.translate(layout_box.offset);
 
-            (*child).draw(child_id, cx, vger);
+            (*child).draw(child_id, args);
             c += 1;
 
             if DEBUG_LAYOUT {
-                let paint = vger.color_paint(CONTROL_BACKGROUND);
-                vger.stroke_rect(
+                let paint = args.vger.color_paint(CONTROL_BACKGROUND);
+                args.vger.stroke_rect(
                     layout_box.rect.min(),
                     layout_box.rect.max(),
                     0.0,
@@ -71,7 +71,7 @@ impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D>
                 );
             }
 
-            vger.restore();
+            args.vger.restore();
         })
     }
 

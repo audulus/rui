@@ -29,11 +29,11 @@ where
         }
     }
 
-    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {
+    fn draw(&self, id: ViewId, args: &mut DrawArgs) {
         if self.cond {
-            self.if_true.draw(id.child(&0), cx, vger)
+            self.if_true.draw(id.child(&0), args)
         } else {
-            self.if_false.draw(id.child(&1), cx, vger)
+            self.if_false.draw(id.child(&1), args)
         }
     }
 

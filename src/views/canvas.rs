@@ -9,12 +9,12 @@ impl<F> View for Canvas<F>
 where
     F: Fn(&mut Context, LocalRect, &mut Vger) + 'static,
 {
-    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {
-        let rect = cx.layout.entry(id).or_default().rect;
+    fn draw(&self, id: ViewId, args: &mut DrawArgs) {
+        let rect = args.cx.layout.entry(id).or_default().rect;
 
-        vger.save();
-        (self.func)(cx, rect, vger);
-        vger.restore();
+        args.vger.save();
+        (self.func)(args.cx, rect, args.vger);
+        args.vger.restore();
     }
 
     fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, _vger: &mut Vger) -> LocalSize {

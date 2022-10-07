@@ -24,8 +24,8 @@ where
         (self.func)(cx.init_env(&S::default), cx).process(event, id.child(&0), cx, vger, actions);
     }
 
-    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {
-        (self.func)(cx.init_env(&S::default), cx).draw(id.child(&0), cx, vger);
+    fn draw(&self, id: ViewId, args: &mut DrawArgs) {
+        (self.func)(args.cx.init_env(&S::default), args.cx).draw(id.child(&0), args);
     }
 
     fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {
@@ -123,10 +123,10 @@ where
         old.and_then(|s| cx.set_env(&s));
     }
 
-    fn draw(&self, id: ViewId, cx: &mut Context, vger: &mut Vger) {
-        let old = cx.set_env(&self.env_val);
-        self.child.draw(id.child(&0), cx, vger);
-        old.and_then(|s| cx.set_env(&s));
+    fn draw(&self, id: ViewId, args: &mut DrawArgs) {
+        let old = args.cx.set_env(&self.env_val);
+        self.child.draw(id.child(&0), args);
+        old.and_then(|s| args.cx.set_env(&s));
     }
 
     fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {
