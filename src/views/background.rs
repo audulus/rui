@@ -30,7 +30,8 @@ where
 
     fn layout(&self, id: ViewId, args: &mut LayoutArgs) -> LocalSize {
         let child_size = self.child.layout(id.child(&0), args);
-        self.background.layout(id.child(&1), &mut args.size(child_size));
+        self.background
+            .layout(id.child(&1), &mut args.size(child_size));
         child_size
     }
 

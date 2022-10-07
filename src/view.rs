@@ -3,18 +3,22 @@ use std::any::{Any, TypeId};
 
 pub struct DrawArgs<'a> {
     pub cx: &'a mut Context,
-    pub vger: &'a mut Vger
+    pub vger: &'a mut Vger,
 }
 
 pub struct LayoutArgs<'a> {
     pub sz: LocalSize,
     pub cx: &'a mut Context,
-    pub vger: &'a mut Vger
+    pub vger: &'a mut Vger,
 }
 
 impl<'a> LayoutArgs<'a> {
     pub fn size(&mut self, sz: LocalSize) -> LayoutArgs {
-        LayoutArgs{ sz, cx: self.cx, vger: self.vger }
+        LayoutArgs {
+            sz,
+            cx: self.cx,
+            vger: self.vger,
+        }
     }
 }
 

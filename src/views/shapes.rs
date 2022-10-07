@@ -102,7 +102,7 @@ impl View for Rectangle {
         vger.fill_rect(rect, self.corner_radius, paint);
     }
 
-    fn layout(&self, id: ViewId, args:&mut LayoutArgs) -> LocalSize {
+    fn layout(&self, id: ViewId, args: &mut LayoutArgs) -> LocalSize {
         args.cx.layout.insert(
             id,
             LayoutBox {

@@ -25,7 +25,9 @@ impl View for Text {
         vger.restore();
     }
     fn layout(&self, _id: ViewId, args: &mut LayoutArgs) -> LocalSize {
-        args.vger.text_bounds(self.text.as_str(), self.size, None).size
+        args.vger
+            .text_bounds(self.text.as_str(), self.size, None)
+            .size
     }
     fn hittest(
         &self,

@@ -132,7 +132,12 @@ where
     T: 'static,
 {
     pub fn new(v: V, b: B, f: F) -> Self {
-        Self { child: v, func: f, binding: b, phantom: std::marker::PhantomData::default() }
+        Self {
+            child: v,
+            func: f,
+            binding: b,
+            phantom: std::marker::PhantomData::default(),
+        }
     }
 }
 
@@ -231,4 +236,3 @@ where
 }
 
 impl<V, F, B, T> private::Sealed for DragS<V, F, B, T> {}
-

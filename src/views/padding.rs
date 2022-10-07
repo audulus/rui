@@ -34,7 +34,11 @@ where
     fn layout(&self, id: ViewId, args: &mut LayoutArgs) -> LocalSize {
         let child_size = self.child.layout(
             id.child(&0),
-            &mut LayoutArgs { sz: args.sz - [2.0 * self.padding, 2.0 * self.padding].into(), cx: args.cx, vger: args.vger }
+            &mut LayoutArgs {
+                sz: args.sz - [2.0 * self.padding, 2.0 * self.padding].into(),
+                cx: args.cx,
+                vger: args.vger,
+            },
         );
         child_size + LocalSize::new(2.0 * self.padding, 2.0 * self.padding)
     }

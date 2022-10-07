@@ -37,9 +37,11 @@ pub trait Modifiers: View + Sized {
     }
 
     /// Calls a function in response to a drag. Version which passes in a binding.
-    fn drag_s<T: 'static,
-              B: Binding<T>,
-              F: Fn(&mut T, LocalOffset, GestureState, Option<MouseButton>) + 'static>(
+    fn drag_s<
+        T: 'static,
+        B: Binding<T>,
+        F: Fn(&mut T, LocalOffset, GestureState, Option<MouseButton>) + 'static,
+    >(
         self,
         s: B,
         f: F,
