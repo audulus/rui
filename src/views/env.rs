@@ -28,11 +28,11 @@ where
         (self.func)(args.cx.init_env(&S::default), args.cx).draw(id.child(&0), args);
     }
 
-    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {
+    fn layout(&self, id: ViewId, args: &mut LayoutArgs) -> LocalSize {
         let child_size =
-            (self.func)(cx.init_env(&S::default), cx).layout(id.child(&0), sz, cx, vger);
+            (self.func)(args.cx.init_env(&S::default), args.cx).layout(id.child(&0), args);
 
-        cx.layout.insert(
+        args.cx.layout.insert(
             id,
             LayoutBox {
                 rect: LocalRect::new(LocalPoint::zero(), child_size),
@@ -129,10 +129,10 @@ where
         old.and_then(|s| args.cx.set_env(&s));
     }
 
-    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {
-        let old = cx.set_env(&self.env_val);
-        let sz = self.child.layout(id.child(&0), sz, cx, vger);
-        old.and_then(|s| cx.set_env(&s));
+    fn layout(&self, id: ViewId, args: &mut LayoutArgs) -> LocalSize {
+        let old = args.cx.set_env(&self.env_val);
+        let sz = self.child.layout(id.child(&0), args);
+        old.and_then(|s| args.cx.set_env(&s));
         sz
     }
 

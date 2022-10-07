@@ -17,15 +17,15 @@ where
         args.vger.restore();
     }
 
-    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, _vger: &mut Vger) -> LocalSize {
-        cx.layout.insert(
+    fn layout(&self, id: ViewId, args: &mut LayoutArgs) -> LocalSize {
+        args.cx.layout.insert(
             id,
             LayoutBox {
-                rect: LocalRect::new(LocalPoint::zero(), sz),
+                rect: LocalRect::new(LocalPoint::zero(), args.sz),
                 offset: LocalOffset::zero(),
             },
         );
-        sz
+        args.sz
     }
 
     fn hittest(

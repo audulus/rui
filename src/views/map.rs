@@ -37,12 +37,12 @@ where
         (self.func)(State::new(id), args.cx).draw(id.child(&0), args);
     }
 
-    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {
-        cx.set_state(id, self.value.clone());
+    fn layout(&self, id: ViewId, args: &mut LayoutArgs) -> LocalSize {
+        args.cx.set_state(id, self.value.clone());
 
-        let child_size = (self.func)(State::new(id), cx).layout(id.child(&0), sz, cx, vger);
+        let child_size = (self.func)(State::new(id), args.cx).layout(id.child(&0), args);
 
-        cx.layout.insert(
+        args.cx.layout.insert(
             id,
             LayoutBox {
                 rect: LocalRect::new(LocalPoint::zero(), child_size),

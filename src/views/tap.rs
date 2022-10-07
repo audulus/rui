@@ -51,8 +51,8 @@ where
         self.child.draw(id.child(&0), args)
     }
 
-    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {
-        self.child.layout(id.child(&0), sz, cx, vger)
+    fn layout(&self, id: ViewId, args: &mut LayoutArgs) -> LocalSize {
+        self.child.layout(id.child(&0), args)
     }
 
     fn hittest(

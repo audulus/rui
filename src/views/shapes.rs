@@ -28,15 +28,15 @@ impl View for Circle {
         vger.fill_circle(center, radius, paint);
     }
 
-    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, _vger: &mut Vger) -> LocalSize {
-        cx.layout.insert(
+    fn layout(&self, id: ViewId, args: &mut LayoutArgs) -> LocalSize {
+        args.cx.layout.insert(
             id,
             LayoutBox {
-                rect: LocalRect::new(LocalPoint::zero(), sz),
+                rect: LocalRect::new(LocalPoint::zero(), args.sz),
                 offset: LocalOffset::zero(),
             },
         );
-        sz
+        args.sz
     }
 
     fn hittest(
@@ -102,15 +102,15 @@ impl View for Rectangle {
         vger.fill_rect(rect, self.corner_radius, paint);
     }
 
-    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, _vger: &mut Vger) -> LocalSize {
-        cx.layout.insert(
+    fn layout(&self, id: ViewId, args:&mut LayoutArgs) -> LocalSize {
+        args.cx.layout.insert(
             id,
             LayoutBox {
-                rect: LocalRect::new(LocalPoint::zero(), sz),
+                rect: LocalRect::new(LocalPoint::zero(), args.sz),
                 offset: LocalOffset::zero(),
             },
         );
-        sz
+        args.sz
     }
 
     fn hittest(

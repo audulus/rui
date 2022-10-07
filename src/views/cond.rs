@@ -37,11 +37,11 @@ where
         }
     }
 
-    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {
+    fn layout(&self, id: ViewId, args: &mut LayoutArgs) -> LocalSize {
         if self.cond {
-            self.if_true.layout(id.child(&0), sz, cx, vger)
+            self.if_true.layout(id.child(&0), args)
         } else {
-            self.if_false.layout(id.child(&1), sz, cx, vger)
+            self.if_false.layout(id.child(&1), args)
         }
     }
 

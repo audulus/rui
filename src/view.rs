@@ -6,6 +6,18 @@ pub struct DrawArgs<'a> {
     pub vger: &'a mut Vger
 }
 
+pub struct LayoutArgs<'a> {
+    pub sz: LocalSize,
+    pub cx: &'a mut Context,
+    pub vger: &'a mut Vger
+}
+
+impl<'a> LayoutArgs<'a> {
+    pub fn size(&mut self, sz: LocalSize) -> LayoutArgs {
+        LayoutArgs{ sz, cx: self.cx, vger: self.vger }
+    }
+}
+
 /// Trait for the unit of UI composition.
 pub trait View: private::Sealed + 'static {
     /// Builds an AccessKit tree. The node ID for the subtree is returned. All generated nodes are accumulated.
@@ -54,7 +66,7 @@ pub trait View: private::Sealed + 'static {
     /// Note that we should probably have a separate text
     /// sizing interface so we don't need a GPU and graphics
     /// context set up to test layout.
-    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize;
+    fn layout(&self, id: ViewId, args: &mut LayoutArgs) -> LocalSize;
 
     /// Processes an event.
     fn process(

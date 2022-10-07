@@ -75,15 +75,15 @@ impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D>
         })
     }
 
-    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {
+    fn layout(&self, id: ViewId, args: &mut LayoutArgs) -> LocalSize {
         let n = self.children.len() as f32;
 
         match D::ORIENTATION {
             StackOrientation::Horizontal => {
-                let proposed_child_size = LocalSize::new(sz.width / n, sz.height);
+                let proposed_child_size = LocalSize::new(args.sz.width / n, args.sz.height);
 
                 let mut child_sizes = [None; VIEW_TUPLE_MAX_ELEMENTS];
-                self.layout_fixed_children(id, proposed_child_size, cx, vger, &mut child_sizes);
+                self.layout_fixed_children(id, proposed_child_size, args.cx, args.vger, &mut child_sizes);
 
                 let child_sizes_1d = child_sizes.map(|x| {
                     if let Some(s) = x {
@@ -96,7 +96,7 @@ impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D>
                 let n = self.children.len();
                 let mut flex_length = 0.0;
                 let length = stack_layout(
-                    sz.width,
+                    args.sz.width,
                     &child_sizes_1d[0..n],
                     &mut intervals[0..n],
                     &mut flex_length,
@@ -104,9 +104,9 @@ impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D>
 
                 self.layout_flex_children(
                     id,
-                    [flex_length, sz.height].into(),
-                    cx,
-                    vger,
+                    [flex_length, args.sz.height].into(),
+                    args.cx,
+                    args.vger,
                     &mut child_sizes,
                 );
 
@@ -125,15 +125,15 @@ impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D>
                         VAlignment::Middle,
                     );
 
-                    cx.layout.entry(child_id).or_default().offset = child_offset;
+                    args.cx.layout.entry(child_id).or_default().offset = child_offset;
                 }
 
                 [length, max_height].into()
             }
             StackOrientation::Vertical => {
-                let proposed_child_size = LocalSize::new(sz.width, sz.height / n);
+                let proposed_child_size = LocalSize::new(args.sz.width, args.sz.height / n);
                 let mut child_sizes = [None; VIEW_TUPLE_MAX_ELEMENTS];
-                self.layout_fixed_children(id, proposed_child_size, cx, vger, &mut child_sizes);
+                self.layout_fixed_children(id, proposed_child_size, args.cx, args.vger, &mut child_sizes);
 
                 let child_sizes_1d = child_sizes.map(|x| {
                     if let Some(s) = x {
@@ -146,7 +146,7 @@ impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D>
                 let n = self.children.len();
                 let mut flex_length = 0.0;
                 let length = stack_layout(
-                    sz.height,
+                    args.sz.height,
                     &child_sizes_1d[0..n],
                     &mut intervals[0..n],
                     &mut flex_length,
@@ -154,9 +154,9 @@ impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D>
 
                 self.layout_flex_children(
                     id,
-                    [sz.width, flex_length].into(),
-                    cx,
-                    vger,
+                    [args.sz.width, flex_length].into(),
+                    args.cx,
+                    args.vger,
                     &mut child_sizes,
                 );
 
@@ -176,7 +176,7 @@ impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D>
                         HAlignment::Center,
                     );
 
-                    cx.layout.entry(child_id).or_default().offset = child_offset;
+                    args.cx.layout.entry(child_id).or_default().offset = child_offset;
                 }
 
                 [max_width, length].into()
@@ -184,10 +184,10 @@ impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D>
             StackOrientation::Z => {
                 let mut c = 0;
                 self.children.foreach_view(&mut |child| {
-                    child.layout(id.child(&c), sz, cx, vger);
+                    child.layout(id.child(&c), args);
                     c += 1;
                 });
-                sz
+                args.sz
             }
         }
     }
@@ -281,7 +281,7 @@ impl<VT: ViewTuple, D: StackDirection> Stack<VT, D> {
             let child_id = id.child(&c);
             if !child.is_flexible() {
                 child_sizes[c as usize] =
-                    Some(child.layout(child_id, proposed_child_size, cx, vger))
+                    Some(child.layout(child_id, &mut LayoutArgs{sz: proposed_child_size, cx, vger}))
             }
             c += 1;
         });
@@ -299,7 +299,7 @@ impl<VT: ViewTuple, D: StackDirection> Stack<VT, D> {
         self.children.foreach_view(&mut |child| {
             let child_id = id.child(&c);
             if child.is_flexible() {
-                child_sizes[c as usize] = Some(child.layout(child_id, flex_size, cx, vger));
+                child_sizes[c as usize] = Some(child.layout(child_id, &mut LayoutArgs{sz: flex_size, cx, vger}));
             }
             c += 1;
         });

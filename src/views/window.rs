@@ -42,8 +42,8 @@ where
         }
     }
 
-    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {
-        self.child.layout(id.child(&0), sz, cx, vger)
+    fn layout(&self, id: ViewId, args: &mut LayoutArgs) -> LocalSize {
+        self.child.layout(id.child(&0), args)
     }
 
     fn dirty(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) {
@@ -114,8 +114,8 @@ where
         args.cx.fullscreen = true;
     }
 
-    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {
-        self.child.layout(id.child(&0), sz, cx, vger)
+    fn layout(&self, id: ViewId, args: &mut LayoutArgs) -> LocalSize {
+        self.child.layout(id.child(&0), args)
     }
 
     fn dirty(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) {

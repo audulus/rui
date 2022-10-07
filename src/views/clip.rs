@@ -42,16 +42,17 @@ where
         args.vger.restore();
     }
 
-    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {
-        self.child.layout(id.child(&0), sz, cx, vger);
-        cx.layout.insert(
+    fn layout(&self, id: ViewId, args: &mut LayoutArgs) -> LocalSize {
+        self.child.layout(id.child(&0), args);
+        args.cx.layout.insert(
             id,
             LayoutBox {
-                rect: LocalRect::new(LocalPoint::zero(), sz),
+                rect: LocalRect::new(LocalPoint::zero(), args.sz),
                 offset: LocalOffset::zero(),
             },
         );
-        sz
+        // XXX: should this expand to the available space?
+        args.sz
     }
 
     fn hittest(

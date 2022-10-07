@@ -27,10 +27,10 @@ where
         (self.func)(self.value.clone(), args.cx).draw(id.child(&0), args);
     }
 
-    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {
-        let child_size = (self.func)(self.value.clone(), cx).layout(id.child(&0), sz, cx, vger);
+    fn layout(&self, id: ViewId, args: &mut LayoutArgs) -> LocalSize {
+        let child_size = (self.func)(self.value.clone(), args.cx).layout(id.child(&0), args);
 
-        cx.layout.insert(
+        args.cx.layout.insert(
             id,
             LayoutBox {
                 rect: LocalRect::new(LocalPoint::zero(), child_size),

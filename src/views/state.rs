@@ -67,16 +67,16 @@ where
         (self.func)(State::new(id), args.cx).draw(id.child(&0), args);
     }
 
-    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {
-        cx.init_state(id, &self.default);
+    fn layout(&self, id: ViewId, args: &mut LayoutArgs) -> LocalSize {
+        args.cx.init_state(id, &self.default);
 
         // Do we need to recompute layout?
         let mut compute_layout = true;
 
-        if let Some(deps) = (cx.deps.get(&id)).clone() {
+        if let Some(deps) = (args.cx.deps.get(&id)).clone() {
             let mut any_dirty = false;
             for dep in deps {
-                if let Some(holder) = cx.state_map.get_mut(&dep) {
+                if let Some(holder) = args.cx.state_map.get_mut(&dep) {
                     if holder.dirty {
                         any_dirty = true;
                         break;
@@ -88,20 +88,20 @@ where
         }
 
         if compute_layout {
-            cx.id_stack.push(id);
+            args.cx.id_stack.push(id);
 
-            let view = (self.func)(State::new(id), cx);
+            let view = (self.func)(State::new(id), args.cx);
 
-            let child_size = view.layout(id.child(&0), sz, cx, vger);
+            let child_size = view.layout(id.child(&0), args);
 
             // Compute layout dependencies.
             let mut deps = vec![];
-            deps.append(&mut cx.id_stack.clone());
-            view.gc(id.child(&0), cx, &mut deps);
+            deps.append(&mut args.cx.id_stack.clone());
+            view.gc(id.child(&0), args.cx, &mut deps);
 
-            cx.deps.insert(id, deps);
+            args.cx.deps.insert(id, deps);
 
-            cx.layout.insert(
+            args.cx.layout.insert(
                 id,
                 LayoutBox {
                     rect: LocalRect::new(LocalPoint::zero(), child_size),
@@ -109,10 +109,10 @@ where
                 },
             );
 
-            cx.id_stack.pop();
+            args.cx.id_stack.pop();
         }
 
-        cx.layout[&id].rect.size
+        args.cx.layout[&id].rect.size
     }
 
     fn dirty(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) {

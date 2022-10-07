@@ -40,8 +40,8 @@ impl View for AnyView {
         self.child.draw(id.child(&self.id()), args);
     }
 
-    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {
-        self.child.layout(id.child(&self.id()), sz, cx, vger)
+    fn layout(&self, id: ViewId, args: &mut LayoutArgs) -> LocalSize {
+        self.child.layout(id.child(&self.id()), args)
     }
 
     fn dirty(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) {

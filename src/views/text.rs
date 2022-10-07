@@ -24,8 +24,8 @@ impl View for Text {
         vger.text(self.text.as_str(), self.size, TEXT_COLOR, None);
         vger.restore();
     }
-    fn layout(&self, _id: ViewId, _sz: LocalSize, _cx: &mut Context, vger: &mut Vger) -> LocalSize {
-        vger.text_bounds(self.text.as_str(), self.size, None).size
+    fn layout(&self, _id: ViewId, args: &mut LayoutArgs) -> LocalSize {
+        args.vger.text_bounds(self.text.as_str(), self.size, None).size
     }
     fn hittest(
         &self,
@@ -82,11 +82,11 @@ where
         vger.text(txt, Text::DEFAULT_SIZE, TEXT_COLOR, None);
         vger.restore();
     }
-    fn layout(&self, id: ViewId, _sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {
+    fn layout(&self, id: ViewId, args: &mut LayoutArgs) -> LocalSize {
         let txt = &format!("{}", self);
-        let size = vger.text_bounds(txt, Text::DEFAULT_SIZE, None).size;
+        let size = args.vger.text_bounds(txt, Text::DEFAULT_SIZE, None).size;
 
-        cx.layout.insert(
+        args.cx.layout.insert(
             id,
             LayoutBox {
                 rect: LocalRect::new(LocalPoint::zero(), size),

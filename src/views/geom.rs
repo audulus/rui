@@ -27,9 +27,9 @@ where
         self.child.draw(id.child(&0), args);
     }
 
-    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {
-        let sz = self.child.layout(id.child(&0), sz, cx, vger);
-        (self.func)(cx, sz);
+    fn layout(&self, id: ViewId, args: &mut LayoutArgs) -> LocalSize {
+        let sz = self.child.layout(id.child(&0), args);
+        (self.func)(args.cx, sz);
         sz
     }
 

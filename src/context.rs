@@ -184,9 +184,11 @@ impl Context {
             // XXX: we're doing layout both here and in rendering.
             view.layout(
                 self.root_id,
-                [window_size.width, window_size.height].into(),
-                self,
-                vger,
+                &mut LayoutArgs {
+                    sz: [window_size.width, window_size.height].into(),
+                    cx: self,
+                    vger,
+                }
             );
 
             // Get dirty rectangles.
@@ -228,7 +230,7 @@ impl Context {
         // to avoid constantly re-rendering if some state is saved.
         self.enable_dirty = false;
         let local_window_size = window_size.cast_unit::<LocalSpace>();
-        let sz = view.layout(self.root_id, local_window_size, self, vger);
+        let sz = view.layout(self.root_id, &mut LayoutArgs{sz: local_window_size, cx: self, vger});
 
         // Center the root view in the window.
         self.root_offset = ((local_window_size - sz) / 2.0).into();

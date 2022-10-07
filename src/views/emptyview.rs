@@ -7,9 +7,7 @@ impl View for EmptyView {
     fn layout(
         &self,
         _id: ViewId,
-        _sz: LocalSize,
-        _cx: &mut Context,
-        _vger: &mut Vger,
+        _args: &mut LayoutArgs,
     ) -> LocalSize {
         [0.0, 0.0].into()
     }

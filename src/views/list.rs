@@ -49,11 +49,11 @@ where
         }
     }
 
-    fn layout(&self, id: ViewId, sz: LocalSize, cx: &mut Context, vger: &mut Vger) -> LocalSize {
+    fn layout(&self, id: ViewId, args: &mut LayoutArgs) -> LocalSize {
         match self.orientation {
             ListOrientation::Vertical => {
                 let n = self.ids.len() as f32;
-                let proposed_child_size = LocalSize::new(sz.width, sz.height / n);
+                let proposed_child_size = LocalSize::new(args.sz.width, args.sz.height / n);
 
                 let mut sizes = Vec::<LocalSize>::new();
                 sizes.reserve(self.ids.len());
@@ -62,7 +62,7 @@ where
                 for child in &self.ids {
                     let child_id = id.child(child);
                     let child_size =
-                        ((self.func)(child)).layout(child_id, proposed_child_size, cx, vger);
+                        ((self.func)(child)).layout(child_id, &mut args.size(proposed_child_size));
                     sizes.push(child_size);
 
                     height_sum += child_size.height;
@@ -87,7 +87,7 @@ where
                         HAlignment::Center,
                     );
 
-                    cx.layout.entry(child_id).or_default().offset = child_offset;
+                    args.cx.layout.entry(child_id).or_default().offset = child_offset;
 
                     y -= child_size.height;
                 }
@@ -97,9 +97,9 @@ where
             ListOrientation::Z => {
                 for child in &self.ids {
                     let child_id = id.child(child);
-                    ((self.func)(child)).layout(child_id, sz, cx, vger);
+                    ((self.func)(child)).layout(child_id, args);
                 }
-                sz
+                args.sz
             }
         }
     }
