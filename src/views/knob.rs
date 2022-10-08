@@ -57,6 +57,8 @@ mod tests {
         );
 
         assert_eq!(knob_sz, sz);
+        let s = State::<f32>::new(cx.root_id);
+        assert_eq!(*s.get(&mut cx), 0.0);
 
         let events = [
             Event::TouchBegin {
@@ -65,11 +67,11 @@ mod tests {
             },
             Event::TouchMove {
                 id: 0,
-                position: [60.0, 50.0].into(),
+                position: [100.0, 50.0].into(),
             },
             Event::TouchEnd {
                 id: 0,
-                position: [60.0, 50.0].into(),
+                position: [100.0, 50.0].into(),
             },
         ];
 
@@ -79,5 +81,7 @@ mod tests {
         }
 
         assert!(cx.state_map.contains_key(&cx.root_id));
+        // State should have changed.
+        assert_eq!(*s.get(&mut cx), 0.125);
     }
 }
