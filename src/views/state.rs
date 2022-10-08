@@ -75,7 +75,7 @@ where
         if let Some(deps) = args.cx.deps.get(&id) {
             let mut any_dirty = false;
             for dep in deps {
-                if let Some(holder) = args.cx.state_map.get_mut(&dep) {
+                if let Some(holder) = args.cx.state_map.get_mut(dep) {
                     if holder.dirty {
                         any_dirty = true;
                         break;
