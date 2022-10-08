@@ -58,35 +58,25 @@ mod tests {
 
         assert_eq!(knob_sz, sz);
 
-        let mut actions = vec![];
-        ui.process(
-            &Event::TouchBegin {
+        let events = [
+            Event::TouchBegin {
                 id: 0,
                 position: [50.0, 50.0].into(),
             },
-            ViewId::default(),
-            &mut cx,
-            &mut actions,
-        );
-
-        ui.process(
-            &Event::TouchMove {
+            Event::TouchMove {
                 id: 0,
                 position: [60.0, 50.0].into(),
             },
-            ViewId::default(),
-            &mut cx,
-            &mut actions,
-        );
-
-        ui.process(
-            &Event::TouchEnd {
+            Event::TouchEnd {
                 id: 0,
                 position: [60.0, 50.0].into(),
             },
-            ViewId::default(),
-            &mut cx,
-            &mut actions,
-        );
+        ];
+
+        let mut actions = vec![];
+        let root_id = ViewId::default();
+        for event in &events {
+            ui.process(event, root_id, &mut cx, &mut actions);
+        }
     }
 }
