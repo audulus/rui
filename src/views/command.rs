@@ -33,7 +33,6 @@ where
         event: &Event,
         id: ViewId,
         cx: &mut Context,
-        vger: &mut Vger,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
         if let Event::Command(name) = &event {
@@ -41,7 +40,7 @@ where
                 (self.func)(cx);
             }
         }
-        self.child.process(event, id.child(&0), cx, vger, actions)
+        self.child.process(event, id.child(&0), cx, actions)
     }
 
     fn draw(&self, id: ViewId, args: &mut DrawArgs) {
@@ -259,7 +258,6 @@ where
         event: &Event,
         id: ViewId,
         cx: &mut Context,
-        vger: &mut Vger,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
         if let Event::Command(name) = &event {
@@ -269,7 +267,7 @@ where
                 }
             });
         }
-        self.child.process(event, id.child(&0), cx, vger, actions)
+        self.child.process(event, id.child(&0), cx, actions)
     }
 
     fn draw(&self, id: ViewId, args: &mut DrawArgs) {

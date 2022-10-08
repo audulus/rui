@@ -33,12 +33,11 @@ where
         event: &Event,
         vid: ViewId,
         cx: &mut Context,
-        vger: &mut Vger,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
         let mut child_actions = vec![];
         self.child
-            .process(event, vid.child(&0), cx, vger, &mut child_actions);
+            .process(event, vid.child(&0), cx, &mut child_actions);
 
         for action in child_actions {
             if let Some(a) = action.downcast_ref::<A>() {

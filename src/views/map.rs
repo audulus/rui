@@ -19,12 +19,11 @@ where
         event: &Event,
         id: ViewId,
         cx: &mut Context,
-        vger: &mut Vger,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
         cx.set_state(id, self.value.clone());
         let s = State::new(id);
-        (self.func)(s, cx).process(event, id.child(&0), cx, vger, actions);
+        (self.func)(s, cx).process(event, id.child(&0), cx, actions);
 
         // If processing the event changed the state, then call the set_value function.
         if cx.is_dirty(id) {

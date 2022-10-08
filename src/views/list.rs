@@ -24,13 +24,12 @@ where
         event: &Event,
         id: ViewId,
         cx: &mut Context,
-        vger: &mut Vger,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
         for child in &self.ids {
             let child_id = id.child(child);
             let offset = cx.layout.entry(child_id).or_default().offset;
-            ((self.func)(child)).process(&event.offset(-offset), child_id, cx, vger, actions);
+            ((self.func)(child)).process(&event.offset(-offset), child_id, cx, actions);
         }
     }
 

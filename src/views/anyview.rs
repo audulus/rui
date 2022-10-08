@@ -29,11 +29,10 @@ impl View for AnyView {
         event: &Event,
         id: ViewId,
         cx: &mut Context,
-        vger: &mut Vger,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
         self.child
-            .process(event, id.child(&self.id()), cx, vger, actions);
+            .process(event, id.child(&self.id()), cx, actions);
     }
 
     fn draw(&self, id: ViewId, args: &mut DrawArgs) {

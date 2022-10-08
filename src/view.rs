@@ -77,7 +77,6 @@ pub trait View: private::Sealed + 'static {
         _event: &Event,
         _id: ViewId,
         _cx: &mut Context,
-        _vger: &mut Vger,
         _actions: &mut Vec<Box<dyn Any>>,
     ) {
     }

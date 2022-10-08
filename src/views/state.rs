@@ -55,11 +55,10 @@ where
         event: &Event,
         id: ViewId,
         cx: &mut Context,
-        vger: &mut Vger,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
         cx.init_state(id, &self.default);
-        (self.func)(State::new(id), cx).process(event, id.child(&0), cx, vger, actions);
+        (self.func)(State::new(id), cx).process(event, id.child(&0), cx, actions);
     }
 
     fn draw(&self, id: ViewId, args: &mut DrawArgs) {

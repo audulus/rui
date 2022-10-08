@@ -16,7 +16,6 @@ where
         event: &Event,
         vid: ViewId,
         cx: &mut Context,
-        vger: &mut Vger,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
         match &event {
@@ -34,7 +33,7 @@ where
             }
             _ => (),
         }
-        (self.func)(Some(vid) == cx.focused_id).process(event, vid.child(&0), cx, vger, actions)
+        (self.func)(Some(vid) == cx.focused_id).process(event, vid.child(&0), cx, actions)
     }
 
     fn draw(&self, id: ViewId, args: &mut DrawArgs) {

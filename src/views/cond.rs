@@ -18,14 +18,13 @@ where
         event: &Event,
         id: ViewId,
         cx: &mut Context,
-        vger: &mut Vger,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
         if self.cond {
-            self.if_true.process(event, id.child(&0), cx, vger, actions)
+            self.if_true.process(event, id.child(&0), cx, actions)
         } else {
             self.if_false
-                .process(event, id.child(&1), cx, vger, actions)
+                .process(event, id.child(&1), cx, actions)
         }
     }
 

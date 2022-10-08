@@ -411,7 +411,7 @@ pub fn rui(view: impl View) {
                             id: 0,
                             position: mouse_position,
                         };
-                        cx.process(&view, &event, &mut vger)
+                        cx.process(&view, &event)
                     }
                     ElementState::Released => {
                         cx.mouse_button = None;
@@ -419,7 +419,7 @@ pub fn rui(view: impl View) {
                             id: 0,
                             position: mouse_position,
                         };
-                        cx.process(&view, &event, &mut vger)
+                        cx.process(&view, &event)
                     }
                     #[cfg(feature = "tao")]
                     _ => {}
@@ -456,7 +456,7 @@ pub fn rui(view: impl View) {
                 };
 
                 if let Some(event) = event {
-                    cx.process(&view, &event, &mut vger);
+                    cx.process(&view, &event);
                 }
             }
             WEvent::WindowEvent {
@@ -473,7 +473,7 @@ pub fn rui(view: impl View) {
                     id: 0,
                     position: mouse_position,
                 };
-                cx.process(&view, &event, &mut vger)
+                cx.process(&view, &event)
             }
 
             #[cfg(feature = "tao")]
@@ -648,7 +648,7 @@ pub fn rui(view: impl View) {
                         };
 
                         if let Some(key) = key {
-                            cx.process(&view, &Event::Key(key), &mut vger)
+                            cx.process(&view, &Event::Key(key))
                         }
                     }
                 }

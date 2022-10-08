@@ -35,7 +35,6 @@ where
         event: &Event,
         vid: ViewId,
         cx: &mut Context,
-        _vger: &mut Vger,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
         match &event {
@@ -153,7 +152,6 @@ where
         event: &Event,
         vid: ViewId,
         cx: &mut Context,
-        _vger: &mut Vger,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
         match &event {

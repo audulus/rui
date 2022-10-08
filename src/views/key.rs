@@ -28,7 +28,6 @@ where
         event: &Event,
         _vid: ViewId,
         cx: &mut Context,
-        _vger: &mut Vger,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
         if let Event::Key(key) = &event {

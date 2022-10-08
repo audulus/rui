@@ -18,10 +18,9 @@ where
         event: &Event,
         id: ViewId,
         cx: &mut Context,
-        vger: &mut Vger,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
-        (self.func)(cx.init_env(&S::default), cx).process(event, id.child(&0), cx, vger, actions);
+        (self.func)(cx.init_env(&S::default), cx).process(event, id.child(&0), cx, actions);
     }
 
     fn draw(&self, id: ViewId, args: &mut DrawArgs) {
@@ -114,11 +113,10 @@ where
         event: &Event,
         id: ViewId,
         cx: &mut Context,
-        vger: &mut Vger,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
         let old = cx.set_env(&self.env_val);
-        self.child.process(event, id.child(&0), cx, vger, actions);
+        self.child.process(event, id.child(&0), cx, actions);
         old.and_then(|s| cx.set_env(&s));
     }
 

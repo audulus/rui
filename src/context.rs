@@ -155,7 +155,7 @@ impl Context {
 
         // Run any animations.
         let mut actions = vec![];
-        view.process(&Event::Anim, self.root_id, self, vger, &mut actions);
+        view.process(&Event::Anim, self.root_id, self, &mut actions);
 
         if self.dirty {
             // Clean up state.
@@ -287,13 +287,12 @@ impl Context {
     }
 
     /// Process a UI event.
-    pub fn process(&mut self, view: &impl View, event: &Event, vger: &mut Vger) {
+    pub fn process(&mut self, view: &impl View, event: &Event) {
         let mut actions = vec![];
         view.process(
             &event.offset(-self.root_offset),
             self.root_id,
             self,
-            vger,
             &mut actions,
         );
 

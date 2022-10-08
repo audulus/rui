@@ -16,12 +16,11 @@ where
         event: &Event,
         id: ViewId,
         cx: &mut Context,
-        vger: &mut Vger,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
         let off = LocalOffset::new(self.padding, self.padding);
         self.child
-            .process(&event.offset(-off), id.child(&0), cx, vger, actions);
+            .process(&event.offset(-off), id.child(&0), cx, actions);
     }
 
     fn draw(&self, id: ViewId, args: &mut DrawArgs) {
