@@ -52,7 +52,7 @@ mod tests {
             &mut LayoutArgs {
                 sz,
                 cx: &mut cx,
-                text_bounds: &mut |_, _, _| LocalRect::new(LocalPoint::zero(), LocalSize::zero()),
+                text_bounds: &mut |_, _, _| LocalRect::zero(),
             },
         );
 
