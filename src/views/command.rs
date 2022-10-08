@@ -51,12 +51,7 @@ where
         self.child.layout(id.child(&0), args)
     }
 
-    fn hittest(
-        &self,
-        id: ViewId,
-        pt: LocalPoint,
-        cx: &mut Context,
-    ) -> Option<ViewId> {
+    fn hittest(&self, id: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
         self.child.hittest(id.child(&0), pt, cx)
     }
 
@@ -278,12 +273,7 @@ where
         self.child.layout(id.child(&0), args)
     }
 
-    fn hittest(
-        &self,
-        id: ViewId,
-        pt: LocalPoint,
-        cx: &mut Context,
-    ) -> Option<ViewId> {
+    fn hittest(&self, id: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
         self.child.hittest(id.child(&0), pt, cx)
     }
 

@@ -47,12 +47,7 @@ pub trait View: private::Sealed + 'static {
     fn gc(&self, _id: ViewId, _cx: &mut Context, _map: &mut Vec<ViewId>) {}
 
     /// Returns the topmost view which the point intersects.
-    fn hittest(
-        &self,
-        _id: ViewId,
-        _pt: LocalPoint,
-        _cx: &mut Context,
-    ) -> Option<ViewId> {
+    fn hittest(&self, _id: ViewId, _pt: LocalPoint, _cx: &mut Context) -> Option<ViewId> {
         None
     }
 

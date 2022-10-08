@@ -137,12 +137,7 @@ where
         }
     }
 
-    fn hittest(
-        &self,
-        id: ViewId,
-        pt: LocalPoint,
-        cx: &mut Context,
-    ) -> Option<ViewId> {
+    fn hittest(&self, id: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
         cx.init_state(id, &self.default);
         (self.func)(State::new(id), cx).hittest(id.child(&0), pt, cx)
     }

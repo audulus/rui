@@ -38,12 +38,7 @@ where
             .dirty(id.child(&0), xform.pre_translate(self.offset), cx);
     }
 
-    fn hittest(
-        &self,
-        id: ViewId,
-        pt: LocalPoint,
-        cx: &mut Context,
-    ) -> Option<ViewId> {
+    fn hittest(&self, id: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
         self.child.hittest(id.child(&0), pt - self.offset, cx)
     }
 

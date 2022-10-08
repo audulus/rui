@@ -25,15 +25,9 @@ impl View for Text {
         vger.restore();
     }
     fn layout(&self, _id: ViewId, args: &mut LayoutArgs) -> LocalSize {
-        (args.text_bounds)(self.text.as_str(), self.size, None)
-            .size
+        (args.text_bounds)(self.text.as_str(), self.size, None).size
     }
-    fn hittest(
-        &self,
-        _id: ViewId,
-        _pt: LocalPoint,
-        _cx: &mut Context,
-    ) -> Option<ViewId> {
+    fn hittest(&self, _id: ViewId, _pt: LocalPoint, _cx: &mut Context) -> Option<ViewId> {
         None
     }
 

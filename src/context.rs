@@ -187,9 +187,7 @@ impl Context {
                 &mut LayoutArgs {
                     sz: [window_size.width, window_size.height].into(),
                     cx: self,
-                    text_bounds: &mut |str, size, max_width| {
-                        vger.text_bounds(str, size, max_width)
-                    },
+                    text_bounds: &mut |str, size, max_width| vger.text_bounds(str, size, max_width),
                 },
             );
 
@@ -237,9 +235,7 @@ impl Context {
             &mut LayoutArgs {
                 sz: local_window_size,
                 cx: self,
-                text_bounds: &mut |str, size, max_width| {
-                    vger.text_bounds(str, size, max_width)
-                },
+                text_bounds: &mut |str, size, max_width| vger.text_bounds(str, size, max_width),
             },
         );
 

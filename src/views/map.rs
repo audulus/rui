@@ -57,12 +57,7 @@ where
         (self.func)(State::new(id), cx).dirty(id.child(&0), xform, cx);
     }
 
-    fn hittest(
-        &self,
-        id: ViewId,
-        pt: LocalPoint,
-        cx: &mut Context,
-    ) -> Option<ViewId> {
+    fn hittest(&self, id: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
         cx.set_state(id, self.value.clone());
         (self.func)(State::new(id), cx).hittest(id.child(&0), pt, cx)
     }

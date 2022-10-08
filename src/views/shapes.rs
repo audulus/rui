@@ -39,12 +39,7 @@ impl View for Circle {
         args.sz
     }
 
-    fn hittest(
-        &self,
-        id: ViewId,
-        pt: LocalPoint,
-        cx: &mut Context,
-    ) -> Option<ViewId> {
+    fn hittest(&self, id: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
         let (center, radius) = self.geom(id, cx);
 
         if pt.distance_to(center) < radius {
@@ -112,12 +107,7 @@ impl View for Rectangle {
         args.sz
     }
 
-    fn hittest(
-        &self,
-        id: ViewId,
-        pt: LocalPoint,
-        cx: &mut Context,
-    ) -> Option<ViewId> {
+    fn hittest(&self, id: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
         let rect = self.geom(id, cx);
 
         if rect.contains(pt) {

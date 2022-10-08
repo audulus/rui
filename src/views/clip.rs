@@ -54,12 +54,7 @@ where
         args.sz
     }
 
-    fn hittest(
-        &self,
-        id: ViewId,
-        pt: LocalPoint,
-        cx: &mut Context,
-    ) -> Option<ViewId> {
+    fn hittest(&self, id: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
         let rect = self.geom(id, cx);
 
         if rect.contains(pt) {

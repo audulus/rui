@@ -82,12 +82,7 @@ impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D>
                 let proposed_child_size = LocalSize::new(args.sz.width / n, args.sz.height);
 
                 let mut child_sizes = [None; VIEW_TUPLE_MAX_ELEMENTS];
-                self.layout_fixed_children(
-                    id,
-                    proposed_child_size,
-                    args,
-                    &mut child_sizes,
-                );
+                self.layout_fixed_children(id, proposed_child_size, args, &mut child_sizes);
 
                 let child_sizes_1d = child_sizes.map(|x| {
                     if let Some(s) = x {
@@ -136,12 +131,7 @@ impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D>
             StackOrientation::Vertical => {
                 let proposed_child_size = LocalSize::new(args.sz.width, args.sz.height / n);
                 let mut child_sizes = [None; VIEW_TUPLE_MAX_ELEMENTS];
-                self.layout_fixed_children(
-                    id,
-                    proposed_child_size,
-                    args,
-                    &mut child_sizes,
-                );
+                self.layout_fixed_children(id, proposed_child_size, args, &mut child_sizes);
 
                 let child_sizes_1d = child_sizes.map(|x| {
                     if let Some(s) = x {
@@ -210,12 +200,7 @@ impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D>
         })
     }
 
-    fn hittest(
-        &self,
-        id: ViewId,
-        pt: LocalPoint,
-        cx: &mut Context,
-    ) -> Option<ViewId> {
+    fn hittest(&self, id: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
         let mut c = 0;
         let mut hit = None;
         self.children.foreach_view(&mut |child| {
@@ -285,10 +270,8 @@ impl<VT: ViewTuple, D: StackDirection> Stack<VT, D> {
         self.children.foreach_view(&mut |child| {
             let child_id = id.child(&c);
             if !child.is_flexible() {
-                child_sizes[c as usize] = Some(child.layout(
-                    child_id,
-                    &mut args.size(proposed_child_size),
-                ))
+                child_sizes[c as usize] =
+                    Some(child.layout(child_id, &mut args.size(proposed_child_size)))
             }
             c += 1;
         });
@@ -305,10 +288,7 @@ impl<VT: ViewTuple, D: StackDirection> Stack<VT, D> {
         self.children.foreach_view(&mut |child| {
             let child_id = id.child(&c);
             if child.is_flexible() {
-                child_sizes[c as usize] = Some(child.layout(
-                    child_id,
-                    &mut args.size(flex_size),
-                ));
+                child_sizes[c as usize] = Some(child.layout(child_id, &mut args.size(flex_size)));
             }
             c += 1;
         });

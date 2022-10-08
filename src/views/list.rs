@@ -112,12 +112,7 @@ where
         }
     }
 
-    fn hittest(
-        &self,
-        id: ViewId,
-        pt: LocalPoint,
-        cx: &mut Context,
-    ) -> Option<ViewId> {
+    fn hittest(&self, id: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
         let mut hit = None;
         for child in &self.ids {
             let child_id = id.child(child);

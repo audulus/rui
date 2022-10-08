@@ -39,12 +39,7 @@ where
         self.background.dirty(id.child(&1), xform, cx);
     }
 
-    fn hittest(
-        &self,
-        id: ViewId,
-        pt: LocalPoint,
-        cx: &mut Context,
-    ) -> Option<ViewId> {
+    fn hittest(&self, id: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
         self.background.hittest(id.child(&1), pt, cx)
     }
 

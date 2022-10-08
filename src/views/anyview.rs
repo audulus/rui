@@ -31,8 +31,7 @@ impl View for AnyView {
         cx: &mut Context,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
-        self.child
-            .process(event, id.child(&self.id()), cx, actions);
+        self.child.process(event, id.child(&self.id()), cx, actions);
     }
 
     fn draw(&self, id: ViewId, args: &mut DrawArgs) {
@@ -47,12 +46,7 @@ impl View for AnyView {
         self.child.dirty(id.child(&self.id()), xform, cx);
     }
 
-    fn hittest(
-        &self,
-        id: ViewId,
-        pt: LocalPoint,
-        cx: &mut Context,
-    ) -> Option<ViewId> {
+    fn hittest(&self, id: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
         self.child.hittest(id.child(&self.id()), pt, cx)
     }
 

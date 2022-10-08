@@ -33,7 +33,7 @@ where
     fn layout(&self, id: ViewId, args: &mut LayoutArgs) -> LocalSize {
         let child_size = self.child.layout(
             id.child(&0),
-            &mut args.size(args.sz - [2.0 * self.padding, 2.0 * self.padding].into())
+            &mut args.size(args.sz - [2.0 * self.padding, 2.0 * self.padding].into()),
         );
         child_size + LocalSize::new(2.0 * self.padding, 2.0 * self.padding)
     }
@@ -46,12 +46,7 @@ where
         );
     }
 
-    fn hittest(
-        &self,
-        id: ViewId,
-        pt: LocalPoint,
-        cx: &mut Context,
-    ) -> Option<ViewId> {
+    fn hittest(&self, id: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
         self.child.hittest(
             id.child(&0),
             pt - LocalOffset::new(self.padding, self.padding),

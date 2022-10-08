@@ -23,8 +23,7 @@ where
         if self.cond {
             self.if_true.process(event, id.child(&0), cx, actions)
         } else {
-            self.if_false
-                .process(event, id.child(&1), cx, actions)
+            self.if_false.process(event, id.child(&1), cx, actions)
         }
     }
 
@@ -44,12 +43,7 @@ where
         }
     }
 
-    fn hittest(
-        &self,
-        id: ViewId,
-        pt: LocalPoint,
-        cx: &mut Context,
-    ) -> Option<ViewId> {
+    fn hittest(&self, id: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
         if self.cond {
             self.if_true.hittest(id.child(&0), pt, cx)
         } else {
