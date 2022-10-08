@@ -34,3 +34,28 @@ pub fn knob(value: impl Binding<f32>) -> impl View {
         }),
     ))
 }
+
+#[cfg(test)]
+mod tests {
+
+    use super::*;
+
+    #[test]
+    fn test_knob() {
+        let mut cx = Context::new();
+
+        let ui = state(|| 0.0, |s, _| knob(s));
+        let sz = LocalSize::new(512.0, 512.0);
+
+        let knob_sz = ui.layout(
+            ViewId::default(),
+            &mut LayoutArgs {
+                sz,
+                cx: &mut cx,
+                text_bounds: &mut |_, _, _| LocalRect::new(LocalPoint::zero(), LocalSize::zero()),
+            },
+        );
+
+        assert_eq!(knob_sz, sz);
+    }
+}
