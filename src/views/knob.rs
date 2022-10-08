@@ -48,7 +48,7 @@ mod tests {
         let sz = [100.0, 100.0].into();
 
         let knob_sz = ui.layout(
-            ViewId::default(),
+            cx.root_id,
             &mut LayoutArgs {
                 sz,
                 cx: &mut cx,
@@ -74,9 +74,8 @@ mod tests {
         ];
 
         let mut actions = vec![];
-        let root_id = ViewId::default();
         for event in &events {
-            ui.process(event, root_id, &mut cx, &mut actions);
+            ui.process(event, cx.root_id, &mut cx, &mut actions);
         }
     }
 }

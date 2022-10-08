@@ -69,7 +69,7 @@ pub struct Context {
     pub key_mods: KeyboardModifiers,
 
     /// The root view ID. This should be randomized for security reasons.
-    root_id: ViewId,
+    pub(crate) root_id: ViewId,
 
     /// The view that has the keyboard focus.
     pub(crate) focused_id: Option<ViewId>,
