@@ -72,7 +72,7 @@ where
         // Do we need to recompute layout?
         let mut compute_layout = true;
 
-        if let Some(deps) = (args.cx.deps.get(&id)).clone() {
+        if let Some(deps) = args.cx.deps.get(&id) {
             let mut any_dirty = false;
             for dep in deps {
                 if let Some(holder) = args.cx.state_map.get_mut(&dep) {
