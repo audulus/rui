@@ -86,8 +86,7 @@ impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D>
                 self.layout_fixed_children(
                     id,
                     proposed_child_size,
-                    args.cx,
-                    args.vger,
+                    args,
                     &mut child_sizes,
                 );
 
@@ -111,8 +110,7 @@ impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D>
                 self.layout_flex_children(
                     id,
                     [flex_length, args.sz.height].into(),
-                    args.cx,
-                    args.vger,
+                    args,
                     &mut child_sizes,
                 );
 
@@ -142,8 +140,7 @@ impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D>
                 self.layout_fixed_children(
                     id,
                     proposed_child_size,
-                    args.cx,
-                    args.vger,
+                    args,
                     &mut child_sizes,
                 );
 
@@ -167,8 +164,7 @@ impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D>
                 self.layout_flex_children(
                     id,
                     [args.sz.width, flex_length].into(),
-                    args.cx,
-                    args.vger,
+                    args,
                     &mut child_sizes,
                 );
 
@@ -284,8 +280,7 @@ impl<VT: ViewTuple, D: StackDirection> Stack<VT, D> {
         &self,
         id: ViewId,
         proposed_child_size: LocalSize,
-        cx: &mut Context,
-        vger: &mut Vger,
+        args: &mut LayoutArgs,
         child_sizes: &mut [Option<LocalSize>],
     ) {
         let mut c: i32 = 0;
@@ -294,11 +289,7 @@ impl<VT: ViewTuple, D: StackDirection> Stack<VT, D> {
             if !child.is_flexible() {
                 child_sizes[c as usize] = Some(child.layout(
                     child_id,
-                    &mut LayoutArgs {
-                        sz: proposed_child_size,
-                        cx,
-                        vger,
-                    },
+                    &mut args.size(proposed_child_size),
                 ))
             }
             c += 1;
@@ -309,8 +300,7 @@ impl<VT: ViewTuple, D: StackDirection> Stack<VT, D> {
         &self,
         id: ViewId,
         flex_size: LocalSize,
-        cx: &mut Context,
-        vger: &mut Vger,
+        args: &mut LayoutArgs,
         child_sizes: &mut [Option<LocalSize>],
     ) {
         let mut c: i32 = 0;
@@ -319,11 +309,7 @@ impl<VT: ViewTuple, D: StackDirection> Stack<VT, D> {
             if child.is_flexible() {
                 child_sizes[c as usize] = Some(child.layout(
                     child_id,
-                    &mut LayoutArgs {
-                        sz: flex_size,
-                        cx,
-                        vger,
-                    },
+                    &mut args.size(flex_size),
                 ));
             }
             c += 1;

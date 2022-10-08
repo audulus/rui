@@ -9,7 +9,7 @@ pub struct DrawArgs<'a> {
 pub struct LayoutArgs<'a> {
     pub sz: LocalSize,
     pub cx: &'a mut Context,
-    pub vger: &'a mut Vger,
+    pub text_bounds: &'a mut dyn FnMut(&str, u32, Option<f32>) -> LocalRect,
 }
 
 impl<'a> LayoutArgs<'a> {
@@ -17,7 +17,7 @@ impl<'a> LayoutArgs<'a> {
         LayoutArgs {
             sz,
             cx: self.cx,
-            vger: self.vger,
+            text_bounds: self.text_bounds,
         }
     }
 }
