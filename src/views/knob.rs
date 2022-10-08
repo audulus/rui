@@ -45,7 +45,7 @@ mod tests {
         let mut cx = Context::new();
 
         let ui = state(|| 0.0, |s, _| knob(s));
-        let sz = LocalSize::new(512.0, 512.0);
+        let sz = LocalSize::new(100.0, 100.0);
 
         let knob_sz = ui.layout(
             ViewId::default(),
@@ -57,5 +57,37 @@ mod tests {
         );
 
         assert_eq!(knob_sz, sz);
+
+        let mut actions = vec![];
+        ui.process(
+            &Event::TouchBegin {
+                id: 0,
+                position: [50.0, 50.0].into(),
+            },
+            ViewId::default(),
+            &mut cx,
+            &mut actions,
+        );
+
+        ui.process(
+            &Event::TouchMove {
+                id: 0,
+                position: [60.0, 50.0].into(),
+            },
+            ViewId::default(),
+            &mut cx,
+            &mut actions,
+        );
+
+        ui.process(
+            &Event::TouchEnd {
+                id: 0,
+                position: [60.0, 50.0].into(),
+            },
+            ViewId::default(),
+            &mut cx,
+            &mut actions,
+        );
+        
     }
 }
