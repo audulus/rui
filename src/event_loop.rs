@@ -514,7 +514,7 @@ pub fn rui(view: impl View) {
                     };
 
                     if let Some(key) = key {
-                        cx.process(&view, &Event::Key(key), &mut vger)
+                        cx.process(&view, &Event::Key(key))
                     }
                 }
             }
