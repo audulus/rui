@@ -77,5 +77,7 @@ mod tests {
         for event in &events {
             ui.process(event, cx.root_id, &mut cx, &mut actions);
         }
+
+        assert!(cx.state_map.contains_key(&cx.root_id));
     }
 }
