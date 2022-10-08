@@ -53,9 +53,8 @@ impl View for AnyView {
         id: ViewId,
         pt: LocalPoint,
         cx: &mut Context,
-        vger: &mut Vger,
     ) -> Option<ViewId> {
-        self.child.hittest(id.child(&self.id()), pt, cx, vger)
+        self.child.hittest(id.child(&self.id()), pt, cx)
     }
 
     fn commands(&self, id: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {

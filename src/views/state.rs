@@ -143,10 +143,9 @@ where
         id: ViewId,
         pt: LocalPoint,
         cx: &mut Context,
-        vger: &mut Vger,
     ) -> Option<ViewId> {
         cx.init_state(id, &self.default);
-        (self.func)(State::new(id), cx).hittest(id.child(&0), pt, cx, vger)
+        (self.func)(State::new(id), cx).hittest(id.child(&0), pt, cx)
     }
 
     fn commands(&self, id: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {

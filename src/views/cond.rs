@@ -50,12 +50,11 @@ where
         id: ViewId,
         pt: LocalPoint,
         cx: &mut Context,
-        vger: &mut Vger,
     ) -> Option<ViewId> {
         if self.cond {
-            self.if_true.hittest(id.child(&0), pt, cx, vger)
+            self.if_true.hittest(id.child(&0), pt, cx)
         } else {
-            self.if_false.hittest(id.child(&1), pt, cx, vger)
+            self.if_false.hittest(id.child(&1), pt, cx)
         }
     }
 

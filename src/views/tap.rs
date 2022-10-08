@@ -28,12 +28,12 @@ where
         event: &Event,
         vid: ViewId,
         cx: &mut Context,
-        vger: &mut Vger,
+        _vger: &mut Vger,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
         match &event {
             Event::TouchBegin { id, position } => {
-                if self.hittest(vid, *position, cx, vger).is_some() {
+                if self.hittest(vid, *position, cx).is_some() {
                     cx.touches[*id] = vid;
                 }
             }
@@ -60,9 +60,8 @@ where
         id: ViewId,
         pt: LocalPoint,
         cx: &mut Context,
-        vger: &mut Vger,
     ) -> Option<ViewId> {
-        self.child.hittest(id.child(&0), pt, cx, vger)
+        self.child.hittest(id.child(&0), pt, cx)
     }
 
     fn commands(&self, id: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {

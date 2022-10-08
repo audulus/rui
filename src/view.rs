@@ -52,7 +52,6 @@ pub trait View: private::Sealed + 'static {
         _id: ViewId,
         _pt: LocalPoint,
         _cx: &mut Context,
-        _vger: &mut Vger,
     ) -> Option<ViewId> {
         None
     }

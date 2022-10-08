@@ -44,9 +44,8 @@ where
         id: ViewId,
         pt: LocalPoint,
         cx: &mut Context,
-        vger: &mut Vger,
     ) -> Option<ViewId> {
-        self.child.hittest(id.child(&0), pt - self.offset, cx, vger)
+        self.child.hittest(id.child(&0), pt - self.offset, cx)
     }
 
     fn commands(&self, id: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {

@@ -60,13 +60,12 @@ where
         id: ViewId,
         pt: LocalPoint,
         cx: &mut Context,
-        vger: &mut Vger,
     ) -> Option<ViewId> {
         let rect = self.geom(id, cx);
 
         if rect.contains(pt) {
             // Test against children.
-            self.child.hittest(id.child(&0), pt, cx, vger)
+            self.child.hittest(id.child(&0), pt, cx)
         } else {
             None
         }

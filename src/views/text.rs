@@ -33,7 +33,6 @@ impl View for Text {
         _id: ViewId,
         _pt: LocalPoint,
         _cx: &mut Context,
-        _vger: &mut Vger,
     ) -> Option<ViewId> {
         None
     }
@@ -95,21 +94,6 @@ where
             },
         );
         size
-    }
-    fn hittest(
-        &self,
-        _id: ViewId,
-        _pt: LocalPoint,
-        _cx: &mut Context,
-        _vger: &mut Vger,
-    ) -> Option<ViewId> {
-        None
-    }
-
-    fn commands(&self, _id: ViewId, _cx: &mut Context, _cmds: &mut Vec<CommandInfo>) {}
-
-    fn gc(&self, _id: ViewId, _cx: &mut Context, _map: &mut Vec<ViewId>) {
-        // do nothing
     }
 
     fn access(

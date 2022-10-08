@@ -52,13 +52,11 @@ where
         id: ViewId,
         pt: LocalPoint,
         cx: &mut Context,
-        vger: &mut Vger,
     ) -> Option<ViewId> {
         self.child.hittest(
             id.child(&0),
             pt - LocalOffset::new(self.padding, self.padding),
             cx,
-            vger,
         )
     }
 

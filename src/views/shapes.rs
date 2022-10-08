@@ -44,7 +44,6 @@ impl View for Circle {
         id: ViewId,
         pt: LocalPoint,
         cx: &mut Context,
-        _vger: &mut Vger,
     ) -> Option<ViewId> {
         let (center, radius) = self.geom(id, cx);
 
@@ -118,7 +117,6 @@ impl View for Rectangle {
         id: ViewId,
         pt: LocalPoint,
         cx: &mut Context,
-        _vger: &mut Vger,
     ) -> Option<ViewId> {
         let rect = self.geom(id, cx);
 

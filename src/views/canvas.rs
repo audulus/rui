@@ -33,7 +33,6 @@ where
         id: ViewId,
         pt: LocalPoint,
         cx: &mut Context,
-        _vger: &mut Vger,
     ) -> Option<ViewId> {
         let rect = cx.layout.entry(id).or_default().rect;
 

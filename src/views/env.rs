@@ -52,9 +52,8 @@ where
         id: ViewId,
         pt: LocalPoint,
         cx: &mut Context,
-        vger: &mut Vger,
     ) -> Option<ViewId> {
-        (self.func)(cx.init_env(&S::default), cx).hittest(id.child(&0), pt, cx, vger)
+        (self.func)(cx.init_env(&S::default), cx).hittest(id.child(&0), pt, cx)
     }
 
     fn commands(&self, id: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
@@ -147,10 +146,9 @@ where
         id: ViewId,
         pt: LocalPoint,
         cx: &mut Context,
-        vger: &mut Vger,
     ) -> Option<ViewId> {
         let old = cx.set_env(&self.env_val);
-        let r = self.child.hittest(id.child(&0), pt, cx, vger);
+        let r = self.child.hittest(id.child(&0), pt, cx);
         old.and_then(|s| cx.set_env(&s));
         r
     }

@@ -118,14 +118,13 @@ where
         id: ViewId,
         pt: LocalPoint,
         cx: &mut Context,
-        vger: &mut Vger,
     ) -> Option<ViewId> {
         let mut hit = None;
         for child in &self.ids {
             let child_id = id.child(child);
             let offset = cx.layout.entry(child_id).or_default().offset;
 
-            if let Some(h) = ((self.func)(child)).hittest(child_id, pt - offset, cx, vger) {
+            if let Some(h) = ((self.func)(child)).hittest(child_id, pt - offset, cx) {
                 hit = Some(h)
             }
         }

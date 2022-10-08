@@ -50,9 +50,8 @@ where
         id: ViewId,
         pt: LocalPoint,
         cx: &mut Context,
-        vger: &mut Vger,
     ) -> Option<ViewId> {
-        (self.func)(self.value.clone(), cx).hittest(id.child(&0), pt, cx, vger)
+        (self.func)(self.value.clone(), cx).hittest(id.child(&0), pt, cx)
     }
 
     fn commands(&self, id: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {

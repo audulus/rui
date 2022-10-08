@@ -216,7 +216,6 @@ impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D>
         id: ViewId,
         pt: LocalPoint,
         cx: &mut Context,
-        vger: &mut Vger,
     ) -> Option<ViewId> {
         let mut c = 0;
         let mut hit = None;
@@ -224,7 +223,7 @@ impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D>
             let child_id = id.child(&c);
             let offset = cx.layout.entry(child_id).or_default().offset;
 
-            if let Some(h) = child.hittest(child_id, pt - offset, cx, vger) {
+            if let Some(h) = child.hittest(child_id, pt - offset, cx) {
                 hit = Some(h)
             }
 

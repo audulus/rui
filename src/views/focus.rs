@@ -21,7 +21,7 @@ where
     ) {
         match &event {
             Event::TouchBegin { id: _, position } => {
-                if self.hittest(vid, *position, cx, vger).is_some() {
+                if self.hittest(vid, *position, cx).is_some() {
                     cx.focused_id = Some(vid);
                     cx.set_dirty();
                 }
@@ -54,9 +54,8 @@ where
         id: ViewId,
         pt: LocalPoint,
         cx: &mut Context,
-        vger: &mut Vger,
     ) -> Option<ViewId> {
-        (self.func)(Some(id) == cx.focused_id).hittest(id.child(&0), pt, cx, vger)
+        (self.func)(Some(id) == cx.focused_id).hittest(id.child(&0), pt, cx)
     }
 
     fn commands(&self, id: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
