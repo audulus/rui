@@ -45,7 +45,7 @@ mod tests {
         let mut cx = Context::new();
 
         let ui = state(|| 0.0, |s, _| knob(s));
-        let sz = LocalSize::new(100.0, 100.0);
+        let sz = [100.0, 100.0].into();
 
         let knob_sz = ui.layout(
             ViewId::default(),
@@ -88,6 +88,5 @@ mod tests {
             &mut cx,
             &mut actions,
         );
-        
     }
 }
