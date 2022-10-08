@@ -686,7 +686,7 @@ pub fn rui(view: impl View) {
                 if let Some(command) = command_map.get(&menu_id) {
                     //println!("found command {:?}", command);
                     let event = Event::Command(command.clone());
-                    cx.process(&view, &event, &mut vger)
+                    cx.process(&view, &event)
                 }
             }
             _ => (),
