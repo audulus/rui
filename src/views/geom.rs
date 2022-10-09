@@ -19,14 +19,12 @@ where
         cx: &mut Context,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
-        if let Event::Geom = event {
-            let rect = cx.layout[&id].rect;
-            (self.func)(cx, rect.size);
-        }
         self.child.process(event, id.child(&0), cx, actions);
     }
 
     fn draw(&self, id: ViewId, args: &mut DrawArgs) {
+        let rect = args.cx.layout[&id].rect;
+        (self.func)(args.cx, rect.size);
         self.child.draw(id.child(&0), args);
     }
 
