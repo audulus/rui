@@ -28,18 +28,7 @@ where
     }
 
     fn layout(&self, id: ViewId, args: &mut LayoutArgs) -> LocalSize {
-        let child_size =
-            (self.func)(args.cx.init_env(&S::default), args.cx).layout(id.child(&0), args);
-
-        args.cx.layout.insert(
-            id,
-            LayoutBox {
-                rect: LocalRect::new(LocalPoint::zero(), child_size),
-                offset: LocalOffset::zero(),
-            },
-        );
-
-        child_size
+        (self.func)(args.cx.init_env(&S::default), args.cx).layout(id.child(&0), args)
     }
 
     fn dirty(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) {
