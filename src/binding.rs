@@ -2,10 +2,10 @@ use crate::*;
 
 /// Reads or writes a value owned by a source-of-truth.
 pub trait Binding<S>: Clone + Copy + 'static {
-    fn get<'a>(&self, cx: &'a mut Context) -> &'a S;
+    fn get<'a>(&self, cx: &'a Context) -> &'a S;
     fn get_mut<'a>(&self, cx: &'a mut Context) -> &'a mut S;
 
-    fn with<T>(&self, cx: &mut Context, f: impl FnOnce(&S) -> T) -> T {
+    fn with<T>(&self, cx: &Context, f: impl FnOnce(&S) -> T) -> T {
         f(self.get(cx))
     }
 
@@ -78,7 +78,7 @@ where
     S: 'static,
     T: 'static,
 {
-    fn get<'a>(&self, cx: &'a mut Context) -> &'a S {
+    fn get<'a>(&self, cx: &'a Context) -> &'a S {
         self.lens.focus(self.binding.get(cx))
     }
     fn get_mut<'a>(&self, cx: &'a mut Context) -> &'a mut S {

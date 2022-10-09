@@ -30,7 +30,7 @@ impl<S: 'static> State<S> {
 }
 
 impl<S: 'static> Binding<S> for State<S> {
-    fn get<'a>(&self, cx: &'a mut Context) -> &'a S {
+    fn get<'a>(&self, cx: &'a Context) -> &'a S {
         cx.get(*self)
     }
     fn get_mut<'a>(&self, cx: &'a mut Context) -> &'a mut S {
@@ -48,7 +48,7 @@ where
     V: View,
     S: 'static,
     D: Fn() -> S + 'static,
-    F: Fn(State<S>, &mut Context) -> V + 'static,
+    F: Fn(State<S>, &Context) -> V + 'static,
 {
     fn process(
         &self,
@@ -177,7 +177,7 @@ pub fn state<
     S: 'static,
     V: View,
     D: Fn() -> S + 'static,
-    F: Fn(State<S>, &mut Context) -> V + 'static,
+    F: Fn(State<S>, &Context) -> V + 'static,
 >(
     initial: D,
     f: F,
@@ -189,7 +189,7 @@ pub fn state<
 }
 
 /// Convenience to get the context.
-pub fn with_cx<V: View, F: Fn(&mut Context) -> V + 'static>(f: F) -> impl View {
+pub fn with_cx<V: View, F: Fn(&Context) -> V + 'static>(f: F) -> impl View {
     state(|| (), move |_, cx| f(cx))
 }
 
