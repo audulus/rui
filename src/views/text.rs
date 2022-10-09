@@ -78,16 +78,7 @@ where
     }
     fn layout(&self, id: ViewId, args: &mut LayoutArgs) -> LocalSize {
         let txt = &format!("{}", self);
-        let size = (args.text_bounds)(txt, Text::DEFAULT_SIZE, None).size;
-
-        args.cx.layout.insert(
-            id,
-            LayoutBox {
-                rect: LocalRect::new(LocalPoint::zero(), size),
-                offset: LocalOffset::zero(),
-            },
-        );
-        size
+        (args.text_bounds)(txt, Text::DEFAULT_SIZE, None).size
     }
 
     fn access(
