@@ -93,7 +93,7 @@ pub fn vslider(
     modview(move |opts: SliderOptions, _| {
         state(
             || 0.0,
-            move |height, cx| {
+            move |height, _| {
                 canvas(move |cx, sz, vger| {
                     let h = cx[height];
                     let y = value * h;
