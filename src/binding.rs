@@ -116,6 +116,6 @@ mod tests {
 
         *b.get_mut(&mut cx) = 42;
 
-        assert_eq!(*b.get(&mut cx), 42);
+        assert_eq!(*b.get(&cx), 42);
     }
 }

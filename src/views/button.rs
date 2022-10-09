@@ -39,7 +39,7 @@ mod tests {
 
         assert_eq!(button_sz, sz);
         let s = State::<bool>::new(cx.root_id);
-        assert_eq!(*s.get(&mut cx), false);
+        assert_eq!(*s.get(&cx), false);
 
         let events = [
             Event::TouchBegin {
@@ -60,6 +60,6 @@ mod tests {
         assert!(cx.state_map.contains_key(&cx.root_id));
 
         // State should have changed.
-        assert_eq!(*s.get(&mut cx), true);
+        assert_eq!(*s.get(&cx), true);
     }
 }
