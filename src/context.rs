@@ -239,10 +239,6 @@ impl Context {
             },
         );
 
-        // Geometry callbacks.
-        let mut actions = vec![];
-        view.process(&Event::Geom, self.root_id, self, &mut actions);
-
         // Center the root view in the window.
         self.root_offset = ((local_window_size - sz) / 2.0).into();
 
