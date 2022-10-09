@@ -32,6 +32,9 @@ pub enum Event {
 
     /// Animation.
     Anim,
+
+    /// Report geometry (see geom.rs)
+    Geom,
 }
 
 impl Event {

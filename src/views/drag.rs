@@ -183,7 +183,7 @@ where
                     )));
                 }
             }
-            _ => (),
+            _ => self.child.process(event, vid.child(&0), cx, actions),
         }
     }
 
