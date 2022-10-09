@@ -162,7 +162,7 @@ In the long term, I'd like to move [Audulus](http://audulus.com/) over to Rust. 
 - ✅ knobs
 - ✅ editable text (still a bit rough)
 - ✅ any_view (view type erasure)
-- ❌ layout feedback
+- ✅ layout feedback
 - ✅ animation
 
 ## References
