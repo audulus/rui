@@ -76,7 +76,7 @@ where
         vger.text(txt, Text::DEFAULT_SIZE, TEXT_COLOR, None);
         vger.restore();
     }
-    fn layout(&self, id: ViewId, args: &mut LayoutArgs) -> LocalSize {
+    fn layout(&self, _id: ViewId, args: &mut LayoutArgs) -> LocalSize {
         let txt = &format!("{}", self);
         (args.text_bounds)(txt, Text::DEFAULT_SIZE, None).size
     }
