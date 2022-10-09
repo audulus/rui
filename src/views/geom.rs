@@ -24,11 +24,23 @@ where
 
     fn draw(&self, id: ViewId, args: &mut DrawArgs) {
         self.child.draw(id.child(&0), args);
+
+        let rect = args.cx.layout[&id].rect;
+
+        (self.func)(args.cx, rect.size);
     }
 
     fn layout(&self, id: ViewId, args: &mut LayoutArgs) -> LocalSize {
         let sz = self.child.layout(id.child(&0), args);
-        (self.func)(args.cx, sz);
+
+        args.cx.layout.insert(
+            id,
+            LayoutBox {
+                rect: LocalRect::new(LocalPoint::zero(), sz),
+                offset: LocalOffset::zero(),
+            },
+        );
+
         sz
     }
 
