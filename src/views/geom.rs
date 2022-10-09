@@ -10,7 +10,7 @@ pub struct Geom<V, F> {
 impl<V, F> View for Geom<V, F>
 where
     V: View,
-    F: Fn(&mut Context, LocalSize) + 'static,
+    F: Fn(&mut Context, LocalSize, LocalToWorld) + 'static,
 {
     fn process(
         &self,
@@ -24,7 +24,7 @@ where
 
     fn draw(&self, id: ViewId, args: &mut DrawArgs) {
         let rect = args.cx.layout[&id].rect;
-        (self.func)(args.cx, rect.size);
+        (self.func)(args.cx, rect.size, args.vger.current_transform());
         self.child.draw(id.child(&0), args);
     }
 
@@ -73,7 +73,7 @@ impl<V, F> private::Sealed for Geom<V, F> {}
 impl<V, F> Geom<V, F>
 where
     V: View,
-    F: Fn(&mut Context, LocalSize) + 'static,
+    F: Fn(&mut Context, LocalSize, LocalToWorld) + 'static,
 {
     pub fn new(child: V, f: F) -> Self {
         Self { child, func: f }

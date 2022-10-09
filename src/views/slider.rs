@@ -57,7 +57,7 @@ pub fn hslider(value: impl Binding<f32>) -> impl SliderMods {
                     let paint = vger.color_paint(opts.thumb);
                     vger.fill_circle([x, c.y], r, paint);
                 })
-                .geom(move |cx, sz| {
+                .geom(move |cx, sz, _| {
                     if sz.width != cx[width] {
                         cx[width] = sz.width;
                     }
@@ -94,10 +94,9 @@ pub fn vslider(
         state(
             || 0.0,
             move |height, cx| {
-                let h = cx[height];
-                let y = value * h;
-
-                canvas(move |_, sz, vger| {
+                canvas(move |cx, sz, vger| {
+                    let h = cx[height];
+                    let y = value * h;
                     let c = sz.center();
                     let paint = vger.color_paint(BUTTON_BACKGROUND_COLOR);
                     vger.fill_rect(
@@ -108,13 +107,13 @@ pub fn vslider(
                     let paint = vger.color_paint(opts.thumb);
                     vger.fill_circle([c.x, y], SLIDER_THUMB_RADIUS, paint);
                 })
-                .geom(move |cx, sz| {
-                    if sz.height != h {
+                .geom(move |cx, sz, _| {
+                    if sz.height != cx[height] {
                         cx[height] = sz.height;
                     }
                 })
                 .drag(move |cx, delta, _, _| {
-                    (set_value)(cx, (value + delta.y / h).clamp(0.0, 1.0));
+                    (set_value)(cx, (value + delta.y / cx[height]).clamp(0.0, 1.0));
                 })
             },
         )

@@ -66,7 +66,7 @@ pub trait Modifiers: View + Sized {
 
     /// Calls a function with the view's geometry after layout runs.
     /// Currently only the view's size is returned.
-    fn geom<F: Fn(&mut Context, LocalSize) + 'static>(self, f: F) -> Geom<Self, F> {
+    fn geom<F: Fn(&mut Context, LocalSize, LocalToWorld) + 'static>(self, f: F) -> Geom<Self, F> {
         Geom::new(self, f)
     }
 
