@@ -27,14 +27,16 @@ pub fn hslider(value: impl Binding<f32>) -> impl SliderMods {
             || 0.0,
             move |width, cx| {
                 let w = cx[width];
-                let v = value.get(cx);
-                let r = SLIDER_THUMB_RADIUS;
-                let start_x = r;
-                let end_x = w - r;
-                let x = (1.0 - v) * start_x + v * (end_x);
-
-                canvas(move |_, sz, vger| {
+                canvas(move |cx, sz, vger| {
                     let c = sz.center();
+
+                    let w = cx[width];
+                    let v = value.get(cx);
+                    let r = SLIDER_THUMB_RADIUS;
+                    let start_x = r;
+                    let end_x = w - r;
+                    let x = (1.0 - v) * start_x + v * (end_x);
+
                     let paint = vger.color_paint(BUTTON_BACKGROUND_COLOR);
                     vger.fill_rect(
                         euclid::rect(
@@ -56,7 +58,7 @@ pub fn hslider(value: impl Binding<f32>) -> impl SliderMods {
                     vger.fill_circle([x, c.y], r, paint);
                 })
                 .geom(move |cx, sz| {
-                    if sz.width != w {
+                    if sz.width != cx[width] {
                         cx[width] = sz.width;
                     }
                 })
