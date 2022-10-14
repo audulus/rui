@@ -20,6 +20,7 @@ where
         actions: &mut Vec<Box<dyn Any>>,
     ) {
         self.child.process(event, id.child(&0), cx, actions);
+        self.background.process(event, id.child(&0), cx, actions);
     }
 
     fn draw(&self, id: ViewId, args: &mut DrawArgs) {
