@@ -15,7 +15,6 @@ pub fn button<A: 'static, F: Fn(&mut Context) -> A + 'static>(view: impl View, f
         .role(Role::Button)
 }
 
-
 #[cfg(test)]
 mod tests {
 
@@ -25,7 +24,14 @@ mod tests {
     fn test_button() {
         let mut cx = Context::new();
 
-        let ui = state(|| false, |pushed, _| button("button", move |cx| { *pushed.get_mut(cx) = true; }));
+        let ui = state(
+            || false,
+            |pushed, _| {
+                button("button", move |cx| {
+                    *pushed.get_mut(cx) = true;
+                })
+            },
+        );
         let sz = [100.0, 100.0].into();
 
         let button_sz = ui.layout(
@@ -33,7 +39,7 @@ mod tests {
             &mut LayoutArgs {
                 sz,
                 cx: &mut cx,
-                text_bounds: &mut |_, _, _| LocalRect::new(LocalPoint::zero(), [90.0, 90.0].into())
+                text_bounds: &mut |_, _, _| LocalRect::new(LocalPoint::zero(), [90.0, 90.0].into()),
             },
         );
 
