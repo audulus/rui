@@ -20,12 +20,26 @@ impl Circle {
 }
 
 impl View for Circle {
+    fn bounds(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) -> WorldRect {
+        xform.outer_transformed_rect(&cx.layout[&id].rect)
+    }
+
     fn draw(&self, id: ViewId, args: &mut DrawArgs) {
         let (center, radius) = self.geom(id, args.cx);
 
         let vger = &mut args.vger;
         let paint = self.paint.vger_paint(vger);
         vger.fill_circle(center, radius, paint);
+    }
+
+    fn hittest(&self, id: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
+        let (center, radius) = self.geom(id, cx);
+
+        if pt.distance_to(center) < radius {
+            Some(id)
+        } else {
+            None
+        }
     }
 
     fn layout(&self, id: ViewId, args: &mut LayoutArgs) -> LocalSize {
@@ -37,20 +51,6 @@ impl View for Circle {
             },
         );
         args.sz
-    }
-
-    fn bounds(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) -> WorldRect {
-        xform.outer_transformed_rect(&cx.layout[&id].rect)
-    }
-
-    fn hittest(&self, id: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
-        let (center, radius) = self.geom(id, cx);
-
-        if pt.distance_to(center) < radius {
-            Some(id)
-        } else {
-            None
-        }
     }
 }
 
