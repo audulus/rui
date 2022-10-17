@@ -23,6 +23,14 @@ where
             .process(&event.offset(-off), id.child(&0), cx, actions);
     }
 
+    fn bounds(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) -> WorldRect {
+        self.child.bounds(
+            id.child(&0),
+            xform.pre_translate([self.padding, self.padding].into()),
+            cx,
+        )
+    }
+
     fn draw(&self, id: ViewId, args: &mut DrawArgs) {
         args.vger.save();
         args.vger.translate([self.padding, self.padding]);
