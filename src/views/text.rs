@@ -76,9 +76,24 @@ where
         vger.text(txt, Text::DEFAULT_SIZE, TEXT_COLOR, None);
         vger.restore();
     }
-    fn layout(&self, _id: ViewId, args: &mut LayoutArgs) -> LocalSize {
+
+    fn bounds(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) -> WorldRect {
+        xform.outer_transformed_rect(&cx.layout[&id].rect)
+    }
+
+    fn layout(&self, id: ViewId, args: &mut LayoutArgs) -> LocalSize {
         let txt = &format!("{}", self);
-        (args.text_bounds)(txt, Text::DEFAULT_SIZE, None).size
+        let sz = (args.text_bounds)(txt, Text::DEFAULT_SIZE, None).size;
+
+        args.cx.layout.insert(
+            id,
+            LayoutBox {
+                rect: LocalRect::new(LocalPoint::zero(), sz),
+                offset: LocalOffset::zero(),
+            },
+        );
+
+        sz
     }
 
     fn access(
