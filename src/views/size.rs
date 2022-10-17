@@ -30,6 +30,10 @@ where
         self.size
     }
 
+    fn bounds(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) -> WorldRect {
+        self.child.bounds(id.child(&0), xform, cx)
+    }
+
     fn dirty(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) {
         self.child.dirty(id.child(&0), xform, cx);
     }

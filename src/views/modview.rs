@@ -26,6 +26,10 @@ where
         (self.func)(self.value.clone(), args.cx).draw(id.child(&0), args);
     }
 
+    fn bounds(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) -> WorldRect {
+        (self.func)(self.value.clone(), cx).bounds(id.child(&0), xform, cx)
+    }
+
     fn layout(&self, id: ViewId, args: &mut LayoutArgs) -> LocalSize {
         (self.func)(self.value.clone(), args.cx).layout(id.child(&0), args)
     }

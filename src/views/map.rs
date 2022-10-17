@@ -36,6 +36,12 @@ where
         (self.func)(State::new(id), args.cx).draw(id.child(&0), args);
     }
 
+    fn bounds(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) -> WorldRect {
+        cx.set_state(id, self.value.clone());
+
+        (self.func)(State::new(id), cx).bounds(id.child(&0), xform, cx)
+    }
+
     fn layout(&self, id: ViewId, args: &mut LayoutArgs) -> LocalSize {
         args.cx.set_state(id, self.value.clone());
 

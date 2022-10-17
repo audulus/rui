@@ -114,6 +114,12 @@ where
         args.cx.layout[&id].rect.size
     }
 
+    fn bounds(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) -> WorldRect {
+        let view = (self.func)(State::new(id), cx);
+
+        view.bounds(id, xform, cx)
+    }
+
     fn dirty(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) {
         let default = &self.default;
         let holder = cx.state_map.entry(id).or_insert_with(|| StateHolder {
