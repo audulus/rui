@@ -38,8 +38,8 @@ where
             .dirty(id.child(&0), xform.pre_translate(self.offset), cx);
     }
 
-    fn bounds(&self, id: ViewId, xform: LocalToWorld) -> LocalRect {
-        self.child.bounds(id.child(&0), xform.pre_translate(self.offset))
+    fn bounds(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) -> LocalRect {
+        self.child.bounds(id.child(&0), xform.pre_translate(self.offset), cx)
     }
 
     fn hittest(&self, id: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {

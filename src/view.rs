@@ -38,7 +38,7 @@ pub trait View: private::Sealed + 'static {
     fn commands(&self, _id: ViewId, _cx: &mut Context, _cmds: &mut Vec<CommandInfo>) {}
 
     /// Calculate bounds including offsets.
-    fn bounds(&self, _id: ViewId, _xform: LocalToWorld) -> LocalRect { LocalRect::zero() }
+    fn bounds(&self, _id: ViewId, _xform: LocalToWorld, _cx: &mut Context) -> LocalRect { LocalRect::zero() }
 
     /// Determines dirty regions which need repainting.
     fn dirty(&self, _id: ViewId, _xform: LocalToWorld, _cx: &mut Context) {}
