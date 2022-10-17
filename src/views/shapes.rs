@@ -39,6 +39,10 @@ impl View for Circle {
         args.sz
     }
 
+    fn bounds(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) -> WorldRect {
+        xform.outer_transformed_rect(&cx.layout[&id].rect)
+    }
+
     fn hittest(&self, id: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
         let (center, radius) = self.geom(id, cx);
 
@@ -94,6 +98,10 @@ impl View for Rectangle {
         let vger = &mut args.vger;
         let paint = self.paint.vger_paint(vger);
         vger.fill_rect(rect, self.corner_radius, paint);
+    }
+
+    fn bounds(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) -> WorldRect {
+        xform.outer_transformed_rect(&cx.layout[&id].rect)
     }
 
     fn layout(&self, id: ViewId, args: &mut LayoutArgs) -> LocalSize {

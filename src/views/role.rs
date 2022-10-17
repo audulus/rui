@@ -43,7 +43,7 @@ where
         self.child.dirty(id.child(&0), xform, cx);
     }
 
-    fn bounds(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) -> LocalRect {
+    fn bounds(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) -> WorldRect {
         self.child.bounds(id.child(&0), xform, cx)
     }
 
