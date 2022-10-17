@@ -31,6 +31,10 @@ where
         (self.func)(args.cx.init_env(&S::default), args.cx).layout(id.child(&0), args)
     }
 
+    fn bounds(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) -> WorldRect {
+        (self.func)(cx.init_env(&S::default), cx).bounds(id.child(&0), xform, cx)
+    }
+
     fn dirty(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) {
         (self.func)(cx.init_env(&S::default), cx).dirty(id.child(&0), xform, cx);
     }
