@@ -277,6 +277,10 @@ where
         self.child.hittest(id.child(&0), pt, cx)
     }
 
+    fn bounds(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) -> WorldRect {
+        self.child.bounds(id.child(&0), xform, cx)
+    }
+
     fn commands(&self, id: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
         self.child.commands(id.child(&0), cx, cmds);
         self.cmds.foreach_cmd(&mut |cmd| {
