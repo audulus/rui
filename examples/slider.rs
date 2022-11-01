@@ -16,10 +16,10 @@ fn my_slider(s: impl Binding<f32>) -> impl View {
 }
 
 fn main() {
-    rui(state(MyState::default, |state, cx| {
+    rui(state(MyState::default, |state_handle, cx| {
         map(
-            cx[state].value,
-            move |v, cx| cx[state].value = v,
+            cx[state_handle].value,
+            move |v, cx| cx[state_handle].value = v,
             |s, _| my_slider(s),
         )
     }));
