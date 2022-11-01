@@ -44,7 +44,7 @@ mod tests {
         );
 
         assert_eq!(button_sz, sz);
-        let s = State::<bool>::new(cx.root_id);
+        let s = StateHandle::<bool>::new(cx.root_id);
         assert!(!*s.get(&cx));
 
         let events = [

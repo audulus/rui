@@ -2,7 +2,7 @@ use rui::*;
 
 // XXX: WIP
 
-fn digit_button(title: &str, state: State<String>) -> impl View {
+fn digit_button(title: &str, state: StateHandle<String>) -> impl View {
     let t = String::from(title);
     zstack((
         rectangle()
