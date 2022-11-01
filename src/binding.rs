@@ -110,7 +110,7 @@ mod tests {
         let mut cx = Context::new();
         let id = ViewId::default();
         cx.init_state(id, &MyState::default);
-        let s = State::new(id);
+        let s = StateHandle::new(id);
 
         let b = bind(s, MyLens {});
 
