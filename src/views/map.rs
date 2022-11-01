@@ -12,7 +12,7 @@ where
     V: View,
     S1: Clone + 'static,
     SF: Fn(S1, &mut Context) + 'static,
-    F: Fn(StateHandle<S1>, &mut Context) -> V + 'static,
+    F: Fn(State<S1>, &mut Context) -> V + 'static,
 {
     fn process(
         &self,
@@ -22,7 +22,7 @@ where
         actions: &mut Vec<Box<dyn Any>>,
     ) {
         cx.set_state(id, self.value.clone());
-        let s = StateHandle::new(id);
+        let s = State::new(id);
         (self.func)(s, cx).process(event, id.child(&0), cx, actions);
 
         // If processing the event changed the state, then call the set_value function.
@@ -33,40 +33,40 @@ where
 
     fn draw(&self, id: ViewId, args: &mut DrawArgs) {
         args.cx.set_state(id, self.value.clone());
-        (self.func)(StateHandle::new(id), args.cx).draw(id.child(&0), args);
+        (self.func)(State::new(id), args.cx).draw(id.child(&0), args);
     }
 
     fn bounds(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) -> WorldRect {
         cx.set_state(id, self.value.clone());
 
-        (self.func)(StateHandle::new(id), cx).bounds(id.child(&0), xform, cx)
+        (self.func)(State::new(id), cx).bounds(id.child(&0), xform, cx)
     }
 
     fn layout(&self, id: ViewId, args: &mut LayoutArgs) -> LocalSize {
         args.cx.set_state(id, self.value.clone());
 
-        (self.func)(StateHandle::new(id), args.cx).layout(id.child(&0), args)
+        (self.func)(State::new(id), args.cx).layout(id.child(&0), args)
     }
 
     fn dirty(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) {
         cx.set_state(id, self.value.clone());
-        (self.func)(StateHandle::new(id), cx).dirty(id.child(&0), xform, cx);
+        (self.func)(State::new(id), cx).dirty(id.child(&0), xform, cx);
     }
 
     fn hittest(&self, id: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
         cx.set_state(id, self.value.clone());
-        (self.func)(StateHandle::new(id), cx).hittest(id.child(&0), pt, cx)
+        (self.func)(State::new(id), cx).hittest(id.child(&0), pt, cx)
     }
 
     fn commands(&self, id: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
         cx.set_state(id, self.value.clone());
-        (self.func)(StateHandle::new(id), cx).commands(id.child(&0), cx, cmds);
+        (self.func)(State::new(id), cx).commands(id.child(&0), cx, cmds);
     }
 
     fn gc(&self, id: ViewId, cx: &mut Context, map: &mut Vec<ViewId>) {
         cx.set_state(id, self.value.clone());
         map.push(id);
-        (self.func)(StateHandle::new(id), cx).gc(id.child(&0), cx, map);
+        (self.func)(State::new(id), cx).gc(id.child(&0), cx, map);
     }
 
     fn access(
@@ -76,7 +76,7 @@ where
         nodes: &mut Vec<accesskit::Node>,
     ) -> Option<accesskit::NodeId> {
         cx.set_state(id, self.value.clone());
-        (self.func)(StateHandle::new(id), cx).access(id.child(&0), cx, nodes)
+        (self.func)(State::new(id), cx).access(id.child(&0), cx, nodes)
     }
 }
 

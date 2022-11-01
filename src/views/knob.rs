@@ -57,7 +57,7 @@ mod tests {
         );
 
         assert_eq!(knob_sz, sz);
-        let s = StateHandle::<f32>::new(cx.root_id);
+        let s = State::<f32>::new(cx.root_id);
         assert_eq!(*s.get(&cx), 0.0);
 
         let events = [

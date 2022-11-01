@@ -357,14 +357,14 @@ impl Context {
         old_value
     }
 
-    pub fn get<S>(&self, id: StateHandle<S>) -> &S
+    pub fn get<S>(&self, id: State<S>) -> &S
     where
         S: 'static,
     {
         self.state_map[&id.id].state.downcast_ref::<S>().unwrap()
     }
 
-    pub fn get_mut<S>(&mut self, id: StateHandle<S>) -> &mut S
+    pub fn get_mut<S>(&mut self, id: State<S>) -> &mut S
     where
         S: 'static,
     {
@@ -376,22 +376,22 @@ impl Context {
     }
 }
 
-impl<S> ops::Index<StateHandle<S>> for Context
+impl<S> ops::Index<State<S>> for Context
 where
     S: 'static,
 {
     type Output = S;
 
-    fn index(&self, index: StateHandle<S>) -> &Self::Output {
+    fn index(&self, index: State<S>) -> &Self::Output {
         self.get(index)
     }
 }
 
-impl<S> ops::IndexMut<StateHandle<S>> for Context
+impl<S> ops::IndexMut<State<S>> for Context
 where
     S: 'static,
 {
-    fn index_mut(&mut self, index: StateHandle<S>) -> &mut Self::Output {
+    fn index_mut(&mut self, index: State<S>) -> &mut Self::Output {
         self.get_mut(index)
     }
 }
