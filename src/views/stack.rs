@@ -50,7 +50,7 @@ impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D>
         let mut c = 0;
         self.children.foreach_view(&mut |child| {
             let child_id = id.child(&c);
-            let layout_box = args.cx.layout[&child_id];
+            let layout_box = *args.cx.layout.entry(child_id).or_default();
 
             args.vger.save();
 
