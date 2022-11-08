@@ -8,10 +8,18 @@ pub trait TextModifiers: View + Sized {
 pub struct Text {
     text: String,
     size: u32,
+    color: Color,
 }
 
 impl Text {
     pub const DEFAULT_SIZE: u32 = 18;
+    pub fn color(self, color: Color) -> Text {
+        Text {
+            text: self.text,
+            size: self.size,
+            color,
+        }
+    }
 }
 
 impl View for Text {
@@ -21,7 +29,7 @@ impl View for Text {
 
         vger.save();
         vger.translate([-origin.x, -origin.y]);
-        vger.text(self.text.as_str(), self.size, TEXT_COLOR, None);
+        vger.text(self.text.as_str(), self.size, self.color, None);
         vger.restore();
     }
     fn layout(&self, _id: ViewId, args: &mut LayoutArgs) -> LocalSize {
@@ -47,6 +55,7 @@ impl TextModifiers for Text {
     fn font_size(self, size: u32) -> Self {
         Self {
             text: self.text,
+            color: self.color,
             size,
         }
     }
@@ -59,6 +68,7 @@ pub fn text(name: &str) -> Text {
     Text {
         text: String::from(name),
         size: Text::DEFAULT_SIZE,
+        color: TEXT_COLOR
     }
 }
 
@@ -101,6 +111,7 @@ where
         Text {
             text: format!("{}", self),
             size,
+            color: TEXT_COLOR
         }
     }
 }
