@@ -122,7 +122,7 @@ where
                     let child_id = id.child(&self.ids[c]);
                     let child_size = sizes[c];
 
-                    let child_offset = align_w(
+                    let child_offset = align_v(
                         LocalRect::new(LocalPoint::origin(), child_size),
                         LocalRect::new(
                             [x - child_size.width, 0.0,].into(),
