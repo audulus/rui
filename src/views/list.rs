@@ -51,6 +51,49 @@ where
 
     fn layout(&self, id: ViewId, args: &mut LayoutArgs) -> LocalSize {
         match self.orientation {
+            ListOrientation::Horizontal => {
+                let n = self.ids.len() as f32;
+                let proposed_child_size = LocalSize::new(args.sz.width / n, args.sz.height);
+
+                let mut sizes = Vec::<LocalSize>::new();
+                sizes.reserve(self.ids.len());
+
+                let mut width_sum = 0.0;
+                for child in &self.ids {
+                    let child_id = id.child(child);
+                    let child_size =
+                        ((self.func)(child)).layout(child_id, &mut args.size(proposed_child_size));
+                    sizes.push(child_size);
+
+                    width_sum += child_size.width;
+                }
+                
+                let mut max_height = 0.0;
+                for size in &sizes {
+                    max_height = size.height.max(max_height)
+                }
+
+                let mut x = 0.0;
+                for c in 0..self.ids.len() {
+                    let child_id = id.child(&self.ids[c]);
+                    let child_size = sizes[c];
+
+                    let child_offset = align_v(
+                        LocalRect::new(LocalPoint::origin(), child_size),
+                        LocalRect::new(
+                            [x, 0.0].into(),
+                            [child_size.width, max_height].into(),
+                        ),
+                        VAlignment::Middle,
+                    );
+
+                    args.cx.layout.entry(child_id).or_default().offset = child_offset;
+
+                    x += child_size.width;
+                }
+
+                LocalSize::new(max_height, width_sum)
+            }
             ListOrientation::Vertical => {
                 let n = self.ids.len() as f32;
                 let proposed_child_size = LocalSize::new(args.sz.width, args.sz.height / n);
@@ -93,50 +136,6 @@ where
                 }
 
                 LocalSize::new(max_width, height_sum)
-            }
-            
-            ListOrientation::Horizontal => {
-                let n = self.ids.len() as f32;
-                let proposed_child_size = LocalSize::new(args.sz.width / n, args.sz.height);
-
-                let mut sizes = Vec::<LocalSize>::new();
-                sizes.reserve(self.ids.len());
-
-                let mut width_sum = 0.0;
-                for child in &self.ids {
-                    let child_id = id.child(child);
-                    let child_size =
-                        ((self.func)(child)).layout(child_id, &mut args.size(proposed_child_size));
-                    sizes.push(child_size);
-
-                    width_sum += child_size.width;
-                }
-
-                let mut max_height = 0.0;
-                for size in &sizes {
-                    max_height = size.height.max(max_height)
-                }
-
-                let mut x = width_sum;
-                for c in 0..self.ids.len() {
-                    let child_id = id.child(&self.ids[c]);
-                    let child_size = sizes[c];
-
-                    let child_offset = align_v(
-                        LocalRect::new(LocalPoint::origin(), child_size),
-                        LocalRect::new(
-                            [x - child_size.width, 0.0,].into(),
-                            [child_size.width, max_height].into(),
-                        ),
-                        VAlignment::Middle,
-                    );
-
-                    args.cx.layout.entry(child_id).or_default().offset = child_offset;
-
-                    x -= child_size.width;
-                }
-
-                LocalSize::new(max_height, width_sum)
             }
             ListOrientation::Z => {
                 for child in &self.ids {
