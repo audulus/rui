@@ -3,8 +3,8 @@ use std::any::Any;
 use std::hash::Hash;
 
 pub enum ListOrientation {
-    Vertical,
     Horizontal,
+    Vertical,
     Z,
 }
 
