@@ -15,6 +15,15 @@ pub fn align_h(child: LocalRect, parent: LocalRect, align: HAlignment) -> LocalO
     }
 }
 
+pub fn align_w(child: LocalRect, parent: LocalRect, align: VAlignment) -> LocalOffset {
+    let c_off = parent.center() - child.center();
+    match align {
+        VAlignment::Top => [c_off.y, parent.min_y() - child.min_y()].into(),
+        VAlignment::Middle => c_off,
+        VAlignment::Bottom => [c_off.y, parent.min_y() - child.min_y()].into(),
+    }
+}
+
 pub enum VAlignment {
     Top,
     Middle,
