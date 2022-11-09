@@ -2,6 +2,7 @@ use crate::*;
 
 pub trait TextModifiers: View + Sized {
     fn font_size(self, size: u32) -> Text;
+    fn color(self, color: Color) -> Text;
 }
 
 /// Struct for `text`.
@@ -59,6 +60,13 @@ impl TextModifiers for Text {
             size,
         }
     }
+    fn color(self, color: Color) -> Text {
+        Text {
+            text: self.text,
+            size: self.size,
+            color,
+        }
+    }
 }
 
 impl private::Sealed for Text {}
@@ -112,6 +120,13 @@ where
             text: format!("{}", self),
             size,
             color: TEXT_COLOR
+        }
+    }
+    fn color(self, color: Color) -> Text {
+        Text {
+            text: format!("{}", self),
+            size: Text::DEFAULT_SIZE,
+            color,
         }
     }
 }
