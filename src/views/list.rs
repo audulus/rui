@@ -92,7 +92,7 @@ where
                     x += child_size.width;
                 }
 
-                LocalSize::new(max_height, width_sum)
+                LocalSize::new(width_sum, max_height)
             }
             ListOrientation::Vertical => {
                 let n = self.ids.len() as f32;
