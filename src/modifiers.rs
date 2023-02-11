@@ -4,7 +4,7 @@ use accesskit::Role;
 /// Modifiers common to all views.
 pub trait Modifiers: View + Sized {
     /// Calls a closure after rendering with context and delta time.
-    fn anim<F: Fn(&mut Context, f32) + 'static>(self, func: F) -> AnimView<Self, F> {
+    fn anim<F: Fn(&mut Context, f32) + 'static + Clone>(self, func: F) -> AnimView<Self, F> {
         AnimView::new(self, func)
     }
 
