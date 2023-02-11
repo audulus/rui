@@ -76,7 +76,7 @@ pub fn text(name: &str) -> Text {
     Text {
         text: String::from(name),
         size: Text::DEFAULT_SIZE,
-        color: TEXT_COLOR
+        color: TEXT_COLOR,
     }
 }
 
@@ -119,7 +119,7 @@ where
         Text {
             text: format!("{}", self),
             size,
-            color: TEXT_COLOR
+            color: TEXT_COLOR,
         }
     }
     fn color(self, color: Color) -> Text {

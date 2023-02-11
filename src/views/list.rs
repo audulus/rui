@@ -67,7 +67,7 @@ where
 
                     width_sum += child_size.width;
                 }
-                
+
                 let mut max_height = 0.0;
                 for size in &sizes {
                     max_height = size.height.max(max_height)
@@ -80,10 +80,7 @@ where
 
                     let child_offset = align_v(
                         LocalRect::new(LocalPoint::origin(), child_size),
-                        LocalRect::new(
-                            [x, 0.0].into(),
-                            [child_size.width, max_height].into(),
-                        ),
+                        LocalRect::new([x, 0.0].into(), [child_size.width, max_height].into()),
                         VAlignment::Middle,
                     );
 
