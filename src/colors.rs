@@ -16,6 +16,13 @@ pub const BUTTON_BACKGROUND_COLOR: Color = Color {
     a: 1.0,
 };
 
+pub const BUTTON_HOVER_COLOR: Color = Color {
+    r: 0.2,
+    g: 0.2,
+    b: 0.2,
+    a: 1.0,
+};
+
 pub const CLEAR_COLOR: Color = Color {
     r: 0.0,
     g: 0.0,

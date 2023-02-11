@@ -14,14 +14,16 @@ pub fn button<A: 'static, F: Fn(&mut Context) -> A + 'static + Clone>(
             let f = f.clone();
             view.clone()
                 .padding(Auto)
-                .background(
-                    rectangle()
-                        .corner_radius(BUTTON_CORNER_RADIUS)
-                        .color(BUTTON_BACKGROUND_COLOR),
-                )
+                .background(rectangle().corner_radius(BUTTON_CORNER_RADIUS).color(
+                    if cx[hovering] {
+                        BUTTON_HOVER_COLOR
+                    } else {
+                        BUTTON_BACKGROUND_COLOR
+                    },
+                ))
                 .tap(move |cx| f(cx))
-                .hover(|_, inside| {
-                    println!("inside button: {}", inside);
+                .hover(move |cx, inside| {
+                    cx[hovering] = inside;
                 })
                 .role(Role::Button)
         },
