@@ -28,6 +28,8 @@ mod geom;
 pub use geom::*;
 mod handle;
 pub use handle::*;
+mod hover;
+pub use hover::*;
 mod key;
 pub use key::*;
 mod knob;
