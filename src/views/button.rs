@@ -4,18 +4,28 @@ use accesskit::Role;
 pub const BUTTON_CORNER_RADIUS: f32 = 5.0;
 
 /// Calls a function when the button is tapped.
-pub fn button<A: 'static, F: Fn(&mut Context) -> A + 'static + Clone>(view: impl View + Clone, f: F) -> impl View {
-    view.padding(Auto)
-        .background(
-            rectangle()
-                .corner_radius(BUTTON_CORNER_RADIUS)
-                .color(BUTTON_BACKGROUND_COLOR),
-        )
-        .tap(move |cx| f(cx))
-        .hover(|_, inside| {
-            println!("inside button: {}", inside);
-        })
-        .role(Role::Button)
+pub fn button<A: 'static, F: Fn(&mut Context) -> A + 'static + Clone>(
+    view: impl View + Clone,
+    f: F,
+) -> impl View {
+    state(
+        || false,
+        move |hovering, cx| {
+            let f = f.clone();
+            view.clone()
+                .padding(Auto)
+                .background(
+                    rectangle()
+                        .corner_radius(BUTTON_CORNER_RADIUS)
+                        .color(BUTTON_BACKGROUND_COLOR),
+                )
+                .tap(move |cx| f(cx))
+                .hover(|_, inside| {
+                    println!("inside button: {}", inside);
+                })
+                .role(Role::Button)
+        },
+    )
 }
 
 #[cfg(test)]
