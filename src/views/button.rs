@@ -12,6 +12,9 @@ pub fn button<A: 'static, F: Fn(&mut Context) -> A + 'static>(view: impl View, f
                 .color(BUTTON_BACKGROUND_COLOR),
         )
         .tap(move |cx| f(cx))
+        .hover(|_| {
+            println!("Hovering on button!");
+        })
         .role(Role::Button)
 }
 
