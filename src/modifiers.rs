@@ -50,10 +50,7 @@ pub trait Modifiers: View + Sized {
     }
 
     /// Calls a function in response to a mouse hovering.
-    fn hover<F: Fn(&mut Context, bool) + 'static>(
-        self,
-        f: F,
-    ) -> Hover<Self, F> {
+    fn hover<F: Fn(&mut Context, bool) + 'static>(self, f: F) -> Hover<Self, F> {
         Hover::new(self, f)
     }
 
