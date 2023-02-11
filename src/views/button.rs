@@ -4,7 +4,7 @@ use accesskit::Role;
 pub const BUTTON_CORNER_RADIUS: f32 = 5.0;
 
 /// Calls a function when the button is tapped.
-pub fn button<A: 'static, F: Fn(&mut Context) -> A + 'static>(view: impl View, f: F) -> impl View {
+pub fn button<A: 'static, F: Fn(&mut Context) -> A + 'static + Clone>(view: impl View, f: F) -> impl View {
     view.padding(Auto)
         .background(
             rectangle()
