@@ -106,6 +106,9 @@ pub struct Context {
 
     /// Offset for events at the root level.
     root_offset: LocalOffset,
+
+    /// Render the dirty rectangle for debugging?
+    render_dirty: bool,
 }
 
 impl Default for Context {
@@ -136,6 +139,7 @@ impl Context {
             id_stack: vec![],
             window_size: Size2D::default(),
             root_offset: LocalOffset::zero(),
+            render_dirty: false,
         }
     }
 
@@ -246,16 +250,18 @@ impl Context {
         view.draw(self.root_id, &mut DrawArgs { cx: self, vger });
         self.enable_dirty = true;
 
-        let paint = vger.color_paint(RED_HIGHLIGHT);
-        let xf = WorldToLocal::identity();
-        for rect in self.dirty_region.rects() {
-            vger.stroke_rect(
-                xf.transform_point(rect.min()),
-                xf.transform_point(rect.max()),
-                0.0,
-                1.0,
-                paint,
-            );
+        if self.render_dirty {
+            let paint = vger.color_paint(RED_HIGHLIGHT);
+            let xf = WorldToLocal::identity();
+            for rect in self.dirty_region.rects() {
+                vger.stroke_rect(
+                    xf.transform_point(rect.min()),
+                    xf.transform_point(rect.max()),
+                    0.0,
+                    1.0,
+                    paint,
+                );
+            }
         }
 
         self.dirty_region.clear();
