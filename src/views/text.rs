@@ -6,6 +6,7 @@ pub trait TextModifiers: View + Sized {
 }
 
 /// Struct for `text`.
+#[derive(Clone)]
 pub struct Text {
     text: String,
     size: u32,
