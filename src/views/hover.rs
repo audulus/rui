@@ -38,6 +38,7 @@ where
             }
             _ => (),
         }
+        self.child.process(event, vid.child(&0), cx, actions)
     }
 
     fn draw(&self, id: ViewId, args: &mut DrawArgs) {
