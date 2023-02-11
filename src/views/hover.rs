@@ -10,7 +10,7 @@ pub struct Hover<V, F> {
 impl<V, F, A> Hover<V, F>
 where
     V: View,
-    F: Fn(&mut Context) -> A + 'static,
+    F: Fn(&mut Context, bool) -> A + 'static,
 {
     pub fn new(v: V, f: F) -> Self {
         Self { child: v, func: f }
@@ -20,7 +20,7 @@ where
 impl<V, F, A> View for Hover<V, F>
 where
     V: View,
-    F: Fn(&mut Context) -> A + 'static,
+    F: Fn(&mut Context, bool) -> A + 'static,
     A: 'static,
 {
     fn process(
@@ -31,9 +31,10 @@ where
         actions: &mut Vec<Box<dyn Any>>,
     ) {
         match &event {
-            Event::TouchMove { id, position } => {
-                if cx.mouse_button.is_none() && self.hittest(vid, *position, cx).is_some() {
-                    actions.push(Box::new((self.func)(cx)));
+            Event::TouchMove { id: _, position } => {
+                if cx.mouse_button.is_none() {
+                    let inside = self.hittest(vid, *position, cx).is_some();
+                    actions.push(Box::new((self.func)(cx, inside)));
                 }
             }
             _ => (),
