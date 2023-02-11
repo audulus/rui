@@ -9,7 +9,7 @@ pub struct AnimView<V, F> {
 impl<V, F> AnimView<V, F>
 where
     V: View,
-    F: Fn(&mut Context, f32) + 'static,
+    F: Fn(&mut Context, f32) + 'static + Clone,
 {
     pub fn new(child: V, func: F) -> Self {
         Self { child, func }
@@ -19,7 +19,7 @@ where
 impl<V, F> View for AnimView<V, F>
 where
     V: View,
-    F: Fn(&mut Context, f32) + 'static,
+    F: Fn(&mut Context, f32) + 'static + Clone,
 {
     fn process(
         &self,
