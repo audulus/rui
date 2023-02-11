@@ -49,6 +49,14 @@ pub trait Modifiers: View + Sized {
         DragS::new(self, s, f)
     }
 
+    /// Calls a function in response to a mouse hovering.
+    fn hover<F: Fn(&mut Context) + 'static>(
+        self,
+        f: F,
+    ) -> Hover<Self, F> {
+        Hover::new(self, f)
+    }
+
     /// Add an environment value.
     fn env<E: Clone + 'static>(self, value: E) -> SetenvView<Self, E> {
         SetenvView::new(self, value)
