@@ -6,19 +6,6 @@ use std::{
     sync::Mutex,
 };
 
-#[cfg(feature = "tao")]
-use tao::{
-    accelerator::Accelerator,
-    dpi::PhysicalSize,
-    event::{
-        ElementState, Event as WEvent, MouseButton as WMouseButton, Touch, TouchPhase, WindowEvent,
-    },
-    event_loop::{ControlFlow, EventLoop, EventLoopProxy},
-    keyboard::{Key as KeyPress, KeyCode, ModifiersState},
-    menu::{MenuBar as Menu, MenuItem, MenuItemAttributes},
-    window::{Window, WindowBuilder},
-};
-
 #[cfg(feature = "winit")]
 use winit::{
     dpi::PhysicalSize,
@@ -123,117 +110,6 @@ async fn setup(window: &Window) -> Setup {
         adapter,
         device,
         queue,
-    }
-}
-
-#[cfg(feature = "tao")]
-mod menus {
-    use super::*;
-
-    struct MenuItem2 {
-        name: String,
-        submenu: Vec<usize>,
-        command: CommandInfo,
-    }
-
-    type CommandMap = HashMap<tao::menu::MenuId, String>;
-
-    fn make_menu_rec(items: &Vec<MenuItem2>, i: usize, command_map: &mut CommandMap) -> Menu {
-        let mut menu = Menu::new();
-
-        if i == 0 {
-            let mut app_menu = Menu::new();
-
-            let app_name = match std::env::current_exe() {
-                Ok(exe_path) => exe_path.file_name().unwrap().to_str().unwrap().to_string(),
-                Err(_) => "rui".to_string(),
-            };
-
-            app_menu.add_native_item(MenuItem::About(app_name, Default::default()));
-            app_menu.add_native_item(MenuItem::Quit);
-            menu.add_submenu("rui", true, app_menu);
-        }
-
-        for j in &items[i].submenu {
-            let item = &items[*j];
-            if !item.submenu.is_empty() {
-                menu.add_submenu(
-                    item.name.as_str(),
-                    true,
-                    make_menu_rec(items, *j, command_map),
-                );
-            } else {
-                let mut attrs = MenuItemAttributes::new(item.name.as_str());
-                if let Some(key) = item.command.key {
-                    let key_code = match key {
-                        HotKey::KeyA => KeyCode::KeyA,
-                        HotKey::KeyB => KeyCode::KeyB,
-                        HotKey::KeyC => KeyCode::KeyC,
-                        HotKey::KeyD => KeyCode::KeyD,
-                        HotKey::KeyE => KeyCode::KeyE,
-                        HotKey::KeyF => KeyCode::KeyF,
-                        HotKey::KeyG => KeyCode::KeyG,
-                        HotKey::KeyH => KeyCode::KeyH,
-                        HotKey::KeyI => KeyCode::KeyI,
-                        HotKey::KeyJ => KeyCode::KeyJ,
-                        HotKey::KeyK => KeyCode::KeyK,
-                        HotKey::KeyL => KeyCode::KeyL,
-                        HotKey::KeyM => KeyCode::KeyM,
-                        HotKey::KeyN => KeyCode::KeyN,
-                        HotKey::KeyO => KeyCode::KeyO,
-                        HotKey::KeyP => KeyCode::KeyP,
-                        HotKey::KeyQ => KeyCode::KeyQ,
-                        HotKey::KeyR => KeyCode::KeyR,
-                        HotKey::KeyS => KeyCode::KeyS,
-                        HotKey::KeyT => KeyCode::KeyT,
-                        HotKey::KeyU => KeyCode::KeyU,
-                        HotKey::KeyV => KeyCode::KeyV,
-                        HotKey::KeyW => KeyCode::KeyW,
-                        HotKey::KeyX => KeyCode::KeyX,
-                        HotKey::KeyY => KeyCode::KeyY,
-                        HotKey::KeyZ => KeyCode::KeyZ,
-                    };
-
-                    let accel = Accelerator::new(ModifiersState::SUPER, key_code);
-                    attrs = attrs.with_accelerators(&accel);
-                }
-                let id = menu.add_item(attrs).id();
-                command_map.insert(id, item.command.path.clone());
-            }
-        }
-
-        menu
-    }
-
-    pub(crate) fn build_menubar(commands: &Vec<CommandInfo>, command_map: &mut CommandMap) -> Menu {
-        let mut items: Vec<MenuItem2> = vec![MenuItem2 {
-            name: "root".into(),
-            submenu: vec![],
-            command: CommandInfo {
-                path: "".into(),
-                key: None,
-            },
-        }];
-
-        for command in commands {
-            let mut v = 0;
-            for name in command.path.split(':') {
-                if let Some(item) = items[v].submenu.iter().find(|x| items[**x].name == name) {
-                    v = *item;
-                } else {
-                    let n = items.len();
-                    items[v].submenu.push(n);
-                    v = n;
-                    items.push(MenuItem2 {
-                        name: name.into(),
-                        submenu: vec![],
-                        command: command.clone(),
-                    });
-                }
-            }
-        }
-
-        make_menu_rec(&items, 0, command_map)
     }
 }
 
@@ -354,19 +230,6 @@ pub fn rui(view: impl View) {
                     window.set_title(&cx.window_title);
                 }
 
-                #[cfg(feature = "tao")]
-                {
-                    let mut new_commands = vec![];
-                    cx.commands(&view, &mut new_commands);
-
-                    if new_commands != *commands {
-                        print!("commands changed");
-                        commands = new_commands;
-
-                        command_map.clear();
-                        window.set_menu(Some(menus::build_menubar(&commands, &mut command_map)));
-                    }
-                }
             }
             WEvent::RedrawRequested(_) => {
                 // Redraw the application.
@@ -421,8 +284,6 @@ pub fn rui(view: impl View) {
                         };
                         cx.process(&view, &event)
                     }
-                    #[cfg(feature = "tao")]
-                    _ => {}
                 };
             }
             WEvent::WindowEvent {
@@ -452,7 +313,6 @@ pub fn rui(view: impl View) {
                     TouchPhase::Ended | TouchPhase::Cancelled => {
                         Some(Event::TouchEnd { id: 0, position })
                     }
-                    _ => None,
                 };
 
                 if let Some(event) = event {
@@ -474,49 +334,6 @@ pub fn rui(view: impl View) {
                     position: mouse_position,
                 };
                 cx.process(&view, &event)
-            }
-
-            #[cfg(feature = "tao")]
-            WEvent::WindowEvent {
-                event: WindowEvent::KeyboardInput { event, .. },
-                ..
-            } => {
-                if event.state == ElementState::Pressed {
-                    let key = match event.logical_key {
-                        KeyPress::Character(c) => Some(Key::Character(c)),
-                        KeyPress::Enter => Some(Key::Enter),
-                        KeyPress::Tab => Some(Key::Tab),
-                        KeyPress::Space => Some(Key::Space),
-                        KeyPress::ArrowDown => Some(Key::ArrowDown),
-                        KeyPress::ArrowLeft => Some(Key::ArrowLeft),
-                        KeyPress::ArrowRight => Some(Key::ArrowRight),
-                        KeyPress::ArrowUp => Some(Key::ArrowUp),
-                        KeyPress::End => Some(Key::End),
-                        KeyPress::Home => Some(Key::Home),
-                        KeyPress::PageDown => Some(Key::PageDown),
-                        KeyPress::PageUp => Some(Key::PageUp),
-                        KeyPress::Backspace => Some(Key::Backspace),
-                        KeyPress::Delete => Some(Key::Delete),
-                        KeyPress::Escape => Some(Key::Escape),
-                        KeyPress::F1 => Some(Key::F1),
-                        KeyPress::F2 => Some(Key::F2),
-                        KeyPress::F3 => Some(Key::F3),
-                        KeyPress::F4 => Some(Key::F4),
-                        KeyPress::F5 => Some(Key::F5),
-                        KeyPress::F6 => Some(Key::F6),
-                        KeyPress::F7 => Some(Key::F7),
-                        KeyPress::F8 => Some(Key::F8),
-                        KeyPress::F9 => Some(Key::F9),
-                        KeyPress::F10 => Some(Key::F10),
-                        KeyPress::F11 => Some(Key::F11),
-                        KeyPress::F12 => Some(Key::F12),
-                        _ => None,
-                    };
-
-                    if let Some(key) = key {
-                        cx.process(&view, &Event::Key(key))
-                    }
-                }
             }
 
             #[cfg(feature = "winit")]
@@ -658,16 +475,6 @@ pub fn rui(view: impl View) {
                 event: WindowEvent::ModifiersChanged(mods),
                 ..
             } => {
-                #[cfg(feature = "tao")]
-                {
-                    cx.key_mods = KeyboardModifiers {
-                        shift: mods.shift_key(),
-                        control: mods.control_key(),
-                        alt: mods.alt_key(),
-                        command: mods.super_key(),
-                    };
-                }
-
                 #[cfg(feature = "winit")]
                 {
                     cx.key_mods = KeyboardModifiers {
@@ -676,17 +483,6 @@ pub fn rui(view: impl View) {
                         alt: mods.alt(),
                         command: mods.logo(),
                     };
-                }
-            }
-
-            #[cfg(feature = "tao")]
-            WEvent::MenuEvent { menu_id, .. } => {
-                //println!("menu event");
-
-                if let Some(command) = command_map.get(&menu_id) {
-                    //println!("found command {:?}", command);
-                    let event = Event::Command(command.clone());
-                    cx.process(&view, &event)
                 }
             }
             _ => (),
