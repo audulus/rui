@@ -21,7 +21,6 @@ default = [ "winit" ]
 
 [dependencies]
 euclid = "0.22.6"
-tao = { version = "0.8.2", optional = true }
 wgpu = "0.13.1"
 futures = "0.3"
 vger = "0.2.4"

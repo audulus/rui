@@ -138,7 +138,6 @@ widget gallery (`cargo run --example gallery`):
 ## Optional Features
 
 - `winit` - (*enabled by default*) use winit for windowing.
-- `tao` - use tao for windowing.
 - Use `default-features = false` if you are embedding rui (see https://github.com/audulus/rui-ios).
 
 ## Why?
