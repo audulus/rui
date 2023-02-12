@@ -433,6 +433,10 @@ pub fn rui(view: impl View) {
                             VirtualKeyCode::Z => {
                                 Some(Key::Character(if cx.key_mods.shift { "Z" } else { "z" }))
                             }
+                            VirtualKeyCode::Semicolon => Some(Key::Character(";")),
+                            VirtualKeyCode::Colon => Some(Key::Character(";")),
+                            VirtualKeyCode::Caret => Some(Key::Character("^")),
+                            VirtualKeyCode::Asterisk => Some(Key::Character("*")),
                             VirtualKeyCode::Period => Some(Key::Character(".")),
                             VirtualKeyCode::Comma => Some(Key::Character(",")),
                             VirtualKeyCode::Return => Some(Key::Enter),
