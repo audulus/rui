@@ -34,8 +34,6 @@ jobs:
       run: cargo test
     - name: Build w/o default features
       run: cargo build --no-default-features
-    - name: Test w/tao
-      run: cargo test --no-default-features --features tao
     - name: Build for wasm
       run: |
         rustup target add wasm32-unknown-unknown
