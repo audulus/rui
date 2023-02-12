@@ -64,7 +64,7 @@ pub struct KeyboardModifiers {
 
 #[derive(Copy, Clone, Debug)]
 pub enum Key {
-    Character(&'static str),
+    Character(char),
 
     Enter,
     Tab,
