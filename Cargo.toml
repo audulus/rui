@@ -20,17 +20,17 @@ exclude = [ "screenshots/*" ]
 default = [ "winit" ]
 
 [dependencies]
-euclid = "0.22.6"
-wgpu = "0.13.1"
+euclid = "0.22.7"
+wgpu = "0.15.1"
 futures = "0.3"
-vger = "0.2.4"
+vger = "0.2.5"
 accesskit = "0.3.0"
 lazy_static = "1.4.0"
-winit = { version = "0.26.1", optional = true }
+winit = { version = "0.28.1", optional = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen = "0.2.76"
-web-sys = { version = "=0.3.58", features = ["Location"] }
+web-sys = { version = "=0.3.61", features = ["Location"] }
 log = "0.4"
 console_log = "0.1.2"
 console_error_panic_hook = "0.1.6"
