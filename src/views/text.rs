@@ -49,6 +49,7 @@ impl View for Text {
     ) -> Option<accesskit::NodeId> {
         let aid = id.access_id();
         let mut builder = accesskit::NodeBuilder::new(accesskit::Role::LabelText);
+        builder.set_name(self.text.clone());
         nodes.push((aid, builder.build(&mut cx.access_node_classes)));
         Some(aid)
     }
@@ -109,6 +110,7 @@ where
     ) -> Option<accesskit::NodeId> {
         let aid = id.access_id();
         let mut builder = accesskit::NodeBuilder::new(accesskit::Role::LabelText);
+        builder.set_name(format!("{}", self));
         nodes.push((aid, builder.build(&mut cx.access_node_classes)));
         Some(aid)
     }
