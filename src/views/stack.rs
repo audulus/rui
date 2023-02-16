@@ -236,17 +236,19 @@ impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D>
         &self,
         id: ViewId,
         cx: &mut Context,
-        nodes: &mut Vec<accesskit::Node>,
+        nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
     ) -> Option<accesskit::NodeId> {
         let mut c = 0;
-        let mut node = accesskit::Node::new(id.access_id(), accesskit::Role::List);
+        let mut builder = accesskit::NodeBuilder::new(accesskit::Role::List);
+        let mut children = vec![];
         self.children.foreach_view(&mut |child| {
             if let Some(id) = child.access(id.child(&c), cx, nodes) {
-                node.children.push(id)
+                children.push(id)
             }
             c += 1;
         });
-        nodes.push(node);
+        builder.set_children(children);
+        nodes.push( (id.access_id(), builder.build(&mut cx.access_node_classes)));
         Some(id.access_id())
     }
 }

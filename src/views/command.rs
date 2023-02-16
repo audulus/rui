@@ -71,7 +71,7 @@ where
         &self,
         _id: ViewId,
         _cx: &mut Context,
-        _nodes: &mut Vec<accesskit::Node>,
+        _nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
     ) -> Option<accesskit::NodeId> {
         // XXX: how does accesskit handle menu commands?
         None
@@ -295,7 +295,7 @@ where
         &self,
         id: ViewId,
         cx: &mut Context,
-        nodes: &mut Vec<accesskit::Node>,
+        nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
     ) -> Option<accesskit::NodeId> {
         self.child.access(id.child(&0), cx, nodes)
     }

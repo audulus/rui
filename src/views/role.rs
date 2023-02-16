@@ -59,17 +59,16 @@ where
         &self,
         id: ViewId,
         cx: &mut Context,
-        nodes: &mut Vec<accesskit::Node>,
+        nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
     ) -> Option<accesskit::NodeId> {
         let child_aid = self.child.access(id.child(&0), cx, nodes);
         let aid = id.access_id();
-        nodes.push(accesskit::Node {
-            children: match child_aid {
+        let mut builder = accesskit::NodeBuilder::new(self.role);
+        builder.set_children(match child_aid {
                 Some(cid) => vec![cid],
                 None => vec![],
-            },
-            ..accesskit::Node::new(aid, self.role)
-        });
+            });
+        nodes.push((aid, builder.build(&mut cx.access_node_classes)));
         Some(aid)
     }
 }
