@@ -1,5 +1,6 @@
 use crate::*;
 
+#[derive(Clone)]
 pub struct EmptyView {}
 
 impl View for EmptyView {
