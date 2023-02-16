@@ -248,7 +248,7 @@ impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D>
             c += 1;
         });
         builder.set_children(children);
-        nodes.push( (id.access_id(), builder.build(&mut cx.access_node_classes)));
+        nodes.push((id.access_id(), builder.build(&mut cx.access_node_classes)));
         Some(id.access_id())
     }
 }

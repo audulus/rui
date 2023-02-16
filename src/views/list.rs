@@ -187,9 +187,11 @@ where
     ) -> Option<accesskit::NodeId> {
         let mut builder = accesskit::NodeBuilder::new(accesskit::Role::List);
 
-        let children: Vec<accesskit::NodeId> = self.ids.iter().filter_map(|child| {
-            ((self.func)(child)).access(id.child(child), cx, nodes)
-        }).collect();
+        let children: Vec<accesskit::NodeId> = self
+            .ids
+            .iter()
+            .filter_map(|child| ((self.func)(child)).access(id.child(child), cx, nodes))
+            .collect();
 
         builder.set_children(children);
         nodes.push((id.access_id(), builder.build(&mut cx.access_node_classes)));

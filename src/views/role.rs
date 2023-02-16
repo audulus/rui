@@ -65,9 +65,9 @@ where
         let aid = id.access_id();
         let mut builder = accesskit::NodeBuilder::new(self.role);
         builder.set_children(match child_aid {
-                Some(cid) => vec![cid],
-                None => vec![],
-            });
+            Some(cid) => vec![cid],
+            None => vec![],
+        });
         nodes.push((aid, builder.build(&mut cx.access_node_classes)));
         Some(aid)
     }

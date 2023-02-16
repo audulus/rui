@@ -179,7 +179,10 @@ impl Context {
                 println!("access nodes:");
                 for (id, node) in &nodes {
                     println!(
-                        "  id: {:?} role: {:?}, children: {:?}", id, node.role(), node.children()
+                        "  id: {:?} role: {:?}, children: {:?}",
+                        id,
+                        node.role(),
+                        node.children()
                     );
                 }
                 *access_nodes = nodes;

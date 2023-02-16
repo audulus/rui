@@ -232,7 +232,6 @@ pub fn rui(view: impl View) {
                     window_title = cx.window_title.clone();
                     window.set_title(&cx.window_title);
                 }
-
             }
             WEvent::RedrawRequested(_) => {
                 // Redraw the application.
