@@ -38,6 +38,7 @@ impl<S: 'static> Binding<S> for StateHandle<S> {
     }
 }
 
+#[derive(Clone)]
 struct StateView<D, F> {
     default: D,
     func: F,
