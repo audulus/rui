@@ -1,5 +1,6 @@
 use crate::*;
 
+/// View-model for `text_editor`.
 struct TextEditorState {
     cursor: usize,
     glyph_rects: Vec<LocalRect>,
@@ -133,6 +134,10 @@ impl TextEditorState {
     }
 }
 
+/// A multi-line text editor.
+/// 
+/// This shows how a complex View with internal
+/// state can be created from more atomic Views.
 pub fn text_editor(text: impl Binding<String>) -> impl View {
     focus(move |has_focus| {
         state(TextEditorState::new, move |state, cx| {

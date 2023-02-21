@@ -3,7 +3,11 @@ use std::any::Any;
 
 /// Struct for the `size` modifier.
 pub struct Size<V> {
+
+    /// Child view tree.
     child: V,
+
+    /// Size constraint.
     size: LocalSize,
 }
 

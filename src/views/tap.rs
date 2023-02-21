@@ -2,8 +2,12 @@ use crate::*;
 use std::any::Any;
 
 /// Struct for the `tap` gesture.
-pub struct Tap<V, F> {
+pub struct Tap<V: View, F> {
+
+    /// Child view tree.
     child: V,
+
+    /// Called when a tap occurs.
     func: F,
 }
 
@@ -76,4 +80,4 @@ where
     }
 }
 
-impl<V, F> private::Sealed for Tap<V, F> {}
+impl<V, F> private::Sealed for Tap<V, F> where V: View {}
