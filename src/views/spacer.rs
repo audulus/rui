@@ -1,5 +1,6 @@
 use crate::*;
 
+#[derive(Clone)]
 pub struct Spacer {}
 
 impl View for Spacer {
