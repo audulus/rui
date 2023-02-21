@@ -1,6 +1,7 @@
 use crate::*;
 
 /// Struct for `circle`.
+#[derive(Clone)]
 pub struct Circle {
     paint: Paint,
 }
@@ -60,6 +61,7 @@ pub fn circle() -> Circle {
 }
 
 /// Struct for `rectangle`.
+#[derive(Clone)]
 pub struct Rectangle {
     corner_radius: f32,
     paint: Paint,
