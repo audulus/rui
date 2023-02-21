@@ -105,6 +105,12 @@ pub trait Modifiers: View + Sized {
         Tap::new(self, f)
     }
 
+    /// Version of `tap` which takes an action type instead
+    /// of a function.
+    fn tap_a<A: 'static>(self, action: A) -> TapA<Self, A> {
+        TapA::new(self, action)
+    }
+
     /// Specify the title of the window.
     fn window_title(self, title: &str) -> TitleView<Self> {
         TitleView::new(self, title)
