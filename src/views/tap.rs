@@ -3,7 +3,6 @@ use std::any::Any;
 
 /// Struct for the `tap` gesture.
 pub struct Tap<V: View, F> {
-
     /// Child view tree.
     child: V,
 
@@ -82,10 +81,8 @@ where
 
 impl<V, F> private::Sealed for Tap<V, F> where V: View {}
 
-
 /// Struct for the `tap_a` gesture.
 pub struct TapA<V: View, A> {
-
     /// Child view tree.
     child: V,
 

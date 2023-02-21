@@ -135,7 +135,7 @@ impl TextEditorState {
 }
 
 /// A multi-line text editor.
-/// 
+///
 /// This shows how a complex View with internal
 /// state can be created from more atomic Views.
 pub fn text_editor(text: impl Binding<String>) -> impl View {

@@ -3,7 +3,6 @@ use crate::*;
 use std::any::Any;
 
 enum StackOrientation {
-
     /// Views are stacked horizontally (right to left).
     Horizontal,
 

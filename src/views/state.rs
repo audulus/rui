@@ -2,7 +2,7 @@ use crate::*;
 use std::any::Any;
 
 /// Weak reference to app state.
-/// 
+///
 /// To get the underlying value, you'll need a `Context`, which is passed
 /// to all event handlers, and functions passed to `state`.
 pub struct StateHandle<S> {
