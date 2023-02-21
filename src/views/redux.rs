@@ -9,8 +9,8 @@ pub fn redux<
     R: Fn(&mut S, &A) + 'static + Clone,
 >(
     initial: D,
-    f: F,
     reducer: R,
+    f: F,
 ) -> impl View {
     state(initial, move |state_handle, cx| {
         let r = reducer.clone();
