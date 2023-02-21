@@ -27,6 +27,7 @@ vger = "0.2.5"
 accesskit = "0.10.0"
 lazy_static = "1.4.0"
 winit = { version = "0.28.1", optional = true }
+baseview = { git = "https://github.com/RustAudio/baseview", optional = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen = "0.2.76"
