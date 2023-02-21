@@ -164,6 +164,7 @@ In the long term, I'd like to move [Audulus](http://audulus.com/) over to Rust. 
 - ✅ any_view (view type erasure)
 - ✅ layout feedback
 - ✅ animation
+- ✅ UI unit testing
 
 ## References
 
