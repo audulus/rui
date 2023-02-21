@@ -6,25 +6,36 @@ enum Action {
     Decrement
 }
 
-fn reduce(state: &mut i32, action: &Action) {
+struct AppState {
+    count: i32
+}
+
+impl AppState {
+    fn new() -> Self {
+        AppState { count: 1 }
+    }
+}
+
+fn reduce(state: &mut AppState, action: &Action) {
     match action {
-        Action::Increment => *state += 1,
-        Action::Decrement => *state -= 1,
+        Action::Increment => state.count += 1,
+        Action::Decrement => state.count -= 1,
     }
 }
 
 fn main() {
     rui(state(
-        || 1,
-        |count, cx| {
+        AppState::new,
+        |state_handle, cx| {
+            let state = &cx[state_handle];
             vstack((
-                format!("{}", cx[count]).padding(Auto),
+                format!("{}", state.count).padding(Auto),
                 button_a("increment", Action::Increment)
                 .padding(Auto),
                 button_a("decrement", Action::Decrement)
                 .padding(Auto),
             )).handle(move |cx, action: &Action| {
-                reduce(&mut cx[count], action)
+                reduce(&mut cx[state_handle], action)
             })
         },
     ));
