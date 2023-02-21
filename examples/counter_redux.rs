@@ -24,13 +24,11 @@ fn reduce(state: &mut AppState, action: &Action) {
 }
 
 fn main() {
-    rui(state(AppState::new, |state_handle, cx| {
-        let state = &cx[state_handle];
+    rui(redux(AppState::new, |state| {
         vstack((
             format!("{}", state.count).padding(Auto),
             button_a("increment", Action::Increment).padding(Auto),
             button_a("decrement", Action::Decrement).padding(Auto),
         ))
-        .handle(move |cx, action: &Action| reduce(&mut cx[state_handle], action))
-    }));
+    }, reduce));
 }
