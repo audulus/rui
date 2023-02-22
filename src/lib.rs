@@ -47,10 +47,10 @@ mod region;
 pub use region::*;
 
 #[cfg(any(feature = "tao", feature = "winit"))]
-mod event_loop;
+mod winit_event_loop;
 
 #[cfg(any(feature = "tao", feature = "winit"))]
-pub use event_loop::*;
+pub use winit_event_loop::*;
 
 // See https://rust-lang.github.io/api-guidelines/future-proofing.html
 pub(crate) mod private {
