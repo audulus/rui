@@ -25,7 +25,6 @@ pub fn toggle(on: impl Binding<bool>) -> impl View {
     )
 }
 
-
 #[cfg(test)]
 mod tests {
 

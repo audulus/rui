@@ -6,7 +6,6 @@ use std::{
     sync::Mutex,
 };
 
-#[cfg(feature = "winit")]
 use winit::{
     dpi::PhysicalSize,
     event::{
@@ -152,12 +151,7 @@ pub fn rui(view: impl View) {
     let mut commands: Vec<CommandInfo> = Vec::new();
     let mut command_map = HashMap::new();
     cx.commands(&view, &mut commands);
-    #[cfg(feature = "tao")]
-    {
-        window.set_menu(Some(menus::build_menubar(&commands, &mut command_map)));
-    }
 
-    #[cfg(feature = "winit")]
     {
         // So we can infer a type for CommandMap when winit is enabled.
         command_map.insert("", "");
@@ -338,7 +332,6 @@ pub fn rui(view: impl View) {
                 cx.process(&view, &event)
             }
 
-            #[cfg(feature = "winit")]
             WEvent::WindowEvent {
                 event: WindowEvent::KeyboardInput { input, .. },
                 ..
@@ -481,15 +474,12 @@ pub fn rui(view: impl View) {
                 event: WindowEvent::ModifiersChanged(mods),
                 ..
             } => {
-                #[cfg(feature = "winit")]
-                {
-                    cx.key_mods = KeyboardModifiers {
-                        shift: mods.shift(),
-                        control: mods.ctrl(),
-                        alt: mods.alt(),
-                        command: mods.logo(),
-                    };
-                }
+                cx.key_mods = KeyboardModifiers {
+                    shift: mods.shift(),
+                    control: mods.ctrl(),
+                    alt: mods.alt(),
+                    command: mods.logo(),
+                };
             }
             _ => (),
         }
