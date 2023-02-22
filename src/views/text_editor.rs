@@ -101,8 +101,8 @@ impl TextEditorState {
             }
             Key::Character(c) => {
                 let mut t = text;
-                t.insert_str(self.cursor, c);
-                self.cursor += c.len();
+                t.insert_str(self.cursor, &format!("{}", c));
+                self.cursor += 1;
                 t
             }
             Key::Space => {

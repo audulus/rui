@@ -340,100 +340,100 @@ pub fn rui(view: impl View) {
                     if let Some(code) = input.virtual_keycode {
                         let key = match code {
                             // VirtualKeyCode::Character(c) => Some(Key::Character(c)),
-                            VirtualKeyCode::Key1 => Some(Key::Character("1")),
-                            VirtualKeyCode::Key2 => Some(Key::Character("2")),
-                            VirtualKeyCode::Key3 => Some(Key::Character("3")),
-                            VirtualKeyCode::Key4 => Some(Key::Character("4")),
-                            VirtualKeyCode::Key5 => Some(Key::Character("5")),
-                            VirtualKeyCode::Key6 => Some(Key::Character("6")),
-                            VirtualKeyCode::Key7 => Some(Key::Character("7")),
-                            VirtualKeyCode::Key8 => Some(Key::Character("8")),
-                            VirtualKeyCode::Key9 => Some(Key::Character("9")),
-                            VirtualKeyCode::Key0 => Some(Key::Character("0")),
+                            VirtualKeyCode::Key1 => Some(Key::Character('1')),
+                            VirtualKeyCode::Key2 => Some(Key::Character('2')),
+                            VirtualKeyCode::Key3 => Some(Key::Character('3')),
+                            VirtualKeyCode::Key4 => Some(Key::Character('4')),
+                            VirtualKeyCode::Key5 => Some(Key::Character('5')),
+                            VirtualKeyCode::Key6 => Some(Key::Character('6')),
+                            VirtualKeyCode::Key7 => Some(Key::Character('7')),
+                            VirtualKeyCode::Key8 => Some(Key::Character('8')),
+                            VirtualKeyCode::Key9 => Some(Key::Character('9')),
+                            VirtualKeyCode::Key0 => Some(Key::Character('0')),
                             VirtualKeyCode::A => {
-                                Some(Key::Character(if cx.key_mods.shift { "A" } else { "a" }))
+                                Some(Key::Character(if cx.key_mods.shift { 'A' } else { 'a' }))
                             }
                             VirtualKeyCode::B => {
-                                Some(Key::Character(if cx.key_mods.shift { "B" } else { "b" }))
+                                Some(Key::Character(if cx.key_mods.shift { 'B' } else { 'b' }))
                             }
                             VirtualKeyCode::C => {
-                                Some(Key::Character(if cx.key_mods.shift { "C" } else { "c" }))
+                                Some(Key::Character(if cx.key_mods.shift { 'C' } else { 'c' }))
                             }
                             VirtualKeyCode::D => {
-                                Some(Key::Character(if cx.key_mods.shift { "D" } else { "d" }))
+                                Some(Key::Character(if cx.key_mods.shift { 'D' } else { 'd' }))
                             }
                             VirtualKeyCode::E => {
-                                Some(Key::Character(if cx.key_mods.shift { "E" } else { "e" }))
+                                Some(Key::Character(if cx.key_mods.shift { 'E' } else { 'e' }))
                             }
                             VirtualKeyCode::F => {
-                                Some(Key::Character(if cx.key_mods.shift { "F" } else { "f" }))
+                                Some(Key::Character(if cx.key_mods.shift { 'F' } else { 'f' }))
                             }
                             VirtualKeyCode::G => {
-                                Some(Key::Character(if cx.key_mods.shift { "G" } else { "g" }))
+                                Some(Key::Character(if cx.key_mods.shift { 'G' } else { 'g' }))
                             }
                             VirtualKeyCode::H => {
-                                Some(Key::Character(if cx.key_mods.shift { "H" } else { "h" }))
+                                Some(Key::Character(if cx.key_mods.shift { 'H' } else { 'h' }))
                             }
                             VirtualKeyCode::I => {
-                                Some(Key::Character(if cx.key_mods.shift { "I" } else { "i" }))
+                                Some(Key::Character(if cx.key_mods.shift { 'I' } else { 'i' }))
                             }
                             VirtualKeyCode::J => {
-                                Some(Key::Character(if cx.key_mods.shift { "J" } else { "j" }))
+                                Some(Key::Character(if cx.key_mods.shift { 'J' } else { 'j' }))
                             }
                             VirtualKeyCode::K => {
-                                Some(Key::Character(if cx.key_mods.shift { "K" } else { "k" }))
+                                Some(Key::Character(if cx.key_mods.shift { 'K' } else { 'k' }))
                             }
                             VirtualKeyCode::L => {
-                                Some(Key::Character(if cx.key_mods.shift { "L" } else { "l" }))
+                                Some(Key::Character(if cx.key_mods.shift { 'L' } else { 'l' }))
                             }
                             VirtualKeyCode::M => {
-                                Some(Key::Character(if cx.key_mods.shift { "M" } else { "m" }))
+                                Some(Key::Character(if cx.key_mods.shift { 'M' } else { 'm' }))
                             }
                             VirtualKeyCode::N => {
-                                Some(Key::Character(if cx.key_mods.shift { "N" } else { "n" }))
+                                Some(Key::Character(if cx.key_mods.shift { 'N' } else { 'n' }))
                             }
                             VirtualKeyCode::O => {
-                                Some(Key::Character(if cx.key_mods.shift { "O" } else { "o" }))
+                                Some(Key::Character(if cx.key_mods.shift { 'O' } else { 'o' }))
                             }
                             VirtualKeyCode::P => {
-                                Some(Key::Character(if cx.key_mods.shift { "P" } else { "p" }))
+                                Some(Key::Character(if cx.key_mods.shift { 'P' } else { 'p' }))
                             }
                             VirtualKeyCode::Q => {
-                                Some(Key::Character(if cx.key_mods.shift { "Q" } else { "q" }))
+                                Some(Key::Character(if cx.key_mods.shift { 'Q' } else { 'q' }))
                             }
                             VirtualKeyCode::R => {
-                                Some(Key::Character(if cx.key_mods.shift { "R" } else { "r" }))
+                                Some(Key::Character(if cx.key_mods.shift { 'R' } else { 'r' }))
                             }
                             VirtualKeyCode::S => {
-                                Some(Key::Character(if cx.key_mods.shift { "S" } else { "s" }))
+                                Some(Key::Character(if cx.key_mods.shift { 'S' } else { 's' }))
                             }
                             VirtualKeyCode::T => {
-                                Some(Key::Character(if cx.key_mods.shift { "T" } else { "t" }))
+                                Some(Key::Character(if cx.key_mods.shift { 'T' } else { 't' }))
                             }
                             VirtualKeyCode::U => {
-                                Some(Key::Character(if cx.key_mods.shift { "U" } else { "u" }))
+                                Some(Key::Character(if cx.key_mods.shift { 'U' } else { 'u' }))
                             }
                             VirtualKeyCode::V => {
-                                Some(Key::Character(if cx.key_mods.shift { "V" } else { "v" }))
+                                Some(Key::Character(if cx.key_mods.shift { 'V' } else { 'v' }))
                             }
                             VirtualKeyCode::W => {
-                                Some(Key::Character(if cx.key_mods.shift { "W" } else { "w" }))
+                                Some(Key::Character(if cx.key_mods.shift { 'W' } else { 'w' }))
                             }
                             VirtualKeyCode::X => {
-                                Some(Key::Character(if cx.key_mods.shift { "X" } else { "x" }))
+                                Some(Key::Character(if cx.key_mods.shift { 'X' } else { 'x' }))
                             }
                             VirtualKeyCode::Y => {
-                                Some(Key::Character(if cx.key_mods.shift { "Y" } else { "y" }))
+                                Some(Key::Character(if cx.key_mods.shift { 'Y' } else { 'y' }))
                             }
                             VirtualKeyCode::Z => {
-                                Some(Key::Character(if cx.key_mods.shift { "Z" } else { "z" }))
+                                Some(Key::Character(if cx.key_mods.shift { 'Z' } else { 'z' }))
                             }
-                            VirtualKeyCode::Semicolon => Some(Key::Character(";")),
-                            VirtualKeyCode::Colon => Some(Key::Character(";")),
-                            VirtualKeyCode::Caret => Some(Key::Character("^")),
-                            VirtualKeyCode::Asterisk => Some(Key::Character("*")),
-                            VirtualKeyCode::Period => Some(Key::Character(".")),
-                            VirtualKeyCode::Comma => Some(Key::Character(",")),
+                            VirtualKeyCode::Semicolon => Some(Key::Character(';')),
+                            VirtualKeyCode::Colon => Some(Key::Character(';')),
+                            VirtualKeyCode::Caret => Some(Key::Character('^')),
+                            VirtualKeyCode::Asterisk => Some(Key::Character('*')),
+                            VirtualKeyCode::Period => Some(Key::Character('.')),
+                            VirtualKeyCode::Comma => Some(Key::Character(',')),
                             VirtualKeyCode::Return => Some(Key::Enter),
                             VirtualKeyCode::Tab => Some(Key::Tab),
                             VirtualKeyCode::Space => Some(Key::Space),
