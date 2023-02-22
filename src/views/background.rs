@@ -58,7 +58,7 @@ where
         &self,
         id: ViewId,
         cx: &mut Context,
-        nodes: &mut Vec<accesskit::Node>,
+        nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
     ) -> Option<accesskit::NodeId> {
         // XXX: if we were to create a node here, what role would it be?
         //      could print a warning if there is an node produced by background.

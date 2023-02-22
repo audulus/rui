@@ -2,6 +2,9 @@ use crate::*;
 use std::any::Any;
 
 /// Weak reference to app state.
+///
+/// To get the underlying value, you'll need a `Context`, which is passed
+/// to all event handlers, and functions passed to `state`.
 pub struct StateHandle<S> {
     pub(crate) id: ViewId,
     phantom: std::marker::PhantomData<S>,
@@ -38,6 +41,7 @@ impl<S: 'static> Binding<S> for StateHandle<S> {
     }
 }
 
+#[derive(Clone)]
 struct StateView<D, F> {
     default: D,
     func: F,
@@ -157,7 +161,7 @@ where
         &self,
         id: ViewId,
         cx: &mut Context,
-        nodes: &mut Vec<accesskit::Node>,
+        nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
     ) -> Option<accesskit::NodeId> {
         cx.init_state(id, &self.default);
         (self.func)(StateHandle::new(id), cx).access(id.child(&0), cx, nodes)

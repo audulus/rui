@@ -6,7 +6,6 @@ use std::{
     sync::Mutex,
 };
 
-#[cfg(feature = "winit")]
 use winit::{
     dpi::PhysicalSize,
     event::{
@@ -73,12 +72,13 @@ async fn setup(window: &Window) -> Setup {
     // log::info!("Initializing the surface...");
 
     let backend = wgpu::util::backend_bits_from_env().unwrap_or_else(wgpu::Backends::all);
+    let instance_desc = wgpu::InstanceDescriptor::default();
 
-    let instance = wgpu::Instance::new(backend);
+    let instance = wgpu::Instance::new(instance_desc);
     let (size, surface) = unsafe {
         let size = window.inner_size();
         let surface = instance.create_surface(&window);
-        (size, surface)
+        (size, surface.unwrap())
     };
     let adapter =
         wgpu::util::initialize_adapter_from_env_or_default(&instance, backend, Some(&surface))
@@ -130,10 +130,12 @@ pub fn rui(view: impl View) {
 
     let mut config = wgpu::SurfaceConfiguration {
         usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-        format: surface.get_supported_formats(&adapter)[0],
+        format: surface.get_capabilities(&adapter).formats[0],
         width: size.width,
         height: size.height,
         present_mode: wgpu::PresentMode::Fifo,
+        alpha_mode: wgpu::CompositeAlphaMode::Auto,
+        view_formats: vec![],
     };
     surface.configure(&device, &config);
 
@@ -149,12 +151,7 @@ pub fn rui(view: impl View) {
     let mut commands: Vec<CommandInfo> = Vec::new();
     let mut command_map = HashMap::new();
     cx.commands(&view, &mut commands);
-    #[cfg(feature = "tao")]
-    {
-        window.set_menu(Some(menus::build_menubar(&commands, &mut command_map)));
-    }
 
-    #[cfg(feature = "winit")]
     {
         // So we can infer a type for CommandMap when winit is enabled.
         command_map.insert("", "");
@@ -335,7 +332,6 @@ pub fn rui(view: impl View) {
                 cx.process(&view, &event)
             }
 
-            #[cfg(feature = "winit")]
             WEvent::WindowEvent {
                 event: WindowEvent::KeyboardInput { input, .. },
                 ..
@@ -478,15 +474,12 @@ pub fn rui(view: impl View) {
                 event: WindowEvent::ModifiersChanged(mods),
                 ..
             } => {
-                #[cfg(feature = "winit")]
-                {
-                    cx.key_mods = KeyboardModifiers {
-                        shift: mods.shift(),
-                        control: mods.ctrl(),
-                        alt: mods.alt(),
-                        command: mods.logo(),
-                    };
-                }
+                cx.key_mods = KeyboardModifiers {
+                    shift: mods.shift(),
+                    control: mods.ctrl(),
+                    alt: mods.alt(),
+                    command: mods.logo(),
+                };
             }
             _ => (),
         }

@@ -3,7 +3,10 @@ use std::any::Any;
 
 /// Struct for the `size` modifier.
 pub struct Size<V> {
+    /// Child view tree.
     child: V,
+
+    /// Size constraint.
     size: LocalSize,
 }
 
@@ -50,7 +53,7 @@ where
         &self,
         id: ViewId,
         cx: &mut Context,
-        nodes: &mut Vec<accesskit::Node>,
+        nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
     ) -> Option<accesskit::NodeId> {
         self.child.access(id.child(&0), cx, nodes)
     }

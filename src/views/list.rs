@@ -183,15 +183,18 @@ where
         &self,
         id: ViewId,
         cx: &mut Context,
-        nodes: &mut Vec<accesskit::Node>,
+        nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
     ) -> Option<accesskit::NodeId> {
-        let mut node = accesskit::Node::new(id.access_id(), accesskit::Role::List);
-        for child in &self.ids {
-            if let Some(i) = ((self.func)(child)).access(id.child(child), cx, nodes) {
-                node.children.push(i)
-            }
-        }
-        nodes.push(node);
+        let mut builder = accesskit::NodeBuilder::new(accesskit::Role::List);
+
+        let children: Vec<accesskit::NodeId> = self
+            .ids
+            .iter()
+            .filter_map(|child| ((self.func)(child)).access(id.child(child), cx, nodes))
+            .collect();
+
+        builder.set_children(children);
+        nodes.push((id.access_id(), builder.build(&mut cx.access_node_classes)));
         Some(id.access_id())
     }
 }

@@ -109,6 +109,8 @@ pub struct Context {
 
     /// Render the dirty rectangle for debugging?
     render_dirty: bool,
+
+    pub(crate) access_node_classes: accesskit::NodeClassSet,
 }
 
 impl Default for Context {
@@ -140,6 +142,7 @@ impl Context {
             window_size: Size2D::default(),
             root_offset: LocalOffset::zero(),
             render_dirty: false,
+            access_node_classes: accesskit::NodeClassSet::default(),
         }
     }
 
@@ -148,7 +151,7 @@ impl Context {
         &mut self,
         view: &impl View,
         vger: &mut Vger,
-        access_nodes: &mut Vec<accesskit::Node>,
+        access_nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
         window_size: Size2D<f32, WorldSpace>,
     ) -> bool {
         // If the window size has changed, force a relayout.
@@ -174,10 +177,12 @@ impl Context {
 
             if nodes != *access_nodes {
                 println!("access nodes:");
-                for node in &nodes {
+                for (id, node) in &nodes {
                     println!(
-                        "  id: {:?}, role: {:?}, children: {:?}",
-                        node.id, node.role, node.children
+                        "  id: {:?} role: {:?}, children: {:?}",
+                        id,
+                        node.role(),
+                        node.children()
                     );
                 }
                 *access_nodes = nodes;

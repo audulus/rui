@@ -29,7 +29,7 @@ pub trait View: private::Sealed + 'static {
         &self,
         _id: ViewId,
         _cx: &mut Context,
-        _nodes: &mut Vec<accesskit::Node>,
+        _nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
     ) -> Option<accesskit::NodeId> {
         None
     }

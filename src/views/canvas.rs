@@ -1,6 +1,7 @@
 use crate::*;
 
 /// Struct for `canvas`
+#[derive(Clone)]
 pub struct Canvas<F> {
     func: F,
 }

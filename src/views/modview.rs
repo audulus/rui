@@ -51,7 +51,7 @@ where
         &self,
         id: ViewId,
         cx: &mut Context,
-        nodes: &mut Vec<accesskit::Node>,
+        nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
     ) -> Option<accesskit::NodeId> {
         (self.func)(self.value.clone(), cx).access(id.child(&0), cx, nodes)
     }

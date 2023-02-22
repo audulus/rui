@@ -44,11 +44,13 @@ impl View for Text {
     fn access(
         &self,
         id: ViewId,
-        _cx: &mut Context,
-        nodes: &mut Vec<accesskit::Node>,
+        cx: &mut Context,
+        nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
     ) -> Option<accesskit::NodeId> {
         let aid = id.access_id();
-        nodes.push(accesskit::Node::new(aid, accesskit::Role::LabelText));
+        let mut builder = accesskit::NodeBuilder::new(accesskit::Role::LabelText);
+        builder.set_name(self.text.clone());
+        nodes.push((aid, builder.build(&mut cx.access_node_classes)));
         Some(aid)
     }
 }
@@ -103,11 +105,13 @@ where
     fn access(
         &self,
         id: ViewId,
-        _cx: &mut Context,
-        nodes: &mut Vec<accesskit::Node>,
+        cx: &mut Context,
+        nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
     ) -> Option<accesskit::NodeId> {
         let aid = id.access_id();
-        nodes.push(accesskit::Node::new(aid, accesskit::Role::LabelText));
+        let mut builder = accesskit::NodeBuilder::new(accesskit::Role::LabelText);
+        builder.set_name(format!("{}", self));
+        nodes.push((aid, builder.build(&mut cx.access_node_classes)));
         Some(aid)
     }
 }

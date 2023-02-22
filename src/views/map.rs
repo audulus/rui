@@ -67,7 +67,7 @@ where
         &self,
         id: ViewId,
         cx: &mut Context,
-        nodes: &mut Vec<accesskit::Node>,
+        nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
     ) -> Option<accesskit::NodeId> {
         cx.set_state(id, self.value.clone());
         (self.func)(StateHandle::new(id), cx).access(id.child(&0), cx, nodes)

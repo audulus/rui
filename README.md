@@ -5,6 +5,7 @@
 # rui
 
 ![build status](https://github.com/audulus/rui/actions/workflows/rust.yml/badge.svg)
+[![dependency status](https://deps.rs/repo/github/audulus/rui/status.svg)](https://deps.rs/repo/github/audulus/rui)
 
 Experimental Rust UI library, inspired by SwiftUI. Early days, but some stuff already works. rui will be used for a future version of [Audulus](http://audulus.com/)
 
@@ -163,6 +164,7 @@ In the long term, I'd like to move [Audulus](http://audulus.com/) over to Rust. 
 - ✅ any_view (view type erasure)
 - ✅ layout feedback
 - ✅ animation
+- ✅ UI unit testing
 
 ## References
 

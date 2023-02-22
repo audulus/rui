@@ -1,5 +1,6 @@
 use crate::*;
 
+#[derive(Clone)]
 pub struct Spacer {}
 
 impl View for Spacer {
@@ -15,6 +16,7 @@ impl View for Spacer {
 
 impl private::Sealed for Spacer {}
 
+/// Inserts a flexible space in a stack.
 pub fn spacer() -> Spacer {
     Spacer {}
 }
