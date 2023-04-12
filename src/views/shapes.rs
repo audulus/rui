@@ -49,6 +49,10 @@ impl View for Circle {
             None
         }
     }
+
+    fn gc(&self, id: ViewId, _cx: &mut Context, map: &mut Vec<ViewId>) {
+        map.push(id);
+    }
 }
 
 impl private::Sealed for Circle {}
@@ -117,6 +121,10 @@ impl View for Rectangle {
         } else {
             None
         }
+    }
+
+    fn gc(&self, id: ViewId, _cx: &mut Context, map: &mut Vec<ViewId>) {
+        map.push(id);
     }
 }
 

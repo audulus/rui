@@ -55,6 +55,7 @@ where
     }
 
     fn gc(&self, id: ViewId, cx: &mut Context, map: &mut Vec<ViewId>) {
+        map.push(id);
         self.child.gc(id.child(&0), cx, map)
     }
 

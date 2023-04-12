@@ -174,8 +174,11 @@ where
     }
 
     fn gc(&self, id: ViewId, cx: &mut Context, map: &mut Vec<ViewId>) {
+        map.push(id);
         for child in &self.ids {
-            ((self.func)(child)).gc(id.child(child), cx, map)
+            let child_id = id.child(child);
+            map.push(child_id);
+            ((self.func)(child)).gc(child_id, cx, map)
         }
     }
 

@@ -230,9 +230,12 @@ impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D>
     }
 
     fn gc(&self, id: ViewId, cx: &mut Context, map: &mut Vec<ViewId>) {
+        map.push(id);
         let mut c = 0;
         self.children.foreach_view(&mut |child| {
-            child.gc(id.child(&c), cx, map);
+            let child_id = id.child(&c);
+            map.push(child_id);
+            child.gc(child_id, cx, map);
             c += 1;
         });
     }

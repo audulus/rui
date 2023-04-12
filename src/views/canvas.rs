@@ -38,6 +38,11 @@ where
             None
         }
     }
+
+    fn gc(&self, id: ViewId, _cx: &mut Context, map: &mut Vec<ViewId>) {
+        map.push(id);
+    }
+
 }
 
 /// Canvas for GPU drawing with Vger. See https://github.com/audulus/vger-rs.

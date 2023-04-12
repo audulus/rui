@@ -43,7 +43,9 @@ pub trait View: private::Sealed + 'static {
     /// Draws the view using vger.
     fn draw(&self, id: ViewId, args: &mut DrawArgs);
 
-    /// Gets IDs for state currently in use.
+    /// Gets IDs for views currently in use.
+    /// 
+    /// Push onto map if the view stores layout or state info.
     fn gc(&self, _id: ViewId, _cx: &mut Context, _map: &mut Vec<ViewId>) {}
 
     /// Returns the topmost view which the point intersects.

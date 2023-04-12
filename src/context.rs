@@ -165,11 +165,12 @@ impl Context {
         view.process(&Event::Anim, self.root_id, self, &mut actions);
 
         if self.dirty {
-            // Clean up state.
+            // Clean up state and layout.
             let mut keep = vec![];
             view.gc(self.root_id, self, &mut keep);
             let keep_set = HashSet::<ViewId>::from_iter(keep);
             self.state_map.retain(|k, _| keep_set.contains(k));
+            self.layout.retain(|k, _| keep_set.contains(k));
 
             // Get a new accesskit tree.
             let mut nodes = vec![];
