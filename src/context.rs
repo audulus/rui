@@ -146,6 +146,7 @@ impl Context {
             root_offset: LocalOffset::zero(),
             render_dirty: false,
             access_node_classes: accesskit::NodeClassSet::default(),
+            grab_cursor: false,
         }
     }
 
