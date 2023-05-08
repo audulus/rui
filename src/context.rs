@@ -111,6 +111,9 @@ pub struct Context {
     render_dirty: bool,
 
     pub(crate) access_node_classes: accesskit::NodeClassSet,
+
+    /// Lock the cursor in position. Useful for dragging knobs.
+    pub(crate) grab_cursor: bool,
 }
 
 impl Default for Context {

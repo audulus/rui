@@ -12,6 +12,7 @@ pub enum GestureState {
 pub struct Drag<V, F> {
     child: V,
     func: F,
+    grab: bool,
 }
 
 impl<V, F, A> Drag<V, F>
@@ -20,7 +21,15 @@ where
     F: Fn(&mut Context, LocalOffset, GestureState, Option<MouseButton>) -> A + 'static,
 {
     pub fn new(v: V, f: F) -> Self {
-        Self { child: v, func: f }
+        Self { child: v, func: f, grab: false }
+    }
+
+    pub fn grab_cursor(self) -> Self {
+        Self {
+            child: self.child,
+            func: self.func,
+            grab: true
+        }
     }
 }
 
@@ -43,6 +52,7 @@ where
                     cx.touches[*id] = vid;
                     cx.starts[*id] = *position;
                     cx.previous_position[*id] = *position;
+                    cx.grab_cursor = true;
                 }
             }
             Event::TouchMove { id, position } => {
@@ -60,6 +70,7 @@ where
             Event::TouchEnd { id, position } => {
                 if cx.touches[*id] == vid {
                     cx.touches[*id] = ViewId::default();
+                    cx.grab_cursor = false;
                     actions.push(Box::new((self.func)(
                         cx,
                         *position - cx.previous_position[*id],
@@ -114,6 +125,7 @@ pub struct DragS<V, F, B, T> {
     func: F,
     binding: B,
     phantom: std::marker::PhantomData<T>,
+    grab: bool,
 }
 
 impl<V, F, A, B, T> DragS<V, F, B, T>
@@ -130,6 +142,17 @@ where
             func: f,
             binding: b,
             phantom: std::marker::PhantomData::default(),
+            grab: false
+        }
+    }
+
+    pub fn grab_cursor(self) -> Self {
+        Self {
+            child: self.child,
+            func: self.func,
+            binding: self.binding,
+            phantom: std::marker::PhantomData::default(),
+            grab: true
         }
     }
 }
