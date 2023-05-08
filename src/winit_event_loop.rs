@@ -113,6 +113,20 @@ async fn setup(window: &Window) -> Setup {
     }
 }
 
+fn process_event(cx: &mut Context, view: &impl View, event: &Event, window: &Window) {
+    cx.process(view, event);
+
+    if cx.grab_cursor {
+        //window.set_cursor_grab(winit::window::CursorGrabMode::Confined)
+        //    .or_else(|_e| window.set_cursor_grab(winit::window::CursorGrabMode::Locked))
+        //    .unwrap();
+        window.set_cursor_visible(false);
+    } else {
+        // window.set_cursor_grab(winit::window::CursorGrabMode::None).unwrap();
+        window.set_cursor_visible(true);
+    }
+}
+
 /// Call this function to run your UI.
 pub fn rui(view: impl View) {
     let event_loop = EventLoop::new();
@@ -270,7 +284,7 @@ pub fn rui(view: impl View) {
                             id: 0,
                             position: mouse_position,
                         };
-                        cx.process(&view, &event)
+                        process_event(&mut cx, &view, &event, &window)
                     }
                     ElementState::Released => {
                         cx.mouse_button = None;
@@ -278,7 +292,7 @@ pub fn rui(view: impl View) {
                             id: 0,
                             position: mouse_position,
                         };
-                        cx.process(&view, &event)
+                        process_event(&mut cx, &view, &event, &window)
                     }
                 };
             }
@@ -312,7 +326,7 @@ pub fn rui(view: impl View) {
                 };
 
                 if let Some(event) = event {
-                    cx.process(&view, &event);
+                    process_event(&mut cx, &view, &event, &window);
                 }
             }
             WEvent::WindowEvent {
@@ -329,7 +343,7 @@ pub fn rui(view: impl View) {
                     id: 0,
                     position: mouse_position,
                 };
-                cx.process(&view, &event)
+                process_event(&mut cx, &view, &event, &window)
             }
 
             WEvent::WindowEvent {

@@ -52,7 +52,7 @@ where
                     cx.touches[*id] = vid;
                     cx.starts[*id] = *position;
                     cx.previous_position[*id] = *position;
-                    cx.grab_cursor = true;
+                    cx.grab_cursor = self.grab;
                 }
             }
             Event::TouchMove { id, position } => {
@@ -178,6 +178,7 @@ where
                     cx.touches[*id] = vid;
                     cx.starts[*id] = *position;
                     cx.previous_position[*id] = *position;
+                    cx.grab_cursor = self.grab;
                 }
             }
             Event::TouchMove { id, position } => {
@@ -196,6 +197,7 @@ where
             Event::TouchEnd { id, position } => {
                 if cx.touches[*id] == vid {
                     cx.touches[*id] = ViewId::default();
+                    cx.grab_cursor = false;
                     let delta = *position - cx.previous_position[*id];
                     let button = cx.mouse_button;
                     actions.push(Box::new((self.func)(

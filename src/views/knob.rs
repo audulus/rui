@@ -14,7 +14,7 @@ pub fn knob(value: impl Binding<f32>) -> impl View {
             .color(CLEAR_COLOR)
             .drag_s(value, move |v, delta, _, _| {
                 *v = (*v + (delta.x + delta.y) / 400.0).clamp(0.0, 1.0)
-            }),
+            }).grab_cursor(),
         canvas(move |cx, sz, vger| {
             let c = sz.center();
             let r = sz.width().min(sz.height()) / 2.0;
