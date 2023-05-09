@@ -495,6 +495,10 @@ pub fn rui(view: impl View) {
                     command: mods.logo(),
                 };
             }
+
+            WEvent::DeviceEvent { event: winit::event::DeviceEvent::MouseMotion{ delta }, .. } => {
+                println!("mouse delta: {} {}", delta.0, delta.1);
+            }
             _ => (),
         }
     });
