@@ -15,6 +15,7 @@ pub enum Event {
         /// Identifies a touch so we can track it.
         id: usize,
         position: LocalPoint,
+        delta: LocalOffset,
     },
 
     /// Touch went up or mouse button released.
@@ -38,9 +39,9 @@ impl Event {
     pub fn offset(&self, offset: LocalOffset) -> Event {
         let mut event = self.clone();
         match &mut event {
-            Event::TouchBegin { id: _, position } => *position += offset,
-            Event::TouchMove { id: _, position } => *position += offset,
-            Event::TouchEnd { id: _, position } => *position += offset,
+            Event::TouchBegin { position, .. } => *position += offset,
+            Event::TouchMove { position, .. } => *position += offset,
+            Event::TouchEnd { position, .. } => *position += offset,
             _ => (),
         }
         event

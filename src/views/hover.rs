@@ -30,7 +30,7 @@ where
         cx: &mut Context,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
-        if let Event::TouchMove { id: _, position } = &event {
+        if let Event::TouchMove { position, .. } = &event {
             if cx.mouse_button.is_none() {
                 let inside = self.hittest(vid, *position, cx).is_some();
                 actions.push(Box::new((self.func)(cx, inside)));

@@ -316,10 +316,16 @@ pub fn rui(view: impl View) {
                 ]
                 .into();
 
+                let delta = position - cx.previous_position[0];
+
                 // TODO: Multi-Touch management
                 let event = match phase {
                     TouchPhase::Started => Some(Event::TouchBegin { id: 0, position }),
-                    TouchPhase::Moved => Some(Event::TouchMove { id: 0, position }),
+                    TouchPhase::Moved => Some(Event::TouchMove {
+                        id: 0,
+                        position,
+                        delta,
+                    }),
                     TouchPhase::Ended | TouchPhase::Cancelled => {
                         Some(Event::TouchEnd { id: 0, position })
                     }
@@ -339,11 +345,11 @@ pub fn rui(view: impl View) {
                     (config.height as f32 - position.y as f32) / scale,
                 ]
                 .into();
-                let event = Event::TouchMove {
-                    id: 0,
-                    position: mouse_position,
-                };
-                process_event(&mut cx, &view, &event, &window)
+                // let event = Event::TouchMove {
+                //     id: 0,
+                //     position: mouse_position,
+                // };
+                // process_event(&mut cx, &view, &event, &window)
             }
 
             WEvent::WindowEvent {
@@ -496,8 +502,20 @@ pub fn rui(view: impl View) {
                 };
             }
 
-            WEvent::DeviceEvent { event: winit::event::DeviceEvent::MouseMotion{ delta }, .. } => {
-                println!("mouse delta: {} {}", delta.0, delta.1);
+            WEvent::DeviceEvent {
+                event: winit::event::DeviceEvent::MouseMotion { delta },
+                ..
+            } => {
+                // Flip y coordinate.
+                let d: LocalOffset = [delta.0 as f32, -delta.1 as f32].into();
+
+                let event = Event::TouchMove {
+                    id: 0,
+                    position: mouse_position,
+                    delta: d,
+                };
+
+                process_event(&mut cx, &view, &event, &window);
             }
             _ => (),
         }

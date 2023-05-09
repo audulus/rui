@@ -44,7 +44,7 @@ pub trait View: private::Sealed + 'static {
     fn draw(&self, id: ViewId, args: &mut DrawArgs);
 
     /// Gets IDs for views currently in use.
-    /// 
+    ///
     /// Push onto map if the view stores layout or state info.
     fn gc(&self, _id: ViewId, _cx: &mut Context, _map: &mut Vec<ViewId>) {}
 

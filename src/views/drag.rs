@@ -21,14 +21,18 @@ where
     F: Fn(&mut Context, LocalOffset, GestureState, Option<MouseButton>) -> A + 'static,
 {
     pub fn new(v: V, f: F) -> Self {
-        Self { child: v, func: f, grab: false }
+        Self {
+            child: v,
+            func: f,
+            grab: false,
+        }
     }
 
     pub fn grab_cursor(self) -> Self {
         Self {
             child: self.child,
             func: self.func,
-            grab: true
+            grab: true,
         }
     }
 }
@@ -55,25 +59,28 @@ where
                     cx.grab_cursor = self.grab;
                 }
             }
-            Event::TouchMove { id, position } => {
+            Event::TouchMove {
+                id,
+                position,
+                delta,
+            } => {
                 if cx.touches[*id] == vid {
-                    let delta = *position - cx.previous_position[*id];
                     actions.push(Box::new((self.func)(
                         cx,
-                        delta,
+                        *delta,
                         GestureState::Changed,
                         cx.mouse_button,
                     )));
                     cx.previous_position[*id] = *position;
                 }
             }
-            Event::TouchEnd { id, position } => {
+            Event::TouchEnd { id, .. } => {
                 if cx.touches[*id] == vid {
                     cx.touches[*id] = ViewId::default();
                     cx.grab_cursor = false;
                     actions.push(Box::new((self.func)(
                         cx,
-                        *position - cx.previous_position[*id],
+                        LocalOffset::zero(),
                         GestureState::Ended,
                         cx.mouse_button,
                     )));
@@ -142,7 +149,7 @@ where
             func: f,
             binding: b,
             phantom: std::marker::PhantomData::default(),
-            grab: false
+            grab: false,
         }
     }
 
@@ -152,7 +159,7 @@ where
             func: self.func,
             binding: self.binding,
             phantom: std::marker::PhantomData::default(),
-            grab: true
+            grab: true,
         }
     }
 }
@@ -181,28 +188,30 @@ where
                     cx.grab_cursor = self.grab;
                 }
             }
-            Event::TouchMove { id, position } => {
+            Event::TouchMove {
+                id,
+                position,
+                delta,
+            } => {
                 if cx.touches[*id] == vid {
-                    let delta = *position - cx.previous_position[*id];
                     let button = cx.mouse_button;
                     actions.push(Box::new((self.func)(
                         self.binding.get_mut(cx),
-                        delta,
+                        *delta,
                         GestureState::Changed,
                         button,
                     )));
                     cx.previous_position[*id] = *position;
                 }
             }
-            Event::TouchEnd { id, position } => {
+            Event::TouchEnd { id, .. } => {
                 if cx.touches[*id] == vid {
                     cx.touches[*id] = ViewId::default();
                     cx.grab_cursor = false;
-                    let delta = *position - cx.previous_position[*id];
                     let button = cx.mouse_button;
                     actions.push(Box::new((self.func)(
                         self.binding.get_mut(cx),
-                        delta,
+                        LocalOffset::zero(),
                         GestureState::Ended,
                         button,
                     )));
