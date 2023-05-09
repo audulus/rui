@@ -118,15 +118,18 @@ fn process_event(cx: &mut Context, view: &impl View, event: &Event, window: &Win
 
     if cx.grab_cursor && !cx.prev_grab_cursor {
         println!("grabbing cursor");
-        window.set_cursor_grab(winit::window::CursorGrabMode::Locked)
-           .or_else(|_e| window.set_cursor_grab(winit::window::CursorGrabMode::Confined))
-           .unwrap();
+        window
+            .set_cursor_grab(winit::window::CursorGrabMode::Locked)
+            .or_else(|_e| window.set_cursor_grab(winit::window::CursorGrabMode::Confined))
+            .unwrap();
         window.set_cursor_visible(false);
     }
 
     if !cx.grab_cursor && cx.prev_grab_cursor {
         println!("releasing cursor");
-        window.set_cursor_grab(winit::window::CursorGrabMode::None).unwrap();
+        window
+            .set_cursor_grab(winit::window::CursorGrabMode::None)
+            .unwrap();
         window.set_cursor_visible(true);
     }
 
