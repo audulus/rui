@@ -114,6 +114,9 @@ pub struct Context {
 
     /// Lock the cursor in position. Useful for dragging knobs.
     pub(crate) grab_cursor: bool,
+
+    /// Value of grab_cursor before processing event.
+    pub(crate) prev_grab_cursor: bool,
 }
 
 impl Default for Context {
@@ -147,6 +150,7 @@ impl Context {
             render_dirty: false,
             access_node_classes: accesskit::NodeClassSet::default(),
             grab_cursor: false,
+            prev_grab_cursor: false,
         }
     }
 

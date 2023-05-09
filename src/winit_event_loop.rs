@@ -116,15 +116,21 @@ async fn setup(window: &Window) -> Setup {
 fn process_event(cx: &mut Context, view: &impl View, event: &Event, window: &Window) {
     cx.process(view, event);
 
-    if cx.grab_cursor {
-        //window.set_cursor_grab(winit::window::CursorGrabMode::Confined)
-        //    .or_else(|_e| window.set_cursor_grab(winit::window::CursorGrabMode::Locked))
-        //    .unwrap();
+    if cx.grab_cursor && !cx.prev_grab_cursor {
+        println!("grabbing cursor");
+        window.set_cursor_grab(winit::window::CursorGrabMode::Confined)
+           .or_else(|_e| window.set_cursor_grab(winit::window::CursorGrabMode::Locked))
+           .unwrap();
         window.set_cursor_visible(false);
-    } else {
-        // window.set_cursor_grab(winit::window::CursorGrabMode::None).unwrap();
+    }
+
+    if !cx.grab_cursor && cx.prev_grab_cursor {
+        println!("releasing cursor");
+        window.set_cursor_grab(winit::window::CursorGrabMode::None).unwrap();
         window.set_cursor_visible(true);
     }
+
+    cx.prev_grab_cursor = cx.grab_cursor;
 }
 
 /// Call this function to run your UI.
