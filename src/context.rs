@@ -297,7 +297,7 @@ impl Context {
             depth_stencil_attachment: None,
         };
 
-        vger.encode(device, &desc, render_info.queue);
+        vger.encode(&desc);
 
         frame.present();
     }

@@ -3,7 +3,7 @@ use crate::*;
 use futures::executor::block_on;
 use std::{
     collections::{HashMap, VecDeque},
-    sync::Mutex,
+    sync::{Arc, Mutex},
 };
 
 use winit::{
@@ -146,10 +146,10 @@ pub fn rui(view: impl View) {
 
     let setup = block_on(setup(&window));
     let surface = setup.surface;
-    let device = setup.device;
+    let device = Arc::new(setup.device);
     let size = setup.size;
     let adapter = setup.adapter;
-    let queue = setup.queue;
+    let queue = Arc::new(setup.queue);
 
     let mut config = wgpu::SurfaceConfiguration {
         usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
@@ -167,7 +167,7 @@ pub fn rui(view: impl View) {
         *GLOBAL_EVENT_LOOP_PROXY.lock().unwrap() = Some(event_loop.create_proxy());
     }
 
-    let mut vger = Vger::new(&device, config.format);
+    let mut vger = Vger::new(device.clone(), queue.clone(), config.format);
     let mut cx = Context::new();
     let mut mouse_position = LocalPoint::zero();
 

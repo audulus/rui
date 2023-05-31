@@ -21,9 +21,9 @@ default = [ "winit" ]
 
 [dependencies]
 euclid = "0.22.7"
-wgpu = "0.15.1"
+wgpu = "0.16.0"
 futures = "0.3"
-vger = "0.2.5"
+vger = "0.2.7"
 accesskit = "0.10.0"
 lazy_static = "1.4.0"
 winit = { version = "0.28.1", optional = true }
