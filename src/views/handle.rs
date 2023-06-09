@@ -2,31 +2,34 @@ use crate::*;
 use std::any::Any;
 
 /// Struct for an action handler.
-pub struct Handle<V, F, A> {
+pub struct Handle<V, F, A, A2> {
     child: V,
     func: F,
     phantom_action: std::marker::PhantomData<A>,
+    phantom_action2: std::marker::PhantomData<A2>,
 }
 
-impl<V, F, A> Handle<V, F, A>
+impl<V, F, A, A2> Handle<V, F, A, A2>
 where
     V: View,
-    F: Fn(&mut Context, &A) + 'static,
+    F: Fn(&mut Context, &A) -> A2 + 'static,
 {
     pub fn new(v: V, f: F) -> Self {
         Self {
             child: v,
             func: f,
             phantom_action: Default::default(),
+            phantom_action2: Default::default(),
         }
     }
 }
 
-impl<V, F, A> View for Handle<V, F, A>
+impl<V, F, A, A2> View for Handle<V, F, A, A2>
 where
     V: View,
-    F: Fn(&mut Context, &A) + 'static,
+    F: Fn(&mut Context, &A) -> A2 + 'static,
     A: 'static,
+    A2: 'static,
 {
     fn process(
         &self,
@@ -41,7 +44,7 @@ where
 
         for action in child_actions {
             if let Some(a) = action.downcast_ref::<A>() {
-                (self.func)(cx, a);
+                actions.push(Box::new((self.func)(cx, a)));
             } else {
                 actions.push(action);
             }
@@ -78,4 +81,4 @@ where
     }
 }
 
-impl<V, F, A> private::Sealed for Handle<V, F, A> {}
+impl<V, F, A, A2> private::Sealed for Handle<V, F, A, A2> {}
