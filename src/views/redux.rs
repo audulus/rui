@@ -3,10 +3,11 @@ use crate::*;
 pub fn redux<
     V: View,
     A: 'static,
+    A2: 'static,
     S: 'static,
     D: Fn() -> S + 'static,
     F: Fn(&S) -> V + 'static,
-    R: Fn(&mut S, &A) + 'static + Clone,
+    R: Fn(&mut S, &A) -> A2 + 'static + Clone,
 >(
     initial: D,
     reducer: R,
