@@ -402,7 +402,7 @@ where
 {
     type Output = S;
 
-    fn index(&self, index: StateHandle<S>) -> &Self::Output {
+    fn index(&self, index: StateHandle<S>) -> &S {
         self.get(index)
     }
 }
@@ -411,7 +411,7 @@ impl<S> ops::IndexMut<StateHandle<S>> for Context
 where
     S: 'static,
 {
-    fn index_mut(&mut self, index: StateHandle<S>) -> &mut Self::Output {
+    fn index_mut(&mut self, index: StateHandle<S>) -> &mut S {
         self.get_mut(index)
     }
 }
