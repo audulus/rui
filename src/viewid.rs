@@ -28,4 +28,8 @@ impl ViewId {
     pub fn access_id(&self) -> accesskit::NodeId {
         accesskit::NodeId(std::num::NonZeroU128::new(self.id as u128).unwrap())
     }
+
+    pub fn is_default(self) -> bool {
+        self == ViewId::default()
+    }
 }
