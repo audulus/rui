@@ -27,7 +27,7 @@ where
         cx: &mut Context,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
-        for child in &self.ids {
+        for child in self.ids.iter().rev() {
             let child_id = id.child(child);
             let offset = cx.layout.entry(child_id).or_default().offset;
             ((self.func)(child)).process(&event.offset(-offset), child_id, cx, actions);
