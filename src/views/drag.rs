@@ -1,7 +1,7 @@
 use crate::*;
 use std::any::Any;
 
-#[derive(Clone, Copy, Eq, PartialEq)]
+#[derive(Clone, Copy, Eq, PartialEq, Debug)]
 pub enum GestureState {
     Began,
     Changed,
@@ -256,3 +256,63 @@ where
 }
 
 impl<V, F, B, T> private::Sealed for DragS<V, F, B, T> {}
+
+
+#[cfg(test)]
+mod tests {
+
+    use super::*;
+
+    #[test]
+    fn test_drag() {
+        let mut cx = Context::new();
+
+        let ui = state(
+            || vec![],
+            |states, _| {
+                rectangle()
+                .drag(move |cx, _delta, state, _| {
+                    cx[states].push(state)
+                })
+            },
+        );
+        let sz = [100.0, 100.0].into();
+
+        let rect_sz = ui.layout(
+            cx.root_id,
+            &mut LayoutArgs {
+                sz,
+                cx: &mut cx,
+                text_bounds: &mut |_, _, _| LocalRect::new(LocalPoint::zero(), [90.0, 90.0].into()),
+            },
+        );
+
+        assert_eq!(rect_sz, sz);
+        let s = StateHandle::<Vec<GestureState>>::new(cx.root_id);
+        assert_eq!(cx[s], vec![]);
+
+        let events = [
+            Event::TouchBegin {
+                id: 0,
+                position: [50.0, 50.0].into(),
+            },
+            Event::TouchMove {
+                id: 0,
+                position: [60.0, 50.0].into(),
+                delta: [10.0, 0.0].into(),
+            },
+            Event::TouchEnd {
+                id: 0,
+                position: [60.0, 50.0].into(),
+            },
+        ];
+
+        let mut actions = vec![];
+        for event in &events {
+            ui.process(event, cx.root_id, &mut cx, &mut actions);
+        }
+
+        assert_eq!(cx[s], vec![GestureState::Changed, GestureState::Ended]);
+
+    }
+}
