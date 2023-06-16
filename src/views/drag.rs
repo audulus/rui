@@ -52,11 +52,18 @@ where
     ) {
         match &event {
             Event::TouchBegin { id, position } => {
-                if self.hittest(vid, *position, cx).is_some() {
+                if cx.touches[*id].is_default() && self.hittest(vid, *position, cx).is_some() {
                     cx.touches[*id] = vid;
                     cx.starts[*id] = *position;
                     cx.previous_position[*id] = *position;
                     cx.grab_cursor = self.grab;
+
+                    actions.push(Box::new((self.func)(
+                        cx,
+                        [0.0,0.0].into(),
+                        GestureState::Began,
+                        cx.mouse_button,
+                    )));
                 }
             }
             Event::TouchMove {
@@ -312,7 +319,7 @@ mod tests {
             ui.process(event, cx.root_id, &mut cx, &mut actions);
         }
 
-        assert_eq!(cx[s], vec![GestureState::Changed, GestureState::Ended]);
+        assert_eq!(cx[s], vec![GestureState::Began, GestureState::Changed, GestureState::Ended]);
 
     }
 }
