@@ -49,13 +49,10 @@ path.pop();
         path.push(0);
         self.child.layout(path, args);
         path.pop();
-        args.cx.layout.insert(
-            path.clone(),
-            LayoutBox {
-                rect: LocalRect::new(LocalPoint::zero(), args.sz),
-                offset: LocalOffset::zero(),
-            },
-        );
+        args.cx.update_layout(path, LayoutBox {
+            rect: LocalRect::new(LocalPoint::zero(), args.sz),
+            offset: LocalOffset::zero(),
+        });
         // XXX: should this expand to the available space?
         args.sz
     }
