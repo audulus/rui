@@ -14,13 +14,14 @@ where
     fn process(
         &self,
         event: &Event,
-        vid: ViewId,
+        path: &mut IdPath,
         cx: &mut Context,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
+        let vid = hash(path);
         match &event {
             Event::TouchBegin { id: _, position } => {
-                if self.hittest(vid, *position, cx).is_some() {
+                if self.hittest(path, *position, cx).is_some() {
                     cx.focused_id = Some(vid);
                     cx.set_dirty();
                 }
@@ -33,40 +34,66 @@ where
             }
             _ => (),
         }
-        (self.func)(Some(vid) == cx.focused_id).process(event, vid.child(&0), cx, actions)
+        path.push(0);
+        (self.func)(Some(vid) == cx.focused_id).process(event, path, cx, actions);
+        path.pop();
     }
 
-    fn draw(&self, id: ViewId, args: &mut DrawArgs) {
-        (self.func)(Some(id) == args.cx.focused_id).draw(id.child(&0), args)
+    fn draw(&self, path: &mut IdPath, args: &mut DrawArgs) {
+        let id = hash(path);
+        path.push(0);
+        (self.func)(Some(id) == args.cx.focused_id).draw(path, args);
+        path.pop();
     }
 
-    fn layout(&self, id: ViewId, args: &mut LayoutArgs) -> LocalSize {
-        (self.func)(Some(id) == args.cx.focused_id).layout(id.child(&0), args)
+    fn layout(&self, path: &mut IdPath, args: &mut LayoutArgs) -> LocalSize {
+        let id = hash(path);
+        path.push(0);
+        let sz = (self.func)(Some(id) == args.cx.focused_id).layout(path, args);
+        path.pop();
+        sz
     }
 
-    fn dirty(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) {
-        (self.func)(Some(id) == cx.focused_id).dirty(id.child(&0), xform, cx);
+    fn dirty(&self, path: &mut IdPath, xform: LocalToWorld, cx: &mut Context) {
+        let id = hash(path);
+        path.push(0);
+        (self.func)(Some(id) == cx.focused_id).dirty(path, xform, cx);
+        path.pop();
     }
 
-    fn hittest(&self, id: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
-        (self.func)(Some(id) == cx.focused_id).hittest(id.child(&0), pt, cx)
+    fn hittest(&self, path: &mut IdPath, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
+        let id = hash(path);
+        path.push(0);
+        let vid = (self.func)(Some(id) == cx.focused_id).hittest(path, pt, cx);
+        path.pop();
+        vid
     }
 
-    fn commands(&self, id: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
-        (self.func)(Some(id) == cx.focused_id).commands(id.child(&0), cx, cmds)
+    fn commands(&self, path: &mut IdPath, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
+        let id = hash(path);
+        path.push(0);
+        (self.func)(Some(id) == cx.focused_id).commands(path, cx, cmds);
+        path.pop();
     }
 
-    fn gc(&self, id: ViewId, cx: &mut Context, map: &mut Vec<ViewId>) {
-        (self.func)(Some(id) == cx.focused_id).gc(id.child(&0), cx, map)
+    fn gc(&self, path: &mut IdPath, cx: &mut Context, map: &mut Vec<ViewId>) {
+        let id = hash(path);
+        path.push(0);
+        (self.func)(Some(id) == cx.focused_id).gc(path, cx, map);
+        path.pop();
     }
 
     fn access(
         &self,
-        id: ViewId,
+        path: &mut IdPath,
         cx: &mut Context,
         nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
     ) -> Option<accesskit::NodeId> {
-        (self.func)(Some(id) == cx.focused_id).access(id.child(&0), cx, nodes)
+        let id = hash(path);
+        path.push(0);
+        let node_id = (self.func)(Some(id) == cx.focused_id).access(path, cx, nodes);
+        path.pop();
+        node_id
     }
 }
 

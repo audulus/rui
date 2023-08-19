@@ -38,30 +38,31 @@ impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D>
     fn process(
         &self,
         event: &Event,
-        id: ViewId,
+        path: &mut IdPath,
         cx: &mut Context,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
-        let mut c = self.children.len() as i32 - 1;
+        let mut c = self.children.len() as i64 - 1;
         self.children.foreach_view_rev(&mut |child| {
-            let child_id = id.child(&c);
-            let offset = cx.layout.entry(child_id).or_default().offset;
-            (*child).process(&event.offset(-offset), child_id, cx, actions);
+            path.push(c as u64);
+            let offset = cx.layout.entry(hash(path)).or_default().offset;
+            (*child).process(&event.offset(-offset), path, cx, actions);
+            path.pop();
             c -= 1;
         })
     }
 
-    fn draw(&self, id: ViewId, args: &mut DrawArgs) {
+    fn draw(&self, path: &mut IdPath, args: &mut DrawArgs) {
         let mut c = 0;
         self.children.foreach_view(&mut |child| {
-            let child_id = id.child(&c);
-            let layout_box = *args.cx.layout.entry(child_id).or_default();
+            path.push(c);
+            let layout_box = *args.cx.layout.entry(hash(path)).or_default();
 
             args.vger.save();
 
             args.vger.translate(layout_box.offset);
 
-            (*child).draw(child_id, args);
+            (*child).draw(path, args);
             c += 1;
 
             if DEBUG_LAYOUT {
@@ -75,11 +76,13 @@ impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D>
                 );
             }
 
+            path.pop();
+
             args.vger.restore();
         })
     }
 
-    fn layout(&self, id: ViewId, args: &mut LayoutArgs) -> LocalSize {
+    fn layout(&self, path: &mut IdPath, args: &mut LayoutArgs) -> LocalSize {
         let n = self.children.len() as f32;
 
         match D::ORIENTATION {
@@ -87,7 +90,7 @@ impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D>
                 let proposed_child_size = LocalSize::new(args.sz.width / n, args.sz.height);
 
                 let mut child_sizes = [None; VIEW_TUPLE_MAX_ELEMENTS];
-                self.layout_fixed_children(id, proposed_child_size, args, &mut child_sizes);
+                self.layout_fixed_children(path, proposed_child_size, args, &mut child_sizes);
 
                 let child_sizes_1d = child_sizes.map(|x| {
                     if let Some(s) = x {
@@ -107,7 +110,7 @@ impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D>
                 );
 
                 self.layout_flex_children(
-                    id,
+                    path,
                     [flex_length, args.sz.height].into(),
                     args,
                     &mut child_sizes,
@@ -118,8 +121,8 @@ impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D>
                     max_height = size.unwrap().height.max(max_height)
                 }
 
-                for c in 0..(self.children.len() as i32) {
-                    let child_id = id.child(&c);
+                for c in 0..(self.children.len() as u64) {
+                    
                     let ab = intervals[c as usize];
 
                     let child_offset = align_v(
@@ -128,7 +131,9 @@ impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D>
                         VAlignment::Middle,
                     );
 
-                    args.cx.layout.entry(child_id).or_default().offset = child_offset;
+                    path.push(c);
+                    args.cx.layout.entry(hash(path)).or_default().offset = child_offset;
+                    path.pop();
                 }
 
                 [length, max_height].into()
@@ -136,7 +141,7 @@ impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D>
             StackOrientation::Vertical => {
                 let proposed_child_size = LocalSize::new(args.sz.width, args.sz.height / n);
                 let mut child_sizes = [None; VIEW_TUPLE_MAX_ELEMENTS];
-                self.layout_fixed_children(id, proposed_child_size, args, &mut child_sizes);
+                self.layout_fixed_children(path, proposed_child_size, args, &mut child_sizes);
 
                 let child_sizes_1d = child_sizes.map(|x| {
                     if let Some(s) = x {
@@ -156,7 +161,7 @@ impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D>
                 );
 
                 self.layout_flex_children(
-                    id,
+                    path,
                     [args.sz.width, flex_length].into(),
                     args,
                     &mut child_sizes,
@@ -167,8 +172,7 @@ impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D>
                     max_width = size.unwrap().width.max(max_width)
                 }
 
-                for c in 0..(self.children.len() as i32) {
-                    let child_id = id.child(&c);
+                for c in 0..(self.children.len() as u64) {
                     let ab = intervals[c as usize];
 
                     let h = ab.1 - ab.0;
@@ -178,7 +182,9 @@ impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D>
                         HAlignment::Center,
                     );
 
-                    args.cx.layout.entry(child_id).or_default().offset = child_offset;
+                    path.push(c);
+                    args.cx.layout.entry(hash(path)).or_default().offset = child_offset;
+                    path.pop();
                 }
 
                 [max_width, length].into()
@@ -186,7 +192,9 @@ impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D>
             StackOrientation::Z => {
                 let mut c = 0;
                 self.children.foreach_view(&mut |child| {
-                    child.layout(id.child(&c), args);
+                    path.push(c);
+                    child.layout(path, args);
+                    path.pop();
                     c += 1;
                 });
                 args.sz
@@ -194,55 +202,61 @@ impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D>
         }
     }
 
-    fn dirty(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) {
+    fn dirty(&self, path: &mut IdPath, xform: LocalToWorld, cx: &mut Context) {
         let mut c = 0;
         self.children.foreach_view(&mut |child| {
-            let child_id = id.child(&c);
-            let offset = cx.layout.entry(child_id).or_default().offset;
+            path.push(c);
+            let offset = cx.layout.entry(hash(path)).or_default().offset;
             let xf = xform.pre_translate(offset);
-            child.dirty(child_id, xf, cx);
+            child.dirty(path, xf, cx);
+            path.pop();
             c += 1;
         })
     }
 
-    fn hittest(&self, id: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
+    fn hittest(&self, path: &mut IdPath, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
         let mut c = 0;
         let mut hit = None;
         self.children.foreach_view(&mut |child| {
-            let child_id = id.child(&c);
-            let offset = cx.layout.entry(child_id).or_default().offset;
+            path.push(c);
+            let offset = cx.layout.entry(hash(path)).or_default().offset;
 
-            if let Some(h) = child.hittest(child_id, pt - offset, cx) {
+            if let Some(h) = child.hittest(path, pt - offset, cx) {
                 hit = Some(h)
             }
+
+            path.pop();
 
             c += 1;
         });
         hit
     }
 
-    fn commands(&self, id: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
+    fn commands(&self, path: &mut IdPath, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
         let mut c = 0;
         self.children.foreach_view(&mut |child| {
-            child.commands(id.child(&c), cx, cmds);
+            path.push(c);
+            child.commands(path, cx, cmds);
+            path.pop();
             c += 1;
         });
     }
 
-    fn gc(&self, id: ViewId, cx: &mut Context, map: &mut Vec<ViewId>) {
-        map.push(id);
+    fn gc(&self, path: &mut IdPath, cx: &mut Context, map: &mut Vec<ViewId>) {
+        map.push(hash(path));
         let mut c = 0;
         self.children.foreach_view(&mut |child| {
-            let child_id = id.child(&c);
-            map.push(child_id);
-            child.gc(child_id, cx, map);
+            path.push(c);
+            map.push(hash(path));
+            child.gc(path, cx, map);
+            path.pop();
             c += 1;
         });
     }
 
     fn access(
         &self,
-        id: ViewId,
+        path: &mut IdPath,
         cx: &mut Context,
         nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
     ) -> Option<accesskit::NodeId> {
@@ -250,14 +264,17 @@ impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D>
         let mut builder = accesskit::NodeBuilder::new(accesskit::Role::List);
         let mut children = vec![];
         self.children.foreach_view(&mut |child| {
-            if let Some(id) = child.access(id.child(&c), cx, nodes) {
+            path.push(c);
+            if let Some(id) = child.access(path, cx, nodes) {
                 children.push(id)
             }
+            path.pop();
             c += 1;
         });
         builder.set_children(children);
-        nodes.push((id.access_id(), builder.build(&mut cx.access_node_classes)));
-        Some(id.access_id())
+        let aid = hash(path).access_id();
+        nodes.push((aid, builder.build(&mut cx.access_node_classes)));
+        Some(aid)
     }
 }
 
@@ -271,35 +288,37 @@ impl<VT: ViewTuple, D: StackDirection> Stack<VT, D> {
 
     pub fn layout_fixed_children(
         &self,
-        id: ViewId,
+        path: &mut IdPath,
         proposed_child_size: LocalSize,
         args: &mut LayoutArgs,
         child_sizes: &mut [Option<LocalSize>],
     ) {
-        let mut c: i32 = 0;
+        let mut c = 0;
         self.children.foreach_view(&mut |child| {
-            let child_id = id.child(&c);
+            path.push(c);
             if !child.is_flexible() {
                 child_sizes[c as usize] =
-                    Some(child.layout(child_id, &mut args.size(proposed_child_size)))
+                    Some(child.layout(path, &mut args.size(proposed_child_size)))
             }
+            path.pop();
             c += 1;
         });
     }
 
     pub fn layout_flex_children(
         &self,
-        id: ViewId,
+        path: &mut IdPath,
         flex_size: LocalSize,
         args: &mut LayoutArgs,
         child_sizes: &mut [Option<LocalSize>],
     ) {
-        let mut c: i32 = 0;
+        let mut c = 0;
         self.children.foreach_view(&mut |child| {
-            let child_id = id.child(&c);
+            path.push(c);
             if child.is_flexible() {
-                child_sizes[c as usize] = Some(child.layout(child_id, &mut args.size(flex_size)));
+                child_sizes[c as usize] = Some(child.layout(path, &mut args.size(flex_size)));
             }
+            path.pop();
             c += 1;
         });
     }

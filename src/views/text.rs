@@ -25,7 +25,7 @@ impl Text {
 }
 
 impl View for Text {
-    fn draw(&self, _id: ViewId, args: &mut DrawArgs) {
+    fn draw(&self, _path: &mut IdPath, args: &mut DrawArgs) {
         let vger = &mut args.vger;
         let origin = vger.text_bounds(self.text.as_str(), self.size, None).origin;
 
@@ -34,20 +34,20 @@ impl View for Text {
         vger.text(self.text.as_str(), self.size, self.color, None);
         vger.restore();
     }
-    fn layout(&self, _id: ViewId, args: &mut LayoutArgs) -> LocalSize {
+    fn layout(&self, _path: &mut IdPath, args: &mut LayoutArgs) -> LocalSize {
         (args.text_bounds)(self.text.as_str(), self.size, None).size
     }
-    fn hittest(&self, _id: ViewId, _pt: LocalPoint, _cx: &mut Context) -> Option<ViewId> {
+    fn hittest(&self, _path: &mut IdPath, _pt: LocalPoint, _cx: &mut Context) -> Option<ViewId> {
         None
     }
 
     fn access(
         &self,
-        id: ViewId,
+        path: &mut IdPath,
         cx: &mut Context,
         nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
     ) -> Option<accesskit::NodeId> {
-        let aid = id.access_id();
+        let aid = hash(path).access_id();
         let mut builder = accesskit::NodeBuilder::new(accesskit::Role::LabelText);
         builder.set_name(self.text.clone());
         nodes.push((aid, builder.build(&mut cx.access_node_classes)));
@@ -87,7 +87,7 @@ impl<V> View for V
 where
     V: std::fmt::Display + std::fmt::Debug + 'static,
 {
-    fn draw(&self, _id: ViewId, args: &mut DrawArgs) {
+    fn draw(&self, _path: &mut IdPath, args: &mut DrawArgs) {
         let txt = &format!("{}", self);
         let vger = &mut args.vger;
         let origin = vger.text_bounds(txt, Text::DEFAULT_SIZE, None).origin;
@@ -97,18 +97,18 @@ where
         vger.text(txt, Text::DEFAULT_SIZE, TEXT_COLOR, None);
         vger.restore();
     }
-    fn layout(&self, _id: ViewId, args: &mut LayoutArgs) -> LocalSize {
+    fn layout(&self, _path: &mut IdPath, args: &mut LayoutArgs) -> LocalSize {
         let txt = &format!("{}", self);
         (args.text_bounds)(txt, Text::DEFAULT_SIZE, None).size
     }
 
     fn access(
         &self,
-        id: ViewId,
+        path: &mut IdPath,
         cx: &mut Context,
         nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
     ) -> Option<accesskit::NodeId> {
-        let aid = id.access_id();
+        let aid = hash(path).access_id();
         let mut builder = accesskit::NodeBuilder::new(accesskit::Role::LabelText);
         builder.set_name(format!("{}", self));
         nodes.push((aid, builder.build(&mut cx.access_node_classes)));

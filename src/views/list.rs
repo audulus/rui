@@ -23,33 +23,35 @@ where
     fn process(
         &self,
         event: &Event,
-        id: ViewId,
+        path: &mut IdPath,
         cx: &mut Context,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
         for child in self.ids.iter().rev() {
-            let child_id = id.child(child);
-            let offset = cx.layout.entry(child_id).or_default().offset;
-            ((self.func)(child)).process(&event.offset(-offset), child_id, cx, actions);
+            path.push(hh(child));
+            let offset = cx.layout.entry(hash(path)).or_default().offset;
+            ((self.func)(child)).process(&event.offset(-offset), path, cx, actions);
+            path.pop();
         }
     }
 
-    fn draw(&self, id: ViewId, args: &mut DrawArgs) {
+    fn draw(&self, path: &mut IdPath, args: &mut DrawArgs) {
         for child in &self.ids {
-            let child_id = id.child(child);
-            let offset = args.cx.layout.entry(child_id).or_default().offset;
+            path.push(hh(child));
+            let offset = args.cx.layout.entry(hash(path)).or_default().offset;
 
             args.vger.save();
 
             args.vger.translate(offset);
 
-            ((self.func)(child)).draw(child_id, args);
+            ((self.func)(child)).draw(path, args);
 
             args.vger.restore();
+            path.pop();
         }
     }
 
-    fn layout(&self, id: ViewId, args: &mut LayoutArgs) -> LocalSize {
+    fn layout(&self, path: &mut IdPath, args: &mut LayoutArgs) -> LocalSize {
         match self.orientation {
             ListOrientation::Horizontal => {
                 let n = self.ids.len() as f32;
@@ -60,10 +62,11 @@ where
 
                 let mut width_sum = 0.0;
                 for child in &self.ids {
-                    let child_id = id.child(child);
+                    path.push(hh(child));
                     let child_size =
-                        ((self.func)(child)).layout(child_id, &mut args.size(proposed_child_size));
+                        ((self.func)(child)).layout(path, &mut args.size(proposed_child_size));
                     sizes.push(child_size);
+                    path.pop();
 
                     width_sum += child_size.width;
                 }
@@ -75,7 +78,7 @@ where
 
                 let mut x = 0.0;
                 for c in 0..self.ids.len() {
-                    let child_id = id.child(&self.ids[c]);
+                    path.push(hh(&self.ids[c]));
                     let child_size = sizes[c];
 
                     let child_offset = align_v(
@@ -84,7 +87,9 @@ where
                         VAlignment::Middle,
                     );
 
-                    args.cx.layout.entry(child_id).or_default().offset = child_offset;
+                    args.cx.layout.entry(hash(path)).or_default().offset = child_offset;
+
+                    path.pop();
 
                     x += child_size.width;
                 }
@@ -100,10 +105,11 @@ where
 
                 let mut height_sum = 0.0;
                 for child in &self.ids {
-                    let child_id = id.child(child);
+                    path.push(hh(child));
                     let child_size =
-                        ((self.func)(child)).layout(child_id, &mut args.size(proposed_child_size));
+                        ((self.func)(child)).layout(path, &mut args.size(proposed_child_size));
                     sizes.push(child_size);
+                    path.pop();
 
                     height_sum += child_size.height;
                 }
@@ -115,7 +121,7 @@ where
 
                 let mut y = height_sum;
                 for c in 0..self.ids.len() {
-                    let child_id = id.child(&self.ids[c]);
+                    path.push(hh(&self.ids[c]));
                     let child_size = sizes[c];
 
                     let child_offset = align_h(
@@ -127,7 +133,8 @@ where
                         HAlignment::Center,
                     );
 
-                    args.cx.layout.entry(child_id).or_default().offset = child_offset;
+                    args.cx.layout.entry(hash(path)).or_default().offset = child_offset;
+                    path.pop();
 
                     y -= child_size.height;
                 }
@@ -136,55 +143,60 @@ where
             }
             ListOrientation::Z => {
                 for child in &self.ids {
-                    let child_id = id.child(child);
-                    ((self.func)(child)).layout(child_id, args);
+                    path.push(hh(child));
+                    ((self.func)(child)).layout(path, args);
+                    path.pop();
                 }
                 args.sz
             }
         }
     }
 
-    fn dirty(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) {
+    fn dirty(&self, path: &mut IdPath, xform: LocalToWorld, cx: &mut Context) {
         for child in &self.ids {
-            let child_id = id.child(child);
-            let offset = cx.layout.entry(child_id).or_default().offset;
+            path.push(hh(child));
+            let offset = cx.layout.entry(hash(path)).or_default().offset;
             let xf = xform.pre_translate(offset);
-            ((self.func)(child)).dirty(child_id, xf, cx);
+            ((self.func)(child)).dirty(path, xf, cx);
+            path.pop();
         }
     }
 
-    fn hittest(&self, id: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
+    fn hittest(&self, path: &mut IdPath, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
         let mut hit = None;
         for child in &self.ids {
-            let child_id = id.child(child);
-            let offset = cx.layout.entry(child_id).or_default().offset;
+            path.push(hh(child));
+            let offset = cx.layout.entry(hash(path)).or_default().offset;
 
-            if let Some(h) = ((self.func)(child)).hittest(child_id, pt - offset, cx) {
+            if let Some(h) = ((self.func)(child)).hittest(path, pt - offset, cx) {
                 hit = Some(h)
             }
+            path.pop();
         }
         hit
     }
 
-    fn commands(&self, id: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
+    fn commands(&self, path: &mut IdPath, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
         for child in &self.ids {
-            let child_id = id.child(child);
-            ((self.func)(child)).commands(child_id, cx, cmds)
+            path.push(hh(child));
+            ((self.func)(child)).commands(path, cx, cmds);
+            path.pop();
         }
     }
 
-    fn gc(&self, id: ViewId, cx: &mut Context, map: &mut Vec<ViewId>) {
-        map.push(id);
+    fn gc(&self, path: &mut IdPath, cx: &mut Context, map: &mut Vec<ViewId>) {
+        map.push(hash(path));
         for child in &self.ids {
-            let child_id = id.child(child);
-            map.push(child_id);
-            ((self.func)(child)).gc(child_id, cx, map)
+            path.push(hh(child));
+            map.push(hash(path));
+            ((self.func)(child)).gc(path, cx, map);
+            path.pop();
         }
     }
 
     fn access(
         &self,
-        id: ViewId,
+        path: &mut IdPath,
         cx: &mut Context,
         nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
     ) -> Option<accesskit::NodeId> {
@@ -193,12 +205,17 @@ where
         let children: Vec<accesskit::NodeId> = self
             .ids
             .iter()
-            .filter_map(|child| ((self.func)(child)).access(id.child(child), cx, nodes))
+            .filter_map(|child| {
+                path.push(hh(child));
+                let node_id = ((self.func)(child)).access(path, cx, nodes);
+                path.pop();
+                node_id
+            })
             .collect();
 
         builder.set_children(children);
-        nodes.push((id.access_id(), builder.build(&mut cx.access_node_classes)));
-        Some(id.access_id())
+        nodes.push((hash(path).access_id(), builder.build(&mut cx.access_node_classes)));
+        Some(hash(path).access_id())
     }
 }
 

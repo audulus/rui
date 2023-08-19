@@ -57,20 +57,27 @@ where
     fn process(
         &self,
         event: &Event,
-        id: ViewId,
+        path: &mut IdPath,
         cx: &mut Context,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
+        let id = hash(path);
         cx.init_state(id, &self.default);
-        (self.func)(StateHandle::new(id), cx).process(event, id.child(&0), cx, actions);
+        path.push(0);
+        (self.func)(StateHandle::new(id), cx).process(event, path, cx, actions);
+        path.pop();
     }
 
-    fn draw(&self, id: ViewId, args: &mut DrawArgs) {
+    fn draw(&self, path: &mut IdPath, args: &mut DrawArgs) {
+        let id = hash(path);
         args.cx.init_state(id, &self.default);
-        (self.func)(StateHandle::new(id), args.cx).draw(id.child(&0), args);
+        path.push(0);
+        (self.func)(StateHandle::new(id), args.cx).draw(path, args);
+        path.pop();
     }
 
-    fn layout(&self, id: ViewId, args: &mut LayoutArgs) -> LocalSize {
+    fn layout(&self, path: &mut IdPath, args: &mut LayoutArgs) -> LocalSize {
+        let id = hash(path);
         args.cx.init_state(id, &self.default);
 
         // Do we need to recompute layout?
@@ -95,12 +102,15 @@ where
 
             let view = (self.func)(StateHandle::new(id), args.cx);
 
-            let child_size = view.layout(id.child(&0), args);
+            path.push(0);
+            let child_size = view.layout(path, args);
 
             // Compute layout dependencies.
             let mut deps = vec![];
             deps.append(&mut args.cx.id_stack.clone());
-            view.gc(id.child(&0), args.cx, &mut deps);
+            view.gc(path, args.cx, &mut deps);
+
+            path.pop();
 
             args.cx.deps.insert(id, deps);
 
@@ -118,8 +128,9 @@ where
         args.cx.layout[&id].rect.size
     }
 
-    fn dirty(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) {
+    fn dirty(&self, path: &mut IdPath, xform: LocalToWorld, cx: &mut Context) {
         let default = &self.default;
+        let id = hash(path);
         let holder = cx.state_map.entry(id).or_insert_with(|| StateHolder {
             state: Box::new((default)()),
             dirty: false,
@@ -137,34 +148,50 @@ where
             let world_pts = pts.map(|p| xform.transform_point(p));
             cx.dirty_region.add_rect(WorldRect::from_points(world_pts));
         } else {
-            (self.func)(StateHandle::new(id), cx).dirty(id.child(&0), xform, cx);
+            path.push(0);
+            (self.func)(StateHandle::new(id), cx).dirty(path, xform, cx);
+            path.pop();
         }
     }
 
-    fn hittest(&self, id: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
+    fn hittest(&self, path: &mut IdPath, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
+        let id = hash(path);
         cx.init_state(id, &self.default);
-        (self.func)(StateHandle::new(id), cx).hittest(id.child(&0), pt, cx)
+        path.push(0);
+        let hit_id = (self.func)(StateHandle::new(id), cx).hittest(path, pt, cx);
+        path.pop();
+        hit_id
     }
 
-    fn commands(&self, id: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
+    fn commands(&self, path: &mut IdPath, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
+        let id = hash(path);
         cx.init_state(id, &self.default);
-        (self.func)(StateHandle::new(id), cx).commands(id.child(&0), cx, cmds);
+        path.push(0);
+        (self.func)(StateHandle::new(id), cx).commands(path, cx, cmds);
+        path.pop();
     }
 
-    fn gc(&self, id: ViewId, cx: &mut Context, map: &mut Vec<ViewId>) {
+    fn gc(&self, path: &mut IdPath, cx: &mut Context, map: &mut Vec<ViewId>) {
+        let id = hash(path);
         cx.init_state(id, &self.default);
         map.push(id);
-        (self.func)(StateHandle::new(id), cx).gc(id.child(&0), cx, map);
+        path.push(0);
+        (self.func)(StateHandle::new(id), cx).gc(path, cx, map);
+        path.pop();
     }
 
     fn access(
         &self,
-        id: ViewId,
+        path: &mut IdPath,
         cx: &mut Context,
         nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
     ) -> Option<accesskit::NodeId> {
+        let id = hash(path);
         cx.init_state(id, &self.default);
-        (self.func)(StateHandle::new(id), cx).access(id.child(&0), cx, nodes)
+        path.push(0);
+        let node_id = (self.func)(StateHandle::new(id), cx).access(path, cx, nodes);
+        path.pop();
+        node_id
     }
 }
 

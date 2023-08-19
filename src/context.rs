@@ -68,9 +68,6 @@ pub struct Context {
     /// Keyboard modifiers state.
     pub key_mods: KeyboardModifiers,
 
-    /// The root view ID. This should be randomized for security reasons.
-    pub(crate) root_id: ViewId,
-
     /// The view that has the keyboard focus.
     pub(crate) focused_id: Option<ViewId>,
 
@@ -134,7 +131,6 @@ impl Context {
             previous_position: [LocalPoint::zero(); 16],
             mouse_button: None,
             key_mods: Default::default(),
-            root_id: ViewId { id: 1 },
             focused_id: None,
             window_title: "rui".into(),
             fullscreen: false,
@@ -168,21 +164,27 @@ impl Context {
             self.window_size = window_size;
         }
 
+        let mut path = vec![0];
+
         // Run any animations.
         let mut actions = vec![];
-        view.process(&Event::Anim, self.root_id, self, &mut actions);
+        view.process(&Event::Anim, &mut path, self, &mut actions);
+        assert!(path.len() == 1);
 
         if self.dirty {
             // Clean up state and layout.
             let mut keep = vec![];
-            view.gc(self.root_id, self, &mut keep);
+            view.gc(&mut path, self, &mut keep);
+            assert!(path.len() == 1);
             let keep_set = HashSet::<ViewId>::from_iter(keep);
             self.state_map.retain(|k, _| keep_set.contains(k));
             self.layout.retain(|k, _| keep_set.contains(k));
 
             // Get a new accesskit tree.
             let mut nodes = vec![];
-            view.access(self.root_id, self, &mut nodes);
+            
+            view.access(&mut path, self, &mut nodes);
+            assert_eq!(path.len(), 1);
 
             if nodes != *access_nodes {
                 println!("access nodes:");
@@ -201,16 +203,17 @@ impl Context {
 
             // XXX: we're doing layout both here and in rendering.
             view.layout(
-                self.root_id,
+                &mut path,
                 &mut LayoutArgs {
                     sz: [window_size.width, window_size.height].into(),
                     cx: self,
                     text_bounds: &mut |str, size, max_width| vger.text_bounds(str, size, max_width),
                 },
             );
+            assert_eq!(path.len(), 1);
 
             // Get dirty rectangles.
-            view.dirty(self.root_id, LocalToWorld::identity(), self);
+            view.dirty(&mut path, LocalToWorld::identity(), self);
 
             self.clear_dirty();
 
@@ -244,24 +247,26 @@ impl Context {
 
         vger.begin(window_size.width, window_size.height, scale);
 
+        let mut path = vec![0];
         // Disable dirtying the state during layout and rendering
         // to avoid constantly re-rendering if some state is saved.
         self.enable_dirty = false;
         let local_window_size = window_size.cast_unit::<LocalSpace>();
         let sz = view.layout(
-            self.root_id,
+            &mut path,
             &mut LayoutArgs {
                 sz: local_window_size,
                 cx: self,
                 text_bounds: &mut |str, size, max_width| vger.text_bounds(str, size, max_width),
             },
         );
+        assert!(path.len() == 1);
 
         // Center the root view in the window.
         self.root_offset = ((local_window_size - sz) / 2.0).into();
 
         vger.translate(self.root_offset);
-        view.draw(self.root_id, &mut DrawArgs { cx: self, vger });
+        view.draw(&mut path, &mut DrawArgs { cx: self, vger });
         self.enable_dirty = true;
 
         if self.render_dirty {
@@ -305,9 +310,10 @@ impl Context {
     /// Process a UI event.
     pub fn process(&mut self, view: &impl View, event: &Event) {
         let mut actions = vec![];
+        let mut path = vec![0];
         view.process(
             &event.offset(-self.root_offset),
-            self.root_id,
+            &mut path,
             self,
             &mut actions,
         );
@@ -321,7 +327,8 @@ impl Context {
 
     /// Get menu commands.
     pub fn commands(&mut self, view: &impl View, cmds: &mut Vec<CommandInfo>) {
-        view.commands(self.root_id, self, cmds);
+        let mut path = vec![0];
+        view.commands(&mut path, self, cmds);
     }
 
     pub(crate) fn set_dirty(&mut self) {

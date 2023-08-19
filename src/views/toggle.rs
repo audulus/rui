@@ -37,8 +37,9 @@ mod tests {
         let ui = state(|| false, |s, _| toggle(s));
         let sz = [40.0, 20.0].into();
 
+        let mut path = vec![0];
         let knob_sz = ui.layout(
-            cx.root_id,
+            &mut path,
             &mut LayoutArgs {
                 sz,
                 cx: &mut cx,
@@ -47,7 +48,7 @@ mod tests {
         );
 
         assert_eq!(knob_sz, sz);
-        let s = StateHandle::<bool>::new(cx.root_id);
+        let s = StateHandle::<bool>::new(hash(&path));
         assert_eq!(*s.get(&cx), false);
 
         let events = [
@@ -63,10 +64,9 @@ mod tests {
 
         let mut actions = vec![];
         for event in &events {
-            ui.process(event, cx.root_id, &mut cx, &mut actions);
+            ui.process(event, &mut path, &mut cx, &mut actions);
         }
 
-        assert!(cx.state_map.contains_key(&cx.root_id));
         // State should have changed.
         assert_eq!(*s.get(&cx), true);
     }
