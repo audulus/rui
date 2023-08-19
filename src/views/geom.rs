@@ -37,13 +37,10 @@ path.pop();
         let sz = self.child.layout(path, args);
         path.pop();
 
-        args.cx.layout.insert(
-            path.clone(),
-            LayoutBox {
-                rect: LocalRect::new(LocalPoint::zero(), sz),
-                offset: LocalOffset::zero(),
-            },
-        );
+        args.cx.update_layout(path, LayoutBox {
+            rect: LocalRect::new(LocalPoint::zero(), sz),
+            offset: LocalOffset::zero(),
+        });
 
         sz
     }
