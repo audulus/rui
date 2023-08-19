@@ -16,45 +16,64 @@ where
     fn process(
         &self,
         event: &Event,
-        id: ViewId,
+        path: &mut IdPath,
         cx: &mut Context,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
-        (self.func)(cx.init_env(&S::default), cx).process(event, id.child(&0), cx, actions);
+        path.push(0);
+        (self.func)(cx.init_env(&S::default), cx).process(event, path, cx, actions);
+        path.pop();
     }
 
-    fn draw(&self, id: ViewId, args: &mut DrawArgs) {
-        (self.func)(args.cx.init_env(&S::default), args.cx).draw(id.child(&0), args);
+    fn draw(&self, path: &mut IdPath, args: &mut DrawArgs) {
+        path.push(0);
+        (self.func)(args.cx.init_env(&S::default), args.cx).draw(path, args);
+        path.pop();
     }
 
-    fn layout(&self, id: ViewId, args: &mut LayoutArgs) -> LocalSize {
-        (self.func)(args.cx.init_env(&S::default), args.cx).layout(id.child(&0), args)
+    fn layout(&self, path: &mut IdPath, args: &mut LayoutArgs) -> LocalSize {
+        path.push(0);
+        let sz = (self.func)(args.cx.init_env(&S::default), args.cx).layout(path, args);
+        path.pop();
+        sz
     }
 
-    fn dirty(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) {
-        (self.func)(cx.init_env(&S::default), cx).dirty(id.child(&0), xform, cx);
+    fn dirty(&self, path: &mut IdPath, xform: LocalToWorld, cx: &mut Context) {
+        path.push(0);
+        (self.func)(cx.init_env(&S::default), cx).dirty(path, xform, cx);
+        path.pop();
     }
 
-    fn hittest(&self, id: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
-        (self.func)(cx.init_env(&S::default), cx).hittest(id.child(&0), pt, cx)
+    fn hittest(&self, path: &mut IdPath, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
+        path.push(0);
+        let vid = (self.func)(cx.init_env(&S::default), cx).hittest(path, pt, cx);
+        path.pop();
+        vid
     }
 
-    fn commands(&self, id: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
-        (self.func)(cx.init_env(&S::default), cx).commands(id.child(&0), cx, cmds);
+    fn commands(&self, path: &mut IdPath, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
+        path.push(0);
+        (self.func)(cx.init_env(&S::default), cx).commands(path, cx, cmds);
+        path.pop();
     }
 
-    fn gc(&self, id: ViewId, cx: &mut Context, map: &mut Vec<ViewId>) {
-        map.push(id);
-        (self.func)(cx.init_env(&S::default), cx).gc(id.child(&0), cx, map);
+    fn gc(&self, path: &mut IdPath, cx: &mut Context, map: &mut Vec<ViewId>) {
+        map.push(cx.view_id(path));
+        path.push(0);
+        (self.func)(cx.init_env(&S::default), cx).gc(path, cx, map);
+        path.pop();
     }
 
     fn access(
         &self,
-        id: ViewId,
+        path: &mut IdPath,
         cx: &mut Context,
         nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
     ) -> Option<accesskit::NodeId> {
-        (self.func)(cx.init_env(&S::default), cx).access(id.child(&0), cx, nodes)
+        path.push(0);
+        let node_id = (self.func)(cx.init_env(&S::default), cx).access(path, cx, nodes);
+        path.pop();
+        node_id
     }
 }
 
@@ -95,61 +114,77 @@ where
     fn process(
         &self,
         event: &Event,
-        id: ViewId,
+        path: &mut IdPath,
         cx: &mut Context,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
         let old = cx.set_env(&self.env_val);
-        self.child.process(event, id.child(&0), cx, actions);
+        path.push(0);
+        self.child.process(event, path, cx, actions);
+        path.pop();
         old.and_then(|s| cx.set_env(&s));
     }
 
-    fn draw(&self, id: ViewId, args: &mut DrawArgs) {
+    fn draw(&self, path: &mut IdPath, args: &mut DrawArgs) {
         let old = args.cx.set_env(&self.env_val);
-        self.child.draw(id.child(&0), args);
+        path.push(0);
+        self.child.draw(path, args);
+        path.pop();
         old.and_then(|s| args.cx.set_env(&s));
     }
 
-    fn layout(&self, id: ViewId, args: &mut LayoutArgs) -> LocalSize {
+    fn layout(&self, path: &mut IdPath, args: &mut LayoutArgs) -> LocalSize {
         let old = args.cx.set_env(&self.env_val);
-        let sz = self.child.layout(id.child(&0), args);
+        path.push(0);
+        let sz = self.child.layout(path, args);
+        path.pop();
         old.and_then(|s| args.cx.set_env(&s));
         sz
     }
 
-    fn dirty(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) {
+    fn dirty(&self, path: &mut IdPath, xform: LocalToWorld, cx: &mut Context) {
         let old = cx.set_env(&self.env_val);
-        self.child.dirty(id.child(&0), xform, cx);
+        path.push(0);
+        self.child.dirty(path, xform, cx);
+        path.pop();
         old.and_then(|s| cx.set_env(&s));
     }
 
-    fn hittest(&self, id: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
+    fn hittest(&self, path: &mut IdPath, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
         let old = cx.set_env(&self.env_val);
-        let r = self.child.hittest(id.child(&0), pt, cx);
+        path.push(0);
+        let r = self.child.hittest(path, pt, cx);
+        path.pop();
         old.and_then(|s| cx.set_env(&s));
         r
     }
 
-    fn commands(&self, id: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
+    fn commands(&self, path: &mut IdPath, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
         let old = cx.set_env(&self.env_val);
-        self.child.commands(id.child(&0), cx, cmds);
+        path.push(0);
+        self.child.commands(path, cx, cmds);
+        path.pop();
         old.and_then(|s| cx.set_env(&s));
     }
 
-    fn gc(&self, id: ViewId, cx: &mut Context, map: &mut Vec<ViewId>) {
+    fn gc(&self, path: &mut IdPath, cx: &mut Context, map: &mut Vec<ViewId>) {
         let old = cx.set_env(&self.env_val);
-        self.child.gc(id.child(&0), cx, map);
+        path.push(0);
+        self.child.gc(path, cx, map);
+        path.pop();
         old.and_then(|s| cx.set_env(&s));
     }
 
     fn access(
         &self,
-        id: ViewId,
+        path: &mut IdPath,
         cx: &mut Context,
         nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
     ) -> Option<accesskit::NodeId> {
         let old = cx.set_env(&self.env_val);
-        let r = self.child.access(id.child(&0), cx, nodes);
+        path.push(0);
+        let r = self.child.access(path, cx, nodes);
+        path.pop();
         old.and_then(|s| cx.set_env(&s));
         r
     }

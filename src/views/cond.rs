@@ -16,67 +16,101 @@ where
     fn process(
         &self,
         event: &Event,
-        id: ViewId,
+        path: &mut IdPath,
         cx: &mut Context,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
         if self.cond {
-            self.if_true.process(event, id.child(&0), cx, actions)
+            path.push(0);
+            self.if_true.process(event, path, cx, actions);
+            path.pop();
         } else {
-            self.if_false.process(event, id.child(&1), cx, actions)
+            path.push(1);
+            self.if_false.process(event, path, cx, actions);
+            path.pop();
         }
     }
 
-    fn draw(&self, id: ViewId, args: &mut DrawArgs) {
+    fn draw(&self, path: &mut IdPath, args: &mut DrawArgs) {
         if self.cond {
-            self.if_true.draw(id.child(&0), args)
+            path.push(0);
+            self.if_true.draw(path, args);
+            path.pop();
         } else {
-            self.if_false.draw(id.child(&1), args)
+            path.push(1);
+            self.if_false.draw(path, args);
+            path.pop();
         }
     }
 
-    fn layout(&self, id: ViewId, args: &mut LayoutArgs) -> LocalSize {
+    fn layout(&self, path: &mut IdPath, args: &mut LayoutArgs) -> LocalSize {
         if self.cond {
-            self.if_true.layout(id.child(&0), args)
+            path.push(0);
+            let sz = self.if_true.layout(path, args);
+            path.pop();
+            sz
         } else {
-            self.if_false.layout(id.child(&1), args)
+            path.push(1);
+            let sz = self.if_false.layout(path, args);
+            path.pop();
+            sz
         }
     }
 
-    fn hittest(&self, id: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
+    fn hittest(&self, path: &mut IdPath, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
         if self.cond {
-            self.if_true.hittest(id.child(&0), pt, cx)
+            path.push(0);
+            let id = self.if_true.hittest(path, pt, cx);
+            path.pop();
+            id
         } else {
-            self.if_false.hittest(id.child(&1), pt, cx)
+            path.push(1);
+            let id = self.if_false.hittest(path, pt, cx);
+            path.pop();
+            id
         }
     }
 
-    fn commands(&self, id: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
+    fn commands(&self, path: &mut IdPath, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
         if self.cond {
-            self.if_true.commands(id.child(&0), cx, cmds)
+            path.push(0);
+            self.if_true.commands(path, cx, cmds);
+            path.pop();
         } else {
-            self.if_false.commands(id.child(&1), cx, cmds)
+            path.push(1);
+            self.if_false.commands(path, cx, cmds);
+            path.pop();
         }
     }
 
-    fn gc(&self, id: ViewId, cx: &mut Context, map: &mut Vec<ViewId>) {
+    fn gc(&self, path: &mut IdPath, cx: &mut Context, map: &mut Vec<ViewId>) {
         if self.cond {
-            self.if_true.gc(id.child(&0), cx, map)
+            path.push(0);
+            self.if_true.gc(path, cx, map);
+            path.pop();
         } else {
-            self.if_false.gc(id.child(&1), cx, map)
+            path.push(1);
+            self.if_false.gc(path, cx, map);
+            path.pop();
         }
     }
 
     fn access(
         &self,
-        id: ViewId,
+        path: &mut IdPath,
         cx: &mut Context,
         nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
     ) -> Option<accesskit::NodeId> {
         if self.cond {
-            self.if_true.access(id.child(&0), cx, nodes)
+            path.push(0);
+            let node_id = self.if_true.access(path, cx, nodes);
+            path.pop();
+            node_id
         } else {
-            self.if_false.access(id.child(&1), cx, nodes)
+            path.push(1);
+            let node_id = self.if_false.access(path, cx, nodes);
+            path.pop();
+            node_id
         }
     }
 }

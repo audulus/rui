@@ -24,7 +24,7 @@ where
     fn process(
         &self,
         event: &Event,
-        id: ViewId,
+        path: &mut IdPath,
         cx: &mut Context,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
@@ -32,41 +32,60 @@ where
             (self.func)(cx, 1.0 / 60.0) // XXX: assume 60fps for now.
         }
 
-        self.child.process(event, id.child(&0), cx, actions);
+        path.push(0);
+        self.child.process(event, path, cx, actions);
+        path.pop();
     }
 
-    fn draw(&self, id: ViewId, args: &mut DrawArgs) {
-        self.child.draw(id.child(&0), args);
+    fn draw(&self, path: &mut IdPath, args: &mut DrawArgs) {
+        path.push(0);
+        self.child.draw(path, args);
+        path.pop();
     }
 
-    fn layout(&self, id: ViewId, args: &mut LayoutArgs) -> LocalSize {
-        self.child.layout(id.child(&0), args)
+    fn layout(&self, path: &mut IdPath, args: &mut LayoutArgs) -> LocalSize {
+        path.push(0);
+        let sz = self.child.layout(path, args);
+        path.pop();
+        sz
     }
 
-    fn dirty(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) {
-        self.child.dirty(id.child(&0), xform, cx);
+    fn dirty(&self, path: &mut IdPath, xform: LocalToWorld, cx: &mut Context) {
+        path.push(0);
+        self.child.dirty(path, xform, cx);
+        path.pop();
     }
 
-    fn hittest(&self, id: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
-        self.child.hittest(id.child(&0), pt, cx)
+    fn hittest(&self, path: &mut IdPath, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
+        path.push(0);
+        let id = self.child.hittest(path, pt, cx);
+        path.pop();
+        id
     }
 
-    fn commands(&self, id: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
-        self.child.commands(id.child(&0), cx, cmds);
+    fn commands(&self, path: &mut IdPath, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
+        path.push(0);
+        self.child.commands(path, cx, cmds);
+        path.pop();
     }
 
-    fn gc(&self, id: ViewId, cx: &mut Context, map: &mut Vec<ViewId>) {
-        map.push(id);
-        self.child.gc(id.child(&0), cx, map);
+    fn gc(&self, path: &mut IdPath, cx: &mut Context, map: &mut Vec<ViewId>) {
+        map.push(cx.view_id(path));
+        path.push(0);
+        self.child.gc(path, cx, map);
+        path.pop();
     }
 
     fn access(
         &self,
-        id: ViewId,
+        path: &mut IdPath,
         cx: &mut Context,
         nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
     ) -> Option<accesskit::NodeId> {
-        self.child.access(id.child(&0), cx, nodes)
+        path.push(0);
+        let node_id = self.child.access(path, cx, nodes);
+        path.pop();
+        node_id
     }
 }
 

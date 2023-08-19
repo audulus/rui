@@ -2,6 +2,9 @@ use crate::*;
 use std::any::Any;
 use std::any::TypeId;
 
+use std::collections::hash_map::DefaultHasher;
+use std::hash::{Hash, Hasher};
+
 /// Struct for `any_view`
 pub struct AnyView {
     child: Box<dyn View>,
@@ -17,6 +20,12 @@ impl AnyView {
     fn id(&self) -> TypeId {
         self.child.tid()
     }
+
+    fn id_hash(&self) -> u64 {
+        let mut hasher = DefaultHasher::new();
+        self.id().hash(&mut hasher);
+        hasher.finish()
+    }
 }
 
 impl View for AnyView {
@@ -27,44 +36,63 @@ impl View for AnyView {
     fn process(
         &self,
         event: &Event,
-        id: ViewId,
+        path: &mut IdPath,
         cx: &mut Context,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
-        self.child.process(event, id.child(&self.id()), cx, actions);
+        path.push(self.id_hash());
+        self.child.process(event, path, cx, actions);
+        path.pop();
     }
 
-    fn draw(&self, id: ViewId, args: &mut DrawArgs) {
-        self.child.draw(id.child(&self.id()), args);
+    fn draw(&self, path: &mut IdPath, args: &mut DrawArgs) {
+        path.push(self.id_hash());
+        self.child.draw(path, args);
+        path.pop();
     }
 
-    fn layout(&self, id: ViewId, args: &mut LayoutArgs) -> LocalSize {
-        self.child.layout(id.child(&self.id()), args)
+    fn layout(&self, path: &mut IdPath, args: &mut LayoutArgs) -> LocalSize {
+        path.push(self.id_hash());
+        let sz = self.child.layout(path, args);
+        path.pop();
+        sz
     }
 
-    fn dirty(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) {
-        self.child.dirty(id.child(&self.id()), xform, cx);
+    fn dirty(&self, path: &mut IdPath, xform: LocalToWorld, cx: &mut Context) {
+        path.push(self.id_hash());
+        self.child.dirty(path, xform, cx);
+        path.pop();
     }
 
-    fn hittest(&self, id: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
-        self.child.hittest(id.child(&self.id()), pt, cx)
+    fn hittest(&self, path: &mut IdPath, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
+        path.push(self.id_hash());
+        let vid = self.child.hittest(path, pt, cx);
+        path.pop();
+        vid
     }
 
-    fn commands(&self, id: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
-        self.child.commands(id.child(&self.id()), cx, cmds)
+    fn commands(&self, path: &mut IdPath, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
+        path.push(self.id_hash());
+        self.child.commands(path, cx, cmds);
+        path.pop();
     }
 
-    fn gc(&self, id: ViewId, cx: &mut Context, map: &mut Vec<ViewId>) {
-        self.child.gc(id.child(&self.id()), cx, map)
+    fn gc(&self, path: &mut IdPath, cx: &mut Context, map: &mut Vec<ViewId>) {
+        path.push(self.id_hash());
+        self.child.gc(path, cx, map);
+        path.pop();
     }
 
     fn access(
         &self,
-        id: ViewId,
+        path: &mut IdPath,
         cx: &mut Context,
         nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
     ) -> Option<accesskit::NodeId> {
-        self.child.access(id.child(&self.id()), cx, nodes)
+        path.push(self.id_hash());
+        let node_id = self.child.access(path, cx, nodes);
+        path.pop();
+        node_id
     }
 }
 

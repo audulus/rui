@@ -17,13 +17,16 @@ where
     fn process(
         &self,
         event: &Event,
-        id: ViewId,
+        path: &mut IdPath,
         cx: &mut Context,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
+        let id = cx.view_id(path);
         cx.set_state(id, self.value.clone());
         let s = StateHandle::new(id);
-        (self.func)(s, cx).process(event, id.child(&0), cx, actions);
+        path.push(0);
+        (self.func)(s, cx).process(event, path, cx, actions);
+        path.pop();
 
         // If processing the event changed the state, then call the set_value function.
         if cx.is_dirty(id) {
@@ -31,46 +34,70 @@ where
         }
     }
 
-    fn draw(&self, id: ViewId, args: &mut DrawArgs) {
+    fn draw(&self, path: &mut IdPath, args: &mut DrawArgs) {
+        let id = args.cx.view_id(path);
         args.cx.set_state(id, self.value.clone());
-        (self.func)(StateHandle::new(id), args.cx).draw(id.child(&0), args);
+        path.push(0);
+        (self.func)(StateHandle::new(id), args.cx).draw(path, args);
+        path.pop();
     }
 
-    fn layout(&self, id: ViewId, args: &mut LayoutArgs) -> LocalSize {
+    fn layout(&self, path: &mut IdPath, args: &mut LayoutArgs) -> LocalSize {
+        let id = args.cx.view_id(path);
         args.cx.set_state(id, self.value.clone());
 
-        (self.func)(StateHandle::new(id), args.cx).layout(id.child(&0), args)
+        path.push(0);
+        let sz = (self.func)(StateHandle::new(id), args.cx).layout(path, args);
+        path.pop();
+        sz
     }
 
-    fn dirty(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) {
+    fn dirty(&self, path: &mut IdPath, xform: LocalToWorld, cx: &mut Context) {
+        let id = cx.view_id(path);
         cx.set_state(id, self.value.clone());
-        (self.func)(StateHandle::new(id), cx).dirty(id.child(&0), xform, cx);
+        path.push(0);
+        (self.func)(StateHandle::new(id), cx).dirty(path, xform, cx);
+        path.pop();
     }
 
-    fn hittest(&self, id: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
+    fn hittest(&self, path: &mut IdPath, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
+        let id = cx.view_id(path);
         cx.set_state(id, self.value.clone());
-        (self.func)(StateHandle::new(id), cx).hittest(id.child(&0), pt, cx)
+        path.push(0);
+        let hit_id = (self.func)(StateHandle::new(id), cx).hittest(path, pt, cx);
+        path.pop();
+        hit_id
     }
 
-    fn commands(&self, id: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
+    fn commands(&self, path: &mut IdPath, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
+        let id = cx.view_id(path);
         cx.set_state(id, self.value.clone());
-        (self.func)(StateHandle::new(id), cx).commands(id.child(&0), cx, cmds);
+        path.push(0);
+        (self.func)(StateHandle::new(id), cx).commands(path, cx, cmds);
+        path.pop();
     }
 
-    fn gc(&self, id: ViewId, cx: &mut Context, map: &mut Vec<ViewId>) {
+    fn gc(&self, path: &mut IdPath, cx: &mut Context, map: &mut Vec<ViewId>) {
+        let id = cx.view_id(path);
         cx.set_state(id, self.value.clone());
         map.push(id);
-        (self.func)(StateHandle::new(id), cx).gc(id.child(&0), cx, map);
+        path.push(0);
+        (self.func)(StateHandle::new(id), cx).gc(path, cx, map);
+        path.pop();
     }
 
     fn access(
         &self,
-        id: ViewId,
+        path: &mut IdPath,
         cx: &mut Context,
         nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
     ) -> Option<accesskit::NodeId> {
+        let id = cx.view_id(path);
         cx.set_state(id, self.value.clone());
-        (self.func)(StateHandle::new(id), cx).access(id.child(&0), cx, nodes)
+        path.push(0);
+        let node_id = (self.func)(StateHandle::new(id), cx).access(path, cx, nodes);
+        path.pop();
+        node_id
     }
 }
 

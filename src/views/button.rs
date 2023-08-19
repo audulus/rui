@@ -54,17 +54,19 @@ mod tests {
         );
         let sz = [100.0, 100.0].into();
 
+        let mut path = vec![0];
         let button_sz = ui.layout(
-            cx.root_id,
+            &mut path,
             &mut LayoutArgs {
                 sz,
                 cx: &mut cx,
                 text_bounds: &mut |_, _, _| LocalRect::new(LocalPoint::zero(), [90.0, 90.0].into()),
             },
         );
+        assert!(path.len() == 1);
 
         assert_eq!(button_sz, sz);
-        let s = StateHandle::<bool>::new(cx.root_id);
+        let s = StateHandle::<bool>::new(cx.view_id(&path));
         assert!(!*s.get(&cx));
 
         let events = [
@@ -80,10 +82,11 @@ mod tests {
 
         let mut actions = vec![];
         for event in &events {
-            ui.process(event, cx.root_id, &mut cx, &mut actions);
+            ui.process(event, &mut path, &mut cx, &mut actions);
         }
 
-        assert!(cx.state_map.contains_key(&cx.root_id));
+        let vid = cx.view_id(&path);
+        assert!(cx.state_map.contains_key(&vid));
 
         // State should have changed.
         assert!(*s.get(&cx));

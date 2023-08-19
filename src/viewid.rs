@@ -10,19 +10,6 @@ pub struct ViewId {
 }
 
 impl ViewId {
-    /// Computes the ID for a child using a hashable value. For views
-    /// which don't have dynamic children (e.g. `vstack` etc.) the value
-    /// will be the integer index of the child. Dynamic
-    /// views (e.g. `list`) will hash an item identifier.
-    pub fn child<Index: Hash>(&self, index: &Index) -> Self {
-        let mut hasher = DefaultHasher::new();
-        hasher.write_u64(self.id);
-        index.hash(&mut hasher);
-        Self {
-            id: hasher.finish(),
-        }
-    }
-
     /// Returns the corresponding AccessKit ID. We're assuming
     /// the underlying u64 isn't zero.
     pub fn access_id(&self) -> accesskit::NodeId {
@@ -32,4 +19,12 @@ impl ViewId {
     pub fn is_default(self) -> bool {
         self == ViewId::default()
     }
+}
+
+pub type IdPath = Vec<u64>;
+
+pub fn hh<H: Hash>(index: &H) -> u64 {
+    let mut hasher = DefaultHasher::new();
+    index.hash(&mut hasher);
+    hasher.finish()
 }

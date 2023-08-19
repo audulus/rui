@@ -46,13 +46,14 @@ where
     fn process(
         &self,
         event: &Event,
-        vid: ViewId,
+        path: &mut IdPath,
         cx: &mut Context,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
+        let vid = cx.view_id(path);
         match &event {
             Event::TouchBegin { id, position } => {
-                if cx.touches[*id].is_default() && self.hittest(vid, *position, cx).is_some() {
+                if cx.touches[*id].is_default() && self.hittest(path, *position, cx).is_some() {
                     cx.touches[*id] = vid;
                     cx.starts[*id] = *position;
                     cx.previous_position[*id] = *position;
@@ -60,7 +61,7 @@ where
 
                     actions.push(Box::new((self.func)(
                         cx,
-                        [0.0,0.0].into(),
+                        [0.0, 0.0].into(),
                         GestureState::Began,
                         cx.mouse_button,
                     )));
@@ -97,37 +98,54 @@ where
         }
     }
 
-    fn draw(&self, id: ViewId, args: &mut DrawArgs) {
-        self.child.draw(id.child(&0), args)
+    fn draw(&self, path: &mut IdPath, args: &mut DrawArgs) {
+        path.push(0);
+        self.child.draw(path, args);
+        path.pop();
     }
 
-    fn layout(&self, id: ViewId, args: &mut LayoutArgs) -> LocalSize {
-        self.child.layout(id.child(&0), args)
+    fn layout(&self, path: &mut IdPath, args: &mut LayoutArgs) -> LocalSize {
+        path.push(0);
+        let sz = self.child.layout(path, args);
+        path.pop();
+        sz
     }
 
-    fn dirty(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) {
-        self.child.dirty(id.child(&0), xform, cx);
+    fn dirty(&self, path: &mut IdPath, xform: LocalToWorld, cx: &mut Context) {
+        path.push(0);
+        self.child.dirty(path, xform, cx);
+        path.pop();
     }
 
-    fn hittest(&self, id: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
-        self.child.hittest(id.child(&0), pt, cx)
+    fn hittest(&self, path: &mut IdPath, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
+        path.push(0);
+        let id = self.child.hittest(path, pt, cx);
+        path.pop();
+        id
     }
 
-    fn commands(&self, id: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
-        self.child.commands(id.child(&0), cx, cmds)
+    fn commands(&self, path: &mut IdPath, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
+        path.push(0);
+        self.child.commands(path, cx, cmds);
+        path.pop();
     }
 
-    fn gc(&self, id: ViewId, cx: &mut Context, map: &mut Vec<ViewId>) {
-        self.child.gc(id.child(&0), cx, map)
+    fn gc(&self, path: &mut IdPath, cx: &mut Context, map: &mut Vec<ViewId>) {
+        path.push(0);
+        self.child.gc(path, cx, map);
+        path.pop();
     }
 
     fn access(
         &self,
-        id: ViewId,
+        path: &mut IdPath,
         cx: &mut Context,
         nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
     ) -> Option<accesskit::NodeId> {
-        self.child.access(id.child(&0), cx, nodes)
+        path.push(0);
+        let node_id = self.child.access(path, cx, nodes);
+        path.pop();
+        node_id
     }
 }
 
@@ -182,13 +200,14 @@ where
     fn process(
         &self,
         event: &Event,
-        vid: ViewId,
+        path: &mut IdPath,
         cx: &mut Context,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
+        let vid = cx.view_id(path);
         match &event {
             Event::TouchBegin { id, position } => {
-                if self.hittest(vid, *position, cx).is_some() {
+                if self.hittest(path, *position, cx).is_some() {
                     cx.touches[*id] = vid;
                     cx.starts[*id] = *position;
                     cx.previous_position[*id] = *position;
@@ -224,46 +243,66 @@ where
                     )));
                 }
             }
-            _ => self.child.process(event, vid.child(&0), cx, actions),
+            _ => {
+                path.push(0);
+                self.child.process(event, path, cx, actions);
+                path.pop();
+            }
         }
     }
 
-    fn draw(&self, id: ViewId, args: &mut DrawArgs) {
-        self.child.draw(id.child(&0), args)
+    fn draw(&self, path: &mut IdPath, args: &mut DrawArgs) {
+        path.push(0);
+        self.child.draw(path, args);
+        path.pop();
     }
 
-    fn layout(&self, id: ViewId, args: &mut LayoutArgs) -> LocalSize {
-        self.child.layout(id.child(&0), args)
+    fn layout(&self, path: &mut IdPath, args: &mut LayoutArgs) -> LocalSize {
+        path.push(0);
+        let sz = self.child.layout(path, args);
+        path.pop();
+        sz
     }
 
-    fn dirty(&self, id: ViewId, xform: LocalToWorld, cx: &mut Context) {
-        self.child.dirty(id.child(&0), xform, cx);
+    fn dirty(&self, path: &mut IdPath, xform: LocalToWorld, cx: &mut Context) {
+        path.push(0);
+        self.child.dirty(path, xform, cx);
+        path.pop();
     }
 
-    fn hittest(&self, id: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
-        self.child.hittest(id.child(&0), pt, cx)
+    fn hittest(&self, path: &mut IdPath, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
+        path.push(0);
+        let id = self.child.hittest(path, pt, cx);
+        path.pop();
+        id
     }
 
-    fn commands(&self, id: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
-        self.child.commands(id.child(&0), cx, cmds)
+    fn commands(&self, path: &mut IdPath, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
+        path.push(0);
+        self.child.commands(path, cx, cmds);
+        path.pop();
     }
 
-    fn gc(&self, id: ViewId, cx: &mut Context, map: &mut Vec<ViewId>) {
-        self.child.gc(id.child(&0), cx, map)
+    fn gc(&self, path: &mut IdPath, cx: &mut Context, map: &mut Vec<ViewId>) {
+        path.push(0);
+        self.child.gc(path, cx, map);
+        path.pop();
     }
 
     fn access(
         &self,
-        id: ViewId,
+        path: &mut IdPath,
         cx: &mut Context,
         nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
     ) -> Option<accesskit::NodeId> {
-        self.child.access(id.child(&0), cx, nodes)
+        path.push(0);
+        let node_id = self.child.access(path, cx, nodes);
+        path.pop();
+        node_id
     }
 }
 
 impl<V, F, B, T> private::Sealed for DragS<V, F, B, T> {}
-
 
 #[cfg(test)]
 mod tests {
@@ -276,26 +315,23 @@ mod tests {
 
         let ui = state(
             || vec![],
-            |states, _| {
-                rectangle()
-                .drag(move |cx, _delta, state, _| {
-                    cx[states].push(state)
-                })
-            },
+            |states, _| rectangle().drag(move |cx, _delta, state, _| cx[states].push(state)),
         );
         let sz = [100.0, 100.0].into();
+        let mut path = vec![0];
 
         let rect_sz = ui.layout(
-            cx.root_id,
+            &mut path,
             &mut LayoutArgs {
                 sz,
                 cx: &mut cx,
                 text_bounds: &mut |_, _, _| LocalRect::new(LocalPoint::zero(), [90.0, 90.0].into()),
             },
         );
+        assert_eq!(path.len(), 1);
 
         assert_eq!(rect_sz, sz);
-        let s = StateHandle::<Vec<GestureState>>::new(cx.root_id);
+        let s = StateHandle::<Vec<GestureState>>::new(cx.view_id(&path));
         assert_eq!(cx[s], vec![]);
 
         let events = [
@@ -316,10 +352,17 @@ mod tests {
 
         let mut actions = vec![];
         for event in &events {
-            ui.process(event, cx.root_id, &mut cx, &mut actions);
+            ui.process(event, &mut path, &mut cx, &mut actions);
         }
+        assert_eq!(path.len(), 1);
 
-        assert_eq!(cx[s], vec![GestureState::Began, GestureState::Changed, GestureState::Ended]);
-
+        assert_eq!(
+            cx[s],
+            vec![
+                GestureState::Began,
+                GestureState::Changed,
+                GestureState::Ended
+            ]
+        );
     }
 }
