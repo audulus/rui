@@ -2,9 +2,7 @@ use crate::*;
 use euclid::*;
 use std::any::Any;
 use std::any::TypeId;
-use std::collections::hash_map::DefaultHasher;
 use std::collections::{HashMap, HashSet};
-use std::hash::{Hash, Hasher};
 use std::iter::FromIterator;
 use std::ops;
 
@@ -54,6 +52,12 @@ pub struct RenderInfo<'a> {
 pub struct Context {
     /// Layout information for all views.
     layout: HashMap<IdPath, LayoutBox>,
+
+    /// Allocated ViewIds.
+    view_ids: HashMap<IdPath, ViewId>,
+
+    /// Next allocated id.
+    next_id: ViewId,
 
     /// Which views each touch (or mouse pointer) is interacting with.
     pub(crate) touches: [ViewId; 16],
@@ -128,6 +132,8 @@ impl Context {
     pub fn new() -> Self {
         Self {
             layout: HashMap::new(),
+            view_ids: HashMap::new(),
+            next_id: ViewId { id: 0 },
             touches: [ViewId::default(); 16],
             starts: [LocalPoint::zero(); 16],
             previous_position: [LocalPoint::zero(); 16],
@@ -337,12 +343,14 @@ impl Context {
     }
 
     pub(crate) fn view_id(&mut self, path: &IdPath) -> ViewId {
-        let mut hasher = DefaultHasher::new();
-        for id in path {
-            hasher.write_u64(*id);
-        }
-        ViewId {
-            id: hasher.finish(),
+        match self.view_ids.get_mut(path) {
+            Some(id) => *id,
+            None => {
+                let id = self.next_id;
+                self.view_ids.insert(path.clone(), id);
+                self.next_id.id += 1;
+                id
+            }
         }
     }
 
