@@ -92,18 +92,7 @@ where
                         VAlignment::Middle,
                     );
 
-                    match args.cx.layout.get_mut(path) {
-                        Some(boxref) => boxref.offset = child_offset,
-                        None => {
-                            args.cx.layout.insert(
-                                path.clone(),
-                                LayoutBox {
-                                    rect: LocalRect::default(),
-                                    offset: child_offset,
-                                },
-                            );
-                        }
-                    }
+                    args.cx.set_layout_offset(path, child_offset);
 
                     path.pop();
 
@@ -149,7 +138,7 @@ where
                         HAlignment::Center,
                     );
 
-                    args.cx.layout.entry(path.clone()).or_default().offset = child_offset;
+                    args.cx.set_layout_offset(path, child_offset);
                     path.pop();
 
                     y -= child_size.height;

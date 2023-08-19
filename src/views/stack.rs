@@ -136,7 +136,7 @@ impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D>
                     );
 
                     path.push(c);
-                    args.cx.layout.entry(path.clone()).or_default().offset = child_offset;
+                    args.cx.set_layout_offset(path, child_offset);
                     path.pop();
                 }
 
@@ -187,7 +187,7 @@ impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D>
                     );
 
                     path.push(c);
-                    args.cx.layout.entry(path.clone()).or_default().offset = child_offset;
+                    args.cx.set_layout_offset(path, child_offset);
                     path.pop();
                 }
 

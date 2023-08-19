@@ -340,6 +340,21 @@ impl Context {
         }
     }
 
+    pub(crate) fn set_layout_offset(&mut self, path: &IdPath, offset: LocalOffset) {
+        match self.layout.get_mut(path) {
+            Some(boxref) => boxref.offset = offset,
+            None => {
+                self.layout.insert(
+                    path.clone(),
+                    LayoutBox {
+                        rect: LocalRect::default(),
+                        offset: offset,
+                    },
+                );
+            }
+        }
+    }
+
     pub(crate) fn set_dirty(&mut self) {
         if self.enable_dirty {
             self.dirty = true
