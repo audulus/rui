@@ -404,7 +404,7 @@ impl Context {
     {
         self.set_dirty();
 
-        let mut holder = self.state_map.get_mut(&id.id).unwrap();
+        let holder = self.state_map.get_mut(&id.id).unwrap();
         holder.dirty = true;
         holder.state.downcast_mut::<S>().unwrap()
     }
