@@ -30,8 +30,8 @@ where
         actions: &mut Vec<Box<dyn Any>>,
     ) {
         path.push(0);
-self.child.process(event, path, cx, actions);
-path.pop();
+        self.child.process(event, path, cx, actions);
+        path.pop();
     }
 
     fn draw(&self, path: &mut IdPath, args: &mut DrawArgs) {
@@ -49,10 +49,13 @@ path.pop();
         path.push(0);
         self.child.layout(path, args);
         path.pop();
-        args.cx.update_layout(path, LayoutBox {
-            rect: LocalRect::new(LocalPoint::zero(), args.sz),
-            offset: LocalOffset::zero(),
-        });
+        args.cx.update_layout(
+            path,
+            LayoutBox {
+                rect: LocalRect::new(LocalPoint::zero(), args.sz),
+                offset: LocalOffset::zero(),
+            },
+        );
         // XXX: should this expand to the available space?
         args.sz
     }
@@ -93,7 +96,7 @@ path.pop();
         path.push(0);
         let node_id = self.child.access(path, cx, nodes);
         path.pop();
-        node_id  
+        node_id
     }
 }
 

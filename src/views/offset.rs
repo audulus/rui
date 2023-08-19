@@ -42,8 +42,7 @@ where
 
     fn dirty(&self, path: &mut IdPath, xform: LocalToWorld, cx: &mut Context) {
         path.push(0);
-        self.child
-            .dirty(path, xform.pre_translate(self.offset), cx);
+        self.child.dirty(path, xform.pre_translate(self.offset), cx);
         path.pop();
     }
 
@@ -75,7 +74,7 @@ where
         path.push(0);
         let node_id = self.child.access(path, cx, nodes);
         path.pop();
-        node_id  
+        node_id
     }
 }
 

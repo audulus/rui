@@ -182,7 +182,7 @@ impl Context {
 
             // Get a new accesskit tree.
             let mut nodes = vec![];
-            
+
             view.access(&mut path, self, &mut nodes);
             assert_eq!(path.len(), 1);
 
@@ -334,7 +334,9 @@ impl Context {
     pub(crate) fn update_layout(&mut self, path: &IdPath, layout_box: LayoutBox) {
         match self.layout.get_mut(path) {
             Some(bref) => *bref = layout_box,
-            None => { self.layout.insert(path.clone(), layout_box); }
+            None => {
+                self.layout.insert(path.clone(), layout_box);
+            }
         }
     }
 

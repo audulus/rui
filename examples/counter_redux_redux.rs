@@ -52,9 +52,11 @@ fn main() {
     rui(redux(AppState::new, reduce, |app_state| {
         vstack((
             format!("{}", app_state.count).padding(Auto),
-            redux(|| LocalState{ count: 0 }, reduce_local, |_| {
-                button_a("increment every 5 clicks", LocalAction::Increment)
-            }),
+            redux(
+                || LocalState { count: 0 },
+                reduce_local,
+                |_| button_a("increment every 5 clicks", LocalAction::Increment),
+            ),
         ))
     }));
 }

@@ -82,7 +82,7 @@ where
         path.push(0);
         let node_id = self.child.access(path, cx, nodes);
         path.pop();
-        node_id  
+        node_id
     }
 }
 

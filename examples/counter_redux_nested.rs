@@ -30,17 +30,20 @@ fn main() {
     rui(redux(AppState::new, reduce, |app_state| {
         vstack((
             format!("{}", app_state.count).padding(Auto),
-            state(|| 0, |handle, _| {
-                button("increment every 5 clicks", move|cx| { 
-                    cx[handle] += 1;
-                    if cx[handle] == 5 {
-                        cx[handle] = 0;
-                        Action::Increment
-                    } else {
-                        Action::None
-                    }
-                })
-            }),
+            state(
+                || 0,
+                |handle, _| {
+                    button("increment every 5 clicks", move |cx| {
+                        cx[handle] += 1;
+                        if cx[handle] == 5 {
+                            cx[handle] = 0;
+                            Action::Increment
+                        } else {
+                            Action::None
+                        }
+                    })
+                },
+            ),
         ))
     }));
 }

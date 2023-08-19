@@ -40,8 +40,7 @@ where
     ) {
         let mut child_actions = vec![];
         path.push(0);
-        self.child
-            .process(event, path, cx, &mut child_actions);
+        self.child.process(event, path, cx, &mut child_actions);
         path.pop();
 
         for action in child_actions {
@@ -94,7 +93,7 @@ where
         path.push(0);
         let node_id = self.child.access(path, cx, nodes);
         path.pop();
-        node_id  
+        node_id
     }
 }
 

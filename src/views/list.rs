@@ -38,7 +38,12 @@ where
     fn draw(&self, path: &mut IdPath, args: &mut DrawArgs) {
         for child in &self.ids {
             path.push(hh(child));
-            let offset = args.cx.layout.get(path).map(|b| b.offset).unwrap_or_default();
+            let offset = args
+                .cx
+                .layout
+                .get(path)
+                .map(|b| b.offset)
+                .unwrap_or_default();
 
             args.vger.save();
 
@@ -90,7 +95,13 @@ where
                     match args.cx.layout.get_mut(path) {
                         Some(boxref) => boxref.offset = child_offset,
                         None => {
-                            args.cx.layout.insert(path.clone(), LayoutBox { rect: LocalRect::default(), offset: child_offset });
+                            args.cx.layout.insert(
+                                path.clone(),
+                                LayoutBox {
+                                    rect: LocalRect::default(),
+                                    offset: child_offset,
+                                },
+                            );
                         }
                     }
 
@@ -219,7 +230,10 @@ where
             .collect();
 
         builder.set_children(children);
-        nodes.push((hash(path).access_id(), builder.build(&mut cx.access_node_classes)));
+        nodes.push((
+            hash(path).access_id(),
+            builder.build(&mut cx.access_node_classes),
+        ));
         Some(hash(path).access_id())
     }
 }

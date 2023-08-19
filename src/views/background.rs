@@ -41,8 +41,7 @@ where
         let child_size = self.child.layout(path, args);
         path.pop();
         path.push(1);
-        self.background
-            .layout(path, &mut args.size(child_size));
+        self.background.layout(path, &mut args.size(child_size));
         path.pop();
         child_size
     }

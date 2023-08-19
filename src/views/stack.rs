@@ -56,7 +56,12 @@ impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D>
         let mut c = 0;
         self.children.foreach_view(&mut |child| {
             path.push(c);
-            let layout_box = args.cx.layout.get(path).map(|b| b.clone()).unwrap_or_default();
+            let layout_box = args
+                .cx
+                .layout
+                .get(path)
+                .map(|b| b.clone())
+                .unwrap_or_default();
 
             args.vger.save();
 
@@ -122,7 +127,6 @@ impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D>
                 }
 
                 for c in 0..(self.children.len() as u64) {
-                    
                     let ab = intervals[c as usize];
 
                     let child_offset = align_v(

@@ -61,7 +61,7 @@ where
 
                     actions.push(Box::new((self.func)(
                         cx,
-                        [0.0,0.0].into(),
+                        [0.0, 0.0].into(),
                         GestureState::Began,
                         cx.mouse_button,
                     )));
@@ -298,12 +298,11 @@ where
         path.push(0);
         let node_id = self.child.access(path, cx, nodes);
         path.pop();
-        node_id  
+        node_id
     }
 }
 
 impl<V, F, B, T> private::Sealed for DragS<V, F, B, T> {}
-
 
 #[cfg(test)]
 mod tests {
@@ -316,12 +315,7 @@ mod tests {
 
         let ui = state(
             || vec![],
-            |states, _| {
-                rectangle()
-                .drag(move |cx, _delta, state, _| {
-                    cx[states].push(state)
-                })
-            },
+            |states, _| rectangle().drag(move |cx, _delta, state, _| cx[states].push(state)),
         );
         let sz = [100.0, 100.0].into();
         let mut path = vec![0];
@@ -362,7 +356,13 @@ mod tests {
         }
         assert_eq!(path.len(), 1);
 
-        assert_eq!(cx[s], vec![GestureState::Began, GestureState::Changed, GestureState::Ended]);
-
+        assert_eq!(
+            cx[s],
+            vec![
+                GestureState::Began,
+                GestureState::Changed,
+                GestureState::Ended
+            ]
+        );
     }
 }

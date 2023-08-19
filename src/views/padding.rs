@@ -20,8 +20,7 @@ where
     ) {
         let off = LocalOffset::new(self.padding, self.padding);
         path.push(0);
-        self.child
-            .process(&event.offset(-off), path, cx, actions);
+        self.child.process(&event.offset(-off), path, cx, actions);
         path.pop();
     }
 
@@ -56,11 +55,9 @@ where
 
     fn hittest(&self, path: &mut IdPath, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
         path.push(0);
-        let hit_id = self.child.hittest(
-            path,
-            pt - LocalOffset::new(self.padding, self.padding),
-            cx,
-        );
+        let hit_id =
+            self.child
+                .hittest(path, pt - LocalOffset::new(self.padding, self.padding), cx);
         path.pop();
         hit_id
     }
@@ -86,7 +83,7 @@ where
         path.push(0);
         let node_id = self.child.access(path, cx, nodes);
         path.pop();
-        node_id  
+        node_id
     }
 }
 

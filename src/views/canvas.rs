@@ -19,10 +19,13 @@ where
     }
 
     fn layout(&self, path: &mut IdPath, args: &mut LayoutArgs) -> LocalSize {
-        args.cx.update_layout(path, LayoutBox {
-            rect: LocalRect::new(LocalPoint::zero(), args.sz),
-            offset: LocalOffset::zero(),
-        });
+        args.cx.update_layout(
+            path,
+            LayoutBox {
+                rect: LocalRect::new(LocalPoint::zero(), args.sz),
+                offset: LocalOffset::zero(),
+            },
+        );
         args.sz
     }
 

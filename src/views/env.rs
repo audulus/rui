@@ -120,8 +120,8 @@ where
     ) {
         let old = cx.set_env(&self.env_val);
         path.push(0);
-self.child.process(event, path, cx, actions);
-path.pop();
+        self.child.process(event, path, cx, actions);
+        path.pop();
         old.and_then(|s| cx.set_env(&s));
     }
 

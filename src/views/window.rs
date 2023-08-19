@@ -31,8 +31,8 @@ where
         actions: &mut Vec<Box<dyn Any>>,
     ) {
         path.push(0);
-self.child.process(event, path, cx, actions);
-path.pop();
+        self.child.process(event, path, cx, actions);
+        path.pop();
     }
 
     fn draw(&self, path: &mut IdPath, args: &mut DrawArgs) {
@@ -86,7 +86,7 @@ path.pop();
         path.push(0);
         let node_id = self.child.access(path, cx, nodes);
         path.pop();
-        node_id  
+        node_id
     }
 }
 
@@ -118,8 +118,8 @@ where
         actions: &mut Vec<Box<dyn Any>>,
     ) {
         path.push(0);
-self.child.process(event, path, cx, actions);
-path.pop();
+        self.child.process(event, path, cx, actions);
+        path.pop();
     }
 
     fn draw(&self, path: &mut IdPath, args: &mut DrawArgs) {
@@ -170,7 +170,7 @@ path.pop();
         path.push(0);
         let node_id = self.child.access(path, cx, nodes);
         path.pop();
-        node_id  
+        node_id
     }
 }
 
