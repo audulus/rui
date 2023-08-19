@@ -5,6 +5,7 @@ use std::any::TypeId;
 use std::collections::{HashMap, HashSet};
 use std::iter::FromIterator;
 use std::ops;
+use std::cell::RefCell;
 
 pub type LocalSpace = vger::defs::LocalSpace;
 pub type WorldSpace = vger::defs::WorldSpace;
@@ -120,6 +121,14 @@ pub struct Context {
 
     /// Value of grab_cursor before processing event.
     pub(crate) prev_grab_cursor: bool,
+}
+
+thread_local! {
+    pub(crate) static CONTEXT: RefCell<Context> = RefCell::new(Context::new());
+}
+
+pub(crate) fn with_context<T>(f: impl FnOnce(&mut Context) -> T) -> T {
+    CONTEXT.with(|cx| f(&mut cx.borrow_mut()))
 }
 
 impl Default for Context {
