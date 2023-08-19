@@ -3,8 +3,10 @@ use euclid::*;
 use std::any::Any;
 use std::any::TypeId;
 use std::collections::{HashMap, HashSet};
+use std::hash::{Hash, Hasher};
 use std::iter::FromIterator;
 use std::ops;
+use std::collections::hash_map::DefaultHasher;
 
 pub type LocalSpace = vger::defs::LocalSpace;
 pub type WorldSpace = vger::defs::WorldSpace;
@@ -178,7 +180,10 @@ impl Context {
             assert!(path.len() == 1);
             let keep_set = HashSet::<ViewId>::from_iter(keep);
             self.state_map.retain(|k, _| keep_set.contains(k));
-            self.layout.retain(|k, _| keep_set.contains(&hash(k)));
+
+            let mut new_layout = self.layout.clone();
+            new_layout.retain(|k, _| keep_set.contains(&self.view_id(k)));
+            self.layout = new_layout;
 
             // Get a new accesskit tree.
             let mut nodes = vec![];
@@ -329,6 +334,16 @@ impl Context {
     pub fn commands(&mut self, view: &impl View, cmds: &mut Vec<CommandInfo>) {
         let mut path = vec![0];
         view.commands(&mut path, self, cmds);
+    }
+
+    pub(crate) fn view_id(&mut self, path: &IdPath) -> ViewId {
+        let mut hasher = DefaultHasher::new();
+        for id in path {
+            hasher.write_u64(*id);
+        }
+        ViewId {
+            id: hasher.finish(),
+        }
     }
 
     pub(crate) fn update_layout(&mut self, path: &IdPath, layout_box: LayoutBox) {
