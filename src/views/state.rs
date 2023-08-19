@@ -114,13 +114,11 @@ where
 
             args.cx.deps.insert(id, deps);
 
-            args.cx.layout.insert(
-                path.clone(),
-                LayoutBox {
-                    rect: LocalRect::new(LocalPoint::zero(), child_size),
-                    offset: LocalOffset::zero(),
-                },
-            );
+            let layout_box = LayoutBox {
+                rect: LocalRect::new(LocalPoint::zero(), child_size),
+                offset: LocalOffset::zero(),
+            };
+            args.cx.update_layout(path, layout_box);
 
             args.cx.id_stack.pop();
         }
