@@ -66,7 +66,7 @@ mod tests {
         assert!(path.len() == 1);
 
         assert_eq!(button_sz, sz);
-        let s = StateHandle::<bool>::new(hash(&path));
+        let s = StateHandle::<bool>::new(cx.view_id(&path));
         assert!(!*s.get(&cx));
 
         let events = [
@@ -85,7 +85,8 @@ mod tests {
             ui.process(event, &mut path, &mut cx, &mut actions);
         }
 
-        assert!(cx.state_map.contains_key(&hash(&path)));
+        let vid = cx.view_id(&path);
+        assert!(cx.state_map.contains_key(&vid));
 
         // State should have changed.
         assert!(*s.get(&cx));

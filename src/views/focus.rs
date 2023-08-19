@@ -18,7 +18,7 @@ where
         cx: &mut Context,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
-        let vid = hash(path);
+        let vid = cx.view_id(path);
         match &event {
             Event::TouchBegin { id: _, position } => {
                 if self.hittest(path, *position, cx).is_some() {
@@ -40,14 +40,14 @@ where
     }
 
     fn draw(&self, path: &mut IdPath, args: &mut DrawArgs) {
-        let id = hash(path);
+        let id = args.cx.view_id(path);
         path.push(0);
         (self.func)(Some(id) == args.cx.focused_id).draw(path, args);
         path.pop();
     }
 
     fn layout(&self, path: &mut IdPath, args: &mut LayoutArgs) -> LocalSize {
-        let id = hash(path);
+        let id = args.cx.view_id(path);
         path.push(0);
         let sz = (self.func)(Some(id) == args.cx.focused_id).layout(path, args);
         path.pop();
@@ -55,14 +55,14 @@ where
     }
 
     fn dirty(&self, path: &mut IdPath, xform: LocalToWorld, cx: &mut Context) {
-        let id = hash(path);
+        let id = cx.view_id(path);
         path.push(0);
         (self.func)(Some(id) == cx.focused_id).dirty(path, xform, cx);
         path.pop();
     }
 
     fn hittest(&self, path: &mut IdPath, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
-        let id = hash(path);
+        let id = cx.view_id(path);
         path.push(0);
         let vid = (self.func)(Some(id) == cx.focused_id).hittest(path, pt, cx);
         path.pop();
@@ -70,14 +70,14 @@ where
     }
 
     fn commands(&self, path: &mut IdPath, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
-        let id = hash(path);
+        let id = cx.view_id(path);
         path.push(0);
         (self.func)(Some(id) == cx.focused_id).commands(path, cx, cmds);
         path.pop();
     }
 
     fn gc(&self, path: &mut IdPath, cx: &mut Context, map: &mut Vec<ViewId>) {
-        let id = hash(path);
+        let id = cx.view_id(path);
         path.push(0);
         (self.func)(Some(id) == cx.focused_id).gc(path, cx, map);
         path.pop();
@@ -89,7 +89,7 @@ where
         cx: &mut Context,
         nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
     ) -> Option<accesskit::NodeId> {
-        let id = hash(path);
+        let id = cx.view_id(path);
         path.push(0);
         let node_id = (self.func)(Some(id) == cx.focused_id).access(path, cx, nodes);
         path.pop();

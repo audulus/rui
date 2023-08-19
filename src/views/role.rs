@@ -80,7 +80,7 @@ where
         path.push(0);
         let child_aid = self.child.access(path, cx, nodes);
         path.pop();
-        let aid = hash(path).access_id();
+        let aid = cx.view_id(path).access_id();
         let mut builder = accesskit::NodeBuilder::new(self.role);
         builder.set_children(match child_aid {
             Some(cid) => vec![cid],

@@ -50,7 +50,7 @@ where
         cx: &mut Context,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
-        let vid = hash(path);
+        let vid = cx.view_id(path);
         match &event {
             Event::TouchBegin { id, position } => {
                 if cx.touches[*id].is_default() && self.hittest(path, *position, cx).is_some() {
@@ -204,7 +204,7 @@ where
         cx: &mut Context,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
-        let vid = hash(path);
+        let vid = cx.view_id(path);
         match &event {
             Event::TouchBegin { id, position } => {
                 if self.hittest(path, *position, cx).is_some() {
@@ -331,7 +331,7 @@ mod tests {
         assert_eq!(path.len(), 1);
 
         assert_eq!(rect_sz, sz);
-        let s = StateHandle::<Vec<GestureState>>::new(hash(&path));
+        let s = StateHandle::<Vec<GestureState>>::new(cx.view_id(&path));
         assert_eq!(cx[s], vec![]);
 
         let events = [

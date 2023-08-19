@@ -48,7 +48,7 @@ mod tests {
         );
 
         assert_eq!(knob_sz, sz);
-        let s = StateHandle::<bool>::new(hash(&path));
+        let s = StateHandle::<bool>::new(cx.view_id(&path));
         assert_eq!(*s.get(&cx), false);
 
         let events = [

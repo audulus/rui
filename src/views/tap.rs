@@ -33,7 +33,7 @@ where
         cx: &mut Context,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
-        let vid = hash(path);
+        let vid = cx.view_id(path);
         match &event {
             Event::TouchBegin { id, position } => {
                 if self.hittest(path, *position, cx).is_some() {
@@ -127,7 +127,7 @@ where
         cx: &mut Context,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
-        let vid = hash(path);
+        let vid = cx.view_id(path);
         match &event {
             Event::TouchBegin { id, position } => {
                 if self.hittest(path, *position, cx).is_some() {

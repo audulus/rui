@@ -59,7 +59,7 @@ mod tests {
         );
 
         assert_eq!(knob_sz, sz);
-        let s = StateHandle::<f32>::new(hash(&path));
+        let s = StateHandle::<f32>::new(cx.view_id(&path));
         assert_eq!(*s.get(&cx), 0.0);
 
         let events = [
@@ -83,7 +83,8 @@ mod tests {
             ui.process(event, &mut path, &mut cx, &mut actions);
         }
 
-        assert!(cx.state_map.contains_key(&hash(&path)));
+        let vid = cx.view_id(&path);
+        assert!(cx.state_map.contains_key(&vid));
         // State should have changed.
         assert_eq!(*s.get(&cx), 0.125);
     }

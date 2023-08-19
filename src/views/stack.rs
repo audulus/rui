@@ -247,11 +247,11 @@ impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D>
     }
 
     fn gc(&self, path: &mut IdPath, cx: &mut Context, map: &mut Vec<ViewId>) {
-        map.push(hash(path));
+        map.push(cx.view_id(path));
         let mut c = 0;
         self.children.foreach_view(&mut |child| {
             path.push(c);
-            map.push(hash(path));
+            map.push(cx.view_id(path));
             child.gc(path, cx, map);
             path.pop();
             c += 1;
@@ -276,7 +276,7 @@ impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D>
             c += 1;
         });
         builder.set_children(children);
-        let aid = hash(path).access_id();
+        let aid = cx.view_id(path).access_id();
         nodes.push((aid, builder.build(&mut cx.access_node_classes)));
         Some(aid)
     }

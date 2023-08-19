@@ -21,7 +21,7 @@ where
         cx: &mut Context,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
-        let id = hash(path);
+        let id = cx.view_id(path);
         cx.set_state(id, self.value.clone());
         let s = StateHandle::new(id);
         path.push(0);
@@ -35,7 +35,7 @@ where
     }
 
     fn draw(&self, path: &mut IdPath, args: &mut DrawArgs) {
-        let id = hash(path);
+        let id = args.cx.view_id(path);
         args.cx.set_state(id, self.value.clone());
         path.push(0);
         (self.func)(StateHandle::new(id), args.cx).draw(path, args);
@@ -43,7 +43,7 @@ where
     }
 
     fn layout(&self, path: &mut IdPath, args: &mut LayoutArgs) -> LocalSize {
-        let id = hash(path);
+        let id = args.cx.view_id(path);
         args.cx.set_state(id, self.value.clone());
 
         path.push(0);
@@ -53,7 +53,7 @@ where
     }
 
     fn dirty(&self, path: &mut IdPath, xform: LocalToWorld, cx: &mut Context) {
-        let id = hash(path);
+        let id = cx.view_id(path);
         cx.set_state(id, self.value.clone());
         path.push(0);
         (self.func)(StateHandle::new(id), cx).dirty(path, xform, cx);
@@ -61,7 +61,7 @@ where
     }
 
     fn hittest(&self, path: &mut IdPath, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
-        let id = hash(path);
+        let id = cx.view_id(path);
         cx.set_state(id, self.value.clone());
         path.push(0);
         let hit_id = (self.func)(StateHandle::new(id), cx).hittest(path, pt, cx);
@@ -70,7 +70,7 @@ where
     }
 
     fn commands(&self, path: &mut IdPath, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
-        let id = hash(path);
+        let id = cx.view_id(path);
         cx.set_state(id, self.value.clone());
         path.push(0);
         (self.func)(StateHandle::new(id), cx).commands(path, cx, cmds);
@@ -78,7 +78,7 @@ where
     }
 
     fn gc(&self, path: &mut IdPath, cx: &mut Context, map: &mut Vec<ViewId>) {
-        let id = hash(path);
+        let id = cx.view_id(path);
         cx.set_state(id, self.value.clone());
         map.push(id);
         path.push(0);
@@ -92,7 +92,7 @@ where
         cx: &mut Context,
         nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
     ) -> Option<accesskit::NodeId> {
-        let id = hash(path);
+        let id = cx.view_id(path);
         cx.set_state(id, self.value.clone());
         path.push(0);
         let node_id = (self.func)(StateHandle::new(id), cx).access(path, cx, nodes);

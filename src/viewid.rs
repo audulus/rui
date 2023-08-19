@@ -23,18 +23,6 @@ impl ViewId {
 
 pub type IdPath = Vec<u64>;
 
-// Temporary function so we don't have to change too much at once.
-// Just adding Id paths for now to the View functions.
-pub fn hash(path: &IdPath) -> ViewId {
-    let mut hasher = DefaultHasher::new();
-    for id in path {
-        hasher.write_u64(*id);
-    }
-    ViewId {
-        id: hasher.finish(),
-    }
-}
-
 pub fn hh<H: Hash>(index: &H) -> u64 {
     let mut hasher = DefaultHasher::new();
     index.hash(&mut hasher);

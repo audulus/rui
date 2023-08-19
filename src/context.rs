@@ -2,11 +2,11 @@ use crate::*;
 use euclid::*;
 use std::any::Any;
 use std::any::TypeId;
+use std::collections::hash_map::DefaultHasher;
 use std::collections::{HashMap, HashSet};
 use std::hash::{Hash, Hasher};
 use std::iter::FromIterator;
 use std::ops;
-use std::collections::hash_map::DefaultHasher;
 
 pub type LocalSpace = vger::defs::LocalSpace;
 pub type WorldSpace = vger::defs::WorldSpace;

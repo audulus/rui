@@ -44,14 +44,14 @@ impl View for Circle {
         let (center, radius) = self.geom(path, cx);
 
         if pt.distance_to(center) < radius {
-            Some(hash(path))
+            Some(cx.view_id(path))
         } else {
             None
         }
     }
 
-    fn gc(&self, path: &mut IdPath, _cx: &mut Context, map: &mut Vec<ViewId>) {
-        map.push(hash(path));
+    fn gc(&self, path: &mut IdPath, cx: &mut Context, map: &mut Vec<ViewId>) {
+        map.push(cx.view_id(path));
     }
 }
 
@@ -117,14 +117,14 @@ impl View for Rectangle {
         let rect = self.geom(path, cx);
 
         if rect.contains(pt) {
-            Some(hash(path))
+            Some(cx.view_id(path))
         } else {
             None
         }
     }
 
-    fn gc(&self, path: &mut IdPath, _cx: &mut Context, map: &mut Vec<ViewId>) {
-        map.push(hash(path));
+    fn gc(&self, path: &mut IdPath, cx: &mut Context, map: &mut Vec<ViewId>) {
+        map.push(cx.view_id(path));
     }
 }
 

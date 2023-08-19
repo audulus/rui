@@ -190,10 +190,10 @@ where
     }
 
     fn gc(&self, path: &mut IdPath, cx: &mut Context, map: &mut Vec<ViewId>) {
-        map.push(hash(path));
+        map.push(cx.view_id(path));
         for child in &self.ids {
             path.push(hh(child));
-            map.push(hash(path));
+            map.push(cx.view_id(path));
             ((self.func)(child)).gc(path, cx, map);
             path.pop();
         }
@@ -220,10 +220,10 @@ where
 
         builder.set_children(children);
         nodes.push((
-            hash(path).access_id(),
+            cx.view_id(path).access_id(),
             builder.build(&mut cx.access_node_classes),
         ));
-        Some(hash(path).access_id())
+        Some(cx.view_id(path).access_id())
     }
 }
 

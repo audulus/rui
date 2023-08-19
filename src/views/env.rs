@@ -58,7 +58,7 @@ where
     }
 
     fn gc(&self, path: &mut IdPath, cx: &mut Context, map: &mut Vec<ViewId>) {
-        map.push(hash(path));
+        map.push(cx.view_id(path));
         path.push(0);
         (self.func)(cx.init_env(&S::default), cx).gc(path, cx, map);
         path.pop();

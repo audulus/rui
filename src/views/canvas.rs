@@ -33,14 +33,14 @@ where
         let rect = cx.layout.get(path).map(|b| b.rect).unwrap_or_default();
 
         if rect.contains(pt) {
-            Some(hash(path))
+            Some(cx.view_id(path))
         } else {
             None
         }
     }
 
-    fn gc(&self, path: &mut IdPath, _cx: &mut Context, map: &mut Vec<ViewId>) {
-        map.push(hash(path));
+    fn gc(&self, path: &mut IdPath, cx: &mut Context, map: &mut Vec<ViewId>) {
+        map.push(cx.view_id(path));
     }
 }
 
