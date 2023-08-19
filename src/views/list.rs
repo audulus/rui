@@ -87,7 +87,12 @@ where
                         VAlignment::Middle,
                     );
 
-                    args.cx.layout.entry(path.clone()).or_default().offset = child_offset;
+                    match args.cx.layout.get_mut(path) {
+                        Some(boxref) => boxref.offset = child_offset,
+                        None => {
+                            args.cx.layout.insert(path.clone(), LayoutBox { rect: LocalRect::default(), offset: child_offset });
+                        }
+                    }
 
                     path.pop();
 
