@@ -29,7 +29,7 @@ where
     ) {
         for child in self.ids.iter().rev() {
             path.push(hh(child));
-            let offset = cx.layout.entry(hash(path)).or_default().offset;
+            let offset = cx.layout.entry(path.clone()).or_default().offset;
             ((self.func)(child)).process(&event.offset(-offset), path, cx, actions);
             path.pop();
         }
@@ -38,7 +38,7 @@ where
     fn draw(&self, path: &mut IdPath, args: &mut DrawArgs) {
         for child in &self.ids {
             path.push(hh(child));
-            let offset = args.cx.layout.entry(hash(path)).or_default().offset;
+            let offset = args.cx.layout.entry(path.clone()).or_default().offset;
 
             args.vger.save();
 
@@ -87,7 +87,7 @@ where
                         VAlignment::Middle,
                     );
 
-                    args.cx.layout.entry(hash(path)).or_default().offset = child_offset;
+                    args.cx.layout.entry(path.clone()).or_default().offset = child_offset;
 
                     path.pop();
 
@@ -133,7 +133,7 @@ where
                         HAlignment::Center,
                     );
 
-                    args.cx.layout.entry(hash(path)).or_default().offset = child_offset;
+                    args.cx.layout.entry(path.clone()).or_default().offset = child_offset;
                     path.pop();
 
                     y -= child_size.height;
@@ -155,7 +155,7 @@ where
     fn dirty(&self, path: &mut IdPath, xform: LocalToWorld, cx: &mut Context) {
         for child in &self.ids {
             path.push(hh(child));
-            let offset = cx.layout.entry(hash(path)).or_default().offset;
+            let offset = cx.layout.entry(path.clone()).or_default().offset;
             let xf = xform.pre_translate(offset);
             ((self.func)(child)).dirty(path, xf, cx);
             path.pop();
@@ -166,7 +166,7 @@ where
         let mut hit = None;
         for child in &self.ids {
             path.push(hh(child));
-            let offset = cx.layout.entry(hash(path)).or_default().offset;
+            let offset = cx.layout.entry(path.clone()).or_default().offset;
 
             if let Some(h) = ((self.func)(child)).hittest(path, pt - offset, cx) {
                 hit = Some(h)

@@ -25,7 +25,7 @@ path.pop();
     }
 
     fn draw(&self, path: &mut IdPath, args: &mut DrawArgs) {
-        let rect = args.cx.layout[&hash(path)].rect;
+        let rect = args.cx.layout[path].rect;
         (self.func)(args.cx, rect.size, args.vger.current_transform());
         path.push(0);
         self.child.draw(path, args);
@@ -38,7 +38,7 @@ path.pop();
         path.pop();
 
         args.cx.layout.insert(
-            hash(path),
+            path.clone(),
             LayoutBox {
                 rect: LocalRect::new(LocalPoint::zero(), sz),
                 offset: LocalOffset::zero(),

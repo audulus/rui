@@ -51,7 +51,7 @@ pub struct RenderInfo<'a> {
 /// shouldn't have to interact with it directly.
 pub struct Context {
     /// Layout information for all views.
-    pub(crate) layout: HashMap<ViewId, LayoutBox>,
+    pub(crate) layout: HashMap<IdPath, LayoutBox>,
 
     /// Which views each touch (or mouse pointer) is interacting with.
     pub(crate) touches: [ViewId; 16],
@@ -178,7 +178,7 @@ impl Context {
             assert!(path.len() == 1);
             let keep_set = HashSet::<ViewId>::from_iter(keep);
             self.state_map.retain(|k, _| keep_set.contains(k));
-            self.layout.retain(|k, _| keep_set.contains(k));
+            self.layout.retain(|k, _| keep_set.contains(&hash(k)));
 
             // Get a new accesskit tree.
             let mut nodes = vec![];

@@ -115,7 +115,7 @@ where
             args.cx.deps.insert(id, deps);
 
             args.cx.layout.insert(
-                id,
+                path.clone(),
                 LayoutBox {
                     rect: LocalRect::new(LocalPoint::zero(), child_size),
                     offset: LocalOffset::zero(),
@@ -125,7 +125,7 @@ where
             args.cx.id_stack.pop();
         }
 
-        args.cx.layout[&id].rect.size
+        args.cx.layout[path].rect.size
     }
 
     fn dirty(&self, path: &mut IdPath, xform: LocalToWorld, cx: &mut Context) {
@@ -138,7 +138,7 @@ where
 
         if holder.dirty {
             // Add a region.
-            let rect = cx.layout[&id].rect;
+            let rect = cx.layout[path].rect;
             let pts: [LocalPoint; 4] = [
                 rect.min(),
                 [rect.max_x(), rect.min_y()].into(),

@@ -11,7 +11,7 @@ where
     F: Fn(&mut Context, LocalRect, &mut Vger) + 'static,
 {
     fn draw(&self, path: &mut IdPath, args: &mut DrawArgs) {
-        let rect = args.cx.layout.entry(hash(path)).or_default().rect;
+        let rect = args.cx.layout.entry(path.clone()).or_default().rect;
 
         args.vger.save();
         (self.func)(args.cx, rect, args.vger);
@@ -20,7 +20,7 @@ where
 
     fn layout(&self, path: &mut IdPath, args: &mut LayoutArgs) -> LocalSize {
         args.cx.layout.insert(
-            hash(path),
+            path.clone(),
             LayoutBox {
                 rect: LocalRect::new(LocalPoint::zero(), args.sz),
                 offset: LocalOffset::zero(),
@@ -30,7 +30,7 @@ where
     }
 
     fn hittest(&self, path: &mut IdPath, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
-        let rect = cx.layout.entry(hash(path)).or_default().rect;
+        let rect = cx.layout.entry(path.clone()).or_default().rect;
 
         if rect.contains(pt) {
             Some(hash(path))

@@ -10,7 +10,7 @@ where
     V: View,
 {
     fn geom(&self, path: &IdPath, cx: &mut Context) -> LocalRect {
-        cx.layout.entry(hash(path)).or_default().rect
+        cx.layout.entry(path.clone()).or_default().rect
     }
 
     pub fn new(child: V) -> Self {
@@ -50,7 +50,7 @@ path.pop();
         self.child.layout(path, args);
         path.pop();
         args.cx.layout.insert(
-            hash(path),
+            path.clone(),
             LayoutBox {
                 rect: LocalRect::new(LocalPoint::zero(), args.sz),
                 offset: LocalOffset::zero(),
