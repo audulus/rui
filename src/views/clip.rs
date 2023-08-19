@@ -10,7 +10,7 @@ where
     V: View,
 {
     fn geom(&self, path: &IdPath, cx: &mut Context) -> LocalRect {
-        cx.layout.get(path).map(|b| b.rect).unwrap_or_default()
+        cx.get_layout(path).rect
     }
 
     pub fn new(child: V) -> Self {

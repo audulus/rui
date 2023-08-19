@@ -53,7 +53,7 @@ pub struct RenderInfo<'a> {
 /// shouldn't have to interact with it directly.
 pub struct Context {
     /// Layout information for all views.
-    pub(crate) layout: HashMap<IdPath, LayoutBox>,
+    layout: HashMap<IdPath, LayoutBox>,
 
     /// Which views each touch (or mouse pointer) is interacting with.
     pub(crate) touches: [ViewId; 16],
@@ -343,6 +343,13 @@ impl Context {
         }
         ViewId {
             id: hasher.finish(),
+        }
+    }
+
+    pub(crate) fn get_layout(&self, path: &IdPath) -> LayoutBox {
+        match self.layout.get(path) {
+            Some(b) => *b,
+            None => LayoutBox::default(),
         }
     }
 

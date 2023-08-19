@@ -123,7 +123,7 @@ where
             args.cx.id_stack.pop();
         }
 
-        args.cx.layout[path].rect.size
+        args.cx.get_layout(path).rect.size
     }
 
     fn dirty(&self, path: &mut IdPath, xform: LocalToWorld, cx: &mut Context) {
@@ -136,7 +136,7 @@ where
 
         if holder.dirty {
             // Add a region.
-            let rect = cx.layout[path].rect;
+            let rect = cx.get_layout(path).rect;
             let pts: [LocalPoint; 4] = [
                 rect.min(),
                 [rect.max_x(), rect.min_y()].into(),

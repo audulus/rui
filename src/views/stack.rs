@@ -45,7 +45,7 @@ impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D>
         let mut c = self.children.len() as i64 - 1;
         self.children.foreach_view_rev(&mut |child| {
             path.push(c as u64);
-            let offset = cx.layout.get(path).map(|b| b.offset).unwrap_or_default();
+            let offset = cx.get_layout(path).offset;
             (*child).process(&event.offset(-offset), path, cx, actions);
             path.pop();
             c -= 1;
@@ -56,12 +56,7 @@ impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D>
         let mut c = 0;
         self.children.foreach_view(&mut |child| {
             path.push(c);
-            let layout_box = args
-                .cx
-                .layout
-                .get(path)
-                .map(|b| b.clone())
-                .unwrap_or_default();
+            let layout_box = args.cx.get_layout(path);
 
             args.vger.save();
 
@@ -210,7 +205,7 @@ impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D>
         let mut c = 0;
         self.children.foreach_view(&mut |child| {
             path.push(c);
-            let offset = cx.layout.get(path).map(|b| b.offset).unwrap_or_default();
+            let offset = cx.get_layout(path).offset;
             let xf = xform.pre_translate(offset);
             child.dirty(path, xf, cx);
             path.pop();
@@ -223,7 +218,7 @@ impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D>
         let mut hit = None;
         self.children.foreach_view(&mut |child| {
             path.push(c);
-            let offset = cx.layout.get(path).map(|b| b.offset).unwrap_or_default();
+            let offset = cx.get_layout(path).offset;
 
             if let Some(h) = child.hittest(path, pt - offset, cx) {
                 hit = Some(h)
