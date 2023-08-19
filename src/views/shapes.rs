@@ -8,7 +8,7 @@ pub struct Circle {
 
 impl Circle {
     fn geom(&self, path: &IdPath, cx: &mut Context) -> (LocalPoint, f32) {
-        let rect = cx.layout.entry(path.clone()).or_default().rect;
+        let rect = cx.layout.get(path).map(|b| b.rect).unwrap_or_default();
 
         (rect.center(), rect.size.width.min(rect.size.height) / 2.0)
     }
@@ -73,7 +73,7 @@ pub struct Rectangle {
 
 impl Rectangle {
     fn geom(&self, path: &IdPath, cx: &mut Context) -> LocalRect {
-        cx.layout.entry(path.clone()).or_default().rect
+        cx.layout.get(path).map(|b| b.rect).unwrap_or_default()
     }
 
     /// Sets the fill color for the rectangle.

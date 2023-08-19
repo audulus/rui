@@ -11,7 +11,7 @@ where
     F: Fn(&mut Context, LocalRect, &mut Vger) + 'static,
 {
     fn draw(&self, path: &mut IdPath, args: &mut DrawArgs) {
-        let rect = args.cx.layout.entry(path.clone()).or_default().rect;
+        let rect = args.cx.layout.get(path).map(|b| b.rect).unwrap_or_default();
 
         args.vger.save();
         (self.func)(args.cx, rect, args.vger);
@@ -30,7 +30,7 @@ where
     }
 
     fn hittest(&self, path: &mut IdPath, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
-        let rect = cx.layout.entry(path.clone()).or_default().rect;
+        let rect = cx.layout.get(path).map(|b| b.rect).unwrap_or_default();
 
         if rect.contains(pt) {
             Some(hash(path))
