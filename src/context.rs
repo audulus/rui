@@ -53,6 +53,12 @@ pub(crate) struct ContextId {
     pub id: u64
 }
 
+impl ContextId {
+    pub fn view_id(self, path: &IdPath) -> ViewId {
+        with_context(self, |cx| cx.view_id(path))
+    }
+}
+
 /// The Context stores all UI state. A user of the library
 /// shouldn't have to interact with it directly.
 pub struct Context {
