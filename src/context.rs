@@ -48,6 +48,11 @@ pub struct RenderInfo<'a> {
     pub queue: &'a wgpu::Queue,
 }
 
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
+pub(crate) struct ContextId {
+    pub id: u64
+}
+
 /// The Context stores all UI state. A user of the library
 /// shouldn't have to interact with it directly.
 pub struct Context {
@@ -127,7 +132,7 @@ thread_local! {
     pub(crate) static CONTEXT: RefCell<Context> = RefCell::new(Context::new());
 }
 
-pub(crate) fn with_context<T>(f: impl FnOnce(&mut Context) -> T) -> T {
+pub(crate) fn with_context<T>(id: ContextId, f: impl FnOnce(&mut Context) -> T) -> T {
     CONTEXT.with(|cx| f(&mut cx.borrow_mut()))
 }
 
