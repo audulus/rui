@@ -15,7 +15,7 @@ To create a binding for a member of a struct, use `make_lens!` and `bind` Suppos
 struct MyState {
     value: f32,
 }
-make_lens!(MyLens, MyState, f32, x);
+make_lens!(MyLens, MyState, f32, value);
 ```
 
 then we can use `bind` to create a control for `value`:
