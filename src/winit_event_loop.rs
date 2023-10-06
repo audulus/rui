@@ -458,11 +458,23 @@ pub fn rui(view: impl View) {
                                 Some(Key::Character(if cx.key_mods.shift { 'Z' } else { 'z' }))
                             }
                             VirtualKeyCode::Semicolon => Some(Key::Character(';')),
-                            VirtualKeyCode::Colon => Some(Key::Character(';')),
+                            VirtualKeyCode::Colon => Some(Key::Character(':')),
                             VirtualKeyCode::Caret => Some(Key::Character('^')),
                             VirtualKeyCode::Asterisk => Some(Key::Character('*')),
                             VirtualKeyCode::Period => Some(Key::Character('.')),
                             VirtualKeyCode::Comma => Some(Key::Character(',')),
+                            VirtualKeyCode::Equals | VirtualKeyCode::NumpadEquals => {
+                                Some(Key::Character('='))
+                            }
+                            VirtualKeyCode::Plus | VirtualKeyCode::NumpadAdd => {
+                                Some(Key::Character('+'))
+                            }
+                            VirtualKeyCode::Minus | VirtualKeyCode::NumpadSubtract => {
+                                Some(Key::Character(if cx.key_mods.shift { '_' } else { '-' }))
+                            }
+                            VirtualKeyCode::Slash | VirtualKeyCode::NumpadDivide => {
+                                Some(Key::Character(if cx.key_mods.shift { '?' } else { '/' }))
+                            }
                             VirtualKeyCode::Return => Some(Key::Enter),
                             VirtualKeyCode::Tab => Some(Key::Tab),
                             VirtualKeyCode::Space => Some(Key::Space),
