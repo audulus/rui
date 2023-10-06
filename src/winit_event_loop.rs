@@ -457,7 +457,9 @@ pub fn rui(view: impl View) {
                             VirtualKeyCode::Z => {
                                 Some(Key::Character(if cx.key_mods.shift { 'Z' } else { 'z' }))
                             }
-                            VirtualKeyCode::Semicolon => Some(Key::Character(';')),
+                            VirtualKeyCode::Semicolon => {
+                                Some(Key::Character(if cx.key_mods.shift { ':' } else { ';' }))
+                            }
                             VirtualKeyCode::Colon => Some(Key::Character(':')),
                             VirtualKeyCode::Caret => Some(Key::Character('^')),
                             VirtualKeyCode::Asterisk => Some(Key::Character('*')),
