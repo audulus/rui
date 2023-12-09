@@ -37,7 +37,7 @@ pub trait Modifiers: View + Sized {
     }
 
     /// Calls a function in response to a drag. Version which passes the position.
-    fn drag_p<F: Fn(&mut Context, LocalPoint, Option<MouseButton>) + 'static>(
+    fn drag_p<F: Fn(&mut Context, LocalPoint, GestureState, Option<MouseButton>) + 'static>(
         self,
         f: F,
     ) -> DragP<Self, F> {

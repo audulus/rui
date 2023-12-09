@@ -12,7 +12,7 @@ pub struct DragP<V, F> {
 impl<V, F, A> DragP<V, F>
 where
     V: View,
-    F: Fn(&mut Context, LocalPoint, Option<MouseButton>) -> A + 'static,
+    F: Fn(&mut Context, LocalPoint, GestureState, Option<MouseButton>) -> A + 'static,
 {
     pub fn new(v: V, f: F) -> Self {
         Self {
@@ -34,7 +34,7 @@ where
 impl<V, F, A> View for DragP<V, F>
 where
     V: View,
-    F: Fn(&mut Context, LocalPoint, Option<MouseButton>) -> A + 'static,
+    F: Fn(&mut Context, LocalPoint, GestureState, Option<MouseButton>) -> A + 'static,
     A: 'static,
 {
     fn process(
@@ -53,7 +53,12 @@ where
                     cx.previous_position[*id] = *position;
                     cx.grab_cursor = self.grab;
 
-                    actions.push(Box::new((self.func)(cx, *position, cx.mouse_button)));
+                    actions.push(Box::new((self.func)(
+                        cx,
+                        *position,
+                        GestureState::Began,
+                        cx.mouse_button,
+                    )));
                 }
             }
             Event::TouchMove {
@@ -62,7 +67,12 @@ where
                 delta: _,
             } => {
                 if cx.touches[*id] == vid {
-                    actions.push(Box::new((self.func)(cx, *position, cx.mouse_button)));
+                    actions.push(Box::new((self.func)(
+                        cx,
+                        *position,
+                        GestureState::Changed,
+                        cx.mouse_button,
+                    )));
                     cx.previous_position[*id] = *position;
                 }
             }
@@ -70,7 +80,12 @@ where
                 if cx.touches[*id] == vid {
                     cx.touches[*id] = ViewId::default();
                     cx.grab_cursor = false;
-                    actions.push(Box::new((self.func)(cx, *position, cx.mouse_button)));
+                    actions.push(Box::new((self.func)(
+                        cx,
+                        *position,
+                        GestureState::Ended,
+                        cx.mouse_button,
+                    )));
                 }
             }
             _ => (),
