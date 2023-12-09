@@ -53,11 +53,7 @@ where
                     cx.previous_position[*id] = *position;
                     cx.grab_cursor = self.grab;
 
-                    actions.push(Box::new((self.func)(
-                        cx,
-                        [0.0, 0.0].into(),
-                        cx.mouse_button,
-                    )));
+                    actions.push(Box::new((self.func)(cx, *position, cx.mouse_button)));
                 }
             }
             Event::TouchMove {
