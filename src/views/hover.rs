@@ -6,11 +6,17 @@ pub trait HoverFn {
 }
 
 pub struct HoverFuncP<F> {
-    pub f: F
+    pub f: F,
 }
 
 impl<A: 'static, F: Fn(&mut Context, LocalPoint) -> A> HoverFn for HoverFuncP<F> {
-    fn call(&self, cx: &mut Context, pt: LocalPoint, inside: bool, actions: &mut Vec<Box<dyn Any>>) {
+    fn call(
+        &self,
+        cx: &mut Context,
+        pt: LocalPoint,
+        inside: bool,
+        actions: &mut Vec<Box<dyn Any>>,
+    ) {
         if inside {
             actions.push(Box::new((self.f)(cx, pt)))
         }
@@ -18,11 +24,17 @@ impl<A: 'static, F: Fn(&mut Context, LocalPoint) -> A> HoverFn for HoverFuncP<F>
 }
 
 pub struct HoverFunc<F> {
-    pub f: F
+    pub f: F,
 }
 
 impl<A: 'static, F: Fn(&mut Context, bool) -> A> HoverFn for HoverFunc<F> {
-    fn call(&self, cx: &mut Context, _pt: LocalPoint, inside: bool, actions: &mut Vec<Box<dyn Any>>) {
+    fn call(
+        &self,
+        cx: &mut Context,
+        _pt: LocalPoint,
+        inside: bool,
+        actions: &mut Vec<Box<dyn Any>>,
+    ) {
         actions.push(Box::new((self.f)(cx, inside)))
     }
 }

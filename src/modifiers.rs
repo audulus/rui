@@ -58,13 +58,19 @@ pub trait Modifiers: View + Sized {
     }
 
     /// Calls a function in response to a mouse hovering.
-    fn hover<A: 'static, F: Fn(&mut Context, bool) -> A + 'static>(self, f: F) -> Hover<Self, HoverFunc<F>> {
-        Hover::new(self, HoverFunc{f})
+    fn hover<A: 'static, F: Fn(&mut Context, bool) -> A + 'static>(
+        self,
+        f: F,
+    ) -> Hover<Self, HoverFunc<F>> {
+        Hover::new(self, HoverFunc { f })
     }
 
     /// Calls a function in response to a mouse hovering. Version which passes the position
-    fn hover_p<A: 'static, F: Fn(&mut Context, LocalPoint) -> A + 'static>(self, f: F) -> Hover<Self, HoverFuncP<F>> {
-        Hover::new(self, HoverFuncP{f})
+    fn hover_p<A: 'static, F: Fn(&mut Context, LocalPoint) -> A + 'static>(
+        self,
+        f: F,
+    ) -> Hover<Self, HoverFuncP<F>> {
+        Hover::new(self, HoverFuncP { f })
     }
 
     /// Add an environment value.
@@ -115,13 +121,13 @@ pub trait Modifiers: View + Sized {
 
     /// Calls a function in response to a tap.
     fn tap<A: 'static, F: Fn(&mut Context) -> A + 'static>(self, f: F) -> Tap<Self, TapAdapter<F>> {
-        Tap::new(self, TapAdapter{f})
+        Tap::new(self, TapAdapter { f })
     }
 
     /// Version of `tap` which takes an action type instead
     /// of a function.
     fn tap_a<A: Clone + 'static>(self, action: A) -> Tap<Self, TapActionAdapter<A>> {
-        Tap::new(self, TapActionAdapter{action})
+        Tap::new(self, TapActionAdapter { action })
     }
 
     /// Version of `tap` which passes the tap position and mouse button.
@@ -129,7 +135,7 @@ pub trait Modifiers: View + Sized {
         self,
         f: F,
     ) -> Tap<Self, TapFunc<F>> {
-        Tap::new(self, TapFunc{f})
+        Tap::new(self, TapFunc { f })
     }
 
     /// Specify the title of the window.

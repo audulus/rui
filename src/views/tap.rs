@@ -2,35 +2,59 @@ use crate::*;
 use std::any::Any;
 
 pub trait TapFn {
-    fn call(&self, cx: &mut Context, pt: LocalPoint, button: Option<MouseButton>, actions: &mut Vec<Box<dyn Any>>);
+    fn call(
+        &self,
+        cx: &mut Context,
+        pt: LocalPoint,
+        button: Option<MouseButton>,
+        actions: &mut Vec<Box<dyn Any>>,
+    );
 }
 
 pub struct TapFunc<F> {
-    pub f: F
+    pub f: F,
 }
 
 impl<A: 'static, F: Fn(&mut Context, LocalPoint, Option<MouseButton>) -> A> TapFn for TapFunc<F> {
-    fn call(&self, cx: &mut Context, pt: LocalPoint, button: Option<MouseButton>, actions: &mut Vec<Box<dyn Any>>) {
+    fn call(
+        &self,
+        cx: &mut Context,
+        pt: LocalPoint,
+        button: Option<MouseButton>,
+        actions: &mut Vec<Box<dyn Any>>,
+    ) {
         actions.push(Box::new((self.f)(cx, pt, button)))
     }
 }
 
 pub struct TapAdapter<F> {
-    pub f: F
+    pub f: F,
 }
 
 impl<A: 'static, F: Fn(&mut Context) -> A> TapFn for TapAdapter<F> {
-    fn call(&self, cx: &mut Context, _pt: LocalPoint, _button: Option<MouseButton>, actions: &mut Vec<Box<dyn Any>>) {
+    fn call(
+        &self,
+        cx: &mut Context,
+        _pt: LocalPoint,
+        _button: Option<MouseButton>,
+        actions: &mut Vec<Box<dyn Any>>,
+    ) {
         actions.push(Box::new((self.f)(cx)))
     }
 }
 
 pub struct TapActionAdapter<A> {
-    pub action: A
+    pub action: A,
 }
 
 impl<A: Clone + 'static> TapFn for TapActionAdapter<A> {
-    fn call(&self, _cx: &mut Context, _pt: LocalPoint, _button: Option<MouseButton>, actions: &mut Vec<Box<dyn Any>>) {
+    fn call(
+        &self,
+        _cx: &mut Context,
+        _pt: LocalPoint,
+        _button: Option<MouseButton>,
+        actions: &mut Vec<Box<dyn Any>>,
+    ) {
         actions.push(Box::new(self.action.clone()))
     }
 }
