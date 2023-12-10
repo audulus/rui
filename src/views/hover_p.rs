@@ -1,27 +1,52 @@
 use crate::*;
 use std::any::Any;
 
+pub trait HoverFn {
+    fn call(&self, cx: &mut Context, pt: LocalPoint, inside: bool, actions: &mut Vec<Box<dyn Any>>);
+}
+
+pub struct HoverFuncP<F> {
+    pub f: F
+}
+
+impl<A: 'static, F: Fn(&mut Context, LocalPoint) -> A> HoverFn for HoverFuncP<F> {
+    fn call(&self, cx: &mut Context, pt: LocalPoint, inside: bool, actions: &mut Vec<Box<dyn Any>>) {
+        if inside {
+            actions.push(Box::new((self.f)(cx, pt)))
+        }
+    }
+}
+
+pub struct HoverFunc<F> {
+    pub f: F
+}
+
+impl<A: 'static, F: Fn(&mut Context, bool) -> A> HoverFn for HoverFunc<F> {
+    fn call(&self, cx: &mut Context, _pt: LocalPoint, inside: bool, actions: &mut Vec<Box<dyn Any>>) {
+        actions.push(Box::new((self.f)(cx, inside)))
+    }
+}
+
 /// Struct for the `hover_p` gesture.
 pub struct HoverP<V, F> {
     child: V,
     func: F,
 }
 
-impl<V, F, A> HoverP<V, F>
+impl<V, F> HoverP<V, F>
 where
     V: View,
-    F: Fn(&mut Context, LocalPoint) -> A + 'static,
+    F: HoverFn + 'static,
 {
     pub fn new(v: V, f: F) -> Self {
         Self { child: v, func: f }
     }
 }
 
-impl<V, F, A> View for HoverP<V, F>
+impl<V, F> View for HoverP<V, F>
 where
     V: View,
-    F: Fn(&mut Context, LocalPoint) -> A + 'static,
-    A: 'static,
+    F: HoverFn + 'static,
 {
     fn process(
         &self,
@@ -31,8 +56,9 @@ where
         actions: &mut Vec<Box<dyn Any>>,
     ) {
         if let Event::TouchMove { position, .. } = &event {
-            if cx.mouse_button.is_none() && self.hittest(path, *position, cx).is_some() {
-                actions.push(Box::new((self.func)(cx, *position)));
+            if cx.mouse_button.is_none() {
+                let inside = self.hittest(path, *position, cx).is_some();
+                self.func.call(cx, *position, inside, actions);
             }
         }
         path.push(0);

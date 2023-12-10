@@ -58,13 +58,13 @@ pub trait Modifiers: View + Sized {
     }
 
     /// Calls a function in response to a mouse hovering.
-    fn hover<F: Fn(&mut Context, bool) + 'static>(self, f: F) -> Hover<Self, F> {
-        Hover::new(self, f)
+    fn hover<A: 'static, F: Fn(&mut Context, bool) -> A + 'static>(self, f: F) -> HoverP<Self, HoverFunc<F>> {
+        HoverP::new(self, HoverFunc{f})
     }
 
     /// Calls a function in response to a mouse hovering. Version which passes the position
-    fn hover_p<F: Fn(&mut Context, LocalPoint) + 'static>(self, f: F) -> HoverP<Self, F> {
-        HoverP::new(self, f)
+    fn hover_p<A: 'static, F: Fn(&mut Context, LocalPoint) -> A + 'static>(self, f: F) -> HoverP<Self, HoverFuncP<F>> {
+        HoverP::new(self, HoverFuncP{f})
     }
 
     /// Add an environment value.
