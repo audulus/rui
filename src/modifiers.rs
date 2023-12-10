@@ -114,8 +114,8 @@ pub trait Modifiers: View + Sized {
     }
 
     /// Calls a function in response to a tap.
-    fn tap<A: 'static, F: Fn(&mut Context) -> A + 'static>(self, f: F) -> Tap<Self, F> {
-        Tap::new(self, f)
+    fn tap<A: 'static, F: Fn(&mut Context) -> A + 'static>(self, f: F) -> TapP<Self, F, A> {
+        TapP::new(self, TapAdapter::<F>{f})
     }
 
     /// Version of `tap` which takes an action type instead
@@ -128,8 +128,8 @@ pub trait Modifiers: View + Sized {
     fn tap_p<A: 'static, F: Fn(&mut Context, LocalPoint, Option<MouseButton>) -> A + 'static>(
         self,
         f: F,
-    ) -> TapP<Self, F> {
-        TapP::new(self, f)
+    ) -> TapP<Self, F, A> {
+        TapP::new(self, TapFunc::<F>{f})
     }
 
     /// Specify the title of the window.

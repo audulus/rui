@@ -1,29 +1,55 @@
 use crate::*;
 use std::any::Any;
 
+pub trait TapFn<A> {
+    fn call(&self, cx: &mut Context, pt: LocalPoint, button: Option<MouseButton>) -> A;
+}
+
+pub struct TapFunc<F> {
+    pub f: F
+}
+
+impl<A: 'static, F: Fn(&mut Context, LocalPoint, Option<MouseButton>) -> A> TapFn<A> for TapFunc<F> {
+    fn call(&self, cx: &mut Context, pt: LocalPoint, button: Option<MouseButton>) -> A {
+        (self.f)(cx, pt, button)
+    }
+}
+
+pub struct TapAdapter<F> {
+    pub f: F
+}
+
+impl<A: 'static, F: Fn(&mut Context) -> A> TapFn<A> for TapAdapter<F> {
+    fn call(&self, cx: &mut Context, _pt: LocalPoint, _button: Option<MouseButton>) -> A {
+        (self.f)(cx)
+    }
+}
+
 /// Struct for the `tap` gesture.
-pub struct TapP<V: View, F> {
+pub struct TapP<V: View, F, A> {
     /// Child view tree.
     child: V,
 
     /// Called when a tap occurs.
     func: F,
+
+    phantom_a: std::marker::PhantomData<A>
 }
 
-impl<V, F, A> TapP<V, F>
+impl<V, F, A> TapP<V, F, A>
 where
     V: View,
-    F: Fn(&mut Context, LocalPoint, Option<MouseButton>) -> A + 'static,
+    F: TapFn<A> + 'static,
 {
     pub fn new(v: V, f: F) -> Self {
-        Self { child: v, func: f }
+        Self { child: v, func: f, phantom_a: std::marker::PhantomData::default() }
     }
 }
 
-impl<V, F, A> View for TapP<V, F>
+impl<V, F, A> View for TapP<V, F, A>
 where
     V: View,
-    F: Fn(&mut Context, LocalPoint, Option<MouseButton>) -> A + 'static,
+    F: TapFn<A> + 'static,
     A: 'static,
 {
     fn process(
@@ -43,7 +69,7 @@ where
             Event::TouchEnd { id, position } => {
                 if cx.touches[*id] == vid {
                     cx.touches[*id] = ViewId::default();
-                    actions.push(Box::new((self.func)(cx, *position, cx.mouse_button)))
+                    actions.push(Box::new(self.func.call(cx, *position, cx.mouse_button)))
                 }
             }
             _ => (),
@@ -95,4 +121,4 @@ where
     }
 }
 
-impl<V, F> private::Sealed for TapP<V, F> where V: View {}
+impl<V, F, A> private::Sealed for TapP<V, F, A> where V: View {}
