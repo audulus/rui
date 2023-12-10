@@ -32,8 +32,6 @@ mod handle;
 pub use handle::*;
 mod hover;
 pub use hover::*;
-mod hover_p;
-pub use hover_p::*;
 mod key;
 pub use key::*;
 mod knob;
