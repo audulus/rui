@@ -1,17 +1,17 @@
 use crate::*;
 use std::any::Any;
 
-pub trait TapFn<A> {
-    fn call(&self, cx: &mut Context, pt: LocalPoint, button: Option<MouseButton>) -> A;
+pub trait TapFn {
+    fn call(&self, cx: &mut Context, pt: LocalPoint, button: Option<MouseButton>, actions: &mut Vec<Box<dyn Any>>);
 }
 
 pub struct TapFunc<F> {
     pub f: F
 }
 
-impl<A: 'static, F: Fn(&mut Context, LocalPoint, Option<MouseButton>) -> A> TapFn<A> for TapFunc<F> {
-    fn call(&self, cx: &mut Context, pt: LocalPoint, button: Option<MouseButton>) -> A {
-        (self.f)(cx, pt, button)
+impl<A: 'static, F: Fn(&mut Context, LocalPoint, Option<MouseButton>) -> A> TapFn for TapFunc<F> {
+    fn call(&self, cx: &mut Context, pt: LocalPoint, button: Option<MouseButton>, actions: &mut Vec<Box<dyn Any>>) {
+        actions.push(Box::new((self.f)(cx, pt, button)))
     }
 }
 
@@ -19,9 +19,9 @@ pub struct TapAdapter<F> {
     pub f: F
 }
 
-impl<A: 'static, F: Fn(&mut Context) -> A> TapFn<A> for TapAdapter<F> {
-    fn call(&self, cx: &mut Context, _pt: LocalPoint, _button: Option<MouseButton>) -> A {
-        (self.f)(cx)
+impl<A: 'static, F: Fn(&mut Context) -> A> TapFn for TapAdapter<F> {
+    fn call(&self, cx: &mut Context, _pt: LocalPoint, _button: Option<MouseButton>, actions: &mut Vec<Box<dyn Any>>) {
+        actions.push(Box::new((self.f)(cx)))
     }
 }
 
@@ -29,38 +29,35 @@ pub struct TapActionAdapter<A> {
     pub action: A
 }
 
-impl<A: Clone + 'static> TapFn<A> for TapActionAdapter<A> {
-    fn call(&self, _cx: &mut Context, _pt: LocalPoint, _button: Option<MouseButton>) -> A {
-        self.action.clone()
+impl<A: Clone + 'static> TapFn for TapActionAdapter<A> {
+    fn call(&self, _cx: &mut Context, _pt: LocalPoint, _button: Option<MouseButton>, actions: &mut Vec<Box<dyn Any>>) {
+        actions.push(Box::new(self.action.clone()))
     }
 }
 
 /// Struct for the `tap` gesture.
-pub struct Tap<V: View, F, A> {
+pub struct Tap<V: View, F> {
     /// Child view tree.
     child: V,
 
     /// Called when a tap occurs.
     func: F,
-
-    phantom_a: std::marker::PhantomData<A>
 }
 
-impl<V, F, A> Tap<V, F, A>
+impl<V, F> Tap<V, F>
 where
     V: View,
-    F: TapFn<A> + 'static,
+    F: TapFn + 'static,
 {
     pub fn new(v: V, f: F) -> Self {
-        Self { child: v, func: f, phantom_a: std::marker::PhantomData::default() }
+        Self { child: v, func: f }
     }
 }
 
-impl<V, F, A> View for Tap<V, F, A>
+impl<V, F> View for Tap<V, F>
 where
     V: View,
-    F: TapFn<A> + 'static,
-    A: 'static,
+    F: TapFn + 'static,
 {
     fn process(
         &self,
@@ -79,7 +76,7 @@ where
             Event::TouchEnd { id, position } => {
                 if cx.touches[*id] == vid {
                     cx.touches[*id] = ViewId::default();
-                    actions.push(Box::new(self.func.call(cx, *position, cx.mouse_button)))
+                    self.func.call(cx, *position, cx.mouse_button, actions)
                 }
             }
             _ => (),
@@ -131,4 +128,4 @@ where
     }
 }
 
-impl<V, F, A> private::Sealed for Tap<V, F, A> where V: View {}
+impl<V, F> private::Sealed for Tap<V, F> where V: View {}

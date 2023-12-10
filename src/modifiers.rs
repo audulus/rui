@@ -114,22 +114,22 @@ pub trait Modifiers: View + Sized {
     }
 
     /// Calls a function in response to a tap.
-    fn tap<A: 'static, F: Fn(&mut Context) -> A + 'static>(self, f: F) -> Tap<Self, TapAdapter::<F>, A> {
-        Tap::new(self, TapAdapter::<F>{f})
+    fn tap<A: 'static, F: Fn(&mut Context) -> A + 'static>(self, f: F) -> Tap<Self, TapAdapter<F>> {
+        Tap::new(self, TapAdapter{f})
     }
 
     /// Version of `tap` which takes an action type instead
     /// of a function.
-    fn tap_a<A: Clone + 'static>(self, action: A) -> Tap<Self, TapActionAdapter::<A>, A> {
-        Tap::new(self, TapActionAdapter::<A>{action})
+    fn tap_a<A: Clone + 'static>(self, action: A) -> Tap<Self, TapActionAdapter<A>> {
+        Tap::new(self, TapActionAdapter{action})
     }
 
     /// Version of `tap` which passes the tap position and mouse button.
     fn tap_p<A: 'static, F: Fn(&mut Context, LocalPoint, Option<MouseButton>) -> A + 'static>(
         self,
         f: F,
-    ) -> Tap<Self, TapFunc::<F>, A> {
-        Tap::new(self, TapFunc::<F>{f})
+    ) -> Tap<Self, TapFunc<F>> {
+        Tap::new(self, TapFunc{f})
     }
 
     /// Specify the title of the window.
