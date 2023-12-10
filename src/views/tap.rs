@@ -30,7 +30,7 @@ pub struct TapActionAdapter<A> {
 }
 
 impl<A: Clone + 'static> TapFn<A> for TapActionAdapter<A> {
-    fn call(&self, cx: &mut Context, _pt: LocalPoint, _button: Option<MouseButton>) -> A {
+    fn call(&self, _cx: &mut Context, _pt: LocalPoint, _button: Option<MouseButton>) -> A {
         self.action.clone()
     }
 }
