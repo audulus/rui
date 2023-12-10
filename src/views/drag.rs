@@ -8,17 +8,69 @@ pub enum GestureState {
     Ended,
 }
 
-/// Struct for the `drag` gesture.
+pub trait DragFn {
+    fn call(
+        &self,
+        cx: &mut Context,
+        pt: LocalPoint,
+        delta: LocalOffset,
+        state: GestureState,
+        button: Option<MouseButton>,
+        actions: &mut Vec<Box<dyn Any>>,
+    );
+}
+
+pub struct DragFunc<F> {
+    pub f: F,
+}
+
+impl<A: 'static, F: Fn(&mut Context, LocalOffset, GestureState, Option<MouseButton>) -> A> DragFn
+    for DragFunc<F>
+{
+    fn call(
+        &self,
+        cx: &mut Context,
+        _pt: LocalPoint,
+        delta: LocalOffset,
+        state: GestureState,
+        button: Option<MouseButton>,
+        actions: &mut Vec<Box<dyn Any>>,
+    ) {
+        actions.push(Box::new((self.f)(cx, delta, state, button)))
+    }
+}
+
+pub struct DragFuncP<F> {
+    pub f: F,
+}
+
+impl<A: 'static, F: Fn(&mut Context, LocalPoint, GestureState, Option<MouseButton>) -> A> DragFn
+    for DragFuncP<F>
+{
+    fn call(
+        &self,
+        cx: &mut Context,
+        pt: LocalPoint,
+        _delta: LocalOffset,
+        state: GestureState,
+        button: Option<MouseButton>,
+        actions: &mut Vec<Box<dyn Any>>,
+    ) {
+        actions.push(Box::new((self.f)(cx, pt, state, button)))
+    }
+}
+
+/// Struct for the `drag` and `drag_p` gestures.
 pub struct Drag<V, F> {
     child: V,
     func: F,
     grab: bool,
 }
 
-impl<V, F, A> Drag<V, F>
+impl<V, F> Drag<V, F>
 where
     V: View,
-    F: Fn(&mut Context, LocalOffset, GestureState, Option<MouseButton>) -> A + 'static,
+    F: DragFn + 'static,
 {
     pub fn new(v: V, f: F) -> Self {
         Self {
@@ -28,20 +80,19 @@ where
         }
     }
 
-    pub fn grab_cursor(self) -> Self {
+    pub fn grab_cursor(v: V, f: F) -> Self {
         Self {
-            child: self.child,
-            func: self.func,
+            child: v,
+            func: f,
             grab: true,
         }
     }
 }
 
-impl<V, F, A> View for Drag<V, F>
+impl<V, F> View for Drag<V, F>
 where
     V: View,
-    F: Fn(&mut Context, LocalOffset, GestureState, Option<MouseButton>) -> A + 'static,
-    A: 'static,
+    F: DragFn + 'static,
 {
     fn process(
         &self,
@@ -59,12 +110,14 @@ where
                     cx.previous_position[*id] = *position;
                     cx.grab_cursor = self.grab;
 
-                    actions.push(Box::new((self.func)(
+                    self.func.call(
                         cx,
-                        [0.0, 0.0].into(),
+                        *position,
+                        LocalOffset::zero(),
                         GestureState::Began,
                         cx.mouse_button,
-                    )));
+                        actions,
+                    );
                 }
             }
             Event::TouchMove {
@@ -73,25 +126,30 @@ where
                 delta,
             } => {
                 if cx.touches[*id] == vid {
-                    actions.push(Box::new((self.func)(
+                    self.func.call(
                         cx,
+                        *position,
                         *delta,
                         GestureState::Changed,
                         cx.mouse_button,
-                    )));
+                        actions,
+                    );
                     cx.previous_position[*id] = *position;
                 }
             }
-            Event::TouchEnd { id, .. } => {
+            Event::TouchEnd { id, position } => {
                 if cx.touches[*id] == vid {
                     cx.touches[*id] = ViewId::default();
                     cx.grab_cursor = false;
-                    actions.push(Box::new((self.func)(
+
+                    self.func.call(
                         cx,
+                        *position,
                         LocalOffset::zero(),
                         GestureState::Ended,
                         cx.mouse_button,
-                    )));
+                        actions,
+                    );
                 }
             }
             _ => (),

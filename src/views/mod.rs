@@ -16,8 +16,6 @@ mod cond;
 pub use cond::*;
 mod drag;
 pub use drag::*;
-mod drag_p;
-pub use drag_p::*;
 mod emptyview;
 pub use emptyview::*;
 mod env;

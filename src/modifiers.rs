@@ -32,16 +32,16 @@ pub trait Modifiers: View + Sized {
     fn drag<F: Fn(&mut Context, LocalOffset, GestureState, Option<MouseButton>) + 'static>(
         self,
         f: F,
-    ) -> Drag<Self, F> {
-        Drag::new(self, f)
+    ) -> Drag<Self, DragFunc<F>> {
+        Drag::new(self, DragFunc { f })
     }
 
     /// Calls a function in response to a drag. Version which passes the position.
     fn drag_p<F: Fn(&mut Context, LocalPoint, GestureState, Option<MouseButton>) + 'static>(
         self,
         f: F,
-    ) -> DragP<Self, DragFuncP<F>> {
-        DragP::new(self, DragFuncP { f })
+    ) -> Drag<Self, DragFuncP<F>> {
+        Drag::new(self, DragFuncP { f })
     }
 
     /// Calls a function in response to a drag. Version which passes in a binding.
