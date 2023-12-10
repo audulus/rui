@@ -40,8 +40,8 @@ pub trait Modifiers: View + Sized {
     fn drag_p<F: Fn(&mut Context, LocalPoint, GestureState, Option<MouseButton>) + 'static>(
         self,
         f: F,
-    ) -> DragP<Self, F> {
-        DragP::new(self, f)
+    ) -> DragP<Self, DragFuncP<F>> {
+        DragP::new(self, DragFuncP{f})
     }
 
     /// Calls a function in response to a drag. Version which passes in a binding.

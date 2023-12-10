@@ -2,6 +2,36 @@ pub use super::drag::GestureState;
 use crate::*;
 use std::any::Any;
 
+pub trait DragFn {
+    fn call(
+        &self,
+        cx: &mut Context,
+        pt: LocalPoint,
+        state: GestureState,
+        button: Option<MouseButton>,
+        actions: &mut Vec<Box<dyn Any>>,
+    );
+}
+
+pub struct DragFuncP<F> {
+    pub f: F,
+}
+
+impl<A: 'static, F: Fn(&mut Context, LocalPoint, GestureState, Option<MouseButton>) -> A> DragFn
+    for DragFuncP<F>
+{
+    fn call(
+        &self,
+        cx: &mut Context,
+        pt: LocalPoint,
+        state: GestureState,
+        button: Option<MouseButton>,
+        actions: &mut Vec<Box<dyn Any>>,
+    ) {
+        actions.push(Box::new((self.f)(cx, pt, state, button)))
+    }
+}
+
 /// Struct for the `drag_p` gesture.
 pub struct DragP<V, F> {
     child: V,
@@ -9,10 +39,10 @@ pub struct DragP<V, F> {
     grab: bool,
 }
 
-impl<V, F, A> DragP<V, F>
+impl<V, F> DragP<V, F>
 where
     V: View,
-    F: Fn(&mut Context, LocalPoint, GestureState, Option<MouseButton>) -> A + 'static,
+    F: DragFn + 'static,
 {
     pub fn new(v: V, f: F) -> Self {
         Self {
@@ -31,11 +61,10 @@ where
     }
 }
 
-impl<V, F, A> View for DragP<V, F>
+impl<V, F> View for DragP<V, F>
 where
     V: View,
-    F: Fn(&mut Context, LocalPoint, GestureState, Option<MouseButton>) -> A + 'static,
-    A: 'static,
+    F: DragFn + 'static,
 {
     fn process(
         &self,
@@ -53,12 +82,7 @@ where
                     cx.previous_position[*id] = *position;
                     cx.grab_cursor = self.grab;
 
-                    actions.push(Box::new((self.func)(
-                        cx,
-                        *position,
-                        GestureState::Began,
-                        cx.mouse_button,
-                    )));
+                    self.func.call(cx, *position, GestureState::Began, cx.mouse_button, actions);
                 }
             }
             Event::TouchMove {
@@ -67,12 +91,8 @@ where
                 delta: _,
             } => {
                 if cx.touches[*id] == vid {
-                    actions.push(Box::new((self.func)(
-                        cx,
-                        *position,
-                        GestureState::Changed,
-                        cx.mouse_button,
-                    )));
+
+                    self.func.call(cx, *position, GestureState::Changed, cx.mouse_button, actions);
                     cx.previous_position[*id] = *position;
                 }
             }
@@ -80,12 +100,8 @@ where
                 if cx.touches[*id] == vid {
                     cx.touches[*id] = ViewId::default();
                     cx.grab_cursor = false;
-                    actions.push(Box::new((self.func)(
-                        cx,
-                        *position,
-                        GestureState::Ended,
-                        cx.mouse_button,
-                    )));
+
+                    self.func.call(cx, *position, GestureState::Ended, cx.mouse_button, actions);
                 }
             }
             _ => (),
