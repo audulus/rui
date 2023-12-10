@@ -36,6 +36,14 @@ pub trait Modifiers: View + Sized {
         Drag::new(self, f)
     }
 
+    /// Calls a function in response to a drag. Version which passes the position.
+    fn drag_p<F: Fn(&mut Context, LocalPoint, GestureState, Option<MouseButton>) + 'static>(
+        self,
+        f: F,
+    ) -> DragP<Self, F> {
+        DragP::new(self, f)
+    }
+
     /// Calls a function in response to a drag. Version which passes in a binding.
     fn drag_s<
         T: 'static,
@@ -52,6 +60,11 @@ pub trait Modifiers: View + Sized {
     /// Calls a function in response to a mouse hovering.
     fn hover<F: Fn(&mut Context, bool) + 'static>(self, f: F) -> Hover<Self, F> {
         Hover::new(self, f)
+    }
+
+    /// Calls a function in response to a mouse hovering. Version which passes the position
+    fn hover_p<F: Fn(&mut Context, LocalPoint) + 'static>(self, f: F) -> HoverP<Self, F> {
+        HoverP::new(self, f)
     }
 
     /// Add an environment value.
@@ -109,6 +122,14 @@ pub trait Modifiers: View + Sized {
     /// of a function.
     fn tap_a<A: 'static>(self, action: A) -> TapA<Self, A> {
         TapA::new(self, action)
+    }
+
+    /// Version of `tap` which passes the tap position and mouse button.
+    fn tap_p<A: 'static, F: Fn(&mut Context, LocalPoint, Option<MouseButton>) -> A + 'static>(
+        self,
+        f: F,
+    ) -> TapP<Self, F> {
+        TapP::new(self, f)
     }
 
     /// Specify the title of the window.
