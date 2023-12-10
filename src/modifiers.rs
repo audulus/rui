@@ -1,5 +1,7 @@
+
 use crate::*;
 use accesskit::Role;
+use std::marker::PhantomData;
 
 /// Modifiers common to all views.
 pub trait Modifiers: View + Sized {
@@ -51,10 +53,10 @@ pub trait Modifiers: View + Sized {
         F: Fn(&mut T, LocalOffset, GestureState, Option<MouseButton>) + 'static,
     >(
         self,
-        s: B,
+        b: B,
         f: F,
-    ) -> DragS<Self, F, B, T> {
-        DragS::new(self, s, f)
+    ) -> Drag<Self, DragFuncS<F, B, T>> {
+        Drag::new(self, DragFuncS { f, b, phantom: PhantomData::default() })
     }
 
     /// Calls a function in response to a mouse hovering.

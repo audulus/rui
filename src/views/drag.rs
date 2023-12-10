@@ -1,5 +1,6 @@
 use crate::*;
 use std::any::Any;
+use std::marker::PhantomData;
 
 #[derive(Clone, Copy, Eq, PartialEq, Debug)]
 pub enum GestureState {
@@ -60,6 +61,37 @@ impl<A: 'static, F: Fn(&mut Context, LocalPoint, GestureState, Option<MouseButto
     }
 }
 
+pub struct DragFuncS<F, B, T> {
+    pub f: F,
+    pub b: B,
+    pub phantom: PhantomData<T>,
+}
+
+impl<
+        F: Fn(&mut T, LocalOffset, GestureState, Option<MouseButton>) -> A + 'static,
+        B: Binding<T>,
+        A: 'static,
+        T: 'static,
+    > DragFn for DragFuncS<F, B, T>
+{
+    fn call(
+        &self,
+        cx: &mut Context,
+        _pt: LocalPoint,
+        delta: LocalOffset,
+        state: GestureState,
+        button: Option<MouseButton>,
+        actions: &mut Vec<Box<dyn Any>>,
+    ) {
+        actions.push(Box::new((self.f)(
+            self.b.get_mut(cx),
+            delta,
+            state,
+            button,
+        )))
+    }
+}
+
 /// Struct for the `drag` and `drag_p` gestures.
 pub struct Drag<V, F> {
     child: V,
@@ -80,10 +112,10 @@ where
         }
     }
 
-    pub fn grab_cursor(v: V, f: F) -> Self {
+    pub fn grab_cursor(self) -> Self {
         Self {
-            child: v,
-            func: f,
+            child: self.child,
+            func: self.func,
             grab: true,
         }
     }
@@ -208,159 +240,6 @@ where
 }
 
 impl<V, F> private::Sealed for Drag<V, F> {}
-
-/// Struct for the `drag` gesture.
-pub struct DragS<V, F, B, T> {
-    child: V,
-    func: F,
-    binding: B,
-    phantom: std::marker::PhantomData<T>,
-    grab: bool,
-}
-
-impl<V, F, A, B, T> DragS<V, F, B, T>
-where
-    V: View,
-    F: Fn(&mut T, LocalOffset, GestureState, Option<MouseButton>) -> A + 'static,
-    B: Binding<T>,
-    A: 'static,
-    T: 'static,
-{
-    pub fn new(v: V, b: B, f: F) -> Self {
-        Self {
-            child: v,
-            func: f,
-            binding: b,
-            phantom: std::marker::PhantomData::default(),
-            grab: false,
-        }
-    }
-
-    pub fn grab_cursor(self) -> Self {
-        Self {
-            child: self.child,
-            func: self.func,
-            binding: self.binding,
-            phantom: std::marker::PhantomData::default(),
-            grab: true,
-        }
-    }
-}
-
-impl<V, F, A, B, T> View for DragS<V, F, B, T>
-where
-    V: View,
-    F: Fn(&mut T, LocalOffset, GestureState, Option<MouseButton>) -> A + 'static,
-    B: Binding<T>,
-    A: 'static,
-    T: 'static,
-{
-    fn process(
-        &self,
-        event: &Event,
-        path: &mut IdPath,
-        cx: &mut Context,
-        actions: &mut Vec<Box<dyn Any>>,
-    ) {
-        let vid = cx.view_id(path);
-        match &event {
-            Event::TouchBegin { id, position } => {
-                if self.hittest(path, *position, cx).is_some() {
-                    cx.touches[*id] = vid;
-                    cx.starts[*id] = *position;
-                    cx.previous_position[*id] = *position;
-                    cx.grab_cursor = self.grab;
-                }
-            }
-            Event::TouchMove {
-                id,
-                position,
-                delta,
-            } => {
-                if cx.touches[*id] == vid {
-                    let button = cx.mouse_button;
-                    actions.push(Box::new((self.func)(
-                        self.binding.get_mut(cx),
-                        *delta,
-                        GestureState::Changed,
-                        button,
-                    )));
-                    cx.previous_position[*id] = *position;
-                }
-            }
-            Event::TouchEnd { id, .. } => {
-                if cx.touches[*id] == vid {
-                    cx.touches[*id] = ViewId::default();
-                    cx.grab_cursor = false;
-                    let button = cx.mouse_button;
-                    actions.push(Box::new((self.func)(
-                        self.binding.get_mut(cx),
-                        LocalOffset::zero(),
-                        GestureState::Ended,
-                        button,
-                    )));
-                }
-            }
-            _ => {
-                path.push(0);
-                self.child.process(event, path, cx, actions);
-                path.pop();
-            }
-        }
-    }
-
-    fn draw(&self, path: &mut IdPath, args: &mut DrawArgs) {
-        path.push(0);
-        self.child.draw(path, args);
-        path.pop();
-    }
-
-    fn layout(&self, path: &mut IdPath, args: &mut LayoutArgs) -> LocalSize {
-        path.push(0);
-        let sz = self.child.layout(path, args);
-        path.pop();
-        sz
-    }
-
-    fn dirty(&self, path: &mut IdPath, xform: LocalToWorld, cx: &mut Context) {
-        path.push(0);
-        self.child.dirty(path, xform, cx);
-        path.pop();
-    }
-
-    fn hittest(&self, path: &mut IdPath, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
-        path.push(0);
-        let id = self.child.hittest(path, pt, cx);
-        path.pop();
-        id
-    }
-
-    fn commands(&self, path: &mut IdPath, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
-        path.push(0);
-        self.child.commands(path, cx, cmds);
-        path.pop();
-    }
-
-    fn gc(&self, path: &mut IdPath, cx: &mut Context, map: &mut Vec<ViewId>) {
-        path.push(0);
-        self.child.gc(path, cx, map);
-        path.pop();
-    }
-
-    fn access(
-        &self,
-        path: &mut IdPath,
-        cx: &mut Context,
-        nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
-    ) -> Option<accesskit::NodeId> {
-        path.push(0);
-        let node_id = self.child.access(path, cx, nodes);
-        path.pop();
-        node_id
-    }
-}
-
-impl<V, F, B, T> private::Sealed for DragS<V, F, B, T> {}
 
 #[cfg(test)]
 mod tests {
