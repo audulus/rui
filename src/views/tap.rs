@@ -26,7 +26,7 @@ impl<A: 'static, F: Fn(&mut Context) -> A> TapFn<A> for TapAdapter<F> {
 }
 
 /// Struct for the `tap` gesture.
-pub struct TapP<V: View, F, A> {
+pub struct Tap<V: View, F, A> {
     /// Child view tree.
     child: V,
 
@@ -36,7 +36,7 @@ pub struct TapP<V: View, F, A> {
     phantom_a: std::marker::PhantomData<A>
 }
 
-impl<V, F, A> TapP<V, F, A>
+impl<V, F, A> Tap<V, F, A>
 where
     V: View,
     F: TapFn<A> + 'static,
@@ -46,7 +46,7 @@ where
     }
 }
 
-impl<V, F, A> View for TapP<V, F, A>
+impl<V, F, A> View for Tap<V, F, A>
 where
     V: View,
     F: TapFn<A> + 'static,
@@ -121,7 +121,7 @@ where
     }
 }
 
-impl<V, F, A> private::Sealed for TapP<V, F, A> where V: View {}
+impl<V, F, A> private::Sealed for Tap<V, F, A> where V: View {}
 
 /// Struct for the `tap_a` gesture.
 pub struct TapA<V: View, A> {
