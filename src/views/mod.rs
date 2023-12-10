@@ -67,8 +67,6 @@ mod state;
 pub use state::*;
 mod tap;
 pub use tap::*;
-mod tap_p;
-pub use tap_p::*;
 mod text_editor;
 pub use text_editor::*;
 mod text;
