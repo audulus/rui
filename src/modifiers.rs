@@ -120,8 +120,8 @@ pub trait Modifiers: View + Sized {
 
     /// Version of `tap` which takes an action type instead
     /// of a function.
-    fn tap_a<A: 'static>(self, action: A) -> TapA<Self, A> {
-        TapA::new(self, action)
+    fn tap_a<A: Clone + 'static>(self, action: A) -> Tap<Self, TapActionAdapter::<A>, A> {
+        Tap::new(self, TapActionAdapter::<A>{action})
     }
 
     /// Version of `tap` which passes the tap position and mouse button.
