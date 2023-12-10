@@ -41,7 +41,7 @@ pub trait Modifiers: View + Sized {
         self,
         f: F,
     ) -> DragP<Self, DragFuncP<F>> {
-        DragP::new(self, DragFuncP{f})
+        DragP::new(self, DragFuncP { f })
     }
 
     /// Calls a function in response to a drag. Version which passes in a binding.

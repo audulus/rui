@@ -7,6 +7,7 @@ pub trait DragFn {
         &self,
         cx: &mut Context,
         pt: LocalPoint,
+        delta: LocalOffset,
         state: GestureState,
         button: Option<MouseButton>,
         actions: &mut Vec<Box<dyn Any>>,
@@ -24,6 +25,7 @@ impl<A: 'static, F: Fn(&mut Context, LocalPoint, GestureState, Option<MouseButto
         &self,
         cx: &mut Context,
         pt: LocalPoint,
+        _delta: LocalOffset,
         state: GestureState,
         button: Option<MouseButton>,
         actions: &mut Vec<Box<dyn Any>>,
@@ -82,17 +84,30 @@ where
                     cx.previous_position[*id] = *position;
                     cx.grab_cursor = self.grab;
 
-                    self.func.call(cx, *position, GestureState::Began, cx.mouse_button, actions);
+                    self.func.call(
+                        cx,
+                        *position,
+                        LocalOffset::zero(),
+                        GestureState::Began,
+                        cx.mouse_button,
+                        actions,
+                    );
                 }
             }
             Event::TouchMove {
                 id,
                 position,
-                delta: _,
+                delta,
             } => {
                 if cx.touches[*id] == vid {
-
-                    self.func.call(cx, *position, GestureState::Changed, cx.mouse_button, actions);
+                    self.func.call(
+                        cx,
+                        *position,
+                        *delta,
+                        GestureState::Changed,
+                        cx.mouse_button,
+                        actions,
+                    );
                     cx.previous_position[*id] = *position;
                 }
             }
@@ -101,7 +116,14 @@ where
                     cx.touches[*id] = ViewId::default();
                     cx.grab_cursor = false;
 
-                    self.func.call(cx, *position, GestureState::Ended, cx.mouse_button, actions);
+                    self.func.call(
+                        cx,
+                        *position,
+                        LocalOffset::zero(),
+                        GestureState::Ended,
+                        cx.mouse_button,
+                        actions,
+                    );
                 }
             }
             _ => (),
