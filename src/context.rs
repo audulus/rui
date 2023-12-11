@@ -136,10 +136,15 @@ pub struct Context {
 
 thread_local! {
     pub(crate) static CONTEXT: RefCell<Context> = RefCell::new(Context::new());
+    pub(crate) static STATE_MAP: RefCell<StateMap> = RefCell::new(StateMap::new());
 }
 
 pub(crate) fn with_context<T>(id: ContextId, f: impl FnOnce(&mut Context) -> T) -> T {
     CONTEXT.with(|cx| f(&mut cx.borrow_mut()))
+}
+
+pub(crate) fn with_state<T>(f: impl FnOnce(&mut StateMap) -> T) -> T {
+    STATE_MAP.with(|map| f(&mut map.borrow_mut()))
 }
 
 impl Default for Context {
