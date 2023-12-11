@@ -1,5 +1,7 @@
+
 use crate::*;
 use accesskit::Role;
+use std::marker::PhantomData;
 
 /// Modifiers common to all views.
 pub trait Modifiers: View + Sized {
@@ -32,8 +34,16 @@ pub trait Modifiers: View + Sized {
     fn drag<F: Fn(&mut Context, LocalOffset, GestureState, Option<MouseButton>) + 'static>(
         self,
         f: F,
-    ) -> Drag<Self, F> {
-        Drag::new(self, f)
+    ) -> Drag<Self, DragFunc<F>> {
+        Drag::new(self, DragFunc { f })
+    }
+
+    /// Calls a function in response to a drag. Version which passes the position.
+    fn drag_p<F: Fn(&mut Context, LocalPoint, GestureState, Option<MouseButton>) + 'static>(
+        self,
+        f: F,
+    ) -> Drag<Self, DragFuncP<F>> {
+        Drag::new(self, DragFuncP { f })
     }
 
     /// Calls a function in response to a drag. Version which passes in a binding.
@@ -43,15 +53,26 @@ pub trait Modifiers: View + Sized {
         F: Fn(&mut T, LocalOffset, GestureState, Option<MouseButton>) + 'static,
     >(
         self,
-        s: B,
+        b: B,
         f: F,
-    ) -> DragS<Self, F, B, T> {
-        DragS::new(self, s, f)
+    ) -> Drag<Self, DragFuncS<F, B, T>> {
+        Drag::new(self, DragFuncS { f, b, phantom: PhantomData::default() })
     }
 
     /// Calls a function in response to a mouse hovering.
-    fn hover<F: Fn(&mut Context, bool) + 'static>(self, f: F) -> Hover<Self, F> {
-        Hover::new(self, f)
+    fn hover<A: 'static, F: Fn(&mut Context, bool) -> A + 'static>(
+        self,
+        f: F,
+    ) -> Hover<Self, HoverFunc<F>> {
+        Hover::new(self, HoverFunc { f })
+    }
+
+    /// Calls a function in response to a mouse hovering. Version which passes the position
+    fn hover_p<A: 'static, F: Fn(&mut Context, LocalPoint) -> A + 'static>(
+        self,
+        f: F,
+    ) -> Hover<Self, HoverFuncP<F>> {
+        Hover::new(self, HoverFuncP { f })
     }
 
     /// Add an environment value.
@@ -101,14 +122,22 @@ pub trait Modifiers: View + Sized {
     }
 
     /// Calls a function in response to a tap.
-    fn tap<A: 'static, F: Fn(&mut Context) -> A + 'static>(self, f: F) -> Tap<Self, F> {
-        Tap::new(self, f)
+    fn tap<A: 'static, F: Fn(&mut Context) -> A + 'static>(self, f: F) -> Tap<Self, TapAdapter<F>> {
+        Tap::new(self, TapAdapter { f })
     }
 
     /// Version of `tap` which takes an action type instead
     /// of a function.
-    fn tap_a<A: 'static>(self, action: A) -> TapA<Self, A> {
-        TapA::new(self, action)
+    fn tap_a<A: Clone + 'static>(self, action: A) -> Tap<Self, TapActionAdapter<A>> {
+        Tap::new(self, TapActionAdapter { action })
+    }
+
+    /// Version of `tap` which passes the tap position and mouse button.
+    fn tap_p<A: 'static, F: Fn(&mut Context, LocalPoint, Option<MouseButton>) -> A + 'static>(
+        self,
+        f: F,
+    ) -> Tap<Self, TapFunc<F>> {
+        Tap::new(self, TapFunc { f })
     }
 
     /// Specify the title of the window.

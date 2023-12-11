@@ -369,16 +369,36 @@ pub fn rui(view: impl View) {
                     if let Some(code) = input.virtual_keycode {
                         let key = match code {
                             // VirtualKeyCode::Character(c) => Some(Key::Character(c)),
-                            VirtualKeyCode::Key1 => Some(Key::Character('1')),
-                            VirtualKeyCode::Key2 => Some(Key::Character('2')),
-                            VirtualKeyCode::Key3 => Some(Key::Character('3')),
-                            VirtualKeyCode::Key4 => Some(Key::Character('4')),
-                            VirtualKeyCode::Key5 => Some(Key::Character('5')),
-                            VirtualKeyCode::Key6 => Some(Key::Character('6')),
-                            VirtualKeyCode::Key7 => Some(Key::Character('7')),
-                            VirtualKeyCode::Key8 => Some(Key::Character('8')),
-                            VirtualKeyCode::Key9 => Some(Key::Character('9')),
-                            VirtualKeyCode::Key0 => Some(Key::Character('0')),
+                            VirtualKeyCode::Key1 => {
+                                Some(Key::Character(if cx.key_mods.shift { '!' } else { '1' }))
+                            }
+                            VirtualKeyCode::Key2 => {
+                                Some(Key::Character(if cx.key_mods.shift { '@' } else { '2' }))
+                            }
+                            VirtualKeyCode::Key3 => {
+                                Some(Key::Character(if cx.key_mods.shift { '#' } else { '3' }))
+                            }
+                            VirtualKeyCode::Key4 => {
+                                Some(Key::Character(if cx.key_mods.shift { '$' } else { '4' }))
+                            }
+                            VirtualKeyCode::Key5 => {
+                                Some(Key::Character(if cx.key_mods.shift { '%' } else { '5' }))
+                            }
+                            VirtualKeyCode::Key6 => {
+                                Some(Key::Character(if cx.key_mods.shift { '^' } else { '6' }))
+                            }
+                            VirtualKeyCode::Key7 => {
+                                Some(Key::Character(if cx.key_mods.shift { '&' } else { '7' }))
+                            }
+                            VirtualKeyCode::Key8 => {
+                                Some(Key::Character(if cx.key_mods.shift { '*' } else { '8' }))
+                            }
+                            VirtualKeyCode::Key9 => {
+                                Some(Key::Character(if cx.key_mods.shift { '(' } else { '9' }))
+                            }
+                            VirtualKeyCode::Key0 => {
+                                Some(Key::Character(if cx.key_mods.shift { ')' } else { '0' }))
+                            }
                             VirtualKeyCode::A => {
                                 Some(Key::Character(if cx.key_mods.shift { 'A' } else { 'a' }))
                             }
@@ -457,12 +477,33 @@ pub fn rui(view: impl View) {
                             VirtualKeyCode::Z => {
                                 Some(Key::Character(if cx.key_mods.shift { 'Z' } else { 'z' }))
                             }
-                            VirtualKeyCode::Semicolon => Some(Key::Character(';')),
-                            VirtualKeyCode::Colon => Some(Key::Character(';')),
+                            VirtualKeyCode::Semicolon => {
+                                Some(Key::Character(if cx.key_mods.shift { ':' } else { ';' }))
+                            }
+                            VirtualKeyCode::Colon => Some(Key::Character(':')),
                             VirtualKeyCode::Caret => Some(Key::Character('^')),
                             VirtualKeyCode::Asterisk => Some(Key::Character('*')),
-                            VirtualKeyCode::Period => Some(Key::Character('.')),
-                            VirtualKeyCode::Comma => Some(Key::Character(',')),
+                            VirtualKeyCode::Period => {
+                                Some(Key::Character(if cx.key_mods.shift { '>' } else { '.' }))
+                            }
+                            VirtualKeyCode::Comma => {
+                                Some(Key::Character(if cx.key_mods.shift { '<' } else { ',' }))
+                            }
+                            VirtualKeyCode::Equals | VirtualKeyCode::NumpadEquals => {
+                                Some(Key::Character('='))
+                            }
+                            VirtualKeyCode::Plus | VirtualKeyCode::NumpadAdd => {
+                                Some(Key::Character('+'))
+                            }
+                            VirtualKeyCode::Minus | VirtualKeyCode::NumpadSubtract => {
+                                Some(Key::Character(if cx.key_mods.shift { '_' } else { '-' }))
+                            }
+                            VirtualKeyCode::Slash | VirtualKeyCode::NumpadDivide => {
+                                Some(Key::Character(if cx.key_mods.shift { '?' } else { '/' }))
+                            }
+                            VirtualKeyCode::Grave => {
+                                Some(Key::Character(if cx.key_mods.shift { '~' } else { '`' }))
+                            }
                             VirtualKeyCode::Return => Some(Key::Enter),
                             VirtualKeyCode::Tab => Some(Key::Tab),
                             VirtualKeyCode::Space => Some(Key::Space),
