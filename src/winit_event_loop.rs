@@ -168,7 +168,7 @@ pub fn rui(view: impl View) {
     }
 
     let mut vger = Vger::new(device.clone(), queue.clone(), config.format);
-    let mut cx = Context::new();
+    let mut cx = Box::leak(Box::new(Context::new());
     let mut mouse_position = LocalPoint::zero();
 
     let mut commands: Vec<CommandInfo> = Vec::new();
