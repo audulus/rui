@@ -23,7 +23,7 @@ where
     ) {
         let id = cx.view_id(path);
         cx.set_state(id, self.value.clone());
-        let s = StateHandle::new(id);
+        let s = StateHandle::new(id, cx);
         path.push(0);
         (self.func)(s, cx).process(event, path, cx, actions);
         path.pop();
@@ -38,7 +38,7 @@ where
         let id = args.cx.view_id(path);
         args.cx.set_state(id, self.value.clone());
         path.push(0);
-        (self.func)(StateHandle::new(id), args.cx).draw(path, args);
+        (self.func)(StateHandle::new(id, args.cx), args.cx).draw(path, args);
         path.pop();
     }
 
@@ -47,7 +47,7 @@ where
         args.cx.set_state(id, self.value.clone());
 
         path.push(0);
-        let sz = (self.func)(StateHandle::new(id), args.cx).layout(path, args);
+        let sz = (self.func)(StateHandle::new(id, args.cx), args.cx).layout(path, args);
         path.pop();
         sz
     }
@@ -56,7 +56,7 @@ where
         let id = cx.view_id(path);
         cx.set_state(id, self.value.clone());
         path.push(0);
-        (self.func)(StateHandle::new(id), cx).dirty(path, xform, cx);
+        (self.func)(StateHandle::new(id, cx), cx).dirty(path, xform, cx);
         path.pop();
     }
 
@@ -64,7 +64,7 @@ where
         let id = cx.view_id(path);
         cx.set_state(id, self.value.clone());
         path.push(0);
-        let hit_id = (self.func)(StateHandle::new(id), cx).hittest(path, pt, cx);
+        let hit_id = (self.func)(StateHandle::new(id, cx), cx).hittest(path, pt, cx);
         path.pop();
         hit_id
     }
@@ -73,7 +73,7 @@ where
         let id = cx.view_id(path);
         cx.set_state(id, self.value.clone());
         path.push(0);
-        (self.func)(StateHandle::new(id), cx).commands(path, cx, cmds);
+        (self.func)(StateHandle::new(id, cx), cx).commands(path, cx, cmds);
         path.pop();
     }
 
@@ -82,7 +82,7 @@ where
         cx.set_state(id, self.value.clone());
         map.push(id);
         path.push(0);
-        (self.func)(StateHandle::new(id), cx).gc(path, cx, map);
+        (self.func)(StateHandle::new(id, cx), cx).gc(path, cx, map);
         path.pop();
     }
 
@@ -95,7 +95,7 @@ where
         let id = cx.view_id(path);
         cx.set_state(id, self.value.clone());
         path.push(0);
-        let node_id = (self.func)(StateHandle::new(id), cx).access(path, cx, nodes);
+        let node_id = (self.func)(StateHandle::new(id, cx), cx).access(path, cx, nodes);
         path.pop();
         node_id
     }

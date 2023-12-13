@@ -59,7 +59,7 @@ mod tests {
         );
 
         assert_eq!(knob_sz, sz);
-        let s = StateHandle::<f32>::new(cx.view_id(&path));
+        let s = StateHandle::<f32>::new(cx.view_id(&path), &mut cx);
         assert_eq!(*s.get(&cx), 0.0);
 
         let events = [

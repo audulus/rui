@@ -268,7 +268,7 @@ mod tests {
         assert_eq!(path.len(), 1);
 
         assert_eq!(rect_sz, sz);
-        let s = StateHandle::<Vec<GestureState>>::new(cx.view_id(&path));
+        let s = StateHandle::<Vec<GestureState>>::new(cx.view_id(&path), &mut cx);
         assert_eq!(cx[s], vec![]);
 
         let events = [

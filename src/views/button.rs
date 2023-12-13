@@ -66,7 +66,7 @@ mod tests {
         assert!(path.len() == 1);
 
         assert_eq!(button_sz, sz);
-        let s = StateHandle::<bool>::new(cx.view_id(&path));
+        let s = StateHandle::<bool>::new(cx.view_id(&path), &mut cx);
         assert!(!*s.get(&cx));
 
         let events = [

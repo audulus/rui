@@ -7,6 +7,7 @@ use std::any::Any;
 /// to all event handlers, and functions passed to `state`.
 pub struct StateHandle<S> {
     pub(crate) id: ViewId,
+    pub(crate) cx: *mut Context,
     phantom: std::marker::PhantomData<S>,
 }
 
@@ -19,9 +20,10 @@ impl<S> Clone for StateHandle<S> {
 }
 
 impl<S: 'static> StateHandle<S> {
-    pub fn new(id: ViewId) -> Self {
+    pub fn new(id: ViewId, cx: &mut Context) -> Self {
         Self {
             id,
+            cx,
             phantom: Default::default(),
         }
     }
@@ -64,7 +66,7 @@ where
         let id = cx.view_id(path);
         cx.init_state(id, &self.default);
         path.push(0);
-        (self.func)(StateHandle::new(id), cx).process(event, path, cx, actions);
+        (self.func)(StateHandle::new(id, cx), cx).process(event, path, cx, actions);
         path.pop();
     }
 
@@ -72,7 +74,7 @@ where
         let id = args.cx.view_id(path);
         args.cx.init_state(id, &self.default);
         path.push(0);
-        (self.func)(StateHandle::new(id), args.cx).draw(path, args);
+        (self.func)(StateHandle::new(id, args.cx), args.cx).draw(path, args);
         path.pop();
     }
 
@@ -100,7 +102,7 @@ where
         if compute_layout {
             args.cx.id_stack.push(id);
 
-            let view = (self.func)(StateHandle::new(id), args.cx);
+            let view = (self.func)(StateHandle::new(id, args.cx), args.cx);
 
             path.push(0);
             let child_size = view.layout(path, args);
@@ -147,7 +149,7 @@ where
             cx.dirty_region.add_rect(WorldRect::from_points(world_pts));
         } else {
             path.push(0);
-            (self.func)(StateHandle::new(id), cx).dirty(path, xform, cx);
+            (self.func)(StateHandle::new(id, cx), cx).dirty(path, xform, cx);
             path.pop();
         }
     }
@@ -156,7 +158,7 @@ where
         let id = cx.view_id(path);
         cx.init_state(id, &self.default);
         path.push(0);
-        let hit_id = (self.func)(StateHandle::new(id), cx).hittest(path, pt, cx);
+        let hit_id = (self.func)(StateHandle::new(id, cx), cx).hittest(path, pt, cx);
         path.pop();
         hit_id
     }
@@ -165,7 +167,7 @@ where
         let id = cx.view_id(path);
         cx.init_state(id, &self.default);
         path.push(0);
-        (self.func)(StateHandle::new(id), cx).commands(path, cx, cmds);
+        (self.func)(StateHandle::new(id, cx), cx).commands(path, cx, cmds);
         path.pop();
     }
 
@@ -174,7 +176,7 @@ where
         cx.init_state(id, &self.default);
         map.push(id);
         path.push(0);
-        (self.func)(StateHandle::new(id), cx).gc(path, cx, map);
+        (self.func)(StateHandle::new(id, cx), cx).gc(path, cx, map);
         path.pop();
     }
 
@@ -187,7 +189,7 @@ where
         let id = cx.view_id(path);
         cx.init_state(id, &self.default);
         path.push(0);
-        let node_id = (self.func)(StateHandle::new(id), cx).access(path, cx, nodes);
+        let node_id = (self.func)(StateHandle::new(id, cx), cx).access(path, cx, nodes);
         path.pop();
         node_id
     }
