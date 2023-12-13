@@ -1,5 +1,5 @@
 use crate::*;
-use std::any::Any;
+use std::{any::Any, ops::Deref, ops::DerefMut};
 
 /// Weak reference to app state.
 ///
@@ -40,6 +40,21 @@ impl<S: 'static> Binding<S> for StateHandle<S> {
     }
     fn get_mut<'a>(&self, cx: &'a mut Context) -> &'a mut S {
         cx.get_mut(*self)
+    }
+}
+
+impl<S: 'static> Deref for StateHandle<S> {
+
+    type Target = S;
+
+    fn deref(&self) -> &Self::Target {
+        unsafe { &(*self.cx)[*self] }
+    }
+}
+
+impl<S: 'static> DerefMut for StateHandle<S> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        unsafe { &mut (*self.cx)[*self] }
     }
 }
 
