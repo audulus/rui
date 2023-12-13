@@ -3,11 +3,12 @@ use rui::*;
 fn main() {
     rui(state(
         || 1,
-        |count, cx| {
+        |count, _| {
             vstack((
-                cx[count].padding(Auto),
-                button("increment", move |cx| {
-                    cx[count] += 1;
+                (*count).padding(Auto),
+                button("increment", move |_| {
+                    let mut c = count;
+                    *c += 1;
                 })
                 .padding(Auto),
             ))
