@@ -71,7 +71,6 @@ async fn setup(window: &Window) -> Setup {
 
     // log::info!("Initializing the surface...");
 
-    let backend = wgpu::util::backend_bits_from_env().unwrap_or_else(wgpu::Backends::all);
     let instance_desc = wgpu::InstanceDescriptor::default();
 
     let instance = wgpu::Instance::new(instance_desc);
@@ -80,10 +79,9 @@ async fn setup(window: &Window) -> Setup {
         let surface = instance.create_surface(&window);
         (size, surface.unwrap())
     };
-    let adapter =
-        wgpu::util::initialize_adapter_from_env_or_default(&instance, backend, Some(&surface))
-            .await
-            .expect("No suitable GPU adapters found on the system!");
+    let adapter = wgpu::util::initialize_adapter_from_env_or_default(&instance, Some(&surface))
+        .await
+        .expect("No suitable GPU adapters found on the system!");
 
     #[cfg(not(target_arch = "wasm32"))]
     {
