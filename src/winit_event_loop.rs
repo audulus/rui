@@ -588,3 +588,11 @@ pub fn parse_url_query_string<'a>(query: &'a str, search_key: &str) -> Option<&'
 
     None
 }
+
+pub trait Run: View + Sized {
+    fn run(self) {
+        rui(self)
+    }
+}
+
+impl<V: View> Run for V {}
