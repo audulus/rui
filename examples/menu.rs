@@ -4,7 +4,7 @@ use rui::*;
 // Run with: cargo run --example menu --no-default-features --features tao
 
 fn main() {
-    rui(hstack((
+    hstack((
         circle()
             .color(RED_HIGHLIGHT)
             .padding(Auto)
@@ -20,5 +20,6 @@ fn main() {
             .command_group((command("Custom 2:Four")
                 .action(|| println!("four"))
                 .hotkey(HotKey::KeyF),)),
-    )));
+    ))
+    .run()
 }

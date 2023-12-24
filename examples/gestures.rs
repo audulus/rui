@@ -14,7 +14,7 @@ fn anim_to(current: &mut LocalOffset, target: LocalOffset) -> bool {
 }
 
 fn main() {
-    rui(hstack((
+    hstack((
         circle()
             .color(RED_HIGHLIGHT.alpha(0.8))
             .tap(|_cx| println!("tapped circle"))
@@ -43,5 +43,6 @@ fn main() {
                     .padding(Auto)
             })
         }),
-    )));
+    ))
+    .run()
 }

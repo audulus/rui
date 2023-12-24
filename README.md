@@ -27,7 +27,7 @@ obligatory Counter (`cargo run --example counter`):
 use rui::*;
 
 fn main() {
-    rui(state(
+    state(
         || 1,
         |count, cx| {
             vstack((
@@ -38,7 +38,8 @@ fn main() {
                 .padding(Auto),
             ))
         },
-    ));
+    )
+    .run()
 }
 ```
 
@@ -50,7 +51,7 @@ some shapes (`cargo run --example shapes`):
 use rui::*;
 
 fn main() {
-    rui(vstack((
+    vstack((
         circle()
             .color(RED_HIGHLIGHT)
             .padding(Auto),
@@ -58,7 +59,8 @@ fn main() {
             .corner_radius(5.0)
             .color(AZURE_HIGHLIGHT)
             .padding(Auto)
-    )));
+    ))
+    .run()
 }
 ```
 
@@ -70,7 +72,7 @@ canvas for gpu drawing (`cargo run --example canvas`):
 use rui::*;
 
 fn main() {
-    rui(canvas(|_, rect, vger| {
+    canvas(|_, rect, vger| {
         vger.translate(rect.center() - LocalPoint::zero());
 
         let paint = vger.linear_gradient(
@@ -83,7 +85,8 @@ fn main() {
 
         let radius = 100.0;
         vger.fill_circle(LocalPoint::zero(), radius, paint);
-    }));
+    })
+    .run()
 }
 ```
 
@@ -110,13 +113,14 @@ fn my_slider(s: impl Binding<f32>) -> impl View {
 }
 
 fn main() {
-    rui(state(MyState::default, |state, cx| 
+    state(MyState::default, |state, cx| 
         map(
             cx[state].value,
             move |v, cx| cx[state].value = v,
             |s, _| my_slider(s),
         ),
-    ));
+    )
+    .run()
 }
 ```
 

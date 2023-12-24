@@ -1,7 +1,7 @@
 use rui::*;
 
 fn main() {
-    rui(state(Counters::default, |counters, cx| {
+    state(Counters::default, |counters, cx| {
         vstack((
             list(cx[counters].ids(), move |&i| {
                 with_cx(move |cx| {
@@ -23,7 +23,8 @@ fn main() {
             format!("total: {}", cx[counters].sum_counters()).padding(Auto),
             button("add counter", move |cx| cx[counters].add_counter()).padding(Auto),
         ))
-    }));
+    })
+    .run()
 }
 
 #[derive(Default, Debug)]

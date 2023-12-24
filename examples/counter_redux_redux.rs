@@ -49,7 +49,7 @@ fn reduce_local(state: &mut LocalState, action: &LocalAction) -> Action {
 }
 
 fn main() {
-    rui(redux(AppState::new, reduce, |app_state| {
+    redux(AppState::new, reduce, |app_state| {
         vstack((
             format!("{}", app_state.count).padding(Auto),
             redux(
@@ -58,5 +58,6 @@ fn main() {
                 |_| button_a("increment every 5 clicks", LocalAction::Increment),
             ),
         ))
-    }));
+    })
+    .run()
 }

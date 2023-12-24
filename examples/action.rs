@@ -3,7 +3,7 @@ use rui::*;
 struct MyAction {}
 
 fn main() {
-    rui(vstack((
+    vstack((
         rectangle()
             .tap(|_| {
                 println!("rect tapped");
@@ -12,5 +12,6 @@ fn main() {
             .padding(Auto),
         text("tap the rectangle to send an action"),
     ))
-    .handle(|_, _: &MyAction| println!("action received")));
+    .handle(|_, _: &MyAction| println!("action received"))
+    .run()
 }

@@ -6,7 +6,7 @@ struct MyState {
 }
 
 fn main() {
-    rui(state(MyState::default, |state, cx| {
+    state(MyState::default, |state, cx| {
         vstack((
             format!("value: {:?}", cx[state]).padding(Auto),
             map(
@@ -15,5 +15,6 @@ fn main() {
                 |s, _| knob(s).padding(Auto),
             ),
         ))
-    }));
+    })
+    .run()
 }

@@ -26,7 +26,7 @@ fn calc_button(title: &str, callback: impl Fn(&mut Context) + 'static) -> impl V
 }
 
 fn main() {
-    rui(state(
+    state(
         || String::from("0"),
         |s, cx| {
             vstack((
@@ -62,5 +62,6 @@ fn main() {
                 )),
             ))
         },
-    ))
+    )
+    .run()
 }
