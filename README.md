@@ -9,7 +9,7 @@
 
 Experimental Rust UI library, inspired by SwiftUI. Early days, but some stuff already works. rui will be used for a future version of [Audulus](http://audulus.com/)
 
-rui is GPU rendered and updates reactively (when your state changes). The focus of rui is to have the best ergonomics, and use the simplest possible implementation. As such, there is no retained view tree (DOM) or view diffing. Evertying is re-rendered when state changes, under the assumption that we can do that quickly.
+rui is GPU rendered and updates reactively (when your state changes). The focus of rui is to have the best ergonomics, and use the simplest possible implementation. As such, there is no retained view tree (DOM) or view diffing. Everthing is re-rendered when state changes, under the assumption that we can do that quickly.
 
 [discord server](https://discord.gg/JCVVBU3sCN)
 
