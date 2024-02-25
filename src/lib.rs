@@ -1,5 +1,6 @@
 // #![feature(type_alias_impl_trait)]
 
+pub use vger;
 use vger::color::*;
 pub use vger::{LineMetrics, PaintIndex, Vger};
 
