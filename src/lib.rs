@@ -1,7 +1,8 @@
 // #![feature(type_alias_impl_trait)]
 
+pub use vger;
 use vger::color::*;
-pub use vger::{LineMetrics, PaintIndex, Vger};
+use vger::{LineMetrics, PaintIndex, Vger};
 
 #[cfg(feature = "winit")]
 #[macro_use]
