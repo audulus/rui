@@ -34,7 +34,7 @@ pub fn on_main(f: impl FnOnce(&mut Context) + Send + 'static) {
     let opt_proxy = GLOBAL_EVENT_LOOP_PROXY.lock().unwrap();
     if let Some(proxy) = &*opt_proxy {
         if let Err(err) = proxy.send_event(()) {
-            println!("error waking up event loop: {:?}", err);
+            log::debug!("error waking up event loop: {:?}", err);
         }
     }
 }
@@ -86,7 +86,7 @@ async fn setup(window: &Window) -> Setup {
     #[cfg(not(target_arch = "wasm32"))]
     {
         let adapter_info = adapter.get_info();
-        println!("Using {} ({:?})", adapter_info.name, adapter_info.backend);
+        log::debug!("Using {} ({:?})", adapter_info.name, adapter_info.backend);
     }
 
     let trace_dir = std::env::var("WGPU_TRACE");
@@ -115,7 +115,7 @@ fn process_event(cx: &mut Context, view: &impl View, event: &Event, window: &Win
     cx.process(view, event);
 
     if cx.grab_cursor && !cx.prev_grab_cursor {
-        println!("grabbing cursor");
+        log::debug!("grabbing cursor");
         window
             .set_cursor_grab(winit::window::CursorGrabMode::Locked)
             .or_else(|_e| window.set_cursor_grab(winit::window::CursorGrabMode::Confined))
@@ -124,7 +124,7 @@ fn process_event(cx: &mut Context, view: &impl View, event: &Event, window: &Win
     }
 
     if !cx.grab_cursor && cx.prev_grab_cursor {
-        println!("releasing cursor");
+        log::debug!("releasing cursor");
         window
             .set_cursor_grab(winit::window::CursorGrabMode::None)
             .unwrap();
@@ -195,7 +195,7 @@ pub fn rui(view: impl View) {
                 event: WindowEvent::CloseRequested,
                 ..
             } => {
-                println!("The close button was pressed; stopping");
+                log::debug!("The close button was pressed; stopping");
                 *control_flow = ControlFlow::Exit
             }
             WEvent::WindowEvent {
@@ -207,14 +207,14 @@ pub fn rui(view: impl View) {
                     },
                 ..
             } => {
-                // println!("Resizing to {:?}", size);
+                // log::debug!("Resizing to {:?}", size);
                 config.width = size.width.max(1);
                 config.height = size.height.max(1);
                 surface.configure(&device, &config);
                 window.request_redraw();
             }
             WEvent::UserEvent(_) => {
-                // println!("received user event");
+                // log::debug!("received user event");
 
                 // Process the work queue.
                 #[cfg(not(target_arch = "wasm32"))]
@@ -235,7 +235,7 @@ pub fn rui(view: impl View) {
 
                 let window_size = window.inner_size();
                 let scale = window.scale_factor() as f32;
-                // println!("window_size: {:?}", window_size);
+                // log::debug!("window_size: {:?}", window_size);
                 let width = window_size.width as f32 / scale;
                 let height = window_size.height as f32 / scale;
 
@@ -257,11 +257,11 @@ pub fn rui(view: impl View) {
 
                 let window_size = window.inner_size();
                 let scale = window.scale_factor() as f32;
-                // println!("window_size: {:?}", window_size);
+                // log::debug!("window_size: {:?}", window_size);
                 let width = window_size.width as f32 / scale;
                 let height = window_size.height as f32 / scale;
 
-                // println!("RedrawRequested");
+                // log::debug!("RedrawRequested");
                 cx.render(
                     RenderInfo {
                         device: &device,
