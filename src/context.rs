@@ -198,9 +198,9 @@ impl Context {
             assert_eq!(path.len(), 1);
 
             if nodes != *access_nodes {
-                println!("access nodes:");
+                log::debug!("access nodes:");
                 for (id, node) in &nodes {
-                    println!(
+                    log::debug!(
                         "  id: {:?} role: {:?}, children: {:?}",
                         id,
                         node.role(),
@@ -209,7 +209,7 @@ impl Context {
                 }
                 *access_nodes = nodes;
             } else {
-                // println!("access nodes unchanged");
+                // log::debug!("access nodes unchanged");
             }
 
             // XXX: we're doing layout both here and in rendering.
@@ -330,7 +330,7 @@ impl Context {
 
         for action in actions {
             if !action.is::<()>() {
-                println!("unhandled action: {:?}", action.type_id());
+                log::debug!("unhandled action: {:?}", action.type_id());
             }
         }
     }
