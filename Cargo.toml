@@ -26,7 +26,7 @@ futures = "0.3"
 vger = "0.2.8"
 accesskit = "0.11.0"
 lazy_static = "1.4.0"
-winit = { version = "0.29", optional = true, features = [
+winit = { version = "0.30", optional = true, features = [
     "rwh_05",
  ] }
 log = "0.4"

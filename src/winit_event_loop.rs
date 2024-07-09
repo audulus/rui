@@ -5,17 +5,18 @@ use std::{collections::HashMap, sync::Arc};
 #[cfg(not(target_arch = "wasm32"))]
 use std::{collections::VecDeque, sync::Mutex};
 
+use euclid::Point2D;
 #[cfg(not(target_arch = "wasm32"))]
 use winit::event_loop::EventLoopProxy;
 use winit::{
-    dpi::PhysicalSize,
+    application::ApplicationHandler,
     event::{
-        ElementState, Event as WEvent, KeyEvent as WKeyEvent, MouseButton as WMouseButton, Touch,
-        TouchPhase, WindowEvent,
+        DeviceEvent, DeviceId, ElementState, KeyEvent as WKeyEvent, MouseButton as WMouseButton,
+        Touch, TouchPhase, WindowEvent,
     },
-    event_loop::{ControlFlow, EventLoop},
+    event_loop::{ActiveEventLoop, ControlFlow, EventLoop},
     keyboard,
-    window::{Window, WindowBuilder},
+    window::{Window, WindowId},
 };
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -42,15 +43,15 @@ pub fn on_main(f: impl FnOnce(&mut Context) + Send + 'static) {
     }
 }
 
-struct Setup {
-    size: PhysicalSize<u32>,
+struct DrawContext {
     surface: wgpu::Surface,
-    adapter: wgpu::Adapter,
-    device: wgpu::Device,
-    queue: wgpu::Queue,
+    device: Arc<wgpu::Device>,
+    queue: Arc<wgpu::Queue>,
+    config: wgpu::SurfaceConfiguration,
+    vger: Vger,
 }
 
-async fn setup(window: &Window) -> Setup {
+async fn setup(window: &Window) -> DrawContext {
     #[cfg(target_arch = "wasm32")]
     {
         use winit::platform::web::WindowExtWebSys;
@@ -104,13 +105,28 @@ async fn setup(window: &Window) -> Setup {
         )
         .await
         .expect("Unable to find a suitable GPU adapter!");
+    let device = Arc::new(device);
+    let queue = Arc::new(queue);
 
-    Setup {
-        size,
+    let config = wgpu::SurfaceConfiguration {
+        usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+        format: surface.get_capabilities(&adapter).formats[0],
+        width: size.width,
+        height: size.height,
+        present_mode: wgpu::PresentMode::Fifo,
+        alpha_mode: wgpu::CompositeAlphaMode::Auto,
+        view_formats: vec![],
+    };
+    surface.configure(&device, &config);
+
+    let vger = Vger::new(device.clone(), queue.clone(), config.format);
+
+    DrawContext {
         surface,
-        adapter,
         device,
         queue,
+        config,
+        vger,
     }
 }
 
@@ -137,236 +153,198 @@ fn process_event(cx: &mut Context, view: &impl View, event: &Event, window: &Win
     cx.prev_grab_cursor = cx.grab_cursor;
 }
 
-/// Call this function to run your UI.
-pub fn rui(view: impl View) {
-    let event_loop = EventLoop::new().unwrap();
+struct EventHandler<T>
+where
+    T: View,
+{
+    title: String,
+    running: bool,
+    // The GPU resources, if running.
+    context: Option<DrawContext>,
+    // The event handling loop is terminated when the main window is closed.
+    // We can trigger this by dropping the window, so we wrap it in the Option
+    // type.  This is a bit of a hack, but it works.
+    window: Option<Window>,
+    // The event system does not expose the cursor position on-demand.
+    // We track all the mouse movement events to make this easier to access
+    // by event handlers.
+    mouse_position: Point2D<f32, LocalSpace>,
+    cx: Context,
+    view: T,
+    access_nodes: Vec<(accesskit::NodeId, accesskit::Node)>,
+}
 
-    let mut window_title = String::from("rui");
-    let builder = WindowBuilder::new().with_title(&window_title);
-    let window = builder.build(&event_loop).unwrap();
+impl<T> ApplicationHandler for EventHandler<T>
+where
+    T: View,
+{
+    fn resumed(&mut self, event_loop: &ActiveEventLoop) {
+        // Called when the application is brought into focus.  The window and
+        // associated GPU resources need to be reallocated on resume.
 
-    let setup = block_on(setup(&window));
-    let surface = setup.surface;
-    let device = Arc::new(setup.device);
-    let size = setup.size;
-    let adapter = setup.adapter;
-    let queue = Arc::new(setup.queue);
+        // On some platforms, namely wasm32 + webgl2, the window is not yet
+        // ready to create the rendering surface when Event::Resumed is
+        // received.  We therefore just record the fact that the we're in the
+        // running state.
+        self.running = true;
 
-    let mut config = wgpu::SurfaceConfiguration {
-        usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-        format: surface.get_capabilities(&adapter).formats[0],
-        width: size.width,
-        height: size.height,
-        present_mode: wgpu::PresentMode::Fifo,
-        alpha_mode: wgpu::CompositeAlphaMode::Auto,
-        view_formats: vec![],
-    };
-    surface.configure(&device, &config);
+        // Create the main window.
+        let window_attributes = Window::default_attributes().with_title(&self.title);
+        self.window = match event_loop.create_window(window_attributes) {
+            Err(e) => {
+                log::error!("Error creating window: {:?}", e);
+                return;
+            }
+            Ok(window) => Some(window),
+        };
+        let window = self.window.as_ref().unwrap();
 
-    #[cfg(not(target_arch = "wasm32"))]
-    {
-        *GLOBAL_EVENT_LOOP_PROXY.lock().unwrap() = Some(event_loop.create_proxy());
+        // Set up the rendering context.
+        self.context = Some(block_on(setup(&window)));
     }
 
-    let mut vger = Vger::new(device.clone(), queue.clone(), config.format);
-    let mut cx = Context::new();
-    let mut mouse_position = LocalPoint::zero();
-
-    let mut commands: Vec<CommandInfo> = Vec::new();
-    let mut command_map = HashMap::new();
-    cx.commands(&view, &mut commands);
-
-    {
-        // So we can infer a type for CommandMap when winit is enabled.
-        command_map.insert("", "");
-    }
-
-    let mut access_nodes = vec![];
-
-    if let Err(e) = event_loop.run(move |event, window_target| {
+    fn window_event(
+        &mut self,
+        event_loop: &ActiveEventLoop,
+        window_id: WindowId,
+        event: WindowEvent,
+    ) {
         // ControlFlow::Poll continuously runs the event loop, even if the OS hasn't
         // dispatched any events. This is ideal for games and similar applications.
-        // window_target.set_control_flow(ControlFlow::Poll);
+        // event_loop.set_control_flow(ControlFlow::Poll);
 
         // ControlFlow::Wait pauses the event loop if no events are available to process.
         // This is ideal for non-game applications that only update in response to user
         // input, and uses significantly less power/CPU time than ControlFlow::Poll.
-        window_target.set_control_flow(ControlFlow::Wait);
+        event_loop.set_control_flow(ControlFlow::Wait);
 
         match event {
-            WEvent::WindowEvent {
-                event: WindowEvent::CloseRequested,
-                ..
-            } => {
+            WindowEvent::CloseRequested => {
                 log::debug!("The close button was pressed; stopping");
-                window_target.exit()
+                event_loop.exit()
             }
-            WEvent::WindowEvent {
-                event: WindowEvent::Resized(_) | WindowEvent::ScaleFactorChanged { .. },
-                ..
-            } => {
-                let size = window.inner_size();
-                // log::debug!("Resizing to {:?}", size);
-                config.width = size.width.max(1);
-                config.height = size.height.max(1);
-                surface.configure(&device, &config);
-                window.request_redraw();
-            }
-            WEvent::UserEvent(_) => {
-                // log::debug!("received user event");
-
-                // Process the work queue.
-                #[cfg(not(target_arch = "wasm32"))]
-                {
-                    while let Some(f) = GLOBAL_WORK_QUEUE.lock().unwrap().pop_front() {
-                        f(&mut cx);
-                    }
-                }
-            }
-            WEvent::AboutToWait => {
-                // Application update code.
-
-                // Queue a RedrawRequested event.
-                //
-                // You only need to call this if you've determined that you need to redraw, in
-                // applications which do not always need to. Applications that redraw continuously
-                // can just render here instead.
-
-                let window_size = window.inner_size();
-                let scale = window.scale_factor() as f32;
-                // log::debug!("window_size: {:?}", window_size);
-                let width = window_size.width as f32 / scale;
-                let height = window_size.height as f32 / scale;
-
-                if cx.update(&view, &mut vger, &mut access_nodes, [width, height].into()) {
+            WindowEvent::Resized(_) | WindowEvent::ScaleFactorChanged { .. } => {
+                if let (Some(window), Some(context)) = (&self.window, &mut self.context) {
+                    let size = window.inner_size();
+                    // log::debug!("Resizing to {:?}", size);
+                    context.config.width = size.width.max(1);
+                    context.config.height = size.height.max(1);
+                    context.surface.configure(&context.device, &context.config);
                     window.request_redraw();
                 }
-
-                if cx.window_title != window_title {
-                    window_title = cx.window_title.clone();
-                    window.set_title(&cx.window_title);
-                }
             }
-            WEvent::WindowEvent {
-                event: WindowEvent::RedrawRequested,
-                ..
-            } => {
+            WindowEvent::RedrawRequested => {
                 // Redraw the application.
                 //
                 // It's preferable for applications that do not render continuously to render in
                 // this event rather than in MainEventsCleared, since rendering in here allows
                 // the program to gracefully handle redraws requested by the OS.
 
-                let window_size = window.inner_size();
-                let scale = window.scale_factor() as f32;
-                // log::debug!("window_size: {:?}", window_size);
-                let width = window_size.width as f32 / scale;
-                let height = window_size.height as f32 / scale;
+                if let (Some(window), Some(context)) = (&self.window, &mut self.context) {
+                    let window_size = window.inner_size();
+                    let scale = window.scale_factor() as f32;
+                    // log::debug!("window_size: {:?}", window_size);
+                    let width = window_size.width as f32 / scale;
+                    let height = window_size.height as f32 / scale;
 
-                // log::debug!("RedrawRequested");
-                cx.render(
-                    RenderInfo {
-                        device: &device,
-                        surface: &surface,
-                        config: &config,
-                        queue: &queue,
-                    },
-                    &view,
-                    &mut vger,
-                    [width, height].into(),
-                    scale,
-                );
+                    // log::debug!("RedrawRequested");
+                    self.cx.render(
+                        RenderInfo {
+                            device: &context.device,
+                            surface: &context.surface,
+                            config: &context.config,
+                            queue: &context.queue,
+                        },
+                        &self.view,
+                        &mut context.vger,
+                        [width, height].into(),
+                        scale,
+                    );
+                }
             }
-            WEvent::WindowEvent {
-                event: WindowEvent::MouseInput { state, button, .. },
-                ..
-            } => {
+            WindowEvent::MouseInput { state, button, .. } => {
                 match state {
                     ElementState::Pressed => {
-                        cx.mouse_button = match button {
+                        self.cx.mouse_button = match button {
                             WMouseButton::Left => Some(MouseButton::Left),
                             WMouseButton::Right => Some(MouseButton::Right),
                             WMouseButton::Middle => Some(MouseButton::Center),
                             _ => None,
                         };
-                        let event = Event::TouchBegin {
-                            id: 0,
-                            position: mouse_position,
-                        };
-                        process_event(&mut cx, &view, &event, &window)
+                        if let Some(window) = &self.window {
+                            let event = Event::TouchBegin {
+                                id: 0,
+                                position: self.mouse_position,
+                            };
+                            process_event(&mut self.cx, &self.view, &event, &window)
+                        }
                     }
                     ElementState::Released => {
-                        cx.mouse_button = None;
-                        let event = Event::TouchEnd {
+                        self.cx.mouse_button = None;
+                        if let Some(window) = &self.window {
+                            let event = Event::TouchEnd {
+                                id: 0,
+                                position: self.mouse_position,
+                            };
+                            process_event(&mut self.cx, &self.view, &event, &window)
+                        }
+                    }
+                };
+            }
+            WindowEvent::Touch(Touch {
+                phase, location, ..
+            }) => {
+                if let (Some(window), Some(context)) = (&self.window, &self.context) {
+                    // Do not handle events from other windows.
+                    if window_id != window.id() {
+                        return;
+                    }
+
+                    let scale = window.scale_factor() as f32;
+                    let position = [
+                        location.x as f32 / scale,
+                        (context.config.height as f32 - location.y as f32) / scale,
+                    ]
+                    .into();
+
+                    let delta = position - self.cx.previous_position[0];
+
+                    // TODO: Multi-Touch management
+                    let event = match phase {
+                        TouchPhase::Started => Some(Event::TouchBegin { id: 0, position }),
+                        TouchPhase::Moved => Some(Event::TouchMove {
                             id: 0,
-                            position: mouse_position,
-                        };
-                        process_event(&mut cx, &view, &event, &window)
+                            position,
+                            delta,
+                        }),
+                        TouchPhase::Ended | TouchPhase::Cancelled => {
+                            Some(Event::TouchEnd { id: 0, position })
+                        }
+                    };
+
+                    if let Some(event) = event {
+                        process_event(&mut self.cx, &self.view, &event, &window);
                     }
-                };
-            }
-            WEvent::WindowEvent {
-                window_id,
-                event:
-                    WindowEvent::Touch(Touch {
-                        phase, location, ..
-                    }),
-                ..
-            } => {
-                // Do not handle events from other windows.
-                if window_id != window.id() {
-                    return;
-                }
-
-                let scale = window.scale_factor() as f32;
-                let position = [
-                    location.x as f32 / scale,
-                    (config.height as f32 - location.y as f32) / scale,
-                ]
-                .into();
-
-                let delta = position - cx.previous_position[0];
-
-                // TODO: Multi-Touch management
-                let event = match phase {
-                    TouchPhase::Started => Some(Event::TouchBegin { id: 0, position }),
-                    TouchPhase::Moved => Some(Event::TouchMove {
-                        id: 0,
-                        position,
-                        delta,
-                    }),
-                    TouchPhase::Ended | TouchPhase::Cancelled => {
-                        Some(Event::TouchEnd { id: 0, position })
-                    }
-                };
-
-                if let Some(event) = event {
-                    process_event(&mut cx, &view, &event, &window);
                 }
             }
-            WEvent::WindowEvent {
-                event: WindowEvent::CursorMoved { position, .. },
-                ..
-            } => {
-                let scale = window.scale_factor() as f32;
-                mouse_position = [
-                    position.x as f32 / scale,
-                    (config.height as f32 - position.y as f32) / scale,
-                ]
-                .into();
-                // let event = Event::TouchMove {
-                //     id: 0,
-                //     position: mouse_position,
-                // };
-                // process_event(&mut cx, &view, &event, &window)
+            WindowEvent::CursorMoved { position, .. } => {
+                if let (Some(window), Some(context)) = (&self.window, &self.context) {
+                    let scale = window.scale_factor() as f32;
+                    self.mouse_position = [
+                        position.x as f32 / scale,
+                        (context.config.height as f32 - position.y as f32) / scale,
+                    ]
+                    .into();
+                    // let event = Event::TouchMove {
+                    //     id: 0,
+                    //     position: self.mouse_position,
+                    // };
+                    // process_event(&mut self.cx, &self.view, &event, &window)
+                }
             }
 
-            WEvent::WindowEvent {
-                event:
-                    WindowEvent::KeyboardInput {
-                        event: key_event @ WKeyEvent { .. },
-                        ..
-                    },
+            WindowEvent::KeyboardInput {
+                event: key_event @ WKeyEvent { .. },
                 ..
             } => {
                 let key = match key_event.logical_key {
@@ -407,15 +385,12 @@ pub fn rui(view: impl View) {
                 };
 
                 if let (Some(key), ElementState::Pressed) = (key, key_event.state) {
-                    cx.process(&view, &Event::Key(key))
+                    self.cx.process(&self.view, &Event::Key(key))
                 }
             }
 
-            WEvent::WindowEvent {
-                event: WindowEvent::ModifiersChanged(mods),
-                ..
-            } => {
-                cx.key_mods = KeyboardModifiers {
+            WindowEvent::ModifiersChanged(mods) => {
+                self.cx.key_mods = KeyboardModifiers {
                     shift: !(mods.state() & keyboard::ModifiersState::SHIFT).is_empty(),
                     control: !(mods.state() & keyboard::ModifiersState::CONTROL).is_empty(),
                     alt: !(mods.state() & keyboard::ModifiersState::ALT).is_empty(),
@@ -423,24 +398,108 @@ pub fn rui(view: impl View) {
                 };
             }
 
-            WEvent::DeviceEvent {
-                event: winit::event::DeviceEvent::MouseMotion { delta },
-                ..
-            } => {
-                // Flip y coordinate.
-                let d: LocalOffset = [delta.0 as f32, -delta.1 as f32].into();
-
-                let event = Event::TouchMove {
-                    id: 0,
-                    position: mouse_position,
-                    delta: d,
-                };
-
-                process_event(&mut cx, &view, &event, &window);
-            }
             _ => (),
         }
-    }) {
+    }
+
+    fn user_event(&mut self, _event_loop: &ActiveEventLoop, _event: ()) {
+        // log::debug!("received user event");
+
+        // Process the work queue.
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            while let Some(f) = GLOBAL_WORK_QUEUE.lock().unwrap().pop_front() {
+                f(&mut self.cx);
+            }
+        }
+    }
+
+    fn device_event(
+        &mut self,
+        _event_loop: &ActiveEventLoop,
+        _device_id: DeviceId,
+        event: DeviceEvent,
+    ) {
+        if let DeviceEvent::MouseMotion { delta, .. } = event {
+            // Flip y coordinate.
+            let d: LocalOffset = [delta.0 as f32, -delta.1 as f32].into();
+
+            let event = Event::TouchMove {
+                id: 0,
+                position: self.mouse_position,
+                delta: d,
+            };
+
+            if let Some(window) = &self.window {
+                process_event(&mut self.cx, &self.view, &event, &window);
+            }
+        }
+    }
+
+    fn about_to_wait(&mut self, _event_loop: &ActiveEventLoop) {
+        // Application update code.
+
+        // Queue a RedrawRequested event.
+        //
+        // You only need to call this if you've determined that you need to
+        // redraw, in applications which do not always need to. Applications
+        // that redraw continuously can just render here instead.
+
+        if let (Some(window), Some(context)) = (&self.window, &mut self.context) {
+            let window_size = window.inner_size();
+            let scale = window.scale_factor() as f32;
+            // log::debug!("window_size: {:?}", window_size);
+            let width = window_size.width as f32 / scale;
+            let height = window_size.height as f32 / scale;
+
+            if self.cx.update(
+                &self.view,
+                &mut context.vger,
+                &mut self.access_nodes,
+                [width, height].into(),
+            ) {
+                window.request_redraw();
+            }
+
+            if self.cx.window_title != self.title {
+                self.title = self.cx.window_title.clone();
+                window.set_title(&self.cx.window_title);
+            }
+        }
+    }
+}
+
+/// Call this function to run your UI.
+pub fn rui(view: impl View) {
+    let event_loop = EventLoop::new().unwrap();
+
+    let window_title = String::from("rui");
+    let mut app = EventHandler {
+        title: window_title,
+        running: false,
+        context: None,
+        window: None,
+        mouse_position: LocalPoint::zero(),
+        cx: Context::new(),
+        view,
+        access_nodes: vec![],
+    };
+
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        *GLOBAL_EVENT_LOOP_PROXY.lock().unwrap() = Some(event_loop.create_proxy());
+    }
+
+    let mut commands: Vec<CommandInfo> = Vec::new();
+    let mut command_map = HashMap::new();
+    app.cx.commands(&app.view, &mut commands);
+
+    {
+        // So we can infer a type for CommandMap when winit is enabled.
+        command_map.insert("", "");
+    }
+
+    if let Err(e) = event_loop.run_app(&mut app) {
         log::error!("Error exiting event loop: {:?}", e);
     };
 }
