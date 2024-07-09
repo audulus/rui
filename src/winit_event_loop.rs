@@ -1,21 +1,23 @@
 use crate::*;
 
 use futures::executor::block_on;
-use std::{
-    collections::{HashMap, VecDeque},
-    sync::{Arc, Mutex},
-};
+use std::{collections::HashMap, sync::Arc};
+#[cfg(not(target_arch = "wasm32"))]
+use std::{collections::VecDeque, sync::Mutex};
 
+#[cfg(not(target_arch = "wasm32"))]
+use winit::event_loop::EventLoopProxy;
 use winit::{
     dpi::PhysicalSize,
     event::{
         ElementState, Event as WEvent, MouseButton as WMouseButton, Touch, TouchPhase,
         VirtualKeyCode, WindowEvent,
     },
-    event_loop::{ControlFlow, EventLoop, EventLoopProxy},
+    event_loop::{ControlFlow, EventLoop},
     window::{Window, WindowBuilder},
 };
 
+#[cfg(not(target_arch = "wasm32"))]
 type WorkQueue = VecDeque<Box<dyn FnOnce(&mut Context) + Send>>;
 
 #[cfg(not(target_arch = "wasm32"))]
