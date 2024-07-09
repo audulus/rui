@@ -21,9 +21,9 @@ default = [ "winit" ]
 
 [dependencies]
 euclid = "0.22.7"
-wgpu = "0.19.0"
+wgpu = "0.20.0"
 futures = "0.3"
-vger = { git = "https://github.com/audulus/vger-rs", rev = "fa4a1d4b67a8f6d4a463263652e07bfab99a6caa" }
+vger = { git = "https://github.com/audulus/vger-rs", rev = "eb4e1f66c638df255171187e09af3a1a09b020fe" }
 accesskit = "0.11.0"
 lazy_static = "1.4.0"
 winit = { version = "0.30", optional = true }
