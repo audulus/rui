@@ -113,8 +113,6 @@ pub struct Context {
     /// Render the dirty rectangle for debugging?
     render_dirty: bool,
 
-    pub(crate) access_node_classes: accesskit::NodeClassSet,
-
     /// Lock the cursor in position. Useful for dragging knobs.
     pub(crate) grab_cursor: bool,
 
@@ -152,7 +150,6 @@ impl Context {
             window_size: Size2D::default(),
             root_offset: LocalOffset::zero(),
             render_dirty: false,
-            access_node_classes: accesskit::NodeClassSet::default(),
             grab_cursor: false,
             prev_grab_cursor: false,
         }
