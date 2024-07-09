@@ -44,14 +44,14 @@ pub fn on_main(f: impl FnOnce(&mut Context) + Send + 'static) {
 }
 
 struct DrawContext {
-    surface: wgpu::Surface,
+    surface: wgpu::Surface<'static>,
     device: Arc<wgpu::Device>,
     queue: Arc<wgpu::Queue>,
     config: wgpu::SurfaceConfiguration,
     vger: Vger,
 }
 
-async fn setup(window: &Window) -> DrawContext {
+async fn setup(window: Arc<Window>) -> DrawContext {
     #[cfg(target_arch = "wasm32")]
     {
         use winit::platform::web::WindowExtWebSys;
@@ -78,11 +78,10 @@ async fn setup(window: &Window) -> DrawContext {
     let instance_desc = wgpu::InstanceDescriptor::default();
 
     let instance = wgpu::Instance::new(instance_desc);
-    let (size, surface) = unsafe {
-        let size = window.inner_size();
-        let surface = instance.create_surface(&window);
-        (size, surface.unwrap())
-    };
+    let size = window.inner_size();
+    let surface = instance
+        .create_surface(window)
+        .expect("Failed to create surface!");
     let adapter = wgpu::util::initialize_adapter_from_env_or_default(&instance, Some(&surface))
         .await
         .expect("No suitable GPU adapters found on the system!");
@@ -98,8 +97,8 @@ async fn setup(window: &Window) -> DrawContext {
         .request_device(
             &wgpu::DeviceDescriptor {
                 label: None,
-                features: wgpu::Features::default(),
-                limits: wgpu::Limits::default(),
+                required_features: wgpu::Features::default(),
+                required_limits: wgpu::Limits::default(),
             },
             trace_dir.ok().as_ref().map(std::path::Path::new),
         )
@@ -114,6 +113,7 @@ async fn setup(window: &Window) -> DrawContext {
         width: size.width,
         height: size.height,
         present_mode: wgpu::PresentMode::Fifo,
+        desired_maximum_frame_latency: 2,
         alpha_mode: wgpu::CompositeAlphaMode::Auto,
         view_formats: vec![],
     };
@@ -164,7 +164,7 @@ where
     // The event handling loop is terminated when the main window is closed.
     // We can trigger this by dropping the window, so we wrap it in the Option
     // type.  This is a bit of a hack, but it works.
-    window: Option<Window>,
+    window: Option<Arc<Window>>,
     // The event system does not expose the cursor position on-demand.
     // We track all the mouse movement events to make this easier to access
     // by event handlers.
@@ -195,12 +195,12 @@ where
                 log::error!("Error creating window: {:?}", e);
                 return;
             }
-            Ok(window) => Some(window),
+            Ok(window) => Some(Arc::new(window)),
         };
         let window = self.window.as_ref().unwrap();
 
         // Set up the rendering context.
-        self.context = Some(block_on(setup(&window)));
+        self.context = Some(block_on(setup(window.clone())));
     }
 
     fn window_event(

@@ -21,14 +21,12 @@ default = [ "winit" ]
 
 [dependencies]
 euclid = "0.22.7"
-wgpu = "0.18.0"
+wgpu = "0.19.0"
 futures = "0.3"
-vger = "0.2.8"
+vger = { git = "https://github.com/audulus/vger-rs", rev = "fa4a1d4b67a8f6d4a463263652e07bfab99a6caa" }
 accesskit = "0.11.0"
 lazy_static = "1.4.0"
-winit = { version = "0.30", optional = true, features = [
-    "rwh_05",
- ] }
+winit = { version = "0.30", optional = true }
 log = "0.4"
 
 # Seems we can't publish to crates.io with this dependency.

@@ -40,9 +40,9 @@ pub(crate) type StateMap = HashMap<ViewId, StateHolder>;
 
 pub(crate) type EnvMap = HashMap<TypeId, Box<dyn Any>>;
 
-pub struct RenderInfo<'a> {
+pub struct RenderInfo<'a, 'window> {
     pub device: &'a wgpu::Device,
-    pub surface: &'a wgpu::Surface,
+    pub surface: &'a wgpu::Surface<'window>,
     pub config: &'a wgpu::SurfaceConfiguration,
     pub queue: &'a wgpu::Queue,
 }
