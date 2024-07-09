@@ -10,10 +10,11 @@ use winit::event_loop::EventLoopProxy;
 use winit::{
     dpi::PhysicalSize,
     event::{
-        ElementState, Event as WEvent, MouseButton as WMouseButton, Touch, TouchPhase,
-        VirtualKeyCode, WindowEvent,
+        ElementState, Event as WEvent, KeyEvent as WKeyEvent, MouseButton as WMouseButton, Touch,
+        TouchPhase, WindowEvent,
     },
     event_loop::{ControlFlow, EventLoop},
+    keyboard,
     window::{Window, WindowBuilder},
 };
 
@@ -65,7 +66,7 @@ async fn setup(window: &Window) -> Setup {
             .and_then(|win| win.document())
             .and_then(|doc| doc.body())
             .and_then(|body| {
-                body.append_child(&web_sys::Element::from(window.canvas()))
+                body.append_child(&web_sys::Element::from(window.canvas()?))
                     .ok()
             })
             .expect("couldn't append canvas to document body");
@@ -138,7 +139,7 @@ fn process_event(cx: &mut Context, view: &impl View, event: &Event, window: &Win
 
 /// Call this function to run your UI.
 pub fn rui(view: impl View) {
-    let event_loop = EventLoop::new();
+    let event_loop = EventLoop::new().unwrap();
 
     let mut window_title = String::from("rui");
     let builder = WindowBuilder::new().with_title(&window_title);
@@ -182,15 +183,15 @@ pub fn rui(view: impl View) {
 
     let mut access_nodes = vec![];
 
-    event_loop.run(move |event, _, control_flow| {
+    if let Err(e) = event_loop.run(move |event, window_target| {
         // ControlFlow::Poll continuously runs the event loop, even if the OS hasn't
         // dispatched any events. This is ideal for games and similar applications.
-        // *control_flow = ControlFlow::Poll;
+        // window_target.set_control_flow(ControlFlow::Poll);
 
         // ControlFlow::Wait pauses the event loop if no events are available to process.
         // This is ideal for non-game applications that only update in response to user
         // input, and uses significantly less power/CPU time than ControlFlow::Poll.
-        *control_flow = ControlFlow::Wait;
+        window_target.set_control_flow(ControlFlow::Wait);
 
         match event {
             WEvent::WindowEvent {
@@ -198,17 +199,13 @@ pub fn rui(view: impl View) {
                 ..
             } => {
                 log::debug!("The close button was pressed; stopping");
-                *control_flow = ControlFlow::Exit
+                window_target.exit()
             }
             WEvent::WindowEvent {
-                event:
-                    WindowEvent::Resized(size)
-                    | WindowEvent::ScaleFactorChanged {
-                        new_inner_size: &mut size,
-                        ..
-                    },
+                event: WindowEvent::Resized(_) | WindowEvent::ScaleFactorChanged { .. },
                 ..
             } => {
+                let size = window.inner_size();
                 // log::debug!("Resizing to {:?}", size);
                 config.width = size.width.max(1);
                 config.height = size.height.max(1);
@@ -226,7 +223,7 @@ pub fn rui(view: impl View) {
                     }
                 }
             }
-            WEvent::MainEventsCleared => {
+            WEvent::AboutToWait => {
                 // Application update code.
 
                 // Queue a RedrawRequested event.
@@ -250,7 +247,10 @@ pub fn rui(view: impl View) {
                     window.set_title(&cx.window_title);
                 }
             }
-            WEvent::RedrawRequested(_) => {
+            WEvent::WindowEvent {
+                event: WindowEvent::RedrawRequested,
+                ..
+            } => {
                 // Redraw the application.
                 //
                 // It's preferable for applications that do not render continuously to render in
@@ -362,181 +362,52 @@ pub fn rui(view: impl View) {
             }
 
             WEvent::WindowEvent {
-                event: WindowEvent::KeyboardInput { input, .. },
+                event:
+                    WindowEvent::KeyboardInput {
+                        event: key_event @ WKeyEvent { .. },
+                        ..
+                    },
                 ..
             } => {
-                if input.state == ElementState::Pressed {
-                    if let Some(code) = input.virtual_keycode {
-                        let key = match code {
-                            // VirtualKeyCode::Character(c) => Some(Key::Character(c)),
-                            VirtualKeyCode::Key1 => {
-                                Some(Key::Character(if cx.key_mods.shift { '!' } else { '1' }))
-                            }
-                            VirtualKeyCode::Key2 => {
-                                Some(Key::Character(if cx.key_mods.shift { '@' } else { '2' }))
-                            }
-                            VirtualKeyCode::Key3 => {
-                                Some(Key::Character(if cx.key_mods.shift { '#' } else { '3' }))
-                            }
-                            VirtualKeyCode::Key4 => {
-                                Some(Key::Character(if cx.key_mods.shift { '$' } else { '4' }))
-                            }
-                            VirtualKeyCode::Key5 => {
-                                Some(Key::Character(if cx.key_mods.shift { '%' } else { '5' }))
-                            }
-                            VirtualKeyCode::Key6 => {
-                                Some(Key::Character(if cx.key_mods.shift { '^' } else { '6' }))
-                            }
-                            VirtualKeyCode::Key7 => {
-                                Some(Key::Character(if cx.key_mods.shift { '&' } else { '7' }))
-                            }
-                            VirtualKeyCode::Key8 => {
-                                Some(Key::Character(if cx.key_mods.shift { '*' } else { '8' }))
-                            }
-                            VirtualKeyCode::Key9 => {
-                                Some(Key::Character(if cx.key_mods.shift { '(' } else { '9' }))
-                            }
-                            VirtualKeyCode::Key0 => {
-                                Some(Key::Character(if cx.key_mods.shift { ')' } else { '0' }))
-                            }
-                            VirtualKeyCode::A => {
-                                Some(Key::Character(if cx.key_mods.shift { 'A' } else { 'a' }))
-                            }
-                            VirtualKeyCode::B => {
-                                Some(Key::Character(if cx.key_mods.shift { 'B' } else { 'b' }))
-                            }
-                            VirtualKeyCode::C => {
-                                Some(Key::Character(if cx.key_mods.shift { 'C' } else { 'c' }))
-                            }
-                            VirtualKeyCode::D => {
-                                Some(Key::Character(if cx.key_mods.shift { 'D' } else { 'd' }))
-                            }
-                            VirtualKeyCode::E => {
-                                Some(Key::Character(if cx.key_mods.shift { 'E' } else { 'e' }))
-                            }
-                            VirtualKeyCode::F => {
-                                Some(Key::Character(if cx.key_mods.shift { 'F' } else { 'f' }))
-                            }
-                            VirtualKeyCode::G => {
-                                Some(Key::Character(if cx.key_mods.shift { 'G' } else { 'g' }))
-                            }
-                            VirtualKeyCode::H => {
-                                Some(Key::Character(if cx.key_mods.shift { 'H' } else { 'h' }))
-                            }
-                            VirtualKeyCode::I => {
-                                Some(Key::Character(if cx.key_mods.shift { 'I' } else { 'i' }))
-                            }
-                            VirtualKeyCode::J => {
-                                Some(Key::Character(if cx.key_mods.shift { 'J' } else { 'j' }))
-                            }
-                            VirtualKeyCode::K => {
-                                Some(Key::Character(if cx.key_mods.shift { 'K' } else { 'k' }))
-                            }
-                            VirtualKeyCode::L => {
-                                Some(Key::Character(if cx.key_mods.shift { 'L' } else { 'l' }))
-                            }
-                            VirtualKeyCode::M => {
-                                Some(Key::Character(if cx.key_mods.shift { 'M' } else { 'm' }))
-                            }
-                            VirtualKeyCode::N => {
-                                Some(Key::Character(if cx.key_mods.shift { 'N' } else { 'n' }))
-                            }
-                            VirtualKeyCode::O => {
-                                Some(Key::Character(if cx.key_mods.shift { 'O' } else { 'o' }))
-                            }
-                            VirtualKeyCode::P => {
-                                Some(Key::Character(if cx.key_mods.shift { 'P' } else { 'p' }))
-                            }
-                            VirtualKeyCode::Q => {
-                                Some(Key::Character(if cx.key_mods.shift { 'Q' } else { 'q' }))
-                            }
-                            VirtualKeyCode::R => {
-                                Some(Key::Character(if cx.key_mods.shift { 'R' } else { 'r' }))
-                            }
-                            VirtualKeyCode::S => {
-                                Some(Key::Character(if cx.key_mods.shift { 'S' } else { 's' }))
-                            }
-                            VirtualKeyCode::T => {
-                                Some(Key::Character(if cx.key_mods.shift { 'T' } else { 't' }))
-                            }
-                            VirtualKeyCode::U => {
-                                Some(Key::Character(if cx.key_mods.shift { 'U' } else { 'u' }))
-                            }
-                            VirtualKeyCode::V => {
-                                Some(Key::Character(if cx.key_mods.shift { 'V' } else { 'v' }))
-                            }
-                            VirtualKeyCode::W => {
-                                Some(Key::Character(if cx.key_mods.shift { 'W' } else { 'w' }))
-                            }
-                            VirtualKeyCode::X => {
-                                Some(Key::Character(if cx.key_mods.shift { 'X' } else { 'x' }))
-                            }
-                            VirtualKeyCode::Y => {
-                                Some(Key::Character(if cx.key_mods.shift { 'Y' } else { 'y' }))
-                            }
-                            VirtualKeyCode::Z => {
-                                Some(Key::Character(if cx.key_mods.shift { 'Z' } else { 'z' }))
-                            }
-                            VirtualKeyCode::Semicolon => {
-                                Some(Key::Character(if cx.key_mods.shift { ':' } else { ';' }))
-                            }
-                            VirtualKeyCode::Colon => Some(Key::Character(':')),
-                            VirtualKeyCode::Caret => Some(Key::Character('^')),
-                            VirtualKeyCode::Asterisk => Some(Key::Character('*')),
-                            VirtualKeyCode::Period => {
-                                Some(Key::Character(if cx.key_mods.shift { '>' } else { '.' }))
-                            }
-                            VirtualKeyCode::Comma => {
-                                Some(Key::Character(if cx.key_mods.shift { '<' } else { ',' }))
-                            }
-                            VirtualKeyCode::Equals | VirtualKeyCode::NumpadEquals => {
-                                Some(Key::Character('='))
-                            }
-                            VirtualKeyCode::Plus | VirtualKeyCode::NumpadAdd => {
-                                Some(Key::Character('+'))
-                            }
-                            VirtualKeyCode::Minus | VirtualKeyCode::NumpadSubtract => {
-                                Some(Key::Character(if cx.key_mods.shift { '_' } else { '-' }))
-                            }
-                            VirtualKeyCode::Slash | VirtualKeyCode::NumpadDivide => {
-                                Some(Key::Character(if cx.key_mods.shift { '?' } else { '/' }))
-                            }
-                            VirtualKeyCode::Grave => {
-                                Some(Key::Character(if cx.key_mods.shift { '~' } else { '`' }))
-                            }
-                            VirtualKeyCode::Return => Some(Key::Enter),
-                            VirtualKeyCode::Tab => Some(Key::Tab),
-                            VirtualKeyCode::Space => Some(Key::Space),
-                            VirtualKeyCode::Down => Some(Key::ArrowDown),
-                            VirtualKeyCode::Left => Some(Key::ArrowLeft),
-                            VirtualKeyCode::Right => Some(Key::ArrowRight),
-                            VirtualKeyCode::Up => Some(Key::ArrowUp),
-                            VirtualKeyCode::End => Some(Key::End),
-                            VirtualKeyCode::Home => Some(Key::Home),
-                            VirtualKeyCode::PageDown => Some(Key::PageDown),
-                            VirtualKeyCode::PageUp => Some(Key::PageUp),
-                            VirtualKeyCode::Back => Some(Key::Backspace),
-                            VirtualKeyCode::Delete => Some(Key::Delete),
-                            VirtualKeyCode::Escape => Some(Key::Escape),
-                            VirtualKeyCode::F1 => Some(Key::F1),
-                            VirtualKeyCode::F2 => Some(Key::F2),
-                            VirtualKeyCode::F3 => Some(Key::F3),
-                            VirtualKeyCode::F4 => Some(Key::F4),
-                            VirtualKeyCode::F5 => Some(Key::F5),
-                            VirtualKeyCode::F6 => Some(Key::F6),
-                            VirtualKeyCode::F7 => Some(Key::F7),
-                            VirtualKeyCode::F8 => Some(Key::F8),
-                            VirtualKeyCode::F9 => Some(Key::F9),
-                            VirtualKeyCode::F10 => Some(Key::F10),
-                            VirtualKeyCode::F11 => Some(Key::F11),
-                            VirtualKeyCode::F12 => Some(Key::F12),
-                            _ => None,
-                        };
-
-                        if let Some(key) = key {
-                            cx.process(&view, &Event::Key(key))
+                let key = match key_event.logical_key {
+                    keyboard::Key::Named(keyboard::NamedKey::Enter) => Some(Key::Enter),
+                    keyboard::Key::Named(keyboard::NamedKey::Tab) => Some(Key::Tab),
+                    keyboard::Key::Named(keyboard::NamedKey::Space) => Some(Key::Space),
+                    keyboard::Key::Named(keyboard::NamedKey::ArrowDown) => Some(Key::ArrowDown),
+                    keyboard::Key::Named(keyboard::NamedKey::ArrowLeft) => Some(Key::ArrowLeft),
+                    keyboard::Key::Named(keyboard::NamedKey::ArrowRight) => Some(Key::ArrowRight),
+                    keyboard::Key::Named(keyboard::NamedKey::ArrowUp) => Some(Key::ArrowUp),
+                    keyboard::Key::Named(keyboard::NamedKey::End) => Some(Key::End),
+                    keyboard::Key::Named(keyboard::NamedKey::Home) => Some(Key::Home),
+                    keyboard::Key::Named(keyboard::NamedKey::PageDown) => Some(Key::PageDown),
+                    keyboard::Key::Named(keyboard::NamedKey::PageUp) => Some(Key::PageUp),
+                    keyboard::Key::Named(keyboard::NamedKey::Backspace) => Some(Key::Backspace),
+                    keyboard::Key::Named(keyboard::NamedKey::Delete) => Some(Key::Delete),
+                    keyboard::Key::Named(keyboard::NamedKey::Escape) => Some(Key::Escape),
+                    keyboard::Key::Named(keyboard::NamedKey::F1) => Some(Key::F1),
+                    keyboard::Key::Named(keyboard::NamedKey::F2) => Some(Key::F2),
+                    keyboard::Key::Named(keyboard::NamedKey::F3) => Some(Key::F3),
+                    keyboard::Key::Named(keyboard::NamedKey::F4) => Some(Key::F4),
+                    keyboard::Key::Named(keyboard::NamedKey::F5) => Some(Key::F5),
+                    keyboard::Key::Named(keyboard::NamedKey::F6) => Some(Key::F6),
+                    keyboard::Key::Named(keyboard::NamedKey::F7) => Some(Key::F7),
+                    keyboard::Key::Named(keyboard::NamedKey::F8) => Some(Key::F8),
+                    keyboard::Key::Named(keyboard::NamedKey::F9) => Some(Key::F9),
+                    keyboard::Key::Named(keyboard::NamedKey::F10) => Some(Key::F10),
+                    keyboard::Key::Named(keyboard::NamedKey::F11) => Some(Key::F11),
+                    keyboard::Key::Named(keyboard::NamedKey::F12) => Some(Key::F12),
+                    keyboard::Key::Character(str) => {
+                        if let Some(c) = str.chars().next() {
+                            Some(Key::Character(c))
+                        } else {
+                            None
                         }
                     }
+                    _ => None,
+                };
+
+                if let (Some(key), ElementState::Pressed) = (key, key_event.state) {
+                    cx.process(&view, &Event::Key(key))
                 }
             }
 
@@ -545,10 +416,10 @@ pub fn rui(view: impl View) {
                 ..
             } => {
                 cx.key_mods = KeyboardModifiers {
-                    shift: mods.shift(),
-                    control: mods.ctrl(),
-                    alt: mods.alt(),
-                    command: mods.logo(),
+                    shift: !(mods.state() & keyboard::ModifiersState::SHIFT).is_empty(),
+                    control: !(mods.state() & keyboard::ModifiersState::CONTROL).is_empty(),
+                    alt: !(mods.state() & keyboard::ModifiersState::ALT).is_empty(),
+                    command: !(mods.state() & keyboard::ModifiersState::SUPER).is_empty(),
                 };
             }
 
@@ -569,7 +440,9 @@ pub fn rui(view: impl View) {
             }
             _ => (),
         }
-    });
+    }) {
+        log::error!("Error exiting event loop: {:?}", e);
+    };
 }
 
 #[cfg(target_arch = "wasm32")]
