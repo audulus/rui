@@ -13,7 +13,7 @@ impl ViewId {
     /// Returns the corresponding AccessKit ID. We're assuming
     /// the underlying u64 isn't zero.
     pub fn access_id(&self) -> accesskit::NodeId {
-        accesskit::NodeId(std::num::NonZeroU128::new(self.id as u128).unwrap())
+        accesskit::NodeId(self.id)
     }
 
     pub fn is_default(self) -> bool {
