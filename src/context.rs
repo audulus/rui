@@ -40,9 +40,9 @@ pub(crate) type StateMap = HashMap<ViewId, StateHolder>;
 
 pub(crate) type EnvMap = HashMap<TypeId, Box<dyn Any>>;
 
-pub struct RenderInfo<'a> {
+pub struct RenderInfo<'a, 'window> {
     pub device: &'a wgpu::Device,
-    pub surface: &'a wgpu::Surface,
+    pub surface: &'a wgpu::Surface<'window>,
     pub config: &'a wgpu::SurfaceConfiguration,
     pub queue: &'a wgpu::Queue,
 }
@@ -113,8 +113,6 @@ pub struct Context {
     /// Render the dirty rectangle for debugging?
     render_dirty: bool,
 
-    pub(crate) access_node_classes: accesskit::NodeClassSet,
-
     /// Lock the cursor in position. Useful for dragging knobs.
     pub(crate) grab_cursor: bool,
 
@@ -152,7 +150,6 @@ impl Context {
             window_size: Size2D::default(),
             root_offset: LocalOffset::zero(),
             render_dirty: false,
-            access_node_classes: accesskit::NodeClassSet::default(),
             grab_cursor: false,
             prev_grab_cursor: false,
         }

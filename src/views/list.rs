@@ -214,10 +214,7 @@ where
             .collect();
 
         builder.set_children(children);
-        nodes.push((
-            cx.view_id(path).access_id(),
-            builder.build(&mut cx.access_node_classes),
-        ));
+        nodes.push((cx.view_id(path).access_id(), builder.build()));
         Some(cx.view_id(path).access_id())
     }
 }

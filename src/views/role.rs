@@ -86,7 +86,7 @@ where
             Some(cid) => vec![cid],
             None => vec![],
         });
-        nodes.push((aid, builder.build(&mut cx.access_node_classes)));
+        nodes.push((aid, builder.build()));
         Some(aid)
     }
 }

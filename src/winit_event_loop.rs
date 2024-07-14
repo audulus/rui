@@ -1,21 +1,25 @@
 use crate::*;
 
 use futures::executor::block_on;
-use std::{
-    collections::{HashMap, VecDeque},
-    sync::{Arc, Mutex},
-};
+use std::{collections::HashMap, sync::Arc};
+#[cfg(not(target_arch = "wasm32"))]
+use std::{collections::VecDeque, sync::Mutex};
 
+use euclid::Point2D;
+#[cfg(not(target_arch = "wasm32"))]
+use winit::event_loop::EventLoopProxy;
 use winit::{
-    dpi::PhysicalSize,
+    application::ApplicationHandler,
     event::{
-        ElementState, Event as WEvent, MouseButton as WMouseButton, Touch, TouchPhase,
-        VirtualKeyCode, WindowEvent,
+        DeviceEvent, DeviceId, ElementState, KeyEvent as WKeyEvent, MouseButton as WMouseButton,
+        Touch, TouchPhase, WindowEvent,
     },
-    event_loop::{ControlFlow, EventLoop, EventLoopProxy},
-    window::{Window, WindowBuilder},
+    event_loop::{ActiveEventLoop, ControlFlow, EventLoop},
+    keyboard,
+    window::{Window, WindowId},
 };
 
+#[cfg(not(target_arch = "wasm32"))]
 type WorkQueue = VecDeque<Box<dyn FnOnce(&mut Context) + Send>>;
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -39,15 +43,15 @@ pub fn on_main(f: impl FnOnce(&mut Context) + Send + 'static) {
     }
 }
 
-struct Setup {
-    size: PhysicalSize<u32>,
-    surface: wgpu::Surface,
-    adapter: wgpu::Adapter,
-    device: wgpu::Device,
-    queue: wgpu::Queue,
+struct DrawContext {
+    surface: wgpu::Surface<'static>,
+    device: Arc<wgpu::Device>,
+    queue: Arc<wgpu::Queue>,
+    config: wgpu::SurfaceConfiguration,
+    vger: Vger,
 }
 
-async fn setup(window: &Window) -> Setup {
+async fn setup(window: Arc<Window>) -> DrawContext {
     #[cfg(target_arch = "wasm32")]
     {
         use winit::platform::web::WindowExtWebSys;
@@ -63,7 +67,7 @@ async fn setup(window: &Window) -> Setup {
             .and_then(|win| win.document())
             .and_then(|doc| doc.body())
             .and_then(|body| {
-                body.append_child(&web_sys::Element::from(window.canvas()))
+                body.append_child(&web_sys::Element::from(window.canvas()?))
                     .ok()
             })
             .expect("couldn't append canvas to document body");
@@ -74,11 +78,10 @@ async fn setup(window: &Window) -> Setup {
     let instance_desc = wgpu::InstanceDescriptor::default();
 
     let instance = wgpu::Instance::new(instance_desc);
-    let (size, surface) = unsafe {
-        let size = window.inner_size();
-        let surface = instance.create_surface(&window);
-        (size, surface.unwrap())
-    };
+    let size = window.inner_size();
+    let surface = instance
+        .create_surface(window)
+        .expect("Failed to create surface!");
     let adapter = wgpu::util::initialize_adapter_from_env_or_default(&instance, Some(&surface))
         .await
         .expect("No suitable GPU adapters found on the system!");
@@ -94,20 +97,36 @@ async fn setup(window: &Window) -> Setup {
         .request_device(
             &wgpu::DeviceDescriptor {
                 label: None,
-                features: wgpu::Features::default(),
-                limits: wgpu::Limits::default(),
+                required_features: wgpu::Features::default(),
+                required_limits: wgpu::Limits::default(),
             },
             trace_dir.ok().as_ref().map(std::path::Path::new),
         )
         .await
         .expect("Unable to find a suitable GPU adapter!");
+    let device = Arc::new(device);
+    let queue = Arc::new(queue);
 
-    Setup {
-        size,
+    let config = wgpu::SurfaceConfiguration {
+        usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+        format: surface.get_capabilities(&adapter).formats[0],
+        width: size.width,
+        height: size.height,
+        present_mode: wgpu::PresentMode::Fifo,
+        desired_maximum_frame_latency: 2,
+        alpha_mode: wgpu::CompositeAlphaMode::Auto,
+        view_formats: vec![],
+    };
+    surface.configure(&device, &config);
+
+    let vger = Vger::new(device.clone(), queue.clone(), config.format);
+
+    DrawContext {
         surface,
-        adapter,
         device,
         queue,
+        config,
+        vger,
     }
 }
 
@@ -134,440 +153,355 @@ fn process_event(cx: &mut Context, view: &impl View, event: &Event, window: &Win
     cx.prev_grab_cursor = cx.grab_cursor;
 }
 
-/// Call this function to run your UI.
-pub fn rui(view: impl View) {
-    let event_loop = EventLoop::new();
+struct EventHandler<T>
+where
+    T: View,
+{
+    title: String,
+    running: bool,
+    // The GPU resources, if running.
+    context: Option<DrawContext>,
+    // The event handling loop is terminated when the main window is closed.
+    // We can trigger this by dropping the window, so we wrap it in the Option
+    // type.  This is a bit of a hack, but it works.
+    window: Option<Arc<Window>>,
+    // The event system does not expose the cursor position on-demand.
+    // We track all the mouse movement events to make this easier to access
+    // by event handlers.
+    mouse_position: Point2D<f32, LocalSpace>,
+    cx: Context,
+    view: T,
+    access_nodes: Vec<(accesskit::NodeId, accesskit::Node)>,
+}
 
-    let mut window_title = String::from("rui");
-    let builder = WindowBuilder::new().with_title(&window_title);
-    let window = builder.build(&event_loop).unwrap();
+impl<T> ApplicationHandler for EventHandler<T>
+where
+    T: View,
+{
+    fn resumed(&mut self, event_loop: &ActiveEventLoop) {
+        // Called when the application is brought into focus.  The window and
+        // associated GPU resources need to be reallocated on resume.
 
-    let setup = block_on(setup(&window));
-    let surface = setup.surface;
-    let device = Arc::new(setup.device);
-    let size = setup.size;
-    let adapter = setup.adapter;
-    let queue = Arc::new(setup.queue);
+        // On some platforms, namely wasm32 + webgl2, the window is not yet
+        // ready to create the rendering surface when Event::Resumed is
+        // received.  We therefore just record the fact that the we're in the
+        // running state.
+        self.running = true;
 
-    let mut config = wgpu::SurfaceConfiguration {
-        usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-        format: surface.get_capabilities(&adapter).formats[0],
-        width: size.width,
-        height: size.height,
-        present_mode: wgpu::PresentMode::Fifo,
-        alpha_mode: wgpu::CompositeAlphaMode::Auto,
-        view_formats: vec![],
-    };
-    surface.configure(&device, &config);
+        // Create the main window.
+        let window_attributes = Window::default_attributes().with_title(&self.title);
+        self.window = match event_loop.create_window(window_attributes) {
+            Err(e) => {
+                log::error!("Error creating window: {:?}", e);
+                return;
+            }
+            Ok(window) => Some(Arc::new(window)),
+        };
+        let window = self.window.as_ref().unwrap();
 
-    #[cfg(not(target_arch = "wasm32"))]
-    {
-        *GLOBAL_EVENT_LOOP_PROXY.lock().unwrap() = Some(event_loop.create_proxy());
+        // Set up the rendering context.
+        self.context = Some(block_on(setup(window.clone())));
     }
 
-    let mut vger = Vger::new(device.clone(), queue.clone(), config.format);
-    let mut cx = Context::new();
-    let mut mouse_position = LocalPoint::zero();
-
-    let mut commands: Vec<CommandInfo> = Vec::new();
-    let mut command_map = HashMap::new();
-    cx.commands(&view, &mut commands);
-
-    {
-        // So we can infer a type for CommandMap when winit is enabled.
-        command_map.insert("", "");
-    }
-
-    let mut access_nodes = vec![];
-
-    event_loop.run(move |event, _, control_flow| {
+    fn window_event(
+        &mut self,
+        event_loop: &ActiveEventLoop,
+        window_id: WindowId,
+        event: WindowEvent,
+    ) {
         // ControlFlow::Poll continuously runs the event loop, even if the OS hasn't
         // dispatched any events. This is ideal for games and similar applications.
-        // *control_flow = ControlFlow::Poll;
+        // event_loop.set_control_flow(ControlFlow::Poll);
 
         // ControlFlow::Wait pauses the event loop if no events are available to process.
         // This is ideal for non-game applications that only update in response to user
         // input, and uses significantly less power/CPU time than ControlFlow::Poll.
-        *control_flow = ControlFlow::Wait;
+        event_loop.set_control_flow(ControlFlow::Wait);
 
         match event {
-            WEvent::WindowEvent {
-                event: WindowEvent::CloseRequested,
-                ..
-            } => {
+            WindowEvent::CloseRequested => {
                 log::debug!("The close button was pressed; stopping");
-                *control_flow = ControlFlow::Exit
+                event_loop.exit()
             }
-            WEvent::WindowEvent {
-                event:
-                    WindowEvent::Resized(size)
-                    | WindowEvent::ScaleFactorChanged {
-                        new_inner_size: &mut size,
-                        ..
-                    },
-                ..
-            } => {
-                // log::debug!("Resizing to {:?}", size);
-                config.width = size.width.max(1);
-                config.height = size.height.max(1);
-                surface.configure(&device, &config);
-                window.request_redraw();
-            }
-            WEvent::UserEvent(_) => {
-                // log::debug!("received user event");
-
-                // Process the work queue.
-                #[cfg(not(target_arch = "wasm32"))]
-                {
-                    while let Some(f) = GLOBAL_WORK_QUEUE.lock().unwrap().pop_front() {
-                        f(&mut cx);
-                    }
-                }
-            }
-            WEvent::MainEventsCleared => {
-                // Application update code.
-
-                // Queue a RedrawRequested event.
-                //
-                // You only need to call this if you've determined that you need to redraw, in
-                // applications which do not always need to. Applications that redraw continuously
-                // can just render here instead.
-
-                let window_size = window.inner_size();
-                let scale = window.scale_factor() as f32;
-                // log::debug!("window_size: {:?}", window_size);
-                let width = window_size.width as f32 / scale;
-                let height = window_size.height as f32 / scale;
-
-                if cx.update(&view, &mut vger, &mut access_nodes, [width, height].into()) {
+            WindowEvent::Resized(_) | WindowEvent::ScaleFactorChanged { .. } => {
+                if let (Some(window), Some(context)) = (&self.window, &mut self.context) {
+                    let size = window.inner_size();
+                    // log::debug!("Resizing to {:?}", size);
+                    context.config.width = size.width.max(1);
+                    context.config.height = size.height.max(1);
+                    context.surface.configure(&context.device, &context.config);
                     window.request_redraw();
                 }
-
-                if cx.window_title != window_title {
-                    window_title = cx.window_title.clone();
-                    window.set_title(&cx.window_title);
-                }
             }
-            WEvent::RedrawRequested(_) => {
+            WindowEvent::RedrawRequested => {
                 // Redraw the application.
                 //
                 // It's preferable for applications that do not render continuously to render in
                 // this event rather than in MainEventsCleared, since rendering in here allows
                 // the program to gracefully handle redraws requested by the OS.
 
-                let window_size = window.inner_size();
-                let scale = window.scale_factor() as f32;
-                // log::debug!("window_size: {:?}", window_size);
-                let width = window_size.width as f32 / scale;
-                let height = window_size.height as f32 / scale;
+                if let (Some(window), Some(context)) = (&self.window, &mut self.context) {
+                    let window_size = window.inner_size();
+                    let scale = window.scale_factor() as f32;
+                    // log::debug!("window_size: {:?}", window_size);
+                    let width = window_size.width as f32 / scale;
+                    let height = window_size.height as f32 / scale;
 
-                // log::debug!("RedrawRequested");
-                cx.render(
-                    RenderInfo {
-                        device: &device,
-                        surface: &surface,
-                        config: &config,
-                        queue: &queue,
-                    },
-                    &view,
-                    &mut vger,
-                    [width, height].into(),
-                    scale,
-                );
+                    // log::debug!("RedrawRequested");
+                    self.cx.render(
+                        RenderInfo {
+                            device: &context.device,
+                            surface: &context.surface,
+                            config: &context.config,
+                            queue: &context.queue,
+                        },
+                        &self.view,
+                        &mut context.vger,
+                        [width, height].into(),
+                        scale,
+                    );
+                }
             }
-            WEvent::WindowEvent {
-                event: WindowEvent::MouseInput { state, button, .. },
-                ..
-            } => {
+            WindowEvent::MouseInput { state, button, .. } => {
                 match state {
                     ElementState::Pressed => {
-                        cx.mouse_button = match button {
+                        self.cx.mouse_button = match button {
                             WMouseButton::Left => Some(MouseButton::Left),
                             WMouseButton::Right => Some(MouseButton::Right),
                             WMouseButton::Middle => Some(MouseButton::Center),
                             _ => None,
                         };
-                        let event = Event::TouchBegin {
-                            id: 0,
-                            position: mouse_position,
-                        };
-                        process_event(&mut cx, &view, &event, &window)
-                    }
-                    ElementState::Released => {
-                        cx.mouse_button = None;
-                        let event = Event::TouchEnd {
-                            id: 0,
-                            position: mouse_position,
-                        };
-                        process_event(&mut cx, &view, &event, &window)
-                    }
-                };
-            }
-            WEvent::WindowEvent {
-                window_id,
-                event:
-                    WindowEvent::Touch(Touch {
-                        phase, location, ..
-                    }),
-                ..
-            } => {
-                // Do not handle events from other windows.
-                if window_id != window.id() {
-                    return;
-                }
-
-                let scale = window.scale_factor() as f32;
-                let position = [
-                    location.x as f32 / scale,
-                    (config.height as f32 - location.y as f32) / scale,
-                ]
-                .into();
-
-                let delta = position - cx.previous_position[0];
-
-                // TODO: Multi-Touch management
-                let event = match phase {
-                    TouchPhase::Started => Some(Event::TouchBegin { id: 0, position }),
-                    TouchPhase::Moved => Some(Event::TouchMove {
-                        id: 0,
-                        position,
-                        delta,
-                    }),
-                    TouchPhase::Ended | TouchPhase::Cancelled => {
-                        Some(Event::TouchEnd { id: 0, position })
-                    }
-                };
-
-                if let Some(event) = event {
-                    process_event(&mut cx, &view, &event, &window);
-                }
-            }
-            WEvent::WindowEvent {
-                event: WindowEvent::CursorMoved { position, .. },
-                ..
-            } => {
-                let scale = window.scale_factor() as f32;
-                mouse_position = [
-                    position.x as f32 / scale,
-                    (config.height as f32 - position.y as f32) / scale,
-                ]
-                .into();
-                // let event = Event::TouchMove {
-                //     id: 0,
-                //     position: mouse_position,
-                // };
-                // process_event(&mut cx, &view, &event, &window)
-            }
-
-            WEvent::WindowEvent {
-                event: WindowEvent::KeyboardInput { input, .. },
-                ..
-            } => {
-                if input.state == ElementState::Pressed {
-                    if let Some(code) = input.virtual_keycode {
-                        let key = match code {
-                            // VirtualKeyCode::Character(c) => Some(Key::Character(c)),
-                            VirtualKeyCode::Key1 => {
-                                Some(Key::Character(if cx.key_mods.shift { '!' } else { '1' }))
-                            }
-                            VirtualKeyCode::Key2 => {
-                                Some(Key::Character(if cx.key_mods.shift { '@' } else { '2' }))
-                            }
-                            VirtualKeyCode::Key3 => {
-                                Some(Key::Character(if cx.key_mods.shift { '#' } else { '3' }))
-                            }
-                            VirtualKeyCode::Key4 => {
-                                Some(Key::Character(if cx.key_mods.shift { '$' } else { '4' }))
-                            }
-                            VirtualKeyCode::Key5 => {
-                                Some(Key::Character(if cx.key_mods.shift { '%' } else { '5' }))
-                            }
-                            VirtualKeyCode::Key6 => {
-                                Some(Key::Character(if cx.key_mods.shift { '^' } else { '6' }))
-                            }
-                            VirtualKeyCode::Key7 => {
-                                Some(Key::Character(if cx.key_mods.shift { '&' } else { '7' }))
-                            }
-                            VirtualKeyCode::Key8 => {
-                                Some(Key::Character(if cx.key_mods.shift { '*' } else { '8' }))
-                            }
-                            VirtualKeyCode::Key9 => {
-                                Some(Key::Character(if cx.key_mods.shift { '(' } else { '9' }))
-                            }
-                            VirtualKeyCode::Key0 => {
-                                Some(Key::Character(if cx.key_mods.shift { ')' } else { '0' }))
-                            }
-                            VirtualKeyCode::A => {
-                                Some(Key::Character(if cx.key_mods.shift { 'A' } else { 'a' }))
-                            }
-                            VirtualKeyCode::B => {
-                                Some(Key::Character(if cx.key_mods.shift { 'B' } else { 'b' }))
-                            }
-                            VirtualKeyCode::C => {
-                                Some(Key::Character(if cx.key_mods.shift { 'C' } else { 'c' }))
-                            }
-                            VirtualKeyCode::D => {
-                                Some(Key::Character(if cx.key_mods.shift { 'D' } else { 'd' }))
-                            }
-                            VirtualKeyCode::E => {
-                                Some(Key::Character(if cx.key_mods.shift { 'E' } else { 'e' }))
-                            }
-                            VirtualKeyCode::F => {
-                                Some(Key::Character(if cx.key_mods.shift { 'F' } else { 'f' }))
-                            }
-                            VirtualKeyCode::G => {
-                                Some(Key::Character(if cx.key_mods.shift { 'G' } else { 'g' }))
-                            }
-                            VirtualKeyCode::H => {
-                                Some(Key::Character(if cx.key_mods.shift { 'H' } else { 'h' }))
-                            }
-                            VirtualKeyCode::I => {
-                                Some(Key::Character(if cx.key_mods.shift { 'I' } else { 'i' }))
-                            }
-                            VirtualKeyCode::J => {
-                                Some(Key::Character(if cx.key_mods.shift { 'J' } else { 'j' }))
-                            }
-                            VirtualKeyCode::K => {
-                                Some(Key::Character(if cx.key_mods.shift { 'K' } else { 'k' }))
-                            }
-                            VirtualKeyCode::L => {
-                                Some(Key::Character(if cx.key_mods.shift { 'L' } else { 'l' }))
-                            }
-                            VirtualKeyCode::M => {
-                                Some(Key::Character(if cx.key_mods.shift { 'M' } else { 'm' }))
-                            }
-                            VirtualKeyCode::N => {
-                                Some(Key::Character(if cx.key_mods.shift { 'N' } else { 'n' }))
-                            }
-                            VirtualKeyCode::O => {
-                                Some(Key::Character(if cx.key_mods.shift { 'O' } else { 'o' }))
-                            }
-                            VirtualKeyCode::P => {
-                                Some(Key::Character(if cx.key_mods.shift { 'P' } else { 'p' }))
-                            }
-                            VirtualKeyCode::Q => {
-                                Some(Key::Character(if cx.key_mods.shift { 'Q' } else { 'q' }))
-                            }
-                            VirtualKeyCode::R => {
-                                Some(Key::Character(if cx.key_mods.shift { 'R' } else { 'r' }))
-                            }
-                            VirtualKeyCode::S => {
-                                Some(Key::Character(if cx.key_mods.shift { 'S' } else { 's' }))
-                            }
-                            VirtualKeyCode::T => {
-                                Some(Key::Character(if cx.key_mods.shift { 'T' } else { 't' }))
-                            }
-                            VirtualKeyCode::U => {
-                                Some(Key::Character(if cx.key_mods.shift { 'U' } else { 'u' }))
-                            }
-                            VirtualKeyCode::V => {
-                                Some(Key::Character(if cx.key_mods.shift { 'V' } else { 'v' }))
-                            }
-                            VirtualKeyCode::W => {
-                                Some(Key::Character(if cx.key_mods.shift { 'W' } else { 'w' }))
-                            }
-                            VirtualKeyCode::X => {
-                                Some(Key::Character(if cx.key_mods.shift { 'X' } else { 'x' }))
-                            }
-                            VirtualKeyCode::Y => {
-                                Some(Key::Character(if cx.key_mods.shift { 'Y' } else { 'y' }))
-                            }
-                            VirtualKeyCode::Z => {
-                                Some(Key::Character(if cx.key_mods.shift { 'Z' } else { 'z' }))
-                            }
-                            VirtualKeyCode::Semicolon => {
-                                Some(Key::Character(if cx.key_mods.shift { ':' } else { ';' }))
-                            }
-                            VirtualKeyCode::Colon => Some(Key::Character(':')),
-                            VirtualKeyCode::Caret => Some(Key::Character('^')),
-                            VirtualKeyCode::Asterisk => Some(Key::Character('*')),
-                            VirtualKeyCode::Period => {
-                                Some(Key::Character(if cx.key_mods.shift { '>' } else { '.' }))
-                            }
-                            VirtualKeyCode::Comma => {
-                                Some(Key::Character(if cx.key_mods.shift { '<' } else { ',' }))
-                            }
-                            VirtualKeyCode::Equals | VirtualKeyCode::NumpadEquals => {
-                                Some(Key::Character('='))
-                            }
-                            VirtualKeyCode::Plus | VirtualKeyCode::NumpadAdd => {
-                                Some(Key::Character('+'))
-                            }
-                            VirtualKeyCode::Minus | VirtualKeyCode::NumpadSubtract => {
-                                Some(Key::Character(if cx.key_mods.shift { '_' } else { '-' }))
-                            }
-                            VirtualKeyCode::Slash | VirtualKeyCode::NumpadDivide => {
-                                Some(Key::Character(if cx.key_mods.shift { '?' } else { '/' }))
-                            }
-                            VirtualKeyCode::Grave => {
-                                Some(Key::Character(if cx.key_mods.shift { '~' } else { '`' }))
-                            }
-                            VirtualKeyCode::Return => Some(Key::Enter),
-                            VirtualKeyCode::Tab => Some(Key::Tab),
-                            VirtualKeyCode::Space => Some(Key::Space),
-                            VirtualKeyCode::Down => Some(Key::ArrowDown),
-                            VirtualKeyCode::Left => Some(Key::ArrowLeft),
-                            VirtualKeyCode::Right => Some(Key::ArrowRight),
-                            VirtualKeyCode::Up => Some(Key::ArrowUp),
-                            VirtualKeyCode::End => Some(Key::End),
-                            VirtualKeyCode::Home => Some(Key::Home),
-                            VirtualKeyCode::PageDown => Some(Key::PageDown),
-                            VirtualKeyCode::PageUp => Some(Key::PageUp),
-                            VirtualKeyCode::Back => Some(Key::Backspace),
-                            VirtualKeyCode::Delete => Some(Key::Delete),
-                            VirtualKeyCode::Escape => Some(Key::Escape),
-                            VirtualKeyCode::F1 => Some(Key::F1),
-                            VirtualKeyCode::F2 => Some(Key::F2),
-                            VirtualKeyCode::F3 => Some(Key::F3),
-                            VirtualKeyCode::F4 => Some(Key::F4),
-                            VirtualKeyCode::F5 => Some(Key::F5),
-                            VirtualKeyCode::F6 => Some(Key::F6),
-                            VirtualKeyCode::F7 => Some(Key::F7),
-                            VirtualKeyCode::F8 => Some(Key::F8),
-                            VirtualKeyCode::F9 => Some(Key::F9),
-                            VirtualKeyCode::F10 => Some(Key::F10),
-                            VirtualKeyCode::F11 => Some(Key::F11),
-                            VirtualKeyCode::F12 => Some(Key::F12),
-                            _ => None,
-                        };
-
-                        if let Some(key) = key {
-                            cx.process(&view, &Event::Key(key))
+                        if let Some(window) = &self.window {
+                            let event = Event::TouchBegin {
+                                id: 0,
+                                position: self.mouse_position,
+                            };
+                            process_event(&mut self.cx, &self.view, &event, &window)
                         }
                     }
+                    ElementState::Released => {
+                        self.cx.mouse_button = None;
+                        if let Some(window) = &self.window {
+                            let event = Event::TouchEnd {
+                                id: 0,
+                                position: self.mouse_position,
+                            };
+                            process_event(&mut self.cx, &self.view, &event, &window)
+                        }
+                    }
+                };
+            }
+            WindowEvent::Touch(Touch {
+                phase, location, ..
+            }) => {
+                if let (Some(window), Some(context)) = (&self.window, &self.context) {
+                    // Do not handle events from other windows.
+                    if window_id != window.id() {
+                        return;
+                    }
+
+                    let scale = window.scale_factor() as f32;
+                    let position = [
+                        location.x as f32 / scale,
+                        (context.config.height as f32 - location.y as f32) / scale,
+                    ]
+                    .into();
+
+                    let delta = position - self.cx.previous_position[0];
+
+                    // TODO: Multi-Touch management
+                    let event = match phase {
+                        TouchPhase::Started => Some(Event::TouchBegin { id: 0, position }),
+                        TouchPhase::Moved => Some(Event::TouchMove {
+                            id: 0,
+                            position,
+                            delta,
+                        }),
+                        TouchPhase::Ended | TouchPhase::Cancelled => {
+                            Some(Event::TouchEnd { id: 0, position })
+                        }
+                    };
+
+                    if let Some(event) = event {
+                        process_event(&mut self.cx, &self.view, &event, &window);
+                    }
+                }
+            }
+            WindowEvent::CursorMoved { position, .. } => {
+                if let (Some(window), Some(context)) = (&self.window, &self.context) {
+                    let scale = window.scale_factor() as f32;
+                    self.mouse_position = [
+                        position.x as f32 / scale,
+                        (context.config.height as f32 - position.y as f32) / scale,
+                    ]
+                    .into();
+                    // let event = Event::TouchMove {
+                    //     id: 0,
+                    //     position: self.mouse_position,
+                    // };
+                    // process_event(&mut self.cx, &self.view, &event, &window)
                 }
             }
 
-            WEvent::WindowEvent {
-                event: WindowEvent::ModifiersChanged(mods),
+            WindowEvent::KeyboardInput {
+                event: key_event @ WKeyEvent { .. },
                 ..
             } => {
-                cx.key_mods = KeyboardModifiers {
-                    shift: mods.shift(),
-                    control: mods.ctrl(),
-                    alt: mods.alt(),
-                    command: mods.logo(),
+                let key = match key_event.logical_key {
+                    keyboard::Key::Named(keyboard::NamedKey::Enter) => Some(Key::Enter),
+                    keyboard::Key::Named(keyboard::NamedKey::Tab) => Some(Key::Tab),
+                    keyboard::Key::Named(keyboard::NamedKey::Space) => Some(Key::Space),
+                    keyboard::Key::Named(keyboard::NamedKey::ArrowDown) => Some(Key::ArrowDown),
+                    keyboard::Key::Named(keyboard::NamedKey::ArrowLeft) => Some(Key::ArrowLeft),
+                    keyboard::Key::Named(keyboard::NamedKey::ArrowRight) => Some(Key::ArrowRight),
+                    keyboard::Key::Named(keyboard::NamedKey::ArrowUp) => Some(Key::ArrowUp),
+                    keyboard::Key::Named(keyboard::NamedKey::End) => Some(Key::End),
+                    keyboard::Key::Named(keyboard::NamedKey::Home) => Some(Key::Home),
+                    keyboard::Key::Named(keyboard::NamedKey::PageDown) => Some(Key::PageDown),
+                    keyboard::Key::Named(keyboard::NamedKey::PageUp) => Some(Key::PageUp),
+                    keyboard::Key::Named(keyboard::NamedKey::Backspace) => Some(Key::Backspace),
+                    keyboard::Key::Named(keyboard::NamedKey::Delete) => Some(Key::Delete),
+                    keyboard::Key::Named(keyboard::NamedKey::Escape) => Some(Key::Escape),
+                    keyboard::Key::Named(keyboard::NamedKey::F1) => Some(Key::F1),
+                    keyboard::Key::Named(keyboard::NamedKey::F2) => Some(Key::F2),
+                    keyboard::Key::Named(keyboard::NamedKey::F3) => Some(Key::F3),
+                    keyboard::Key::Named(keyboard::NamedKey::F4) => Some(Key::F4),
+                    keyboard::Key::Named(keyboard::NamedKey::F5) => Some(Key::F5),
+                    keyboard::Key::Named(keyboard::NamedKey::F6) => Some(Key::F6),
+                    keyboard::Key::Named(keyboard::NamedKey::F7) => Some(Key::F7),
+                    keyboard::Key::Named(keyboard::NamedKey::F8) => Some(Key::F8),
+                    keyboard::Key::Named(keyboard::NamedKey::F9) => Some(Key::F9),
+                    keyboard::Key::Named(keyboard::NamedKey::F10) => Some(Key::F10),
+                    keyboard::Key::Named(keyboard::NamedKey::F11) => Some(Key::F11),
+                    keyboard::Key::Named(keyboard::NamedKey::F12) => Some(Key::F12),
+                    keyboard::Key::Character(str) => {
+                        if let Some(c) = str.chars().next() {
+                            Some(Key::Character(c))
+                        } else {
+                            None
+                        }
+                    }
+                    _ => None,
+                };
+
+                if let (Some(key), ElementState::Pressed) = (key, key_event.state) {
+                    self.cx.process(&self.view, &Event::Key(key))
+                }
+            }
+
+            WindowEvent::ModifiersChanged(mods) => {
+                self.cx.key_mods = KeyboardModifiers {
+                    shift: !(mods.state() & keyboard::ModifiersState::SHIFT).is_empty(),
+                    control: !(mods.state() & keyboard::ModifiersState::CONTROL).is_empty(),
+                    alt: !(mods.state() & keyboard::ModifiersState::ALT).is_empty(),
+                    command: !(mods.state() & keyboard::ModifiersState::SUPER).is_empty(),
                 };
             }
 
-            WEvent::DeviceEvent {
-                event: winit::event::DeviceEvent::MouseMotion { delta },
-                ..
-            } => {
-                // Flip y coordinate.
-                let d: LocalOffset = [delta.0 as f32, -delta.1 as f32].into();
-
-                let event = Event::TouchMove {
-                    id: 0,
-                    position: mouse_position,
-                    delta: d,
-                };
-
-                process_event(&mut cx, &view, &event, &window);
-            }
             _ => (),
         }
-    });
+    }
+
+    fn user_event(&mut self, _event_loop: &ActiveEventLoop, _event: ()) {
+        // log::debug!("received user event");
+
+        // Process the work queue.
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            while let Some(f) = GLOBAL_WORK_QUEUE.lock().unwrap().pop_front() {
+                f(&mut self.cx);
+            }
+        }
+    }
+
+    fn device_event(
+        &mut self,
+        _event_loop: &ActiveEventLoop,
+        _device_id: DeviceId,
+        event: DeviceEvent,
+    ) {
+        if let DeviceEvent::MouseMotion { delta, .. } = event {
+            // Flip y coordinate.
+            let d: LocalOffset = [delta.0 as f32, -delta.1 as f32].into();
+
+            let event = Event::TouchMove {
+                id: 0,
+                position: self.mouse_position,
+                delta: d,
+            };
+
+            if let Some(window) = &self.window {
+                process_event(&mut self.cx, &self.view, &event, &window);
+            }
+        }
+    }
+
+    fn about_to_wait(&mut self, _event_loop: &ActiveEventLoop) {
+        // Application update code.
+
+        // Queue a RedrawRequested event.
+        //
+        // You only need to call this if you've determined that you need to
+        // redraw, in applications which do not always need to. Applications
+        // that redraw continuously can just render here instead.
+
+        if let (Some(window), Some(context)) = (&self.window, &mut self.context) {
+            let window_size = window.inner_size();
+            let scale = window.scale_factor() as f32;
+            // log::debug!("window_size: {:?}", window_size);
+            let width = window_size.width as f32 / scale;
+            let height = window_size.height as f32 / scale;
+
+            if self.cx.update(
+                &self.view,
+                &mut context.vger,
+                &mut self.access_nodes,
+                [width, height].into(),
+            ) {
+                window.request_redraw();
+            }
+
+            if self.cx.window_title != self.title {
+                self.title = self.cx.window_title.clone();
+                window.set_title(&self.cx.window_title);
+            }
+        }
+    }
+}
+
+/// Call this function to run your UI.
+pub fn rui(view: impl View) {
+    let event_loop = EventLoop::new().unwrap();
+
+    let window_title = String::from("rui");
+    let mut app = EventHandler {
+        title: window_title,
+        running: false,
+        context: None,
+        window: None,
+        mouse_position: LocalPoint::zero(),
+        cx: Context::new(),
+        view,
+        access_nodes: vec![],
+    };
+
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        *GLOBAL_EVENT_LOOP_PROXY.lock().unwrap() = Some(event_loop.create_proxy());
+    }
+
+    let mut commands: Vec<CommandInfo> = Vec::new();
+    let mut command_map = HashMap::new();
+    app.cx.commands(&app.view, &mut commands);
+
+    {
+        // So we can infer a type for CommandMap when winit is enabled.
+        command_map.insert("", "");
+    }
+
+    if let Err(e) = event_loop.run_app(&mut app) {
+        log::error!("Error exiting event loop: {:?}", e);
+    };
 }
 
 #[cfg(target_arch = "wasm32")]
