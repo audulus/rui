@@ -134,7 +134,6 @@ pub trait Modifiers: View + Sized {
 
     /// Version of `tap` which takes an action type instead
     /// of a function.
-    #[deprecated(note = "please use `tap_with_info` instead")]
     fn tap_a<A: Clone + 'static>(self, action: A) -> Tap<Self, TapActionAdapter<A>> {
         Tap::new(self, TapActionAdapter { action })
     }
