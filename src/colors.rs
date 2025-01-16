@@ -23,6 +23,13 @@ pub const BUTTON_HOVER_COLOR: Color = Color {
     a: 1.0,
 };
 
+pub const BUTTON_DOWN_COLOR: Color = Color {
+    r: 0.05,
+    g: 0.05,
+    b: 0.05,
+    a: 1.0,
+};
+
 pub const CLEAR_COLOR: Color = Color {
     r: 0.0,
     g: 0.0,
