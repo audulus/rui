@@ -134,17 +134,30 @@ pub trait Modifiers: View + Sized {
 
     /// Version of `tap` which takes an action type instead
     /// of a function.
+    #[deprecated(note = "please use `tap_with_info` instead")]
     fn tap_a<A: Clone + 'static>(self, action: A) -> Tap<Self, TapActionAdapter<A>> {
         Tap::new(self, TapActionAdapter { action })
     }
 
-    /// Version of `tap` which passes the tap position and mouse button.
-    fn tap_p<A: 'static, F: Fn(&mut Context, LocalPoint, Option<MouseButton>) -> A + 'static>(
+    /// Calls a function in response to a tap. Version which passes a tap info struct.
+    /// #### Why use this version?
+    /// * You need to know the position of the tap.
+    /// * You need to know the mouse button that was pressed.
+    /// * You need to handle the beginning and end of the tap.
+    fn tap_with_info<A: 'static, F: Fn(&mut Context, TapInfo) -> A + 'static>(
         self,
         f: F,
     ) -> Tap<Self, TapFunc<F>> {
-        Tap::new(self, TapFunc { f })
+        Tap::new_with_info(self, TapFunc { f })
     }
+
+    // /// Version of `tap` which passes the tap position and mouse button.
+    // fn tap_p<A: 'static, F: Fn(&mut Context, LocalPoint, Option<MouseButton>) -> A + 'static>(
+    //     self,
+    //     f: F,
+    // ) -> Tap<Self, TapFunc<F>> {
+    //     Tap::new(self, TapFunc { f }, false)
+    // }
 
     /// Specify the title of the window.
     fn window_title(self, title: &str) -> TitleView<Self> {

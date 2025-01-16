@@ -1,29 +1,28 @@
 use crate::*;
 use std::any::Any;
 
+pub enum TouchState {
+    Begin,
+    End,
+}
+
+pub struct TapInfo {
+    pub pt: LocalPoint,
+    pub button: Option<MouseButton>,
+    pub state: TouchState,
+}
+
 pub trait TapFn {
-    fn call(
-        &self,
-        cx: &mut Context,
-        pt: LocalPoint,
-        button: Option<MouseButton>,
-        actions: &mut Vec<Box<dyn Any>>,
-    );
+    fn call(&self, cx: &mut Context, tap_info: TapInfo, actions: &mut Vec<Box<dyn Any>>);
 }
 
 pub struct TapFunc<F> {
     pub f: F,
 }
 
-impl<A: 'static, F: Fn(&mut Context, LocalPoint, Option<MouseButton>) -> A> TapFn for TapFunc<F> {
-    fn call(
-        &self,
-        cx: &mut Context,
-        pt: LocalPoint,
-        button: Option<MouseButton>,
-        actions: &mut Vec<Box<dyn Any>>,
-    ) {
-        actions.push(Box::new((self.f)(cx, pt, button)))
+impl<A: 'static, F: Fn(&mut Context, TapInfo) -> A> TapFn for TapFunc<F> {
+    fn call(&self, cx: &mut Context, tap_info: TapInfo, actions: &mut Vec<Box<dyn Any>>) {
+        actions.push(Box::new((self.f)(cx, tap_info)))
     }
 }
 
@@ -32,13 +31,7 @@ pub struct TapAdapter<F> {
 }
 
 impl<A: 'static, F: Fn(&mut Context) -> A> TapFn for TapAdapter<F> {
-    fn call(
-        &self,
-        cx: &mut Context,
-        _pt: LocalPoint,
-        _button: Option<MouseButton>,
-        actions: &mut Vec<Box<dyn Any>>,
-    ) {
+    fn call(&self, cx: &mut Context, _tap_info: TapInfo, actions: &mut Vec<Box<dyn Any>>) {
         actions.push(Box::new((self.f)(cx)))
     }
 }
@@ -48,13 +41,7 @@ pub struct TapActionAdapter<A> {
 }
 
 impl<A: Clone + 'static> TapFn for TapActionAdapter<A> {
-    fn call(
-        &self,
-        _cx: &mut Context,
-        _pt: LocalPoint,
-        _button: Option<MouseButton>,
-        actions: &mut Vec<Box<dyn Any>>,
-    ) {
+    fn call(&self, _cx: &mut Context, _tap_info: TapInfo, actions: &mut Vec<Box<dyn Any>>) {
         actions.push(Box::new(self.action.clone()))
     }
 }
@@ -66,6 +53,10 @@ pub struct Tap<V: View, F> {
 
     /// Called when a tap occurs.
     func: F,
+
+    /// Whether to call the function on the end of the tap or on both.
+    /// Is `true` when using tap_i. Otherwise, `false`.
+    also_call_fn_on_begin: bool,
 }
 
 impl<V, F> Tap<V, F>
@@ -74,7 +65,19 @@ where
     F: TapFn + 'static,
 {
     pub fn new(v: V, f: F) -> Self {
-        Self { child: v, func: f }
+        Self {
+            child: v,
+            func: f,
+            also_call_fn_on_begin: false,
+        }
+    }
+
+    pub fn new_with_info(v: V, f: F) -> Self {
+        Self {
+            child: v,
+            func: f,
+            also_call_fn_on_begin: true,
+        }
     }
 }
 
@@ -95,12 +98,31 @@ where
             Event::TouchBegin { id, position } => {
                 if self.hittest(path, *position, cx).is_some() {
                     cx.touches[*id] = vid;
+                    if self.also_call_fn_on_begin {
+                        self.func.call(
+                            cx,
+                            TapInfo {
+                                pt: *position,
+                                button: cx.mouse_button,
+                                state: TouchState::Begin,
+                            },
+                            actions,
+                        )
+                    }
                 }
             }
             Event::TouchEnd { id, position } => {
                 if cx.touches[*id] == vid {
                     cx.touches[*id] = ViewId::default();
-                    self.func.call(cx, *position, cx.mouse_button, actions)
+                    self.func.call(
+                        cx,
+                        TapInfo {
+                            pt: *position,
+                            button: cx.mouse_button,
+                            state: TouchState::End,
+                        },
+                        actions,
+                    )
                 }
             }
             _ => (),
