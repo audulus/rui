@@ -151,13 +151,13 @@ pub trait Modifiers: View + Sized {
         Tap::new_with_info(self, TapFunc { f })
     }
 
-    // /// Version of `tap` which passes the tap position and mouse button.
-    // fn tap_p<A: 'static, F: Fn(&mut Context, LocalPoint, Option<MouseButton>) -> A + 'static>(
-    //     self,
-    //     f: F,
-    // ) -> Tap<Self, TapFunc<F>> {
-    //     Tap::new(self, TapFunc { f }, false)
-    // }
+    /// Version of `tap` which passes the tap position and mouse button.
+    fn tap_p<A: 'static, F: Fn(&mut Context, LocalPoint, Option<MouseButton>) -> A + 'static>(
+        self,
+        f: F,
+    ) -> Tap<Self, TapPositionFunc<F>> {
+        Tap::new(self, TapPositionFunc { f })
+    }
 
     /// Specify the title of the window.
     fn window_title(self, title: &str) -> TitleView<Self> {

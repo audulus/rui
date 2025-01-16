@@ -26,6 +26,18 @@ impl<A: 'static, F: Fn(&mut Context, TapInfo) -> A> TapFn for TapFunc<F> {
     }
 }
 
+pub struct TapPositionFunc<F> {
+    pub f: F,
+}
+
+impl<A: 'static, F: Fn(&mut Context, LocalPoint, Option<MouseButton>) -> A> TapFn
+    for TapPositionFunc<F>
+{
+    fn call(&self, cx: &mut Context, tap_info: TapInfo, actions: &mut Vec<Box<dyn Any>>) {
+        actions.push(Box::new((self.f)(cx, tap_info.pt, tap_info.button)))
+    }
+}
+
 pub struct TapAdapter<F> {
     pub f: F,
 }
