@@ -14,7 +14,7 @@ pub fn toggle(on: impl Binding<bool>) -> impl View {
             zstack((
                 rectangle()
                     .color(if b {
-                        AZURE_HIGHLIGHT
+                        AZURE_HIGHLIGHT_BACKGROUND
                     } else {
                         CONTROL_BACKGROUND
                     })
