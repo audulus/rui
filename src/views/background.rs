@@ -2,6 +2,7 @@ use crate::*;
 use std::any::Any;
 
 /// Struct for the `background` modifier.
+#[derive(Clone)]
 pub struct Background<V, BG> {
     child: V,
     background: BG,

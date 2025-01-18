@@ -2,6 +2,7 @@ use crate::*;
 use std::any::Any;
 
 /// Struct for the `focus` modifier.
+#[derive(Clone)]
 pub struct Focus<F> {
     func: F,
 }

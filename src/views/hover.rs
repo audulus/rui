@@ -40,6 +40,7 @@ impl<A: 'static, F: Fn(&mut Context, bool) -> A> HoverFn for HoverFunc<F> {
 }
 
 /// Struct for the `hover` and 'hover_p` gestures.
+#[derive(Clone)]
 pub struct Hover<V, F> {
     child: V,
     func: F,

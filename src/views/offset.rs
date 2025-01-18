@@ -2,6 +2,7 @@ use crate::*;
 use std::any::Any;
 
 /// Struct for the `offset` modifier.
+#[derive(Clone)]
 pub struct Offset<V> {
     child: V,
     offset: LocalOffset,

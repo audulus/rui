@@ -88,6 +88,7 @@ impl<
 }
 
 /// Struct for the `drag` and `drag_p` gestures.
+#[derive(Clone)]
 pub struct Drag<V, F> {
     child: V,
     func: F,

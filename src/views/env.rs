@@ -1,6 +1,7 @@
 use crate::*;
 use std::any::Any;
 
+#[derive(Clone)]
 struct EnvView<S, V, F> {
     func: F,
     phantom_s: std::marker::PhantomData<S>,

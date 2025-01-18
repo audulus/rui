@@ -1,6 +1,7 @@
 use crate::*;
 use std::any::Any;
 
+#[derive(Clone)]
 pub struct Clip<V> {
     child: V,
 }

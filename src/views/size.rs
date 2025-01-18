@@ -2,6 +2,7 @@ use crate::*;
 use std::any::Any;
 
 /// Struct for the `size` modifier.
+#[derive(Clone)]
 pub struct Size<V> {
     /// Child view tree.
     child: V,

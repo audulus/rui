@@ -2,6 +2,7 @@ use crate::*;
 use std::any::Any;
 
 /// Struct for the `key` modifier.
+#[derive(Clone)]
 pub struct KeyView<V, F> {
     child: V,
     func: F,

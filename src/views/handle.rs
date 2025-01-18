@@ -2,6 +2,7 @@ use crate::*;
 use std::any::Any;
 
 /// Struct for an action handler.
+#[derive(Clone)]
 pub struct Handle<V, F, A, A2> {
     child: V,
     func: F,

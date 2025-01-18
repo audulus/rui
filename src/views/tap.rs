@@ -59,6 +59,7 @@ impl<A: Clone + 'static> TapFn for TapActionAdapter<A> {
 }
 
 /// Struct for the `tap` gesture.
+#[derive(Clone)]
 pub struct Tap<V: View, F> {
     /// Child view tree.
     child: V,

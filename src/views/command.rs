@@ -1,6 +1,7 @@
 use crate::*;
 use std::any::Any;
 
+#[derive(Clone)]
 pub struct Command<V, F> {
     child: V,
     name: String,

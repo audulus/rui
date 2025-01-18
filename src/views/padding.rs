@@ -2,6 +2,7 @@ use crate::*;
 use std::any::Any;
 
 /// Struct for the `padding` modifier.
+#[derive(Clone)]
 pub struct Padding<V> {
     child: V,
     padding: f32,

@@ -1,6 +1,7 @@
 use crate::*;
 use std::any::Any;
 
+#[derive(Clone)]
 pub struct MapView<S1, SF, F> {
     value: S1,
     set_value: SF,

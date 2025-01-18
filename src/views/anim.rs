@@ -1,6 +1,7 @@
 use crate::*;
 use std::any::Any;
 
+#[derive(Clone)]
 pub struct AnimView<V, F> {
     child: V,
     func: F,

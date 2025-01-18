@@ -2,6 +2,7 @@ use crate::*;
 use std::any::Any;
 
 /// Struct for the `geom` modifier.
+#[derive(Clone)]
 pub struct Geom<V, F> {
     child: V,
     func: F,

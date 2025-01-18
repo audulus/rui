@@ -1,6 +1,7 @@
 use crate::*;
 use std::any::Any;
 
+#[derive(Clone)]
 pub struct ModView<S, F> {
     pub func: F,
     pub value: S,

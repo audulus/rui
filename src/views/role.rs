@@ -3,6 +3,7 @@ use accesskit::Role;
 use std::any::Any;
 
 /// Struct for the `role` modifier.
+#[derive(Clone)]
 pub struct RoleView<V> {
     child: V,
     role: Role,

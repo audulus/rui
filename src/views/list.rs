@@ -2,12 +2,14 @@ use crate::*;
 use std::any::Any;
 use std::hash::Hash;
 
+#[derive(Clone, Copy)]
 pub enum ListOrientation {
     Horizontal,
     Vertical,
     Z,
 }
 
+#[derive(Clone)]
 pub struct List<ID, F> {
     orientation: ListOrientation,
     ids: Vec<ID>,

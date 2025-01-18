@@ -2,6 +2,7 @@ use crate::*;
 use std::any::Any;
 
 /// Struct for `cond`
+#[derive(Clone)]
 pub struct Cond<V0, V1> {
     cond: bool,
     if_true: V0,

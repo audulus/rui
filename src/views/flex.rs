@@ -2,6 +2,7 @@ use crate::*;
 use std::any::Any;
 
 /// Struct for the `flex` modifier.
+#[derive(Clone)]
 pub struct Flex<V> {
     child: V,
 }
