@@ -13,6 +13,7 @@ enum StackOrientation {
     Z,
 }
 
+#[derive(Clone)]
 struct Stack<VT, D> {
     children: VT,
     phantom_direction: std::marker::PhantomData<D>,
