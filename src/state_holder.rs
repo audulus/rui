@@ -13,6 +13,11 @@ pub(crate) struct StateHolder2 {
 }
 
 impl StateHolder2 {
+
+    pub fn new<T: 'static>(value: T) -> Self {
+        StateHolder2 { state: Rc::new(RefCell::new(value)), dirty: false }
+    }
+
     pub fn borrow<T: 'static>(&self) -> Ref<'_, T> {
         self
             .state
