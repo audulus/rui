@@ -38,8 +38,9 @@ where
 }
 
 fn main() {
-    rui(vstack((
+    vstack((
         my_control().padding(Auto),
         my_control().agro().padding(Auto),
-    )))
+    ))
+    .run()
 }

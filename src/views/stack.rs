@@ -272,7 +272,7 @@ impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D>
         });
         builder.set_children(children);
         let aid = cx.view_id(path).access_id();
-        nodes.push((aid, builder.build(&mut cx.access_node_classes)));
+        nodes.push((aid, builder.build()));
         Some(aid)
     }
 }

@@ -7,7 +7,7 @@ use std::{
 // TODO: fixme
 
 fn main() {
-    rui(state(
+    state(
         || "task not started".to_string(),
         |s, cx| {
             hstack((
@@ -21,5 +21,6 @@ fn main() {
                 text(&cx[s]),
             ))
         },
-    ));
+    )
+    .run()
 }

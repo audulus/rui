@@ -73,6 +73,10 @@ where
                 self.func.call(cx, *position, inside, actions);
             }
         }
+        if let Event::TouchEnd { position, .. } = &event {
+            let inside = self.hittest(path, *position, cx).is_some();
+            self.func.call(cx, *position, inside, actions);
+        }
         path.push(0);
         self.child.process(event, path, cx, actions);
         path.pop();

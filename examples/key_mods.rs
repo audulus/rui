@@ -1,7 +1,7 @@
 use rui::*;
 
 fn main() {
-    rui(hstack((
+    hstack((
         zstack((
             circle()
                 .color(RED_HIGHLIGHT.alpha(0.8))
@@ -25,5 +25,6 @@ fn main() {
         "Handle key pressed"
             .key(|cx, key| println!("key: {:?}, key modifiers state: {:?}", key, cx.key_mods))
             .padding(Auto),
-    )));
+    ))
+    .run()
 }

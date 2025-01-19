@@ -1,9 +1,10 @@
 // #![feature(type_alias_impl_trait)]
 
+pub use vger;
 use vger::color::*;
-use vger::{LineMetrics, PaintIndex, Vger};
+pub use vger::{LineMetrics, PaintIndex, Vger};
 
-#[cfg(feature = "winit")]
+#[cfg(all(feature = "winit", not(target_arch = "wasm32")))]
 #[macro_use]
 extern crate lazy_static;
 

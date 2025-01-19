@@ -1,7 +1,7 @@
 use rui::*;
 
 fn main() {
-    rui(state(
+    state(
         || 1,
         |count, cx| {
             vstack((
@@ -16,5 +16,6 @@ fn main() {
                 .padding(Auto),
             ))
         },
-    ));
+    )
+    .run()
 }

@@ -1,4 +1,3 @@
-
 use crate::*;
 use accesskit::Role;
 use std::marker::PhantomData;
@@ -56,7 +55,14 @@ pub trait Modifiers: View + Sized {
         b: B,
         f: F,
     ) -> Drag<Self, DragFuncS<F, B, T>> {
-        Drag::new(self, DragFuncS { f, b, phantom: PhantomData::default() })
+        Drag::new(
+            self,
+            DragFuncS {
+                f,
+                b,
+                phantom: PhantomData::default(),
+            },
+        )
     }
 
     /// Calls a function in response to a mouse hovering.
@@ -132,12 +138,24 @@ pub trait Modifiers: View + Sized {
         Tap::new(self, TapActionAdapter { action })
     }
 
+    /// Calls a function in response to a tap. Version which passes a tap info struct.
+    /// #### Why use this version?
+    /// * You need to know the position of the tap.
+    /// * You need to know the mouse button that was pressed.
+    /// * You need to handle the beginning and end of the tap.
+    fn tap_with_info<A: 'static, F: Fn(&mut Context, TapInfo) -> A + 'static>(
+        self,
+        f: F,
+    ) -> Tap<Self, TapFunc<F>> {
+        Tap::new_with_info(self, TapFunc { f })
+    }
+
     /// Version of `tap` which passes the tap position and mouse button.
     fn tap_p<A: 'static, F: Fn(&mut Context, LocalPoint, Option<MouseButton>) -> A + 'static>(
         self,
         f: F,
-    ) -> Tap<Self, TapFunc<F>> {
-        Tap::new(self, TapFunc { f })
+    ) -> Tap<Self, TapPositionFunc<F>> {
+        Tap::new(self, TapPositionFunc { f })
     }
 
     /// Specify the title of the window.

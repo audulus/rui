@@ -24,11 +24,12 @@ fn reduce(state: &mut AppState, action: &Action) {
 }
 
 fn main() {
-    rui(redux(AppState::new, reduce, |state| {
+    redux(AppState::new, reduce, |state| {
         vstack((
             format!("{}", state.count).padding(Auto),
             button_a("increment", Action::Increment).padding(Auto),
             button_a("decrement", Action::Decrement).padding(Auto),
         ))
-    }));
+    })
+    .run()
 }

@@ -40,7 +40,7 @@ fn text_editor_example() -> impl View {
 }
 
 fn main() {
-    rui(vstack((
+    vstack((
         "rui widget gallery".padding(10.0),
         button_example(),
         slider_example(),
@@ -49,5 +49,6 @@ fn main() {
         text_editor_example(),
     ))
     .padding(Auto)
-    .window_title("rui widget gallery"))
+    .window_title("rui widget gallery")
+    .run()
 }
