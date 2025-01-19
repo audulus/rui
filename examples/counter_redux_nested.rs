@@ -27,7 +27,7 @@ fn reduce(state: &mut AppState, action: &Action) {
 }
 
 fn main() {
-    rui(redux(AppState::new, reduce, |app_state| {
+    redux(AppState::new, reduce, |app_state| {
         vstack((
             format!("{}", app_state.count).padding(Auto),
             state(
@@ -45,5 +45,6 @@ fn main() {
                 },
             ),
         ))
-    }));
+    })
+    .run()
 }

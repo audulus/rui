@@ -22,8 +22,5 @@ fn my_control() -> impl View {
 }
 
 fn main() {
-    rui(vstack((
-        my_control(),
-        my_control().env(MyControlType::Agro),
-    )))
+    vstack((my_control(), my_control().env(MyControlType::Agro))).run()
 }

@@ -8,7 +8,7 @@ fn my_rectangle() -> impl View {
 }
 
 fn main() {
-    rui(hstack((
+    hstack((
         my_rectangle(),
         vstack((
             my_rectangle(),
@@ -20,5 +20,6 @@ fn main() {
                 )),
             )),
         )),
-    )));
+    ))
+    .run()
 }

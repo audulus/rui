@@ -41,9 +41,9 @@ pub(crate) type StateMap = HashMap<ViewId, StateHolder>;
 
 pub(crate) type EnvMap = HashMap<TypeId, Box<dyn Any>>;
 
-pub struct RenderInfo<'a> {
+pub struct RenderInfo<'a, 'window> {
     pub device: &'a wgpu::Device,
-    pub surface: &'a wgpu::Surface,
+    pub surface: &'a wgpu::Surface<'window>,
     pub config: &'a wgpu::SurfaceConfiguration,
     pub queue: &'a wgpu::Queue,
 }
@@ -125,8 +125,6 @@ pub struct Context {
     /// Render the dirty rectangle for debugging?
     render_dirty: bool,
 
-    pub(crate) access_node_classes: accesskit::NodeClassSet,
-
     /// Lock the cursor in position. Useful for dragging knobs.
     pub(crate) grab_cursor: bool,
 
@@ -177,7 +175,6 @@ impl Context {
             window_size: Size2D::default(),
             root_offset: LocalOffset::zero(),
             render_dirty: false,
-            access_node_classes: accesskit::NodeClassSet::default(),
             grab_cursor: false,
             prev_grab_cursor: false,
         }
@@ -223,9 +220,9 @@ impl Context {
             assert_eq!(path.len(), 1);
 
             if nodes != *access_nodes {
-                println!("access nodes:");
+                log::debug!("access nodes:");
                 for (id, node) in &nodes {
-                    println!(
+                    log::debug!(
                         "  id: {:?} role: {:?}, children: {:?}",
                         id,
                         node.role(),
@@ -234,7 +231,7 @@ impl Context {
                 }
                 *access_nodes = nodes;
             } else {
-                // println!("access nodes unchanged");
+                // log::debug!("access nodes unchanged");
             }
 
             // XXX: we're doing layout both here and in rendering.
@@ -326,16 +323,15 @@ impl Context {
             .create_view(&wgpu::TextureViewDescriptor::default());
 
         let desc = wgpu::RenderPassDescriptor {
-            label: None,
             color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                 view: &texture_view,
                 resolve_target: None,
                 ops: wgpu::Operations {
                     load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
-                    store: true,
+                    store: wgpu::StoreOp::Store,
                 },
             })],
-            depth_stencil_attachment: None,
+            ..<_>::default()
         };
 
         vger.encode(&desc);
@@ -356,7 +352,7 @@ impl Context {
 
         for action in actions {
             if !action.is::<()>() {
-                println!("unhandled action: {:?}", action.type_id());
+                log::debug!("unhandled action: {:?}", action.type_id());
             }
         }
     }

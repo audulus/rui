@@ -83,12 +83,7 @@ impl<
         button: Option<MouseButton>,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
-        actions.push(Box::new((self.f)(
-            self.b.get_mut(cx),
-            delta,
-            state,
-            button,
-        )))
+        actions.push(Box::new((self.f)(self.b.get_mut(cx), delta, state, button)))
     }
 }
 
