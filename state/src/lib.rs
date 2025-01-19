@@ -71,7 +71,7 @@ mod tests {
 
     #[test]
     fn state_handle() {
-        let handle = StateHandle::new(0, 42 as i64);
+        let handle = StateHandle::new(0, 42);
 
         let rc = handle.value();
         assert_eq!(*rc.borrow(), 42);
