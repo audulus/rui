@@ -138,6 +138,7 @@ widget gallery (`cargo run --example gallery`):
 - Minimal boilerplate.
 - Good looking.
 - No `unsafe`.
+- No use of `RefCell` (leads to potential runtime errors).
 - Accessibility for assistive technologies.
 
 ## Optional Features
