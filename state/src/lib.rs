@@ -20,30 +20,16 @@ thread_local! {
 }
 
 struct StateHolder {
-    value: Rc<dyn Any>,
+    value: Box<dyn Any>,
     dirty: bool,
 }
 
 impl StateHolder {
-
     pub fn new<T: 'static>(value: T) -> Self {
-        StateHolder { value: Rc::new(RefCell::new(value)), dirty: false }
-    }
-
-    pub fn borrow<T: 'static>(&self) -> Ref<'_, T> {
-        self
-            .value
-            .downcast_ref::<RefCell<T>>()
-            .unwrap()
-            .borrow()
-    }
-
-    pub fn borrow_mut<T: 'static>(&self) -> RefMut<'_, T> {
-        self
-            .value
-            .downcast_ref::<RefCell<T>>()
-            .unwrap()
-            .borrow_mut()
+        StateHolder {
+            value: Box::new(Rc::new(RefCell::new(value))),
+            dirty: false
+        }
     }
 }
 
@@ -64,10 +50,17 @@ impl<T: 'static> StateHandle<T> {
         }
     }
 
-    pub fn value(&self) -> Rc<dyn Any> {
+    pub fn value(&self) -> Rc<RefCell<T>> {
         let id = self.id;
         RUNTIME.with(|runtime| {
-            runtime.state_map.borrow().get(&id).unwrap().value.clone()
+            runtime.state_map
+            .borrow()
+            .get(&id)
+            .unwrap()
+            .value
+            .downcast_ref::<Rc<RefCell<T>>>()
+            .unwrap()
+            .clone()
         })
     }
 }
@@ -81,8 +74,7 @@ mod tests {
         let handle = StateHandle::new(0, 42 as i64);
 
         let rc = handle.value();
-
-        assert_eq!(*rc.downcast_ref::<RefCell<i64>>().unwrap().borrow(), 42);
+        assert_eq!(*rc.borrow(), 42);
 
     }
 }
