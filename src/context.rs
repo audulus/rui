@@ -31,11 +31,6 @@ pub(crate) struct LayoutBox {
     pub offset: LocalOffset,
 }
 
-pub(crate) struct StateHolder {
-    pub state: Box<dyn Any>,
-    pub dirty: bool,
-}
-
 pub(crate) type StateMap = HashMap<ViewId, StateHolder>;
 
 pub(crate) type EnvMap = HashMap<TypeId, Box<dyn Any>>;

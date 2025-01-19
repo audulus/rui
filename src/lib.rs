@@ -47,6 +47,9 @@ pub use align::*;
 mod region;
 pub use region::*;
 
+mod state_holder;
+use state_holder::*;
+
 #[cfg(feature = "winit")]
 mod winit_event_loop;
 
