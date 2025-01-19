@@ -392,10 +392,7 @@ impl Context {
     pub(crate) fn set_state<S: 'static>(&mut self, id: ViewId, value: S) {
         self.state_map.insert(
             id,
-            StateHolder {
-                state: Box::new(value),
-                dirty: false,
-            },
+            StateHolder::new(value),
         );
     }
 
@@ -404,10 +401,7 @@ impl Context {
     }
 
     pub(crate) fn init_state<S: 'static, D: Fn() -> S + 'static>(&mut self, id: ViewId, func: &D) {
-        self.state_map.entry(id).or_insert_with(|| StateHolder {
-            state: Box::new((func)()),
-            dirty: false,
-        });
+        self.state_map.entry(id).or_insert_with(|| StateHolder::new((func)()));
     }
 
     pub(crate) fn init_env<S: Clone + 'static, D: Fn() -> S + 'static>(&mut self, func: &D) -> S {

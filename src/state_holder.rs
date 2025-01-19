@@ -7,6 +7,12 @@ pub(crate) struct StateHolder {
     pub dirty: bool,
 }
 
+impl StateHolder {
+    pub fn new<T: 'static>(value: T) -> Self {
+        StateHolder { state: Box::new(value), dirty: false }
+    }
+}
+
 pub(crate) struct StateHolder2 {
     pub state: Rc<dyn Any>,
     pub dirty: bool,
