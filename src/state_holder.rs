@@ -1,6 +1,6 @@
 use std::any::Any;
 use std::rc::Rc;
-use std::cell::{Ref, RefCell};
+use std::cell::{Ref, RefMut, RefCell};
 
 pub(crate) struct StateHolder {
     pub state: Box<dyn Any>,
@@ -30,5 +30,13 @@ impl StateHolder2 {
             .downcast_ref::<RefCell<T>>()
             .unwrap()
             .borrow()
+    }
+
+    pub fn borrow_mut<T: 'static>(&self) -> RefMut<'_, T> {
+        self
+            .state
+            .downcast_ref::<RefCell<T>>()
+            .unwrap()
+            .borrow_mut()
     }
 }
