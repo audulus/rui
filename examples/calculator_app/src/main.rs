@@ -1,4 +1,4 @@
-use enterpolation::{linear::ConstEquidistantLinear, Curve};
+use enterpolation::{linear::ConstEquidistantLinear, Generator};
 use palette::LinSrgb;
 use rui::*;
 
@@ -34,7 +34,6 @@ enum Button {
     Special(SpecialOperator),
 }
 
-#[derive(Default)]
 struct ButtonState {
     is_hovered: bool,
     is_touched: bool,
@@ -50,19 +49,35 @@ struct CalculatorApp {
     is_result_displayed: bool,
     last_operator: Option<Operator>,
     clear_state: ClearState,
-    colors: Vec<LinSrgb>,
+    blue_gradient: enterpolation::linear::Linear<
+        enterpolation::ConstEquidistant<f32, 2>,
+        [palette::rgb::Rgb<palette::encoding::Linear<palette::encoding::Srgb>>; 2],
+        enterpolation::Identity,
+    >,
+    gradient: enterpolation::linear::Linear<
+        enterpolation::ConstEquidistant<f32, 2>,
+        [palette::rgb::Rgb<palette::encoding::Linear<palette::encoding::Srgb>>; 2],
+        enterpolation::Identity,
+    >,
 }
 
 impl CalculatorApp {
     fn new() -> Self {
-        let gradient = ConstEquidistantLinear::<f32, _, 3>::equidistant_unchecked([
+        let blue_gradient = ConstEquidistantLinear::<f32, _, 2>::equidistant_unchecked([
+            // LinSrgb::new(0.70, 0.10, 0.20),
+            LinSrgb::new(0.05, 0.2, 0.40),
+            // LinSrgb::new(0.00, 0.30, 0.40),
             LinSrgb::new(0.00, 0.05, 0.20),
-            LinSrgb::new(0.70, 0.10, 0.20),
             // LinSrgb::new(0.95, 0.90, 0.30),
-            LinSrgb::new(0.00, 0.05, 0.20),
         ]);
 
-        let colors: Vec<LinSrgb> = gradient.take(19).collect();
+        let gradient = ConstEquidistantLinear::<f32, _, 2>::equidistant_unchecked([
+            // LinSrgb::new(0.70, 0.10, 0.20),
+            LinSrgb::new(0.05, 0.20, 0.40),
+            // LinSrgb::new(0.05, 0.25, 0.30),
+            LinSrgb::new(0.00, 0.25, 0.35),
+            // LinSrgb::new(0.95, 0.90, 0.30),
+        ]);
 
         Self {
             first_operand: "0".to_string(),
@@ -73,7 +88,8 @@ impl CalculatorApp {
             is_result_displayed: false,
             last_operator: None,
             clear_state: ClearState::Initial,
-            colors,
+            blue_gradient,
+            gradient,
         }
     }
 
@@ -230,72 +246,124 @@ impl CalculatorApp {
         } else {
             state.second_operand.clone()
         };
-        text(&display_text).font_size(40).size([0.0, 50.0])
+        zstack((
+            rectangle()
+                .corner_radius(10.0)
+                .color(vger::Color::new(0.2, 0.2, 0.2, 1.0)),
+            text(&display_text)
+                .font_size(40)
+                .size([0.0, 50.0])
+                .offset([10.0, 10.0]),
+        ))
+        .padding(Auto)
+
+        // canvas(move |_, rect, vger| {
+        //     vger.save();
+        //     let color = vger::Color::new(0.2, 0.2, 0.2, 1.0);
+        //     let paint_index = vger.color_paint(color);
+        //     vger.fill_rect(rect, 10.0, paint_index);
+
+        //     vger.restore();
+        //     vger.save();
+
+        //     let text_height: u32 = 40;
+
+        //     let origin = vger.text_bounds(&display_text, text_height, None).origin;
+
+        //     vger.translate([
+        //         -origin.x,
+        //         -origin.y + rect.height() / 2.0 - (text_height as f32) / 2.0,
+        //     ]);
+
+        //     let text_color = vger::Color::new(1.0, 1.0, 1.0, 1.0);
+
+        //     vger.text(&display_text, text_height, text_color, Some(0.0));
+        //     vger.restore();
+        // })
     }
 
     fn button_view(s: StateHandle<CalculatorApp>, button: Button, id: usize) -> impl View {
-        state(ButtonState::default, move |button_state, cx: &Context| {
-            let button_clone = button.clone();
+        let is_number = matches!(button, Button::Digit(_));
+        let digit = match button {
+            Button::Digit(d) => d,
+            _ => 0,
+        };
 
-            let alpha = if cx[button_state].is_touched {
-                0.5
-            } else if cx[button_state].is_hovered {
-                0.8
-            } else {
-                1.0
-            };
-            let color = cx[s].colors[id];
-            let color = vger::Color::new(color.red, color.green, color.blue, alpha);
-            let text_color = vger::Color::new(1.0 - color.r, 1.0 - color.g, 1.0 - color.b, 1.0);
+        state(
+            || ButtonState {
+                is_hovered: false,
+                is_touched: false,
+            },
+            move |button_state, cx: &Context| {
+                let button_clone = button.clone();
 
-            zstack((
-                rectangle()
-                    .corner_radius(10.0)
-                    .color(color)
-                    .touch(move |cx, info| match info.state {
-                        TouchState::Begin => {
-                            cx[button_state].is_touched = true;
-                        }
-                        TouchState::End => {
-                            cx[button_state].is_touched = false;
-                            cx[s].button_action(button_clone.clone());
-                        }
-                    })
-                    .hover(move |cx, hovered| {
-                        cx[button_state].is_hovered = hovered;
-                    }),
-                {
-                    let label = match button {
-                        Button::Digit(digit) => digit.to_string(),
-                        Button::Operator(op) => match op {
-                            Operator::Add => "+".to_string(),
-                            Operator::Subtract => "-".to_string(),
-                            Operator::Multiply => "*".to_string(),
-                            Operator::Divide => "/".to_string(),
-                        },
-                        Button::Special(action) => match action {
-                            SpecialOperator::Clear => {
-                                if cx[s].clear_state == ClearState::JustCleared {
-                                    "AC".to_string()
-                                } else {
-                                    "C".to_string()
-                                }
-                            }
-                            SpecialOperator::ToggleSign => "+/-".to_string(),
-                            SpecialOperator::Percentage => "%".to_string(),
-                            SpecialOperator::Equals => "=".to_string(),
-                            SpecialOperator::Decimal => ".".to_string(),
-                        },
+                let alpha = if cx[button_state].is_touched {
+                    0.5
+                } else if cx[button_state].is_hovered {
+                    0.8
+                } else {
+                    1.0
+                };
+                let color = {
+                    let color = if is_number {
+                        // cx[s].blue_gradient.gen(id as f32 / 18.0)
+                        cx[s].blue_gradient.gen(digit as f32 / 9.0)
+                    } else {
+                        cx[s].gradient.gen(id as f32 / 18.0)
                     };
+                    vger::Color::new(color.red, color.green, color.blue, alpha)
+                };
+                let text_color = vger::Color::new(1.0 - color.r, 1.0 - color.g, 1.0 - color.b, 1.0);
 
-                    text(&label)
-                }
-                .font_size(30)
-                .color(text_color)
-                .offset([10.0, 10.0]),
-            ))
-            .padding(Auto)
-        })
+                zstack((
+                    rectangle()
+                        .corner_radius(10.0)
+                        .color(color)
+                        .touch(move |cx, info| match info.state {
+                            TouchState::Begin => {
+                                cx[button_state].is_touched = true;
+                            }
+                            TouchState::End => {
+                                cx[button_state].is_touched = false;
+                                cx[s].button_action(button_clone.clone());
+                            }
+                        })
+                        .hover(move |cx, hovered| {
+                            cx[button_state].is_hovered = hovered;
+                        }),
+                    {
+                        let label = match button {
+                            Button::Digit(digit) => digit.to_string(),
+                            Button::Operator(op) => match op {
+                                Operator::Add => "+".to_string(),
+                                Operator::Subtract => "-".to_string(),
+                                Operator::Multiply => "*".to_string(),
+                                Operator::Divide => "/".to_string(),
+                            },
+                            Button::Special(action) => match action {
+                                SpecialOperator::Clear => {
+                                    if cx[s].clear_state == ClearState::JustCleared {
+                                        "AC".to_string()
+                                    } else {
+                                        "C".to_string()
+                                    }
+                                }
+                                SpecialOperator::ToggleSign => "+/-".to_string(),
+                                SpecialOperator::Percentage => "%".to_string(),
+                                SpecialOperator::Equals => "=".to_string(),
+                                SpecialOperator::Decimal => ".".to_string(),
+                            },
+                        };
+
+                        text(&label)
+                    }
+                    .font_size(30)
+                    .color(text_color)
+                    .offset([10.0, 10.0]),
+                ))
+                .padding(Auto)
+            },
+        )
     }
 
     fn show() -> impl View {
