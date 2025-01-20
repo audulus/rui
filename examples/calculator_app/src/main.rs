@@ -67,7 +67,7 @@ impl CalculatorApp {
             // LinSrgb::new(0.70, 0.10, 0.20),
             LinSrgb::new(0.05, 0.2, 0.40),
             // LinSrgb::new(0.00, 0.30, 0.40),
-            LinSrgb::new(0.00, 0.05, 0.20),
+            LinSrgb::new(0.1, 0.25, 0.30),
             // LinSrgb::new(0.95, 0.90, 0.30),
         ]);
 
