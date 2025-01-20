@@ -58,7 +58,8 @@ impl CalculatorApp {
         let gradient = ConstEquidistantLinear::<f32, _, 3>::equidistant_unchecked([
             LinSrgb::new(0.00, 0.05, 0.20),
             LinSrgb::new(0.70, 0.10, 0.20),
-            LinSrgb::new(0.95, 0.90, 0.30),
+            // LinSrgb::new(0.95, 0.90, 0.30),
+            LinSrgb::new(0.00, 0.05, 0.20),
         ]);
 
         let colors: Vec<LinSrgb> = gradient.take(19).collect();
@@ -245,7 +246,7 @@ impl CalculatorApp {
             };
             let color = cx[s].colors[id];
             let color = vger::Color::new(color.red, color.green, color.blue, alpha);
-            let inverted_color = vger::Color::new(1.0 - color.r, 1.0 - color.g, 1.0 - color.b, 1.0);
+            let text_color = vger::Color::new(1.0 - color.r, 1.0 - color.g, 1.0 - color.b, 1.0);
 
             zstack((
                 rectangle()
@@ -290,7 +291,7 @@ impl CalculatorApp {
                     text(&label)
                 }
                 .font_size(22)
-                .color(inverted_color)
+                .color(text_color)
                 .offset([10.0, 10.0]),
             ))
             .padding(Auto)
