@@ -82,9 +82,9 @@ fn flip_card_view(value: &Value) -> impl View {
         |s, cx| {
             vstack((
                 text(if cx[s].0 {
-                    cx[s].1.as_str()
-                } else {
                     cx[s].2.as_str()
+                } else {
+                    cx[s].1.as_str()
                 })
                 .font_size(12)
                 .padding(Auto),
