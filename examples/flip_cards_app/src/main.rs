@@ -69,33 +69,38 @@ fn find_flip_cards(value: &Value) -> Vec<Value> {
     flip_cards
 }
 
+/// For strongly typed state management
+struct FlipCardViewState {
+    show_answer: bool,
+    question: String,
+    answer: String,
+}
+
 fn flip_card_view(value: &Value) -> impl View {
     let value = value.clone();
     state(
-        move || {
-            (
-                false,
-                value["q"].as_str().unwrap().to_string(),
-                value["a"].as_str().unwrap().to_string(),
-            )
+        move || FlipCardViewState {
+            show_answer: false,
+            question: value["q"].as_str().unwrap().to_string(),
+            answer: value["a"].as_str().unwrap().to_string(),
         },
         |s, cx| {
             vstack((
-                text(if cx[s].0 {
-                    cx[s].2.as_str()
+                text(if cx[s].show_answer {
+                    cx[s].answer.as_str()
                 } else {
-                    cx[s].1.as_str()
+                    cx[s].question.as_str()
                 })
                 .font_size(12)
                 .padding(Auto),
                 button(
-                    if cx[s].0 {
+                    if cx[s].show_answer {
                         "Hide Answer"
                     } else {
                         "Show Answer"
                     },
                     move |cx| {
-                        cx[s].0 = !cx[s].0;
+                        cx[s].show_answer = !cx[s].show_answer;
                     },
                 )
                 .padding(Auto),
