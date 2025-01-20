@@ -1,0 +1,10 @@
+[package]
+name = "calculator_app"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+rui = { path = "../../." }
+palette = "0.7.6"
+enterpolation = "0.2"
