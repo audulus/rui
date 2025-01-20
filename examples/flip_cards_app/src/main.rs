@@ -1,6 +1,8 @@
-use serde::{Deserialize, Serialize};
+use rui::*;
+use rust_search::SearchBuilder;
 use serde_json::{Map, Value};
 use std::collections::{HashSet, VecDeque};
+use std::fs;
 
 fn find_flip_cards(value: &Value) -> Vec<Value> {
     let mut flip_cards = Vec::new();
@@ -47,7 +49,7 @@ fn find_flip_cards(value: &Value) -> Vec<Value> {
                 // If both question and answer were found, add the flip card
                 if let (Some(q), Some(a)) = (question, answer) {
                     flip_cards.push(Value::Object({
-                        let mut map = Map::new();
+                        let mut map = Map::with_capacity(2);
                         map.insert("q".to_string(), Value::String(q));
                         map.insert("a".to_string(), Value::String(a));
                         map
@@ -65,14 +67,6 @@ fn find_flip_cards(value: &Value) -> Vec<Value> {
     }
 
     flip_cards
-}
-
-use rui::*;
-
-#[derive(Serialize, Deserialize)]
-struct FlipCard {
-    question: String,
-    answer: String,
 }
 
 fn flip_card_view(value: &Value) -> impl View {
@@ -109,9 +103,6 @@ fn flip_card_view(value: &Value) -> impl View {
         },
     )
 }
-
-use rust_search::SearchBuilder;
-use std::fs;
 
 fn main() {
     let mut search: Vec<String> = SearchBuilder::default()
