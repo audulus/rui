@@ -8,11 +8,6 @@ trait MyMod: View + Sized {
 
 impl<V: View> MyMod for V {}
 
-fn my_text(name: &str) -> impl View {
-    let name = name.to_string();
-    text(name.as_str())
-}
-
 fn main() {
-    hstack((my_text("without"), my_text("with").my_modifier())).run()
+    hstack((text("without"), text("with").my_modifier())).run()
 }
