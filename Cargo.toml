@@ -1,5 +1,7 @@
 [workspace]
 resolver = "2" # What does this do?
+members = [".", "./examples/flip_cards_app"]
+default-members = ["."]
 
 [package]
 name = "rui"

@@ -1,0 +1,20 @@
+{
+	"flip_cards": [
+		{
+			"question": "What does the term 'Renaissance' mean?",
+			"answer": "'Renaissance' means 'rebirth' in French, referring to the revival of classical art, culture, and knowledge from ancient Greece and Rome."
+		},
+		{
+			"question": "What intellectual movement was central to the Renaissance?",
+			"answer": "Humanism. It emphasized the value of individual experience, reason, and the study of classical texts from ancient Greece and Rome."
+		},
+		{
+			"question": "Name two key artists of the Renaissance.",
+			"answer": "Leonardo da Vinci and Michelangelo Buonarroti."
+		},
+		{
+			"question": "What is Leonardo da Vinci famous for?",
+			"answer": "He is famous for works like Mona Lisa and The Last Supper, as well as his inventions and scientific studies."
+		}
+	]
+}
