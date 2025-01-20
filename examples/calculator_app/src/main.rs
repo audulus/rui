@@ -230,7 +230,7 @@ impl CalculatorApp {
         } else {
             state.second_operand.clone()
         };
-        text(&display_text).font_size(32).size([0.0, 50.0])
+        text(&display_text).font_size(40).size([0.0, 50.0])
     }
 
     fn button_view(s: StateHandle<CalculatorApp>, button: Button, id: usize) -> impl View {
@@ -290,7 +290,7 @@ impl CalculatorApp {
 
                     text(&label)
                 }
-                .font_size(22)
+                .font_size(30)
                 .color(text_color)
                 .offset([10.0, 10.0]),
             ))
