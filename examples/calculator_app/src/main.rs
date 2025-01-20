@@ -73,9 +73,9 @@ impl CalculatorApp {
 
         let gradient = ConstEquidistantLinear::<f32, _, 2>::equidistant_unchecked([
             // LinSrgb::new(0.70, 0.10, 0.20),
+            LinSrgb::new(0.00, 0.25, 0.35),
             LinSrgb::new(0.05, 0.20, 0.40),
             // LinSrgb::new(0.05, 0.25, 0.30),
-            LinSrgb::new(0.00, 0.25, 0.35),
             // LinSrgb::new(0.95, 0.90, 0.30),
         ]);
 
