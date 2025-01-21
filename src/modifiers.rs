@@ -151,7 +151,7 @@ pub trait Modifiers: View + Sized {
     /// * You need to know the position of the touch.
     /// * You need to handle the beginning and end of the touch.
     ///
-    /// #### How to use this?
+    /// #### Example
     /// ```rust
     /// use rui::*;
     /// rectangle()
