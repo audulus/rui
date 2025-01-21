@@ -22,7 +22,7 @@ struct KeyBoardState {
 impl KeyBoardState {
     fn new(config: &KeyBoardConfig) -> Self {
         let num_keys = config.num_keys;
-        let (num_white_keys, num_black_keys) = Self::calculate_key_counts(num_keys);
+        let num_white_keys = Self::calculate_white_key_count(num_keys);
         let keys = vec![KeyState::new(); num_keys];
         Self {
             keys,
@@ -31,16 +31,11 @@ impl KeyBoardState {
         }
     }
 
-    fn calculate_key_counts(num_keys: usize) -> (usize, usize) {
+    fn calculate_white_key_count(num_keys: usize) -> usize {
         let total_octaves = num_keys / 12;
         let remainder = num_keys % 12;
         let num_white_keys = total_octaves * 7 + Self::white_key_count_in_remainder(remainder);
-        let num_black_keys = total_octaves * 5 + Self::black_key_count_in_remainder(remainder);
-        println!(
-            "White keys: {}, Black keys: {}",
-            num_white_keys, num_black_keys
-        );
-        (num_white_keys, num_black_keys)
+        num_white_keys
     }
 
     fn white_key_count_in_remainder(remainder: usize) -> usize {
@@ -48,13 +43,6 @@ impl KeyBoardState {
             0 => 0,
             1 | 3 | 4 | 5 | 7 | 8 | 10 | 11 => 1,
             _ => 2,
-        }
-    }
-
-    fn black_key_count_in_remainder(remainder: usize) -> usize {
-        match remainder {
-            1 | 3 | 4 | 6 | 8 | 10 => 1,
-            _ => 0,
         }
     }
 }
@@ -118,7 +106,6 @@ impl KeyBoard {
                     }
 
                     // Second pass: Draw all black keys
-                    white_key_count = 0;
                     for key_pos in 0..cx[s].num_keys {
                         if Self::is_black_key(key_pos) {
                             // Calculate x position based on the pattern of black keys
