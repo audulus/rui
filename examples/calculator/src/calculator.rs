@@ -144,49 +144,78 @@ impl Calculator {
     }
 
     fn show(self) -> impl View {
-        zstack((
-            rectangle()
-                .color(self.background_color)
-                .corner_radius(self.background_corner_radius),
-            state(
-                move || CalculatorState::new(),
-                move |s: StateHandle<CalculatorState>, cx: &Context| {
-                    vstack((
-                        self.display_value(&cx[s]),
-                        hstack((
-                            self.button_view(s, Button::Special(SpecialOperator::Clear), 0),
-                            self.button_view(s, Button::Special(SpecialOperator::ToggleSign), 1),
-                            self.button_view(s, Button::Special(SpecialOperator::Percentage), 2),
-                            self.button_view(s, Button::Operator(Operator::Divide), 3),
-                        )),
-                        hstack((
-                            self.button_view(s, Button::Digit(7), 4),
-                            self.button_view(s, Button::Digit(8), 5),
-                            self.button_view(s, Button::Digit(9), 6),
-                            self.button_view(s, Button::Operator(Operator::Multiply), 7),
-                        )),
-                        hstack((
-                            self.button_view(s, Button::Digit(4), 8),
-                            self.button_view(s, Button::Digit(5), 9),
-                            self.button_view(s, Button::Digit(6), 10),
-                            self.button_view(s, Button::Operator(Operator::Subtract), 11),
-                        )),
-                        hstack((
-                            self.button_view(s, Button::Digit(1), 12),
-                            self.button_view(s, Button::Digit(2), 13),
-                            self.button_view(s, Button::Digit(3), 14),
-                            self.button_view(s, Button::Operator(Operator::Add), 15),
-                        )),
-                        hstack((
-                            self.button_view(s, Button::Digit(0), 16),
-                            self.button_view(s, Button::Special(SpecialOperator::Decimal), 17),
-                            self.button_view(s, Button::Special(SpecialOperator::Equals), 18),
-                        )),
-                    ))
-                    .padding(Auto)
-                },
-            ),
-        ))
+        focus(move |has_focus| {
+            let calculator = self.clone();
+
+            zstack((
+                rectangle()
+                    .color(self.background_color)
+                    .corner_radius(self.background_corner_radius),
+                state(
+                    move || CalculatorState::new(),
+                    move |s: StateHandle<CalculatorState>, cx: &Context| {
+                        vstack((
+                            calculator.display_value(&cx[s]),
+                            hstack((
+                                calculator.button_view(
+                                    s,
+                                    Button::Special(SpecialOperator::Clear),
+                                    0,
+                                ),
+                                calculator.button_view(
+                                    s,
+                                    Button::Special(SpecialOperator::ToggleSign),
+                                    1,
+                                ),
+                                calculator.button_view(
+                                    s,
+                                    Button::Special(SpecialOperator::Percentage),
+                                    2,
+                                ),
+                                calculator.button_view(s, Button::Operator(Operator::Divide), 3),
+                            )),
+                            hstack((
+                                calculator.button_view(s, Button::Digit(7), 4),
+                                calculator.button_view(s, Button::Digit(8), 5),
+                                calculator.button_view(s, Button::Digit(9), 6),
+                                calculator.button_view(s, Button::Operator(Operator::Multiply), 7),
+                            )),
+                            hstack((
+                                calculator.button_view(s, Button::Digit(4), 8),
+                                calculator.button_view(s, Button::Digit(5), 9),
+                                calculator.button_view(s, Button::Digit(6), 10),
+                                calculator.button_view(s, Button::Operator(Operator::Subtract), 11),
+                            )),
+                            hstack((
+                                calculator.button_view(s, Button::Digit(1), 12),
+                                calculator.button_view(s, Button::Digit(2), 13),
+                                calculator.button_view(s, Button::Digit(3), 14),
+                                calculator.button_view(s, Button::Operator(Operator::Add), 15),
+                            )),
+                            hstack((
+                                calculator.button_view(s, Button::Digit(0), 16),
+                                calculator.button_view(
+                                    s,
+                                    Button::Special(SpecialOperator::Decimal),
+                                    17,
+                                ),
+                                calculator.button_view(
+                                    s,
+                                    Button::Special(SpecialOperator::Equals),
+                                    18,
+                                ),
+                            )),
+                        ))
+                        .padding(Auto)
+                        .key(move |cx, k| {
+                            if has_focus {
+                                cx[s].key(&k);
+                            }
+                        })
+                    },
+                ),
+            ))
+        })
     }
 
     fn display_value(&self, state: &CalculatorState) -> impl View {
@@ -195,7 +224,15 @@ impl Calculator {
         } else if state.second_operand.is_empty() {
             "0".to_string()
         } else {
-            state.second_operand.clone()
+            let mut string = state.second_operand.clone();
+            if string.len() > 10 {
+                string.truncate(10);
+                // add an ellipsis to indicate that the number is too long.
+                string.push_str("…");
+                string
+            } else {
+                string
+            }
         };
         zstack((
             rectangle()
@@ -488,6 +525,40 @@ impl CalculatorState {
                     self.clear_state = ClearState::Initial;
                 }
             }
+        }
+    }
+
+    fn key(&mut self, k: &Key) {
+        match k {
+            Key::Backspace => {
+                if self.second_operand.len() > 0 {
+                    self.second_operand.pop();
+                }
+            }
+            Key::Space => {
+                // clear input
+                self.reset();
+            }
+            Key::Enter => {
+                self.button_action(Button::Special(SpecialOperator::Equals));
+            }
+            Key::Character(c) => {
+                if c.is_ascii_digit() {
+                    self.input_digit(c.to_digit(10).unwrap() as u64);
+                } else {
+                    match c {
+                        '+' => self.button_action(Button::Operator(Operator::Add)),
+                        '-' => self.button_action(Button::Operator(Operator::Subtract)),
+                        '*' => self.button_action(Button::Operator(Operator::Multiply)),
+                        '/' => self.button_action(Button::Operator(Operator::Divide)),
+                        '%' => self.button_action(Button::Special(SpecialOperator::Percentage)),
+                        '.' => self.button_action(Button::Special(SpecialOperator::Decimal)),
+                        '=' => self.button_action(Button::Special(SpecialOperator::Equals)),
+                        _ => (),
+                    }
+                }
+            }
+            _ => (),
         }
     }
 }
