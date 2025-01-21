@@ -147,13 +147,18 @@ impl Calculator {
         focus(move |has_focus| {
             let calculator = self.clone();
 
-            zstack((
-                rectangle()
-                    .color(self.background_color)
-                    .corner_radius(self.background_corner_radius),
-                state(
-                    move || CalculatorState::new(),
-                    move |s: StateHandle<CalculatorState>, cx: &Context| {
+            state(
+                move || CalculatorState::new(),
+                move |s: StateHandle<CalculatorState>, cx: &Context| {
+                    zstack((
+                        rectangle()
+                            .color(self.background_color)
+                            .corner_radius(self.background_corner_radius)
+                            .key(move |cx, k| {
+                                if has_focus {
+                                    cx[s].key(&k);
+                                }
+                            }),
                         vstack((
                             calculator.display_value(&cx[s]),
                             hstack((
@@ -206,15 +211,10 @@ impl Calculator {
                                 ),
                             )),
                         ))
-                        .padding(Auto)
-                        .key(move |cx, k| {
-                            if has_focus {
-                                cx[s].key(&k);
-                            }
-                        })
-                    },
-                ),
-            ))
+                        .padding(Auto),
+                    ))
+                },
+            )
         })
     }
 
