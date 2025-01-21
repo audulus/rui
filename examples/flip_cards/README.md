@@ -1,5 +1,5 @@
 To run example:
 
 ```shell
-cargo run -p flip_cards_app
+cargo run -p flip_cards
 ```
