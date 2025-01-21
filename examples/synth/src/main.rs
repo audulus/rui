@@ -66,8 +66,8 @@ fn main() {
     // }
 
     KeyBoard::new()
-        .num_keys(24)
+        .num_keys(25)
         .show()
-        // .size([400.0, 200.0])
+        .size([400.0, 200.0])
         .run();
 }

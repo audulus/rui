@@ -17,7 +17,6 @@ struct KeyBoardState {
     keys: Vec<KeyState>,
     num_keys: usize,
     num_white_keys: usize,
-    num_black_keys: usize,
 }
 
 impl KeyBoardState {
@@ -29,7 +28,6 @@ impl KeyBoardState {
             keys,
             num_keys,
             num_white_keys,
-            num_black_keys,
         }
     }
 
@@ -38,6 +36,10 @@ impl KeyBoardState {
         let remainder = num_keys % 12;
         let num_white_keys = total_octaves * 7 + Self::white_key_count_in_remainder(remainder);
         let num_black_keys = total_octaves * 5 + Self::black_key_count_in_remainder(remainder);
+        println!(
+            "White keys: {}, Black keys: {}",
+            num_white_keys, num_black_keys
+        );
         (num_white_keys, num_black_keys)
     }
 
@@ -63,7 +65,7 @@ pub struct KeyBoardConfig {
 
 impl KeyBoardConfig {
     pub fn new() -> Self {
-        Self { num_keys: 46 }
+        Self { num_keys: 25 }
     }
 
     pub fn num_keys(mut self, num_keys: usize) -> Self {
