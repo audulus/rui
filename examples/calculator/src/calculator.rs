@@ -91,7 +91,10 @@ impl Calculator {
         let ocean_colors = if config.dark_mode {
             [LinSrgb::new(0.05, 0.2, 0.40), LinSrgb::new(0.1, 0.25, 0.30)]
         } else {
-            [LinSrgb::new(0.05, 0.2, 0.40), LinSrgb::new(0.1, 0.25, 0.30)]
+            [
+                LinSrgb::new(0.30, 0.55, 0.65),
+                LinSrgb::new(0.45, 0.80, 0.70),
+            ]
         };
 
         let ocean = ConstEquidistantLinear::<f32, _, 2>::equidistant_unchecked(ocean_colors);
@@ -102,10 +105,7 @@ impl Calculator {
                 LinSrgb::new(0.05, 0.20, 0.40),
             ]
         } else {
-            [
-                LinSrgb::new(0.00, 0.25, 0.35),
-                LinSrgb::new(0.05, 0.20, 0.40),
-            ]
+            [LinSrgb::new(0.3, 0.5, 0.80), LinSrgb::new(0.3, 0.4, 0.90)]
         };
 
         let sky = ConstEquidistantLinear::<f32, _, 2>::equidistant_unchecked(sky_colors);
@@ -125,10 +125,10 @@ impl Calculator {
         let number_display_color = if config.dark_mode {
             vger::Color::new(0.2, 0.2, 0.2, 1.0)
         } else {
-            vger::Color::new(0.2, 0.2, 0.2, 1.0)
+            vger::Color::new(0.8, 0.8, 0.8, 1.0)
         };
 
-        let background_corner_radius = if config.rounded_corners { 10.0 } else { 0.0 };
+        let background_corner_radius = if config.rounded_corners { 15.0 } else { 0.0 };
 
         Calculator {
             ocean,
@@ -199,6 +199,7 @@ impl Calculator {
                 .corner_radius(10.0)
                 .color(self.number_display_color),
             text(&display_text)
+                .color(self.text_color)
                 .font_size(40)
                 .size([0.0, 50.0])
                 .offset([10.0, 10.0]),
