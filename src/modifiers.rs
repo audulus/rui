@@ -138,6 +138,14 @@ pub trait Modifiers: View + Sized {
         Tap::new(self, TapActionAdapter { action })
     }
 
+    /// Version of `tap` which passes the tap position and mouse button.
+    fn tap_p<A: 'static, F: Fn(&mut Context, LocalPoint, Option<MouseButton>) -> A + 'static>(
+        self,
+        f: F,
+    ) -> Tap<Self, TapPositionFunc<F>> {
+        Tap::new(self, TapPositionFunc { f })
+    }
+
     /// Calls a function in response to a touch.
     /// #### Why use this?
     /// * You need to know the position of the touch.
@@ -153,19 +161,11 @@ pub trait Modifiers: View + Sized {
     ///                 
     ///     }
     /// })
-    fn touch<A: 'static, F: Fn(&mut Context, TapInfo) -> A + 'static>(
+    fn touch<A: 'static, F: Fn(&mut Context, TouchInfo) -> A + 'static>(
         self,
         f: F,
-    ) -> Tap<Self, TapFunc<F>> {
-        Tap::new_with_info(self, TapFunc { f })
-    }
-
-    /// Version of `tap` which passes the tap position and mouse button.
-    fn tap_p<A: 'static, F: Fn(&mut Context, LocalPoint, Option<MouseButton>) -> A + 'static>(
-        self,
-        f: F,
-    ) -> Tap<Self, TapPositionFunc<F>> {
-        Tap::new(self, TapPositionFunc { f })
+    ) -> Touch<Self, TouchFunc<F>> {
+        Touch::new(self, TouchFunc { f })
     }
 
     /// Specify the title of the window.
