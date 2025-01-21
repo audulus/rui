@@ -430,10 +430,9 @@ impl CalculatorState {
 
     fn input_decimal(&mut self) {
         if self.is_result_displayed {
-            self.second_operand = "0.".to_string(); // Start with "0." after result
-            self.is_result_displayed = false;
-            return;
+            self.is_result_displayed = false; // Important: Clear the flag *before* modifying the operand
         }
+
         if !self.second_operand.contains('.') {
             if self.second_operand.is_empty() {
                 self.second_operand.push_str("0.");
@@ -547,6 +546,7 @@ impl CalculatorState {
                     self.input_digit(c.to_digit(10).unwrap() as u64);
                 } else {
                     match c {
+                        'c' | 'C' => self.button_action(Button::Special(SpecialOperator::Clear)),
                         '+' => self.button_action(Button::Operator(Operator::Add)),
                         '-' => self.button_action(Button::Operator(Operator::Subtract)),
                         '*' => self.button_action(Button::Operator(Operator::Multiply)),
