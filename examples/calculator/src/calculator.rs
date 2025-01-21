@@ -89,7 +89,10 @@ impl Calculator {
 
     pub fn with_config(config: &CalculatorConfig) -> Calculator {
         let ocean_colors = if config.dark_mode {
-            [LinSrgb::new(0.05, 0.2, 0.40), LinSrgb::new(0.1, 0.25, 0.30)]
+            [
+                LinSrgb::new(0.05, 0.15, 0.30),
+                LinSrgb::new(0.1, 0.20, 0.25),
+            ]
         } else {
             [
                 LinSrgb::new(0.30, 0.55, 0.65),
@@ -101,8 +104,8 @@ impl Calculator {
 
         let sky_colors = if config.dark_mode {
             [
-                LinSrgb::new(0.00, 0.25, 0.35),
-                LinSrgb::new(0.05, 0.20, 0.40),
+                LinSrgb::new(0.00, 0.10, 0.30),
+                LinSrgb::new(0.05, 0.15, 0.35),
             ]
         } else {
             [LinSrgb::new(0.3, 0.5, 0.80), LinSrgb::new(0.3, 0.4, 0.90)]
@@ -117,13 +120,13 @@ impl Calculator {
         };
 
         let background_color = if config.dark_mode {
-            vger::Color::new(0.1, 0.1, 0.1, 1.0)
+            vger::Color::new(0.05, 0.05, 0.05, 1.0)
         } else {
             vger::Color::new(1.0, 1.0, 1.0, 1.0)
         };
 
         let number_display_color = if config.dark_mode {
-            vger::Color::new(0.2, 0.2, 0.2, 1.0)
+            vger::Color::new(0.1, 0.1, 0.1, 1.0)
         } else {
             vger::Color::new(0.8, 0.8, 0.8, 1.0)
         };
