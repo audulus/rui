@@ -1,23 +1,23 @@
 // use midir::MidiInput;
-use rodio::source::Source;
-use rodio::OutputStream;
-use std::sync::{Arc, Mutex};
+// use rodio::source::Source;
+// use rodio::OutputStream;
+// use std::sync::{Arc, Mutex};
 
 mod keyboard;
 mod oscillator;
 mod synth;
 
 use keyboard::KeyBoard;
-use oscillator::Oscillator;
-use synth::Synth;
+// use oscillator::Oscillator;
+// use synth::Synth;
 
 use rui::*;
 
 fn main() {
     // Create a new synth
-    let (_stream, stream_handle) = OutputStream::try_default().unwrap(); // Oddly, this cant be done in the new function, otherwise the program will panic
-                                                                         // The synth will manage multiple audio sinks and their envelopes
-    let synth = Arc::new(Mutex::new(Synth::new(stream_handle)));
+    // let (_stream, stream_handle) = OutputStream::try_default().unwrap(); // Oddly, this cant be done in the new function, otherwise the program will panic
+    // The synth will manage multiple audio sinks and their envelopes
+    // let synth = Arc::new(Mutex::new(Synth::new(stream_handle)));
 
     // // Create a new midi input
     // let midi_in = MidiInput::new("midir reading input").unwrap();
