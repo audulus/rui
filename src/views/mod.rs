@@ -26,8 +26,6 @@ mod focus;
 pub use focus::*;
 mod geom;
 pub use geom::*;
-mod gesture;
-pub use gesture::*;
 mod handle;
 pub use handle::*;
 mod hover;
