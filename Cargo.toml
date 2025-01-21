@@ -1,7 +1,10 @@
 [workspace]
 resolver = "2" # What does this do?
-members = [".", "./examples/flip_cards", "./examples/calculator"]
+members = [".", "./examples/flip_cards", "./examples/calculator", "./examples/synth"]
 default-members = ["."]
+
+[workspace.dependencies]
+rui = { path = "." }
 
 [package]
 name = "rui"

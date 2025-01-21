@@ -7,5 +7,5 @@ publish = false
 [dependencies]
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
-rui = { path = "../../." }
+rui = { workspace = true }
 rust_search = "2.0.0"
