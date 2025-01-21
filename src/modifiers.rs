@@ -151,16 +151,16 @@ pub trait Modifiers: View + Sized {
     /// * You need to know the position of the touch.
     /// * You need to handle the beginning and end of the touch.
     ///
-    /// #### Example
+    /// #### How to use this?
     /// ```rust
-    /// .touch(move |cx, info| match info.state {
-    ///     TouchState::Begin => {
-    ///
-    ///     }
-    ///     TouchState::End => {
-    ///                 
-    ///     }
-    /// })
+    /// use rui::*;
+    /// rectangle()
+    ///     .touch(move |_, info| match info.state {
+    ///         TouchState::Begin => { println!("Touched") }
+    ///         TouchState::End => { println!("Released") }
+    ///     })
+    ///     .run();
+    /// ```
     fn touch<A: 'static, F: Fn(&mut Context, TouchInfo) -> A + 'static>(
         self,
         f: F,
