@@ -1,7 +1,7 @@
 mod calculator;
 use calculator::Calculator;
 
-use rui::Run;
+use rui::*;
 
 fn main() {
     Calculator::show().run()

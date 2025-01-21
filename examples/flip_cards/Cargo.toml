@@ -1,5 +1,5 @@
 [package]
-name = "flip_cards_app"
+name = "flip_cards"
 version = "0.1.0"
 edition = "2021"
 publish = false

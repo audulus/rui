@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2" # What does this do?
-members = [".", "./examples/flip_cards_app", "./examples/calculator_app"]
+members = [".", "./examples/flip_cards", "./examples/calculator"]
 default-members = ["."]
 
 [package]
