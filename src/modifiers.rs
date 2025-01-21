@@ -158,8 +158,8 @@ pub trait Modifiers: View + Sized {
     ///     .touch(move |_, info| match info.state {
     ///         TouchState::Begin => { println!("Touched") }
     ///         TouchState::End => { println!("Released") }
-    ///     })
-    ///     .run();
+    ///     });
+    ///     //.run();
     /// ```
     fn touch<A: 'static, F: Fn(&mut Context, TouchInfo) -> A + 'static>(
         self,

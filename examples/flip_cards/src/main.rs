@@ -4,6 +4,7 @@ use serde_json::{Map, Value};
 use std::collections::{HashSet, VecDeque};
 use std::fs;
 
+// Function to find and extract flip cards from JSON data
 fn find_flip_cards(value: &Value) -> Vec<Value> {
     let mut flip_cards = Vec::new();
 
@@ -69,47 +70,23 @@ fn find_flip_cards(value: &Value) -> Vec<Value> {
     flip_cards
 }
 
-/// For strongly typed state management
-struct FlipCardViewState {
+// Struct to represent the state of a flip card
+#[derive(Clone)]
+struct FlipCardState {
     show_answer: bool,
     question: String,
     answer: String,
 }
 
-fn flip_card_view(value: &Value) -> impl View {
-    let value = value.clone();
-    state(
-        move || FlipCardViewState {
-            show_answer: false,
-            question: value["q"].as_str().unwrap().to_string(),
-            answer: value["a"].as_str().unwrap().to_string(),
-        },
-        |s, cx| {
-            vstack((
-                text(if cx[s].show_answer {
-                    cx[s].answer.as_str()
-                } else {
-                    cx[s].question.as_str()
-                })
-                .font_size(12)
-                .padding(Auto),
-                button(
-                    if cx[s].show_answer {
-                        "Hide Answer"
-                    } else {
-                        "Show Answer"
-                    },
-                    move |cx| {
-                        cx[s].show_answer = !cx[s].show_answer;
-                    },
-                )
-                .padding(Auto),
-            ))
-        },
-    )
+// Struct to represent the state of all flip cards
+struct FlipCardsState {
+    flip_cards: Vec<FlipCardState>,
+    current_index: usize,
 }
 
+// Main function
 fn main() {
+    // Search for flip card JSON data
     let mut search: Vec<String> = SearchBuilder::default()
         .location(".")
         .search_input("flip_card_data")
@@ -118,6 +95,7 @@ fn main() {
         .build()
         .collect();
 
+    // Read the JSON file containing the flip cards data
     let data = fs::read_to_string(search.pop().unwrap()).expect("Failed to read data file");
 
     // Deserialize the raw string into a serde_json::Value
@@ -125,5 +103,59 @@ fn main() {
 
     // Find the flip cards by iteratively searching the JSON
     let flip_cards = find_flip_cards(&value);
-    list(flip_cards, flip_card_view).run();
+
+    // Initialize the state with flip cards and the first card
+    state(
+        move || FlipCardsState {
+            flip_cards: flip_cards
+                .iter()
+                .map(|card| FlipCardState {
+                    show_answer: false,
+                    question: card["q"].as_str().unwrap().to_string(),
+                    answer: card["a"].as_str().unwrap().to_string(),
+                })
+                .collect(),
+            current_index: 0, // Start at the first card
+        },
+        |s, cx| {
+            let flip_cards = &cx[s].flip_cards;
+            let current_index = cx[s].current_index;
+            let current_card = &flip_cards[current_index];
+
+            // Render the current flip card
+            zstack((
+                rectangle()
+                    .corner_radius(10.0)
+                    .color(vger::Color::gray(0.2))
+                    .size([400.0, 300.0]),
+                vstack((
+                    text(if current_card.show_answer {
+                        current_card.answer.as_str()
+                    } else {
+                        current_card.question.as_str()
+                    })
+                    .font_size(12)
+                    .padding(Auto),
+                    button(
+                        if current_card.show_answer {
+                            "Hide Answer"
+                        } else {
+                            "Show Answer"
+                        },
+                        move |cx| {
+                            cx[s].flip_cards[current_index].show_answer =
+                                !cx[s].flip_cards[current_index].show_answer;
+                        },
+                    )
+                    .padding(Auto),
+                    button("Next Card", move |cx| {
+                        cx[s].current_index = (cx[s].current_index + 1) % cx[s].flip_cards.len(); // Move to next card
+                        cx[s].flip_cards[current_index].show_answer = false; // Reset the answer visibility
+                    })
+                    .padding(Auto),
+                )),
+            ))
+        },
+    )
+    .run();
 }
