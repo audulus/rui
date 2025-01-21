@@ -105,29 +105,27 @@ fn main() {
     let flip_cards = find_flip_cards(&value);
 
     // Initialize the state with flip cards and the first card
-    state(
-        move || FlipCardsState {
-            flip_cards: flip_cards
-                .iter()
-                .map(|card| FlipCardState {
-                    show_answer: false,
-                    question: card["q"].as_str().unwrap().to_string(),
-                    answer: card["a"].as_str().unwrap().to_string(),
-                })
-                .collect(),
-            current_index: 0, // Start at the first card
-        },
-        |s, cx| {
-            let flip_cards = &cx[s].flip_cards;
-            let current_index = cx[s].current_index;
-            let current_card = &flip_cards[current_index];
+    vstack((
+        text("Flip Cards").font_size(20).padding(Auto),
+        spacer().size([0.0, 20.0]),
+        state(
+            move || FlipCardsState {
+                flip_cards: flip_cards
+                    .iter()
+                    .map(|card| FlipCardState {
+                        show_answer: false,
+                        question: card["q"].as_str().unwrap().to_string(),
+                        answer: card["a"].as_str().unwrap().to_string(),
+                    })
+                    .collect(),
+                current_index: 0, // Start at the first card
+            },
+            |s, cx| {
+                let flip_cards = &cx[s].flip_cards;
+                let current_index = cx[s].current_index;
+                let current_card = &flip_cards[current_index];
 
-            // Render the current flip card
-            zstack((
-                rectangle()
-                    .corner_radius(10.0)
-                    .color(vger::Color::gray(0.2))
-                    .size([400.0, 300.0]),
+                // Render the current flip card
                 vstack((
                     text(if current_card.show_answer {
                         current_card.answer.as_str()
@@ -150,12 +148,13 @@ fn main() {
                     .padding(Auto),
                     button("Next Card", move |cx| {
                         cx[s].current_index = (cx[s].current_index + 1) % cx[s].flip_cards.len(); // Move to next card
-                        cx[s].flip_cards[current_index].show_answer = false; // Reset the answer visibility
+                        cx[s].flip_cards[current_index].show_answer = false;
+                        // Reset the answer visibility
                     })
                     .padding(Auto),
-                )),
-            ))
-        },
-    )
+                ))
+            },
+        ),
+    ))
     .run();
 }
