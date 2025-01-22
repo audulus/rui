@@ -1,3 +1,4 @@
+use rui::*;
 
 trait MyMod: View + Sized {
     fn my_modifier(self) -> impl View {
