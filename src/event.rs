@@ -1,5 +1,3 @@
-use std::time::Instant;
-
 use crate::*;
 
 /// User interface event.
@@ -56,24 +54,6 @@ pub enum MouseButton {
     Right,
     Center,
 }
-
-// #[derive(Copy, Clone, Debug)]
-// pub struct OccurredEvent {
-//     occurred_at: Instant,
-// }
-
-// impl OccurredEvent {
-//     pub fn now() -> Self {
-//         Self {
-//             occurred_at: Instant::now(),
-//         }
-//     }
-
-//     pub fn elapsed(&self) -> std::time::Duration {
-//         self.occurred_at.elapsed()
-//     }
-// }
-
 #[derive(Copy, Clone, Debug, Default)]
 pub struct MouseButtons {
     pub left: bool,
