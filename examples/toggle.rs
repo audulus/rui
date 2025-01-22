@@ -10,7 +10,6 @@ fn main() {
                 Toggle::new().width(50.0).edge(3.0).show(s),
                 Toggle::new().width(50.0).height(30.0).edge(3.0).show(s),
                 Toggle::new().width(30.0).height(10.0).edge(3.0).show(s),
-                spacer(),
             ))
             .padding(Auto)
         },
