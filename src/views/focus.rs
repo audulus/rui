@@ -7,7 +7,7 @@ pub struct Focus<F> {
     func: F,
 }
 
-impl<V, F> View for Focus<F>
+impl<V, F> DynView for Focus<F>
 where
     V: View,
     F: Fn(bool) -> V + Clone + 'static,

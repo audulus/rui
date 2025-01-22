@@ -8,7 +8,7 @@ pub struct Geom<V, F> {
     func: F,
 }
 
-impl<V, F> View for Geom<V, F>
+impl<V, F> DynView for Geom<V, F>
 where
     V: View,
     F: Fn(&mut Context, LocalSize, LocalToWorld) + Clone + 'static,

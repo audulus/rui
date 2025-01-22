@@ -8,7 +8,7 @@ pub struct MapView<S1, SF, F> {
     func: F,
 }
 
-impl<S1, V, SF, F> View for MapView<S1, SF, F>
+impl<S1, V, SF, F> DynView for MapView<S1, SF, F>
 where
     V: View,
     S1: Clone + 'static,

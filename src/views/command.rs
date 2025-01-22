@@ -24,7 +24,7 @@ where
     }
 }
 
-impl<V, F> View for Command<V, F>
+impl<V, F> DynView for Command<V, F>
 where
     V: View,
     F: Fn(&mut Context) + Clone + 'static,
@@ -254,7 +254,7 @@ where
     }
 }
 
-impl<V, C> View for CommandGroup<V, C>
+impl<V, C> DynView for CommandGroup<V, C>
 where
     V: View,
     C: CommandTuple + 'static,

@@ -8,7 +8,7 @@ pub struct Background<V, BG> {
     background: BG,
 }
 
-impl<V, BG> View for Background<V, BG>
+impl<V, BG> DynView for Background<V, BG>
 where
     V: View,
     BG: View + Clone,

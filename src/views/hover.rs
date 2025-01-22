@@ -58,7 +58,7 @@ where
     }
 }
 
-impl<V, F> View for Hover<V, F>
+impl<V, F> DynView for Hover<V, F>
 where
     V: View,
     F: HoverFn + 'static,

@@ -7,7 +7,7 @@ pub struct ModView<S, F> {
     pub value: S,
 }
 
-impl<S, V, F> View for ModView<S, F>
+impl<S, V, F> DynView for ModView<S, F>
 where
     V: View,
     S: Clone + Default + 'static,

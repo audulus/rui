@@ -18,7 +18,7 @@ where
     }
 }
 
-impl<V, F, A> View for KeyView<V, F>
+impl<V, F, A> DynView for KeyView<V, F>
 where
     V: View,
     F: Fn(&mut Context, Key) -> A + Clone + 'static,

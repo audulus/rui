@@ -19,7 +19,7 @@ where
     }
 }
 
-impl<V> View for TitleView<V>
+impl<V> DynView for TitleView<V>
 where
     V: View,
 {
@@ -106,7 +106,7 @@ where
     }
 }
 
-impl<V> View for FullscreenView<V>
+impl<V> DynView for FullscreenView<V>
 where
     V: View,
 {

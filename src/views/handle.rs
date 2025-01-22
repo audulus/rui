@@ -25,7 +25,7 @@ where
     }
 }
 
-impl<V, F, A, A2> View for Handle<V, F, A, A2>
+impl<V, F, A, A2> DynView for Handle<V, F, A, A2>
 where
     V: View,
     F: Fn(&mut Context, &A) -> A2 + Clone + 'static,

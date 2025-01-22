@@ -16,7 +16,7 @@ pub struct List<ID, F> {
     func: F,
 }
 
-impl<ID, V, F> View for List<ID, F>
+impl<ID, V, F> DynView for List<ID, F>
 where
     ID: Hash + 'static,
     V: View,
@@ -227,7 +227,7 @@ impl<ID, F> private::Sealed for List<ID, F> {}
 ///
 /// `ids` is a Vec of items that implement Hash.
 ///
-/// `f` is a function called to generate a View for each item.
+/// `f` is a function called to generate a DynView for each item.
 ///
 /// For example:
 ///

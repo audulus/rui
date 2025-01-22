@@ -18,7 +18,7 @@ where
     }
 }
 
-impl<V> View for RoleView<V>
+impl<V> DynView for RoleView<V>
 where
     V: View,
 {

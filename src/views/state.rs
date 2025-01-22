@@ -47,7 +47,7 @@ pub struct StateView<D, F> {
     func: F,
 }
 
-impl<S, V, D, F> View for StateView<D, F>
+impl<S, V, D, F> DynView for StateView<D, F>
 where
     V: View,
     S: 'static,

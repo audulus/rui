@@ -24,7 +24,7 @@ impl Text {
     }
 }
 
-impl View for Text {
+impl DynView for Text {
     fn draw(&self, _path: &mut IdPath, args: &mut DrawArgs) {
         let vger = &mut args.vger;
         let origin = vger.text_bounds(self.text.as_str(), self.size, None).origin;
@@ -83,7 +83,7 @@ pub fn text(name: &str) -> Text {
     }
 }
 
-impl<V> View for V
+impl<V> DynView for V
 where
     V: std::fmt::Display + std::fmt::Debug + 'static,
 {

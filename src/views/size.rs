@@ -11,7 +11,7 @@ pub struct Size<V> {
     size: LocalSize,
 }
 
-impl<V> View for Size<V>
+impl<V> DynView for Size<V>
 where
     V: View,
 {

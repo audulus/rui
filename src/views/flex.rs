@@ -7,7 +7,7 @@ pub struct Flex<V> {
     child: V,
 }
 
-impl<V> View for Flex<V>
+impl<V> DynView for Flex<V>
 where
     V: View,
 {

@@ -17,7 +17,7 @@ where
     }
 }
 
-impl<V, F> View for AnimView<V, F>
+impl<V, F> DynView for AnimView<V, F>
 where
     V: View,
     F: Fn(&mut Context, f32) + 'static + Clone,

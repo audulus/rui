@@ -117,7 +117,7 @@ where
     }
 }
 
-impl<V, F> View for Drag<V, F>
+impl<V, F> DynView for Drag<V, F>
 where
     V: View,
     F: DragFn + 'static,

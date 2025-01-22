@@ -8,7 +8,7 @@ pub struct Padding<V> {
     padding: f32,
 }
 
-impl<V> View for Padding<V>
+impl<V> DynView for Padding<V>
 where
     V: View,
 {

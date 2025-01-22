@@ -28,7 +28,7 @@ impl AnyView {
     }
 }
 
-impl View for AnyView {
+impl DynView for AnyView {
     fn tid(&self) -> TypeId {
         self.child.tid()
     }

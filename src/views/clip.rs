@@ -19,7 +19,7 @@ where
     }
 }
 
-impl<V> View for Clip<V>
+impl<V> DynView for Clip<V>
 where
     V: View,
 {

@@ -8,7 +8,7 @@ struct EnvView<S, V, F> {
     phantom_v: std::marker::PhantomData<V>,
 }
 
-impl<S, V, F> View for EnvView<S, V, F>
+impl<S, V, F> DynView for EnvView<S, V, F>
 where
     V: View,
     S: Clone + Default + 'static,
@@ -107,7 +107,7 @@ where
     }
 }
 
-impl<V, E> View for SetenvView<V, E>
+impl<V, E> DynView for SetenvView<V, E>
 where
     V: View,
     E: Clone + 'static,

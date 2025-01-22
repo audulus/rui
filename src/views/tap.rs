@@ -98,7 +98,7 @@ where
     }
 }
 
-impl<V, F> View for Tap<V, F>
+impl<V, F> DynView for Tap<V, F>
 where
     V: View,
     F: TapFn + 'static,

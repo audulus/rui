@@ -6,7 +6,7 @@ pub struct Canvas<F> {
     func: F,
 }
 
-impl<F> View for Canvas<F>
+impl<F> DynView for Canvas<F>
 where
     F: Fn(&mut Context, LocalRect, &mut Vger) + Clone + 'static,
 {

@@ -8,7 +8,7 @@ pub struct Offset<V> {
     offset: LocalOffset,
 }
 
-impl<V> View for Offset<V>
+impl<V> DynView for Offset<V>
 where
     V: View,
 {

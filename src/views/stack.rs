@@ -45,7 +45,7 @@ impl StackDirection for ZDirection {
     const ORIENTATION: StackOrientation = StackOrientation::Z;
 }
 
-impl<VT: ViewTuple + 'static, D: StackDirection + 'static> View for Stack<VT, D> {
+impl<VT: ViewTuple + 'static, D: StackDirection + 'static> DynView for Stack<VT, D> {
     fn process(
         &self,
         event: &Event,
