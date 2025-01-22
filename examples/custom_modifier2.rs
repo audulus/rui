@@ -10,7 +10,7 @@ impl Default for MyState {
     }
 }
 
-trait MyMod: View + Clone + Sized {
+trait MyMod: View + Sized {
     fn my_modifier(self) -> impl View {
         state(MyState::default, move |s, cx| {
             self.clone().offset(LocalOffset::new(0.0, cx[s].offset))
@@ -21,9 +21,9 @@ trait MyMod: View + Clone + Sized {
     }
 }
 
-impl<V: View + Clone> MyMod for V {}
+impl<V: View> MyMod for V {}
 
-fn my_text(name: &str) -> impl View + Clone {
+fn my_text(name: &str) -> impl View {
     let name = name.to_string();
     text(name.as_str())
 }
