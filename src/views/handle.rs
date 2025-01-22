@@ -12,7 +12,7 @@ pub struct Handle<V, F, A, A2> {
 // Perhaps explicit Clone impl will get around A and A2 needing to be clone?
 impl<V, F, A, A2> Clone for Handle<V, F, A, A2>
 where
-    V: View,
+    V: View + Clone,
     F: Fn(&mut Context, &A) -> A2 + Clone + 'static,
 {
     fn clone(&self) -> Self {
