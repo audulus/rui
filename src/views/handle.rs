@@ -13,7 +13,7 @@ pub struct Handle<V, F, A, A2> {
 impl<V, F, A, A2> Handle<V, F, A, A2>
 where
     V: View,
-    F: Fn(&mut Context, &A) -> A2 + 'static,
+    F: Fn(&mut Context, &A) -> A2 + Clone + 'static,
 {
     pub fn new(v: V, f: F) -> Self {
         Self {
@@ -28,7 +28,7 @@ where
 impl<V, F, A, A2> View for Handle<V, F, A, A2>
 where
     V: View,
-    F: Fn(&mut Context, &A) -> A2 + 'static,
+    F: Fn(&mut Context, &A) -> A2 + Clone + 'static,
     A: 'static,
     A2: 'static,
 {

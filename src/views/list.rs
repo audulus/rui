@@ -240,7 +240,7 @@ impl<ID, F> private::Sealed for List<ID, F> {}
 ///     ))
 /// }));
 /// ```
-pub fn list<ID: Hash, V: View, F: Fn(&ID) -> V + 'static>(ids: Vec<ID>, f: F) -> List<ID, F> {
+pub fn list<ID: Hash, V: View, F: Fn(&ID) -> V + Clone + 'static>(ids: Vec<ID>, f: F) -> List<ID, F> {
     List {
         orientation: ListOrientation::Vertical,
         ids,
@@ -248,7 +248,7 @@ pub fn list<ID: Hash, V: View, F: Fn(&ID) -> V + 'static>(ids: Vec<ID>, f: F) ->
     }
 }
 
-pub fn hlist<ID: Hash, V: View, F: Fn(&ID) -> V + 'static>(ids: Vec<ID>, f: F) -> List<ID, F> {
+pub fn hlist<ID: Hash, V: View, F: Fn(&ID) -> V + Clone + 'static>(ids: Vec<ID>, f: F) -> List<ID, F> {
     List {
         orientation: ListOrientation::Horizontal,
         ids,
@@ -256,7 +256,7 @@ pub fn hlist<ID: Hash, V: View, F: Fn(&ID) -> V + 'static>(ids: Vec<ID>, f: F) -
     }
 }
 
-pub fn zlist<ID: Hash, V: View, F: Fn(&ID) -> V + 'static>(ids: Vec<ID>, f: F) -> List<ID, F> {
+pub fn zlist<ID: Hash, V: View, F: Fn(&ID) -> V + Clone + 'static>(ids: Vec<ID>, f: F) -> List<ID, F> {
     List {
         orientation: ListOrientation::Z,
         ids,

@@ -12,7 +12,7 @@ pub struct Command<V, F> {
 impl<V, F> Command<V, F>
 where
     V: View,
-    F: Fn(&mut Context) + 'static,
+    F: Fn(&mut Context) + Clone + 'static,
 {
     pub fn new(v: V, name: String, key: Option<HotKey>, f: F) -> Self {
         Self {
@@ -27,7 +27,7 @@ where
 impl<V, F> View for Command<V, F>
 where
     V: View,
-    F: Fn(&mut Context) + 'static,
+    F: Fn(&mut Context) + Clone + 'static,
 {
     fn process(
         &self,
@@ -96,7 +96,7 @@ where
 impl<V, F> private::Sealed for Command<V, F>
 where
     V: View,
-    F: Fn(&mut Context) + 'static,
+    F: Fn(&mut Context) + Clone + 'static,
 {
 }
 

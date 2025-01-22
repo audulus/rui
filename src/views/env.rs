@@ -12,7 +12,7 @@ impl<S, V, F> View for EnvView<S, V, F>
 where
     V: View,
     S: Clone + Default + 'static,
-    F: Fn(S, &mut Context) -> V + 'static,
+    F: Fn(S, &mut Context) -> V + Clone + 'static,
 {
     fn process(
         &self,
@@ -81,7 +81,7 @@ where
 impl<S, V, F> private::Sealed for EnvView<S, V, F> {}
 
 /// Reads from the environment.
-pub fn env<S: Clone + Default + 'static, V: View, F: Fn(S, &mut Context) -> V + 'static>(
+pub fn env<S: Clone + Default + 'static, V: View, F: Fn(S, &mut Context) -> V + Clone + 'static>(
     f: F,
 ) -> impl View {
     EnvView {

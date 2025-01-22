@@ -11,7 +11,7 @@ pub struct Geom<V, F> {
 impl<V, F> View for Geom<V, F>
 where
     V: View,
-    F: Fn(&mut Context, LocalSize, LocalToWorld) + 'static,
+    F: Fn(&mut Context, LocalSize, LocalToWorld) + Clone + 'static,
 {
     fn process(
         &self,
@@ -93,7 +93,7 @@ impl<V, F> private::Sealed for Geom<V, F> {}
 impl<V, F> Geom<V, F>
 where
     V: View,
-    F: Fn(&mut Context, LocalSize, LocalToWorld) + 'static,
+    F: Fn(&mut Context, LocalSize, LocalToWorld) + Clone + 'static,
 {
     pub fn new(child: V, f: F) -> Self {
         Self { child, func: f }
