@@ -1,5 +1,8 @@
 use rui::*;
 
+// This example shows a modifier that has state for
+// managing an animation.
+
 struct MyState {
     offset: f32,
 }
