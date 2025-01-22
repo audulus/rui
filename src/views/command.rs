@@ -331,6 +331,7 @@ where
 
 impl<V, C> private::Sealed for CommandGroup<V, C> {}
 
+#[derive(Clone)]
 pub struct NullCommand {
     name: String,
     key: Option<HotKey>,
@@ -372,7 +373,8 @@ impl NullCommand {
     }
 }
 
-pub struct Command2<F: Fn()> {
+#[derive(Clone)]
+pub struct Command2<F> {
     name: String,
     key: Option<HotKey>,
     func: F,
