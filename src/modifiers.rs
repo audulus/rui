@@ -15,7 +15,7 @@ pub trait Modifiers: View + Sized {
     }
 
     /// Adds a menu command.
-    fn command<F: Fn(&mut Context) + 'static>(
+    fn command<F: Fn(&mut Context) + Clone + 'static>(
         self,
         name: &str,
         key: Option<HotKey>,
