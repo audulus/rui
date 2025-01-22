@@ -2,7 +2,7 @@
 
 A simple MIDI synthesizer built with Rust, featuring a virtual piano keyboard interface and real-time audio synthesis.
 
-![Synth Normal](https://github.com/user-attachments/assets/a4506954-a459-4fe9-a0a5-f7de9ff58d44)
+![Synth](https://github.com/user-attachments/assets/a4506954-a459-4fe9-a0a5-f7de9ff58d44)
 
 ## Features
 
