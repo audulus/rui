@@ -2,6 +2,7 @@ use crate::views::stack_layout::*;
 use crate::*;
 use std::any::Any;
 
+#[derive(Clone)]
 pub enum StackOrientation {
     /// Views are stacked horizontally (right to left).
     Horizontal,
@@ -22,15 +23,24 @@ pub struct Stack<VT, D> {
 pub trait StackDirection {
     const ORIENTATION: StackOrientation;
 }
+
+#[derive(Clone)]
 pub struct HorizontalDirection {}
+
 impl StackDirection for HorizontalDirection {
     const ORIENTATION: StackOrientation = StackOrientation::Horizontal;
 }
+
+#[derive(Clone)]
 pub struct VerticalDirection {}
+
 impl StackDirection for VerticalDirection {
     const ORIENTATION: StackOrientation = StackOrientation::Vertical;
 }
+
+#[derive(Clone)]
 pub struct ZDirection {}
+
 impl StackDirection for ZDirection {
     const ORIENTATION: StackOrientation = StackOrientation::Z;
 }
