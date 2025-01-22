@@ -1,81 +1,111 @@
+//! A calculator implementation with a modern UI, supporting both dark and light modes.
+//! This calculator provides basic arithmetic operations, keyboard input support,
+//! and a responsive touch-friendly interface.
+
 use enterpolation::{linear::ConstEquidistantLinear, Generator};
 use palette::LinSrgb;
 use rui::*;
 
+/// Represents the state of the clear button functionality.
+/// Used to toggle between Clear (C) and All Clear (AC) modes.
 #[derive(PartialEq, Clone, Copy)]
 enum ClearState {
+    /// Initial state - displays "C"
     Initial,
+    /// State after clearing - displays "AC"
     JustCleared,
 }
 
-// Enum to represent arithmetic operations.
+/// Represents the basic arithmetic operations supported by the calculator.
 #[derive(Clone, Copy)]
 enum Operator {
-    Add,
-    Subtract,
-    Multiply,
-    Divide,
+    Add,      // Addition (+)
+    Subtract, // Subtraction (-)
+    Multiply, // Multiplication (*)
+    Divide,   // Division (/)
 }
 
-// Enum to represent special operators like AC, toggle sign, etc.
+/// Represents special calculator operations beyond basic arithmetic.
 #[derive(Clone, Copy)]
 enum SpecialOperator {
-    Clear,      // Clear all/current
-    ToggleSign, // Toggle the sign (+/-)
-    Percentage, // Percentage operator (%)
-    Decimal,    // Decimal point operator (.)
-    Equals,     // Equals operator (=)
+    Clear,      // Clear current value or all values (C/AC)
+    ToggleSign, // Toggle between positive/negative (+/-)
+    Percentage, // Convert to percentage (%)
+    Decimal,    // Add decimal point (.)
+    Equals,     // Calculate result (=)
 }
 
+/// Represents a calculator button's type and value.
 #[derive(Clone)]
 enum Button {
+    /// Numeric digit buttons (0-9)
     Digit(u64),
+    /// Arithmetic operator buttons (+, -, *, /)
     Operator(Operator),
+    /// Special function buttons (Clear, +/-, %, ., =)
     Special(SpecialOperator),
 }
 
+/// Tracks the interactive state of a calculator button.
 struct ButtonState {
+    /// Whether the mouse is currently hovering over the button
     is_hovered: bool,
+    /// Whether the button is currently being pressed
     is_touched: bool,
 }
 
+/// Configuration options for the calculator's appearance.
 #[derive(Clone)]
 pub struct CalculatorConfig {
+    /// Whether to use dark mode colors
     dark_mode: bool,
+    /// Whether to use rounded corners on the calculator frame
     rounded_corners: bool,
 }
 
 impl CalculatorConfig {
+    /// Enable dark mode for the calculator.
+    /// Changes the color scheme to use darker backgrounds and lighter text.
     pub fn dark_mode(mut self) -> Self {
         self.dark_mode = true;
         self
     }
 
+    /// Enable rounded corners for the calculator frame.
+    /// Particularly useful when the calculator is displayed as a widget.
     pub fn rounded_corners(mut self) -> Self {
         self.rounded_corners = true;
         self
     }
 
+    /// Create and display the calculator with the current configuration.
     pub fn show(self) -> impl View {
         Calculator::with_config(&self).show()
     }
 }
 
+/// The main calculator structure handling rendering and state management.
 #[derive(Clone)]
 pub struct Calculator {
+    /// Color gradient for number buttons
     ocean: enterpolation::linear::Linear<
         enterpolation::ConstEquidistant<f32, 2>,
         [palette::rgb::Rgb<palette::encoding::Linear<palette::encoding::Srgb>>; 2],
         enterpolation::Identity,
     >,
+    /// Color gradient for operator buttons
     sky: enterpolation::linear::Linear<
         enterpolation::ConstEquidistant<f32, 2>,
         [palette::rgb::Rgb<palette::encoding::Linear<palette::encoding::Srgb>>; 2],
         enterpolation::Identity,
     >,
+    /// Text color based on theme
     text_color: vger::Color,
+    /// Background color based on theme
     background_color: vger::Color,
+    /// Corner radius for the calculator frame
     background_corner_radius: f32,
+    /// Color for the number display area
     number_display_color: vger::Color,
 }
 
@@ -357,15 +387,23 @@ impl Calculator {
     }
 }
 
-// Struct to represent the calculator's state.
+/// Represents the current state of the calculator's computation.
 pub struct CalculatorState {
+    /// The first operand in the current calculation
     first_operand: String,
+    /// The second operand or current input
     second_operand: String,
+    /// The currently selected arithmetic operator
     current_operator: Option<Operator>,
+    /// Whether the next input should start a new number
     is_input_new: bool,
+    /// Whether a calculation error has occurred (e.g., division by zero)
     has_error: bool,
+    /// Whether the current display shows a calculation result
     is_result_displayed: bool,
+    /// The last operator used (for repeat calculations)
     last_operator: Option<Operator>,
+    /// Current state of the clear button (C/AC)
     clear_state: ClearState,
 }
 
@@ -383,6 +421,8 @@ impl CalculatorState {
         }
     }
 
+    /// Executes the current arithmetic operation.
+    /// Handles basic error cases like division by zero.
     fn execute_operation(&mut self) {
         if self.has_error {
             return;
@@ -412,6 +452,7 @@ impl CalculatorState {
         self.current_operator = None;
     }
 
+    /// Handles digit input, managing leading zeros and decimal points.
     fn input_digit(&mut self, digit: u64) {
         if self.is_result_displayed {
             self.second_operand = String::new(); // Clear on new input after result
@@ -428,6 +469,7 @@ impl CalculatorState {
         self.second_operand.push_str(&digit.to_string());
     }
 
+    /// Processes decimal point input, ensuring only one decimal point exists.
     fn input_decimal(&mut self) {
         if self.is_result_displayed {
             self.is_result_displayed = false; // Important: Clear the flag *before* modifying the operand
@@ -442,6 +484,7 @@ impl CalculatorState {
         }
     }
 
+    /// Toggles the sign of the current number between positive and negative.
     fn toggle_sign(&mut self) {
         if !self.second_operand.is_empty() && self.second_operand != "0" {
             if self.second_operand.starts_with('-') {
@@ -452,12 +495,14 @@ impl CalculatorState {
         }
     }
 
+    /// Converts the current number to a percentage (divides by 100).
     fn apply_percentage(&mut self) {
         if let Ok(value) = self.second_operand.parse::<f64>() {
             self.second_operand = (value / 100.0).to_string();
         }
     }
 
+    /// Resets the calculator to its initial state.
     fn reset(&mut self) {
         self.first_operand = "0".to_string();
         self.second_operand = "0".to_string();
@@ -466,9 +511,10 @@ impl CalculatorState {
         self.is_input_new = true;
         self.has_error = false;
         self.is_result_displayed = false;
-        self.clear_state = ClearState::Initial; // Important: Reset clear_state
+        self.clear_state = ClearState::Initial;
     }
 
+    /// Processes button presses and updates calculator state accordingly.
     fn button_action(&mut self, button: Button) {
         match button {
             Button::Digit(_)
@@ -527,6 +573,7 @@ impl CalculatorState {
         }
     }
 
+    /// Handles keyboard input, mapping keys to calculator functions.
     fn key(&mut self, k: &Key) {
         match k {
             Key::Backspace => {
