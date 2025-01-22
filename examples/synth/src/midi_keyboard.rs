@@ -137,10 +137,10 @@ impl MidiCallback {
 pub struct MidiKeyboardConfig {
     /// Number of keys on the keyboard (default: 25)
     num_keys: usize,
-    /// Callback triggered when a key is pressed
-    on_key_pressed: Arc<Mutex<MidiCallback>>,
-    /// Callback triggered when a key is released
-    on_key_released: Arc<Mutex<MidiCallback>>,
+    /// Callback triggered when a note begins (from any source)
+    on_note_begin: Arc<Mutex<MidiCallback>>,
+    /// Callback triggered when a note ends (from any source)
+    on_note_end: Arc<Mutex<MidiCallback>>,
 }
 
 impl MidiKeyboardConfig {
@@ -148,8 +148,8 @@ impl MidiKeyboardConfig {
     pub fn new() -> Self {
         Self {
             num_keys: 25,
-            on_key_pressed: Arc::new(Mutex::new(MidiCallback::new(|_| {}))),
-            on_key_released: Arc::new(Mutex::new(MidiCallback::new(|_| {}))),
+            on_note_begin: Arc::new(Mutex::new(MidiCallback::new(|_| {}))),
+            on_note_end: Arc::new(Mutex::new(MidiCallback::new(|_| {}))),
         }
     }
 
@@ -159,15 +159,15 @@ impl MidiKeyboardConfig {
         self
     }
 
-    /// Sets the callback for key press events
-    pub fn on_key_pressed(mut self, on_key_change: impl Fn(MidiNote) + 'static) -> Self {
-        self.on_key_pressed = Arc::new(Mutex::new(MidiCallback::new(on_key_change)));
+    /// Sets the callback for note begin events
+    pub fn on_note_begin(mut self, on_note_change: impl Fn(MidiNote) + 'static) -> Self {
+        self.on_note_begin = Arc::new(Mutex::new(MidiCallback::new(on_note_change)));
         self
     }
 
-    /// Sets the callback for key release events
-    pub fn on_key_released(mut self, on_key_change: impl Fn(MidiNote) + 'static) -> Self {
-        self.on_key_released = Arc::new(Mutex::new(MidiCallback::new(on_key_change)));
+    /// Sets the callback for note end events
+    pub fn on_note_end(mut self, on_note_change: impl Fn(MidiNote) + 'static) -> Self {
+        self.on_note_end = Arc::new(Mutex::new(MidiCallback::new(on_note_change)));
         self
     }
 
@@ -268,7 +268,7 @@ impl MidiKeyboard {
                     if cx.mouse_buttons.left {
                         if let Some(idx) = hovered_key_idx {
                             cx[s].keys[idx].held = Some(Instant::now());
-                            cx[s].on_key_pressed.lock().unwrap().run(cx[s].keys[idx].id);
+                            cx[s].on_note_begin.lock().unwrap().run(cx[s].keys[idx].id);
                         }
                     }
 
@@ -288,11 +288,7 @@ impl MidiKeyboard {
 
                     for idx in keys_to_release {
                         cx[s].keys[idx].held = None;
-                        cx[s]
-                            .on_key_released
-                            .lock()
-                            .unwrap()
-                            .run(cx[s].keys[idx].id);
+                        cx[s].on_note_end.lock().unwrap().run(cx[s].keys[idx].id);
                     }
                 })
                 .hover(move |cx, hover| {
@@ -371,10 +367,10 @@ struct MidiKeyboardState {
     num_white_keys: usize,
     /// Current mouse hover position
     hover_pos: Option<LocalPoint>,
-    /// Callback for key press events
-    on_key_pressed: Arc<Mutex<MidiCallback>>,
-    /// Callback for key release events
-    on_key_released: Arc<Mutex<MidiCallback>>,
+    /// Callback for note begin events
+    on_note_begin: Arc<Mutex<MidiCallback>>,
+    /// Callback for note end events
+    on_note_end: Arc<Mutex<MidiCallback>>,
 }
 
 impl MidiKeyboardState {
@@ -400,8 +396,8 @@ impl MidiKeyboardState {
             num_keys,
             num_white_keys,
             hover_pos: None,
-            on_key_pressed: config.on_key_pressed.clone(),
-            on_key_released: config.on_key_released.clone(),
+            on_note_begin: config.on_note_begin.clone(),
+            on_note_end: config.on_note_end.clone(),
         }
     }
 

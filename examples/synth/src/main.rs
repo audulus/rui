@@ -23,14 +23,14 @@ fn main() {
     // Create and configure the MIDI keyboard
     midi_keyboard::MidiKeyboard::new()
         .num_keys(25)
-        .on_key_pressed(move |note: MidiNote| {
+        .on_note_begin(move |note: MidiNote| {
             let mut synth = synth.lock().unwrap();
             let frequency: MidiFrequency = note.try_into().unwrap();
             let audio_source = Oscillator::sine_wave(frequency).amplify(1.0);
             let source_id: MidiNoteId = note.try_into().unwrap();
             synth.play_source(Box::new(audio_source), source_id);
         })
-        .on_key_released(move |note: MidiNote| {
+        .on_note_end(move |note: MidiNote| {
             let mut synth = synth_clone.lock().unwrap();
             let source_id: MidiNoteId = note.try_into().unwrap();
             synth.release_source(source_id);
