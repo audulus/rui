@@ -251,11 +251,11 @@ impl MidiKeyboard {
                     let key_height = rect.height();
                     let black_key_height = key_height * 0.6;
                     let black_key_width = white_key_width * 0.7;
-                    let mut white_key_count = 0;
+                    let mut white_key_count;
                     let mut hovered_key_idx: Option<usize> = None;
 
                     // Calculate hovered key
-                    if let Some(hover_pos) = cx[s].hover_pos {
+                    if let Some(hover_pos) = cx.mouse_position {
                         // First check black keys (they're on top)
                         for key_pos in 0..cx[s].num_keys {
                             if Self::is_black_key(key_pos) {
@@ -367,14 +367,6 @@ impl MidiKeyboard {
                         cx[s].on_note_end.lock().unwrap().run(cx[s].keys[idx].id);
                     }
                 })
-                .hover(move |cx, hover| {
-                    if !hover {
-                        cx[s].hover_pos = None;
-                    }
-                })
-                .hover_p(move |cx, position| {
-                    cx[s].hover_pos = Some(position);
-                })
             },
         )
     }
@@ -409,8 +401,6 @@ struct MidiKeyboardState {
     num_keys: usize,
     /// Number of white keys (used for layout calculations)
     num_white_keys: usize,
-    /// Current mouse hover position
-    hover_pos: Option<LocalPoint>,
     /// Callback for note begin events
     on_note_begin: Arc<Mutex<MidiCallback>>,
     /// Callback for note end events
@@ -439,7 +429,6 @@ impl MidiKeyboardState {
             keys,
             num_keys,
             num_white_keys,
-            hover_pos: None,
             on_note_begin: config.on_note_begin.clone(),
             on_note_end: config.on_note_end.clone(),
         }

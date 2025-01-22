@@ -355,6 +355,9 @@ where
                         (context.config.height as f32 - position.y as f32) / scale,
                     ]
                     .into();
+
+                    self.cx.mouse_position = Some(self.mouse_position);
+
                     // let event = Event::TouchMove {
                     //     id: 0,
                     //     position: self.mouse_position,

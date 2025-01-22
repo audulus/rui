@@ -71,6 +71,9 @@ pub struct Context {
     /// Current mouse button for event handling.
     pub(crate) mouse_button: Option<MouseButton>,
 
+    /// Current mouse position.
+    pub mouse_position: Option<LocalPoint>,
+
     /// Mouse button state.
     pub mouse_buttons: MouseButtons,
 
@@ -138,6 +141,7 @@ impl Context {
             touches: [ViewId::default(); 16],
             starts: [LocalPoint::zero(); 16],
             previous_position: [LocalPoint::zero(); 16],
+            mouse_position: None,
             mouse_button: None,
             mouse_buttons: Default::default(),
             key_mods: Default::default(),
