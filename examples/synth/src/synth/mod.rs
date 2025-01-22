@@ -4,6 +4,9 @@ use std::time::Instant;
 use rodio::source::Source;
 use rodio::Sink;
 
+mod oscillator;
+pub use oscillator::Oscillator;
+
 // The envelope state struct
 struct EnvelopeState {
     envelope: Envelope,

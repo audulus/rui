@@ -1,15 +1,12 @@
-// use midir::MidiInput;
 use rodio::source::Source;
 use rodio::OutputStream;
 use std::sync::{Arc, Mutex};
 
-mod keyboard;
-mod oscillator;
+mod midi_keyboard;
 mod synth;
 
-use keyboard::{KeyBoard, KeyBoardKey, KeyBoardNoteFreq, KeyBoardNoteU8};
-use oscillator::Oscillator;
-use synth::Synth;
+use midi_keyboard::{MidiFrequency, MidiNote, MidiNoteId};
+use synth::{Oscillator, Synth};
 
 use rui::*;
 
@@ -23,21 +20,21 @@ fn main() {
         synth_clone_update.lock().unwrap().update();
     });
 
-    KeyBoard::new()
+    // Create and configure the MIDI keyboard
+    midi_keyboard::MidiKeyboard::new()
         .num_keys(25)
-        .on_key_pressed(move |key: KeyBoardKey| {
+        .on_key_pressed(move |note: MidiNote| {
             let mut synth = synth.lock().unwrap();
-            let frequency: KeyBoardNoteFreq = key.try_into().unwrap();
+            let frequency: MidiFrequency = note.try_into().unwrap();
             let audio_source = Oscillator::sine_wave(frequency).amplify(1.0);
-            let source_id: KeyBoardNoteU8 = key.try_into().unwrap();
+            let source_id: MidiNoteId = note.try_into().unwrap();
             synth.play_source(Box::new(audio_source), source_id);
         })
-        .on_key_released(move |key: KeyBoardKey| {
+        .on_key_released(move |note: MidiNote| {
             let mut synth = synth_clone.lock().unwrap();
-            let source_id: KeyBoardNoteU8 = key.try_into().unwrap();
+            let source_id: MidiNoteId = note.try_into().unwrap();
             synth.release_source(source_id);
         })
         .show()
-        .size([400.0, 200.0])
         .run();
 }
