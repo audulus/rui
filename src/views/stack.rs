@@ -20,7 +20,7 @@ pub struct Stack<VT, D> {
     phantom_direction: std::marker::PhantomData<D>,
 }
 
-pub trait StackDirection {
+pub trait StackDirection: Clone {
     const ORIENTATION: StackOrientation;
 }
 
