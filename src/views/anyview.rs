@@ -7,7 +7,7 @@ use std::hash::{Hash, Hasher};
 
 /// Struct for `any_view`
 pub struct AnyView {
-    child: Box<dyn View>,
+    child: Box<dyn DynView>,
 }
 
 impl AnyView {
