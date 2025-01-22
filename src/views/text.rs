@@ -83,36 +83,71 @@ pub fn text(name: &str) -> Text {
     }
 }
 
-impl DynView for String {
-    fn draw(&self, _path: &mut IdPath, args: &mut DrawArgs) {
-        let txt = &format!("{}", self);
-        let vger = &mut args.vger;
-        let origin = vger.text_bounds(txt, Text::DEFAULT_SIZE, None).origin;
+macro_rules! impl_text {
+    ( $ty:ident ) => {
+        impl DynView for $ty {
+            fn draw(&self, _path: &mut IdPath, args: &mut DrawArgs) {
+                let txt = &format!("{}", self);
+                let vger = &mut args.vger;
+                let origin = vger.text_bounds(txt, Text::DEFAULT_SIZE, None).origin;
+        
+                vger.save();
+                vger.translate([-origin.x, -origin.y]);
+                vger.text(txt, Text::DEFAULT_SIZE, TEXT_COLOR, None);
+                vger.restore();
+            }
+            fn layout(&self, _path: &mut IdPath, args: &mut LayoutArgs) -> LocalSize {
+                let txt = &format!("{}", self);
+                (args.text_bounds)(txt, Text::DEFAULT_SIZE, None).size
+            }
+        
+            fn access(
+                &self,
+                path: &mut IdPath,
+                cx: &mut Context,
+                nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
+            ) -> Option<accesskit::NodeId> {
+                let aid = cx.view_id(path).access_id();
+                let mut builder = accesskit::NodeBuilder::new(accesskit::Role::Label);
+                builder.set_name(format!("{}", self));
+                nodes.push((aid, builder.build()));
+                Some(aid)
+            }
+        }
 
-        vger.save();
-        vger.translate([-origin.x, -origin.y]);
-        vger.text(txt, Text::DEFAULT_SIZE, TEXT_COLOR, None);
-        vger.restore();
-    }
-    fn layout(&self, _path: &mut IdPath, args: &mut LayoutArgs) -> LocalSize {
-        let txt = &format!("{}", self);
-        (args.text_bounds)(txt, Text::DEFAULT_SIZE, None).size
-    }
+        impl TextModifiers for $ty
+        {
+            fn font_size(self, size: u32) -> Text {
+                Text {
+                    text: format!("{}", self),
+                    size,
+                    color: TEXT_COLOR,
+                }
+            }
+            fn color(self, color: Color) -> Text {
+                Text {
+                    text: format!("{}", self),
+                    size: Text::DEFAULT_SIZE,
+                    color,
+                }
+            }
+        }
 
-    fn access(
-        &self,
-        path: &mut IdPath,
-        cx: &mut Context,
-        nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
-    ) -> Option<accesskit::NodeId> {
-        let aid = cx.view_id(path).access_id();
-        let mut builder = accesskit::NodeBuilder::new(accesskit::Role::Label);
-        builder.set_name(format!("{}", self));
-        nodes.push((aid, builder.build()));
-        Some(aid)
     }
 }
 
+// XXX: this used to be generic for any Display but
+//      that was causing trouble with adding Clone to view.
+//      Perhaps a rust wizard can figure out why.
+impl_text!(String);
+impl_text!(u32);
+impl_text!(i32);
+impl_text!(u64);
+impl_text!(i64);
+impl_text!(f32);
+impl_text!(f64);
+
+// XXX: Can't do impl_text!(&'static str)
 impl DynView for &'static str {
     fn draw(&self, _path: &mut IdPath, args: &mut DrawArgs) {
         let txt = &format!("{}", self);
@@ -140,24 +175,6 @@ impl DynView for &'static str {
         builder.set_name(format!("{}", self));
         nodes.push((aid, builder.build()));
         Some(aid)
-    }
-}
-
-impl TextModifiers for String
-{
-    fn font_size(self, size: u32) -> Text {
-        Text {
-            text: format!("{}", self),
-            size,
-            color: TEXT_COLOR,
-        }
-    }
-    fn color(self, color: Color) -> Text {
-        Text {
-            text: format!("{}", self),
-            size: Text::DEFAULT_SIZE,
-            color,
-        }
     }
 }
 

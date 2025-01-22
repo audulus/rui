@@ -10,7 +10,7 @@ make_lens!(ValueLens, MyState, f32, value);
 fn main() {
     state(MyState::default, |state, cx| {
         vstack((
-            format!("{}", cx[state].value).font_size(10).padding(Auto),
+            cx[state].value.font_size(10).padding(Auto),
             hslider(bind(state, ValueLens {}))
                 .thumb_color(RED_HIGHLIGHT)
                 .padding(Auto),
