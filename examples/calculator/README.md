@@ -185,7 +185,7 @@ Contributions are welcome! Some areas for potential improvements:
 
 ## License
 
-[Add your license information here]
+MIT
 
 ## Acknowledgments
 

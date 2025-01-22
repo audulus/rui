@@ -41,3 +41,15 @@ The project consists of three main components:
 1. MIDI Keyboard UI (`midi_keyboard.rs`)
 2. Sound Synthesis (`synth.rs`)
 3. Main Application (`main.rs`)
+
+## License
+
+MIT
+
+## Acknowledgments
+
+This calculator uses the following Rust crates:
+
+- `rui` for the user interface
+- `enterpolation` for color gradients
+- `palette` for color management
