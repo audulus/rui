@@ -64,7 +64,7 @@ impl<A: Clone + 'static> TapFn for TapActionAdapter<A> {
 
 /// Struct for the `tap` gesture.
 #[derive(Clone)]
-pub struct Tap<V: View, F> {
+pub struct Tap<V, F> {
     /// Child view tree.
     child: V,
 
@@ -191,4 +191,4 @@ where
     }
 }
 
-impl<V, F> private::Sealed for Tap<V, F> where V: View {}
+impl<V, F> private::Sealed for Tap<V, F> {}
