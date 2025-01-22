@@ -25,6 +25,11 @@ pub enum Event {
         position: LocalPoint,
     },
 
+    // /// Mouse Move.
+    // MouseMove {
+    //     position: LocalPoint,
+    //     delta: LocalOffset,
+    // },
     /// Menu command.
     Command(String),
 
