@@ -1,3 +1,5 @@
+use core::f32;
+
 use rui::*;
 
 // Represents the state of a single key (whether it's held or not).
@@ -17,6 +19,7 @@ struct KeyBoardState {
     keys: Vec<KeyState>,
     num_keys: usize,
     num_white_keys: usize,
+    hover_pos: Option<LocalPoint>,
 }
 
 impl KeyBoardState {
@@ -28,6 +31,7 @@ impl KeyBoardState {
             keys,
             num_keys,
             num_white_keys,
+            hover_pos: None,
         }
     }
 
@@ -89,6 +93,9 @@ impl KeyBoard {
                     let black_key_width = white_key_width * 0.7;
                     let mut white_key_count = 0;
 
+                    // Track the hovered key index
+                    let mut hovered_key_idx: Option<usize> = None;
+
                     // First pass: Draw all white keys
                     for key_pos in 0..cx[s].num_keys {
                         if Self::is_white_key(key_pos) {
@@ -101,6 +108,15 @@ impl KeyBoard {
                                 key_height,
                                 cx[s].keys[key_pos].held,
                             );
+
+                            // Check if the current x position collides with the hover position
+                            if let Some(hover_pos) = cx[s].hover_pos {
+                                let hover_x = hover_pos.x;
+                                if hover_x >= x && hover_x <= x + white_key_width {
+                                    hovered_key_idx = Some(key_pos);
+                                }
+                            }
+
                             white_key_count += 1;
                         }
                     }
@@ -108,7 +124,6 @@ impl KeyBoard {
                     // Second pass: Draw all black keys
                     for key_pos in 0..cx[s].num_keys {
                         if Self::is_black_key(key_pos) {
-                            // Calculate x position based on the pattern of black keys
                             let offset = match key_pos % 12 {
                                 1 => 1.0,  // C#
                                 3 => 2.0,  // D#
@@ -124,13 +139,47 @@ impl KeyBoard {
                             Self::draw_black_key(
                                 vger,
                                 x,
-                                key_height - black_key_height, // Changed y-coordinate to start from the top
+                                key_height - black_key_height, // Start y-coordinate adjusted for black key height
                                 black_key_width,
                                 black_key_height,
                                 cx[s].keys[key_pos].held,
                             );
+
+                            // Adjust collision detection for black keys: account for their shorter height
+                            if let Some(hover_pos) = cx[s].hover_pos {
+                                let hover_x = hover_pos.x;
+                                let hover_y = hover_pos.y;
+
+                                // Check if the hover X is within the black key's bounds
+                                if hover_x >= x && hover_x <= x + black_key_width {
+                                    // Adjust the Y-range check to ensure the hover is within the black key's height
+                                    if hover_y >= (key_height - black_key_height)
+                                        && hover_y <= key_height
+                                    {
+                                        hovered_key_idx = Some(key_pos);
+                                    }
+                                }
+                            }
                         }
                     }
+
+                    // Print the hovered key index (if any)
+                    if let Some(idx) = hovered_key_idx {
+                        vger.text(
+                            format!("Hovered key index: {}", idx).as_str(),
+                            20,
+                            vger::Color::WHITE,
+                            None,
+                        );
+                    }
+                })
+                .hover(move |cx, hover| {
+                    if !hover {
+                        cx[s].hover_pos = None;
+                    }
+                })
+                .hover_p(move |cx, position| {
+                    cx[s].hover_pos = Some(position);
                 })
             },
         )
