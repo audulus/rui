@@ -2,12 +2,22 @@ use crate::*;
 use std::any::Any;
 
 /// Struct for an action handler.
-#[derive(Clone)]
 pub struct Handle<V, F, A, A2> {
     child: V,
     func: F,
     phantom_action: std::marker::PhantomData<A>,
     phantom_action2: std::marker::PhantomData<A2>,
+}
+
+// Perhaps explicit Clone impl will get around A and A2 needing to be clone?
+impl<V, F, A, A2> Clone for Handle<V, F, A, A2>
+where
+    V: View,
+    F: Fn(&mut Context, &A) -> A2 + Clone + 'static,
+{
+    fn clone(&self) -> Self {
+        Handle::new(self.child.clone(), self.func.clone())
+    }
 }
 
 impl<V, F, A, A2> Handle<V, F, A, A2>
