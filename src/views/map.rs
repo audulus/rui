@@ -12,8 +12,8 @@ impl<S1, V, SF, F> View for MapView<S1, SF, F>
 where
     V: View,
     S1: Clone + 'static,
-    SF: Fn(S1, &mut Context) + 'static,
-    F: Fn(StateHandle<S1>, &mut Context) -> V + 'static,
+    SF: Fn(S1, &mut Context) + Clone + 'static,
+    F: Fn(StateHandle<S1>, &mut Context) -> V + Clone + 'static,
 {
     fn process(
         &self,
