@@ -51,8 +51,8 @@ impl<S, V, D, F> DynView for StateView<D, F>
 where
     V: View,
     S: 'static,
-    D: Fn() -> S + 'static,
-    F: Fn(StateHandle<S>, &Context) -> V + 'static,
+    D: Fn() -> S + Clone + 'static,
+    F: Fn(StateHandle<S>, &Context) -> V + Clone + 'static,
 {
     fn process(
         &self,
