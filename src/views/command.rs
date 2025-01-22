@@ -105,7 +105,7 @@ pub trait CommandBase: DynCommandBase + Clone {}
 
 impl<C: DynCommandBase + Clone> CommandBase for C {}
 
-pub trait CommandTuple {
+pub trait CommandTuple: Clone {
     fn foreach_cmd<F: FnMut(&dyn DynCommandBase)>(&self, f: &mut F);
     fn len(&self) -> usize;
     fn is_empty(&self) -> bool {
