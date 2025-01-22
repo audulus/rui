@@ -112,7 +112,7 @@ mod tests {
 
     #[test]
     fn test_typeid() {
-        let b: Box<dyn View> = Box::new(EmptyView {});
+        let b: Box<dyn DynView> = Box::new(EmptyView {});
         let tid = b.tid();
         println!("{:?}", tid);
         assert_eq!(tid, TypeId::of::<EmptyView>());
