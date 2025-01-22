@@ -438,7 +438,7 @@ impl Context {
     where
         S: 'static,
     {
-        self.state_map[&id.id].state.downcast_ref::<S>().unwrap()
+        self.state_map[&id.id].state.downcast_ref().unwrap()
     }
 
     pub fn get_mut<S>(&mut self, id: StateHandle<S>) -> &mut S
@@ -449,7 +449,7 @@ impl Context {
 
         let holder = self.state_map.get_mut(&id.id).unwrap();
         holder.dirty = true;
-        holder.state.downcast_mut::<S>().unwrap()
+        holder.state.downcast_mut().unwrap()
     }
 }
 
