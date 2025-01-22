@@ -47,7 +47,7 @@ pub trait Modifiers: View + Sized {
 
     /// Calls a function in response to a drag. Version which passes in a binding.
     fn drag_s<
-        T: 'static,
+        T: Clone + 'static,
         B: Binding<T>,
         F: Fn(&mut T, LocalOffset, GestureState, Option<MouseButton>) + Clone + 'static,
     >(
