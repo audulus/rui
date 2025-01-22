@@ -39,8 +39,13 @@ cargo run -p synth
 The project consists of three main components:
 
 1. MIDI Keyboard UI (`midi_keyboard.rs`)
-2. Sound Synthesis (`synth.rs`)
+2. Sound Synthesis (`synth`)
 3. Main Application (`main.rs`)
+
+# Todo
+
+- Use view modifiers for all events.
+- Add keyboard input
 
 ## License
 
