@@ -194,9 +194,54 @@ impl MidiKeyboard {
         Self::default()
     }
 
-    /// Displays the keyboard widget with the specified configuration
-    /// Handles rendering and interaction logic for the piano keyboard
+    /// Renders a white key at the specified position
+    /// Handles normal, hover, and pressed states with appropriate coloring
+    fn draw_white_key(
+        vger: &mut Vger,
+        x: f32,
+        y: f32,
+        width: f32,
+        height: f32,
+        held: bool,
+        hovered: bool,
+    ) {
+        let color = if held {
+            vger::Color::new(0.8, 0.8, 0.8, 1.0)
+        } else if hovered {
+            vger::Color::new(0.85, 0.85, 0.85, 1.0) // Slightly darker than normal for hover effect
+        } else {
+            vger::Color::new(0.9, 0.9, 0.9, 1.0)
+        };
+        let paint_index = vger.color_paint(color);
+        let rect = LocalRect::new(LocalPoint::new(x, y), LocalSize::new(width, height));
+        vger.fill_rect(rect, 0.0, paint_index);
+    }
 
+    /// Renders a black key at the specified position
+    /// Handles normal, hover, and pressed states with appropriate coloring
+    fn draw_black_key(
+        vger: &mut Vger,
+        x: f32,
+        y: f32,
+        width: f32,
+        height: f32,
+        held: bool,
+        hovered: bool,
+    ) {
+        let base_color = vger::Color::new(0.05, 0.05, 0.05, 1.0);
+        let color = if held {
+            vger::Color::new(0.2, 0.2, 0.2, 1.0)
+        } else if hovered {
+            vger::Color::new(0.15, 0.15, 0.15, 1.0) // Slightly lighter than normal for hover effect
+        } else {
+            base_color
+        };
+        let paint_index = vger.color_paint(color);
+        let rect = LocalRect::new(LocalPoint::new(x, y), LocalSize::new(width, height));
+        vger.fill_rect(rect, 0.0, paint_index);
+    }
+
+    /// Displays the keyboard widget with the specified configuration
     pub fn show(self, config: MidiKeyboardConfig) -> impl View {
         state(
             move || MidiKeyboardState::new(&config),
@@ -209,6 +254,50 @@ impl MidiKeyboard {
                     let mut white_key_count = 0;
                     let mut hovered_key_idx: Option<usize> = None;
 
+                    // Calculate hovered key
+                    if let Some(hover_pos) = cx[s].hover_pos {
+                        // First check black keys (they're on top)
+                        for key_pos in 0..cx[s].num_keys {
+                            if Self::is_black_key(key_pos) {
+                                let offset = match key_pos % 12 {
+                                    1 => 1.0,
+                                    3 => 2.0,
+                                    6 => 4.0,
+                                    8 => 5.0,
+                                    10 => 6.0,
+                                    _ => continue,
+                                };
+                                let octave = (key_pos / 12) as f32;
+                                let x = (octave * 7.0 + offset) * white_key_width
+                                    - (black_key_width / 2.0);
+                                if hover_pos.x >= x
+                                    && hover_pos.x <= x + black_key_width
+                                    && hover_pos.y >= (key_height - black_key_height)
+                                    && hover_pos.y <= key_height
+                                {
+                                    hovered_key_idx = Some(key_pos);
+                                }
+                            }
+                        }
+
+                        // If no black key is hovered, check white keys
+                        if hovered_key_idx.is_none() {
+                            white_key_count = 0;
+                            for key_pos in 0..cx[s].num_keys {
+                                if Self::is_white_key(key_pos) {
+                                    let x = white_key_count as f32 * white_key_width;
+                                    if hover_pos.x >= x && hover_pos.x <= x + white_key_width {
+                                        hovered_key_idx = Some(key_pos);
+                                    }
+                                    white_key_count += 1;
+                                }
+                            }
+                        }
+                    }
+
+                    // Reset white key count for drawing
+                    white_key_count = 0;
+
                     // Draw white keys
                     for key_pos in 0..cx[s].num_keys {
                         if Self::is_white_key(key_pos) {
@@ -220,12 +309,8 @@ impl MidiKeyboard {
                                 white_key_width,
                                 key_height,
                                 cx[s].keys[key_pos].held.is_some(),
+                                hovered_key_idx == Some(key_pos),
                             );
-                            if let Some(hover_pos) = cx[s].hover_pos {
-                                if hover_pos.x >= x && hover_pos.x <= x + white_key_width {
-                                    hovered_key_idx = Some(key_pos);
-                                }
-                            }
                             white_key_count += 1;
                         }
                     }
@@ -251,20 +336,12 @@ impl MidiKeyboard {
                                 black_key_width,
                                 black_key_height,
                                 cx[s].keys[key_pos].held.is_some(),
+                                hovered_key_idx == Some(key_pos),
                             );
-                            if let Some(hover_pos) = cx[s].hover_pos {
-                                if hover_pos.x >= x
-                                    && hover_pos.x <= x + black_key_width
-                                    && hover_pos.y >= (key_height - black_key_height)
-                                    && hover_pos.y <= key_height
-                                {
-                                    hovered_key_idx = Some(key_pos);
-                                }
-                            }
                         }
                     }
 
-                    // Handle mouse click for key press/release
+                    // Handle mouse click and key release logic
                     if cx.mouse_buttons.left {
                         if let Some(idx) = hovered_key_idx {
                             cx[s].keys[idx].held = Some(Instant::now());
@@ -272,7 +349,6 @@ impl MidiKeyboard {
                         }
                     }
 
-                    // Release keys not hovered
                     let keys_to_release: Vec<usize> = cx[s]
                         .keys
                         .iter()
@@ -313,38 +389,6 @@ impl MidiKeyboard {
     /// Black keys are the sharp/flat notes (C#, D#, F#, G#, A#)
     fn is_black_key(key_pos: usize) -> bool {
         matches!(key_pos % 12, 1 | 3 | 6 | 8 | 10)
-    }
-
-    /// Renders a white key at the specified position
-    /// Handles both normal and pressed states with appropriate coloring
-    fn draw_white_key(vger: &mut Vger, x: f32, y: f32, width: f32, height: f32, held: bool) {
-        let color = if held {
-            vger::Color::new(0.8, 0.8, 0.8, 1.0)
-        } else {
-            vger::Color::new(0.9, 0.9, 0.9, 1.0)
-        };
-        let paint_index = vger.color_paint(color);
-        let rect = LocalRect::new(LocalPoint::new(x, y), LocalSize::new(width, height));
-        vger.fill_rect(rect, 0.0, paint_index);
-    }
-
-    /// Renders a black key at the specified position
-    /// Handles both normal and pressed states with appropriate coloring
-    fn draw_black_key(vger: &mut Vger, x: f32, y: f32, width: f32, height: f32, held: bool) {
-        let base_color = vger::Color::new(0.05, 0.05, 0.05, 1.0);
-        let color = if held {
-            vger::Color::new(
-                base_color.r + 0.05,
-                base_color.g + 0.05,
-                base_color.b + 0.05,
-                1.0,
-            )
-        } else {
-            base_color
-        };
-        let paint_index = vger.color_paint(color);
-        let rect = LocalRect::new(LocalPoint::new(x, y), LocalSize::new(width, height));
-        vger.fill_rect(rect, 0.0, paint_index);
     }
 }
 
