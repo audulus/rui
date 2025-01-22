@@ -42,7 +42,7 @@ impl<S: 'static> Binding<S> for StateHandle<S> {
 }
 
 #[derive(Clone)]
-struct StateView<D, F> {
+pub struct StateView<D, F> {
     default: D,
     func: F,
 }
@@ -210,7 +210,7 @@ pub fn state<
 >(
     initial: D,
     f: F,
-) -> impl View {
+) -> StateView<D, F> {
     StateView {
         default: initial,
         func: f,
