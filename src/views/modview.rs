@@ -18,7 +18,7 @@ impl<S, V, F> DynView for ModView<S, F>
 where
     V: View,
     S: Clone + Default + 'static,
-    F: Fn(S, &mut Context) -> V + 'static,
+    F: Fn(S, &mut Context) -> V + Clone + 'static,
 {
     fn process(
         &self,
