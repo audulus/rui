@@ -10,7 +10,7 @@ pub trait Modifiers: View + Sized {
     }
 
     /// Puts a view behind another. The background view inherits the size of the view.
-    fn background<BG: View>(self, background: BG) -> Background<Self, BG> {
+    fn background<BG: View + Clone>(self, background: BG) -> Background<Self, BG> {
         Background::new(self, background)
     }
 

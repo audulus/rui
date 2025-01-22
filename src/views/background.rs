@@ -11,7 +11,7 @@ pub struct Background<V, BG> {
 impl<V, BG> View for Background<V, BG>
 where
     V: View,
-    BG: View,
+    BG: View + Clone,
 {
     fn process(
         &self,
@@ -99,7 +99,7 @@ where
 impl<V, BG> Background<V, BG>
 where
     V: View,
-    BG: View,
+    BG: View + Clone,
 {
     pub fn new(child: V, background: BG) -> Self {
         Self { child, background }
