@@ -95,14 +95,18 @@ where
 
 impl<V, F> private::Sealed for Command<V, F> {}
 
-pub trait CommandBase {
+pub trait DynCommandBase {
     fn exec(&self);
     fn name(&self) -> String;
     fn key(&self) -> Option<HotKey>;
 }
 
+pub trait CommandBase: DynCommandBase + Clone {}
+
+impl<C: DynCommandBase + Clone> CommandBase for C {}
+
 pub trait CommandTuple {
-    fn foreach_cmd<F: FnMut(&dyn CommandBase)>(&self, f: &mut F);
+    fn foreach_cmd<F: FnMut(&dyn DynCommandBase)>(&self, f: &mut F);
     fn len(&self) -> usize;
     fn is_empty(&self) -> bool {
         false
@@ -110,7 +114,7 @@ pub trait CommandTuple {
 }
 
 impl<A: CommandBase> CommandTuple for (A,) {
-    fn foreach_cmd<FN: FnMut(&dyn CommandBase)>(&self, f: &mut FN) {
+    fn foreach_cmd<FN: FnMut(&dyn DynCommandBase)>(&self, f: &mut FN) {
         f(&self.0);
     }
     fn len(&self) -> usize {
@@ -119,7 +123,7 @@ impl<A: CommandBase> CommandTuple for (A,) {
 }
 
 impl<A: CommandBase, B: CommandBase> CommandTuple for (A, B) {
-    fn foreach_cmd<FN: FnMut(&dyn CommandBase)>(&self, f: &mut FN) {
+    fn foreach_cmd<FN: FnMut(&dyn DynCommandBase)>(&self, f: &mut FN) {
         f(&self.0);
         f(&self.1);
     }
@@ -129,7 +133,7 @@ impl<A: CommandBase, B: CommandBase> CommandTuple for (A, B) {
 }
 
 impl<A: CommandBase, B: CommandBase, C: CommandBase> CommandTuple for (A, B, C) {
-    fn foreach_cmd<FN: FnMut(&dyn CommandBase)>(&self, f: &mut FN) {
+    fn foreach_cmd<FN: FnMut(&dyn DynCommandBase)>(&self, f: &mut FN) {
         f(&self.0);
         f(&self.1);
         f(&self.2);
@@ -140,7 +144,7 @@ impl<A: CommandBase, B: CommandBase, C: CommandBase> CommandTuple for (A, B, C) 
 }
 
 impl<A: CommandBase, B: CommandBase, C: CommandBase, D: CommandBase> CommandTuple for (A, B, C, D) {
-    fn foreach_cmd<FN: FnMut(&dyn CommandBase)>(&self, f: &mut FN) {
+    fn foreach_cmd<FN: FnMut(&dyn DynCommandBase)>(&self, f: &mut FN) {
         f(&self.0);
         f(&self.1);
         f(&self.2);
@@ -154,7 +158,7 @@ impl<A: CommandBase, B: CommandBase, C: CommandBase, D: CommandBase> CommandTupl
 impl<A: CommandBase, B: CommandBase, C: CommandBase, D: CommandBase, E: CommandBase> CommandTuple
     for (A, B, C, D, E)
 {
-    fn foreach_cmd<FN: FnMut(&dyn CommandBase)>(&self, f: &mut FN) {
+    fn foreach_cmd<FN: FnMut(&dyn DynCommandBase)>(&self, f: &mut FN) {
         f(&self.0);
         f(&self.1);
         f(&self.2);
@@ -175,7 +179,7 @@ impl<
         F: CommandBase,
     > CommandTuple for (A, B, C, D, E, F)
 {
-    fn foreach_cmd<FN: FnMut(&dyn CommandBase)>(&self, f: &mut FN) {
+    fn foreach_cmd<FN: FnMut(&dyn DynCommandBase)>(&self, f: &mut FN) {
         f(&self.0);
         f(&self.1);
         f(&self.2);
@@ -198,7 +202,7 @@ impl<
         G: CommandBase,
     > CommandTuple for (A, B, C, D, E, F, G)
 {
-    fn foreach_cmd<FN: FnMut(&dyn CommandBase)>(&self, f: &mut FN) {
+    fn foreach_cmd<FN: FnMut(&dyn DynCommandBase)>(&self, f: &mut FN) {
         f(&self.0);
         f(&self.1);
         f(&self.2);
@@ -223,7 +227,7 @@ impl<
         H: CommandBase,
     > CommandTuple for (A, B, C, D, E, F, G, H)
 {
-    fn foreach_cmd<FN: FnMut(&dyn CommandBase)>(&self, f: &mut FN) {
+    fn foreach_cmd<FN: FnMut(&dyn DynCommandBase)>(&self, f: &mut FN) {
         f(&self.0);
         f(&self.1);
         f(&self.2);
@@ -345,7 +349,7 @@ pub fn command(name: &str) -> NullCommand {
     }
 }
 
-impl CommandBase for NullCommand {
+impl DynCommandBase for NullCommand {
     fn exec(&self) {}
     fn name(&self) -> String {
         self.name.clone()
@@ -380,7 +384,7 @@ pub struct Command2<F> {
     func: F,
 }
 
-impl<F> CommandBase for Command2<F>
+impl<F> DynCommandBase for Command2<F>
 where
     F: Fn(),
 {
