@@ -1,17 +1,17 @@
 use core::f32;
+use std::convert::TryFrom;
+use std::{
+    sync::{Arc, Mutex},
+    time::Instant,
+};
 
 use rui::*;
 
 // Represents the state of a single key (whether it's held or not).
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 struct KeyState {
-    held: bool,
-}
-
-impl KeyState {
-    fn new() -> Self {
-        Self { held: false }
-    }
+    id: KeyBoardKey,
+    held: Option<Instant>,
 }
 
 // Represents the state of the entire keyboard.
@@ -20,18 +20,36 @@ struct KeyBoardState {
     num_keys: usize,
     num_white_keys: usize,
     hover_pos: Option<LocalPoint>,
+    on_key_pressed: Arc<Mutex<WithCall>>,
+    on_key_released: Arc<Mutex<WithCall>>,
 }
 
 impl KeyBoardState {
     fn new(config: &KeyBoardConfig) -> Self {
         let num_keys = config.num_keys;
         let num_white_keys = Self::calculate_white_key_count(num_keys);
-        let keys = vec![KeyState::new(); num_keys];
+        let start_octave = 4;
+        let keys: Vec<KeyState> = (0..num_keys)
+            .map(|index| {
+                let note: KeyBoardNoteU8 = KeyBoardNoteU8::try_from(index % 12).unwrap();
+                let octave: u8 = start_octave + (index / 12) as u8;
+                KeyState {
+                    id: KeyBoardKey {
+                        note: note.try_into().unwrap(),
+                        octave,
+                    },
+                    held: None,
+                }
+            })
+            .collect();
+
         Self {
             keys,
             num_keys,
             num_white_keys,
             hover_pos: None,
+            on_key_pressed: config.on_key_pressed.clone(),
+            on_key_released: config.on_key_released.clone(),
         }
     }
 
@@ -51,13 +69,132 @@ impl KeyBoardState {
     }
 }
 
+pub type KeyBoardNoteFreq = f32;
+
+impl TryFrom<KeyBoardKey> for KeyBoardNoteFreq {
+    type Error = ();
+
+    fn try_from(value: KeyBoardKey) -> Result<Self, Self::Error> {
+        let note = match value.note {
+            KeyBoardNote::C => 0.0,
+            KeyBoardNote::CSharp => 1.0,
+            KeyBoardNote::D => 2.0,
+            KeyBoardNote::DSharp => 3.0,
+            KeyBoardNote::E => 4.0,
+            KeyBoardNote::F => 5.0,
+            KeyBoardNote::FSharp => 6.0,
+            KeyBoardNote::G => 7.0,
+            KeyBoardNote::GSharp => 8.0,
+            KeyBoardNote::A => 9.0,
+            KeyBoardNote::ASharp => 10.0,
+            KeyBoardNote::B => 11.0,
+        };
+
+        let freq = 440.0 * f32::powf(2.0, (value.octave as f32 - 4.0) + note / 12.0);
+        Ok(freq)
+    }
+}
+
+pub type KeyBoardNoteU8 = u8;
+
+/// Represents a key on the keyboard using the MIDI notes.
+#[allow(dead_code)]
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum KeyBoardNote {
+    C,
+    CSharp,
+    D,
+    DSharp,
+    E,
+    F,
+    FSharp,
+    G,
+    GSharp,
+    A,
+    ASharp,
+    B,
+}
+
+impl TryFrom<KeyBoardKey> for KeyBoardNoteU8 {
+    type Error = ();
+
+    fn try_from(value: KeyBoardKey) -> Result<Self, Self::Error> {
+        let note = match value.note {
+            KeyBoardNote::C => 0,
+            KeyBoardNote::CSharp => 1,
+            KeyBoardNote::D => 2,
+            KeyBoardNote::DSharp => 3,
+            KeyBoardNote::E => 4,
+            KeyBoardNote::F => 5,
+            KeyBoardNote::FSharp => 6,
+            KeyBoardNote::G => 7,
+            KeyBoardNote::GSharp => 8,
+            KeyBoardNote::A => 9,
+            KeyBoardNote::ASharp => 10,
+            KeyBoardNote::B => 11,
+        };
+
+        let octave = value.octave as u8;
+        Ok(octave * 12 + note)
+    }
+}
+
+impl TryFrom<KeyBoardNoteU8> for KeyBoardNote {
+    type Error = ();
+
+    fn try_from(value: KeyBoardNoteU8) -> Result<Self, Self::Error> {
+        match value {
+            0 => Ok(KeyBoardNote::C),
+            1 => Ok(KeyBoardNote::CSharp),
+            2 => Ok(KeyBoardNote::D),
+            3 => Ok(KeyBoardNote::DSharp),
+            4 => Ok(KeyBoardNote::E),
+            5 => Ok(KeyBoardNote::F),
+            6 => Ok(KeyBoardNote::FSharp),
+            7 => Ok(KeyBoardNote::G),
+            8 => Ok(KeyBoardNote::GSharp),
+            9 => Ok(KeyBoardNote::A),
+            10 => Ok(KeyBoardNote::ASharp),
+            11 => Ok(KeyBoardNote::B),
+            _ => Err(()),
+        }
+    }
+}
+
+#[allow(dead_code)]
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct KeyBoardKey {
+    pub note: KeyBoardNote,
+    pub octave: u8,
+}
+
+struct WithCall {
+    fp: Box<dyn Fn(KeyBoardKey)>,
+}
+
+impl WithCall {
+    pub fn new(fp: impl Fn(KeyBoardKey) + 'static) -> Self {
+        WithCall { fp: Box::new(fp) }
+    }
+
+    pub fn run(&self, key: KeyBoardKey) {
+        (self.fp)(key);
+    }
+}
+
 pub struct KeyBoardConfig {
-    pub num_keys: usize,
+    num_keys: usize,
+    on_key_pressed: Arc<Mutex<WithCall>>,
+    on_key_released: Arc<Mutex<WithCall>>,
 }
 
 impl KeyBoardConfig {
     pub fn new() -> Self {
-        Self { num_keys: 25 }
+        Self {
+            num_keys: 25,
+            on_key_pressed: Arc::new(Mutex::new(WithCall::new(|_| {}))),
+            on_key_released: Arc::new(Mutex::new(WithCall::new(|_| {}))),
+        }
     }
 
     pub fn num_keys(mut self, num_keys: usize) -> Self {
@@ -65,7 +202,18 @@ impl KeyBoardConfig {
         self
     }
 
+    pub fn on_key_pressed(mut self, on_key_change: impl Fn(KeyBoardKey) + 'static) -> Self {
+        self.on_key_pressed = Arc::new(Mutex::new(WithCall::new(on_key_change)));
+        self
+    }
+
+    pub fn on_key_released(mut self, on_key_change: impl Fn(KeyBoardKey) + 'static) -> Self {
+        self.on_key_released = Arc::new(Mutex::new(WithCall::new(on_key_change)));
+        self
+    }
+
     pub fn show(self) -> impl View {
+        // Assuming there's a KeyBoard type that can be shown
         KeyBoard::without_config().show(self)
     }
 }
@@ -85,7 +233,7 @@ impl KeyBoard {
     pub fn show(self, config: KeyBoardConfig) -> impl View {
         state(
             move || KeyBoardState::new(&config),
-            move |s, _| {
+            |s, _| {
                 canvas(move |cx, rect, vger| {
                     let white_key_width = rect.width() / cx[s].num_white_keys as f32;
                     let key_height = rect.height();
@@ -106,7 +254,7 @@ impl KeyBoard {
                                 0.0,
                                 white_key_width,
                                 key_height,
-                                cx[s].keys[key_pos].held,
+                                cx[s].keys[key_pos].held.is_some(),
                             );
 
                             // Check if the current x position collides with the hover position
@@ -142,7 +290,7 @@ impl KeyBoard {
                                 key_height - black_key_height, // Start y-coordinate adjusted for black key height
                                 black_key_width,
                                 black_key_height,
-                                cx[s].keys[key_pos].held,
+                                cx[s].keys[key_pos].held.is_some(),
                             );
 
                             // Adjust collision detection for black keys: account for their shorter height
@@ -163,14 +311,36 @@ impl KeyBoard {
                         }
                     }
 
-                    // Print the hovered key index (if any)
-                    if let Some(idx) = hovered_key_idx {
-                        vger.text(
-                            format!("Hovered key index: {}", idx).as_str(),
-                            20,
-                            vger::Color::WHITE,
-                            None,
-                        );
+                    if cx.mouse_buttons.left {
+                        if let Some(idx) = hovered_key_idx {
+                            cx[s].keys[idx].held = Some(Instant::now());
+                            cx[s].on_key_pressed.lock().unwrap().run(cx[s].keys[idx].id);
+                        }
+                    }
+
+                    let keys_to_release: Vec<usize> = cx[s]
+                        .keys
+                        .iter()
+                        .enumerate()
+                        .filter_map(|(idx, key)| {
+                            if key.held.is_some() {
+                                if let Some(hovered_idx) = hovered_key_idx {
+                                    if idx != hovered_idx {
+                                        return Some(idx);
+                                    }
+                                }
+                            }
+                            None
+                        })
+                        .collect();
+
+                    for idx in keys_to_release {
+                        cx[s].keys[idx].held = None;
+                        cx[s]
+                            .on_key_released
+                            .lock()
+                            .unwrap()
+                            .run(cx[s].keys[idx].id);
                     }
                 })
                 .hover(move |cx, hover| {

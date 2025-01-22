@@ -271,6 +271,16 @@ where
                             WMouseButton::Middle => Some(MouseButton::Center),
                             _ => None,
                         };
+
+                        match button {
+                            WMouseButton::Left => self.cx.mouse_buttons.left = true,
+                            WMouseButton::Right => self.cx.mouse_buttons.right = true,
+                            WMouseButton::Middle => self.cx.mouse_buttons.middle = true,
+                            _ => (),
+                        };
+
+                        self.cx.set_dirty();
+
                         if let Some(window) = &self.window {
                             let event = Event::TouchBegin {
                                 id: 0,
@@ -281,6 +291,16 @@ where
                     }
                     ElementState::Released => {
                         self.cx.mouse_button = None;
+
+                        match button {
+                            WMouseButton::Left => self.cx.mouse_buttons.left = false,
+                            WMouseButton::Right => self.cx.mouse_buttons.right = false,
+                            WMouseButton::Middle => self.cx.mouse_buttons.middle = false,
+                            _ => (),
+                        };
+
+                        self.cx.set_dirty();
+
                         if let Some(window) = &self.window {
                             let event = Event::TouchEnd {
                                 id: 0,
