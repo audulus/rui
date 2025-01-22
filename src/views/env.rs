@@ -92,6 +92,7 @@ pub fn env<S: Clone + Default + 'static, V: View, F: Fn(S, &mut Context) -> V + 
 }
 
 /// Struct for the `env` modifier.
+#[derive(Clone)]
 pub struct SetenvView<V, E> {
     child: V,
     env_val: E,
