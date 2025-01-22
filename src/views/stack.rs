@@ -2,7 +2,7 @@ use crate::views::stack_layout::*;
 use crate::*;
 use std::any::Any;
 
-enum StackOrientation {
+pub enum StackOrientation {
     /// Views are stacked horizontally (right to left).
     Horizontal,
 
@@ -14,23 +14,23 @@ enum StackOrientation {
 }
 
 #[derive(Clone)]
-struct Stack<VT, D> {
+pub struct Stack<VT, D> {
     children: VT,
     phantom_direction: std::marker::PhantomData<D>,
 }
 
-trait StackDirection {
+pub trait StackDirection {
     const ORIENTATION: StackOrientation;
 }
-struct HorizontalDirection {}
+pub struct HorizontalDirection {}
 impl StackDirection for HorizontalDirection {
     const ORIENTATION: StackOrientation = StackOrientation::Horizontal;
 }
-struct VerticalDirection {}
+pub struct VerticalDirection {}
 impl StackDirection for VerticalDirection {
     const ORIENTATION: StackOrientation = StackOrientation::Vertical;
 }
-struct ZDirection {}
+pub struct ZDirection {}
 impl StackDirection for ZDirection {
     const ORIENTATION: StackOrientation = StackOrientation::Z;
 }
@@ -327,16 +327,16 @@ impl<VT: ViewTuple, D: StackDirection> Stack<VT, D> {
 impl<VT, D> private::Sealed for Stack<VT, D> {}
 
 /// Horizontal stack of up to 128 Views in a tuple. Each item can be a different view type.
-pub fn hstack<VT: ViewTuple + 'static>(children: VT) -> impl View {
+pub fn hstack<VT: ViewTuple + 'static>(children: VT) -> Stack::<VT, HorizontalDirection> {
     Stack::<VT, HorizontalDirection>::new(children)
 }
 
 /// Vertical stack of up to 128 Views in a tuple. Each item can be a different view type.
-pub fn vstack<VT: ViewTuple + 'static>(children: VT) -> impl View {
+pub fn vstack<VT: ViewTuple + 'static>(children: VT) -> Stack::<VT, VerticalDirection> {
     Stack::<VT, VerticalDirection>::new(children)
 }
 
 /// Stack of up to 128 overlaid Views in a tuple. Each item can be a different view type.
-pub fn zstack<VT: ViewTuple + 'static>(children: VT) -> impl View {
+pub fn zstack<VT: ViewTuple + 'static>(children: VT) -> Stack::<VT, ZDirection> {
     Stack::<VT, ZDirection>::new(children)
 }
