@@ -85,7 +85,7 @@ where
 }
 
 /// Passes a value to a function. Value can be updated by modifiers.
-pub fn modview<S: Clone + Default + 'static, V: View, F: Fn(S, &mut Context) -> V + 'static>(
+pub fn modview<S: Clone + Default + 'static, V: View, F: Fn(S, &mut Context) -> V + Clone + 'static>(
     f: F,
 ) -> ModView<S, F> {
     ModView {
