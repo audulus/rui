@@ -92,12 +92,7 @@ where
     }
 }
 
-impl<V, F> private::Sealed for Command<V, F>
-where
-    V: View,
-    F: Fn(&mut Context) + 'static,
-{
-}
+impl<V, F> private::Sealed for Command<V, F> {}
 
 pub trait CommandBase {
     fn exec(&self);
