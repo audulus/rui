@@ -21,7 +21,7 @@ fn main() {
     let synth_clone_update = synth.clone();
 
     // Update thread
-    std::thread::spawn(move || loop {
+    let handle = std::thread::spawn(move || loop {
         synth_clone_update.lock().unwrap().update();
     });
 
@@ -42,4 +42,6 @@ fn main() {
         .show()
         .size([400.0, 200.0])
         .run();
+
+    handle.join().unwrap();
 }

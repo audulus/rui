@@ -7,14 +7,14 @@ use std::{
 
 use rui::*;
 
-// Represents the state of a single key (whether it's held or not).
+/// Represents a single key on the keyboard (whether it’s held or not).
 #[derive(Clone, Copy, Debug)]
 struct KeyState {
     id: KeyBoardKey,
     held: Option<Instant>,
 }
 
-// Represents the state of the entire keyboard.
+/// Represents the state of the entire keyboard.
 struct KeyBoardState {
     keys: Vec<KeyState>,
     num_keys: usize,
@@ -29,15 +29,13 @@ impl KeyBoardState {
         let num_keys = config.num_keys;
         let num_white_keys = Self::calculate_white_key_count(num_keys);
         let start_octave = 4;
-        let keys: Vec<KeyState> = (0..num_keys)
+
+        let keys = (0..num_keys)
             .map(|index| {
-                let note: KeyBoardNoteU8 = KeyBoardNoteU8::try_from(index % 12).unwrap();
+                let note: KeyBoardNote = KeyBoardNote::try_from(index as u8 % 12).unwrap();
                 let octave: u8 = start_octave + (index / 12) as u8;
                 KeyState {
-                    id: KeyBoardKey {
-                        note: note.try_into().unwrap(),
-                        octave,
-                    },
+                    id: KeyBoardKey { note, octave },
                     held: None,
                 }
             })
@@ -56,8 +54,7 @@ impl KeyBoardState {
     fn calculate_white_key_count(num_keys: usize) -> usize {
         let total_octaves = num_keys / 12;
         let remainder = num_keys % 12;
-        let num_white_keys = total_octaves * 7 + Self::white_key_count_in_remainder(remainder);
-        num_white_keys
+        total_octaves * 7 + Self::white_key_count_in_remainder(remainder)
     }
 
     fn white_key_count_in_remainder(remainder: usize) -> usize {
@@ -75,30 +72,19 @@ impl TryFrom<KeyBoardKey> for KeyBoardNoteFreq {
     type Error = ();
 
     fn try_from(value: KeyBoardKey) -> Result<Self, Self::Error> {
-        let note = match value.note {
-            KeyBoardNote::C => 0.0,
-            KeyBoardNote::CSharp => 1.0,
-            KeyBoardNote::D => 2.0,
-            KeyBoardNote::DSharp => 3.0,
-            KeyBoardNote::E => 4.0,
-            KeyBoardNote::F => 5.0,
-            KeyBoardNote::FSharp => 6.0,
-            KeyBoardNote::G => 7.0,
-            KeyBoardNote::GSharp => 8.0,
-            KeyBoardNote::A => 9.0,
-            KeyBoardNote::ASharp => 10.0,
-            KeyBoardNote::B => 11.0,
-        };
+        let note_freqs = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0];
 
-        let freq = 440.0 * f32::powf(2.0, (value.octave as f32 - 4.0) + note / 12.0);
+        let freq = 440.0
+            * f32::powf(
+                2.0,
+                (value.octave as f32 - 4.0) + note_freqs[value.note as usize] / 12.0,
+            );
         Ok(freq)
     }
 }
 
 pub type KeyBoardNoteU8 = u8;
 
-/// Represents a key on the keyboard using the MIDI notes.
-#[allow(dead_code)]
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum KeyBoardNote {
     C,
@@ -119,7 +105,7 @@ impl TryFrom<KeyBoardKey> for KeyBoardNoteU8 {
     type Error = ();
 
     fn try_from(value: KeyBoardKey) -> Result<Self, Self::Error> {
-        let note = match value.note {
+        let note: u8 = match value.note {
             KeyBoardNote::C => 0,
             KeyBoardNote::CSharp => 1,
             KeyBoardNote::D => 2,
@@ -161,7 +147,6 @@ impl TryFrom<KeyBoardNoteU8> for KeyBoardNote {
     }
 }
 
-#[allow(dead_code)]
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct KeyBoardKey {
     pub note: KeyBoardNote,
@@ -213,7 +198,6 @@ impl KeyBoardConfig {
     }
 
     pub fn show(self) -> impl View {
-        // Assuming there's a KeyBoard type that can be shown
         KeyBoard::without_config().show(self)
     }
 }
@@ -240,11 +224,9 @@ impl KeyBoard {
                     let black_key_height = key_height * 0.6;
                     let black_key_width = white_key_width * 0.7;
                     let mut white_key_count = 0;
-
-                    // Track the hovered key index
                     let mut hovered_key_idx: Option<usize> = None;
 
-                    // First pass: Draw all white keys
+                    // Draw white keys
                     for key_pos in 0..cx[s].num_keys {
                         if Self::is_white_key(key_pos) {
                             let x = white_key_count as f32 * white_key_width;
@@ -256,61 +238,50 @@ impl KeyBoard {
                                 key_height,
                                 cx[s].keys[key_pos].held.is_some(),
                             );
-
-                            // Check if the current x position collides with the hover position
                             if let Some(hover_pos) = cx[s].hover_pos {
-                                let hover_x = hover_pos.x;
-                                if hover_x >= x && hover_x <= x + white_key_width {
+                                if hover_pos.x >= x && hover_pos.x <= x + white_key_width {
                                     hovered_key_idx = Some(key_pos);
                                 }
                             }
-
                             white_key_count += 1;
                         }
                     }
 
-                    // Second pass: Draw all black keys
+                    // Draw black keys
                     for key_pos in 0..cx[s].num_keys {
                         if Self::is_black_key(key_pos) {
                             let offset = match key_pos % 12 {
-                                1 => 1.0,  // C#
-                                3 => 2.0,  // D#
-                                6 => 4.0,  // F#
-                                8 => 5.0,  // G#
-                                10 => 6.0, // A#
+                                1 => 1.0,
+                                3 => 2.0,
+                                6 => 4.0,
+                                8 => 5.0,
+                                10 => 6.0,
                                 _ => continue,
                             };
                             let octave = (key_pos / 12) as f32;
                             let x =
                                 (octave * 7.0 + offset) * white_key_width - (black_key_width / 2.0);
-
                             Self::draw_black_key(
                                 vger,
                                 x,
-                                key_height - black_key_height, // Start y-coordinate adjusted for black key height
+                                key_height - black_key_height,
                                 black_key_width,
                                 black_key_height,
                                 cx[s].keys[key_pos].held.is_some(),
                             );
-
-                            // Adjust collision detection for black keys: account for their shorter height
                             if let Some(hover_pos) = cx[s].hover_pos {
-                                let hover_x = hover_pos.x;
-                                let hover_y = hover_pos.y;
-
-                                // Check if the hover X is within the black key's bounds
-                                if hover_x >= x && hover_x <= x + black_key_width {
-                                    // Adjust the Y-range check to ensure the hover is within the black key's height
-                                    if hover_y >= (key_height - black_key_height)
-                                        && hover_y <= key_height
-                                    {
-                                        hovered_key_idx = Some(key_pos);
-                                    }
+                                if hover_pos.x >= x
+                                    && hover_pos.x <= x + black_key_width
+                                    && hover_pos.y >= (key_height - black_key_height)
+                                    && hover_pos.y <= key_height
+                                {
+                                    hovered_key_idx = Some(key_pos);
                                 }
                             }
                         }
                     }
 
+                    // Handle mouse click for key press/release
                     if cx.mouse_buttons.left {
                         if let Some(idx) = hovered_key_idx {
                             cx[s].keys[idx].held = Some(Instant::now());
@@ -318,19 +289,17 @@ impl KeyBoard {
                         }
                     }
 
+                    // Release keys not hovered
                     let keys_to_release: Vec<usize> = cx[s]
                         .keys
                         .iter()
                         .enumerate()
                         .filter_map(|(idx, key)| {
-                            if key.held.is_some() {
-                                if let Some(hovered_idx) = hovered_key_idx {
-                                    if idx != hovered_idx {
-                                        return Some(idx);
-                                    }
-                                }
+                            if key.held.is_some() && hovered_key_idx != Some(idx) {
+                                Some(idx)
+                            } else {
+                                None
                             }
-                            None
                         })
                         .collect();
 
@@ -369,7 +338,6 @@ impl KeyBoard {
         } else {
             vger::Color::new(0.9, 0.9, 0.9, 1.0)
         };
-
         let paint_index = vger.color_paint(color);
         let rect = LocalRect::new(LocalPoint::new(x, y), LocalSize::new(width, height));
         vger.fill_rect(rect, 0.0, paint_index);
@@ -387,7 +355,6 @@ impl KeyBoard {
         } else {
             base_color
         };
-
         let paint_index = vger.color_paint(color);
         let rect = LocalRect::new(LocalPoint::new(x, y), LocalSize::new(width, height));
         vger.fill_rect(rect, 0.0, paint_index);
