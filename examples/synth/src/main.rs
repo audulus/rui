@@ -15,13 +15,11 @@ use rui::*;
 
 fn main() {
     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
-    // The synth will manage multiple audio sinks and their envelopes
     let synth = Arc::new(Mutex::new(Synth::new(stream_handle)));
     let synth_clone = synth.clone();
     let synth_clone_update = synth.clone();
 
-    // Update thread
-    let handle = std::thread::spawn(move || loop {
+    std::thread::spawn(move || loop {
         synth_clone_update.lock().unwrap().update();
     });
 
@@ -42,6 +40,4 @@ fn main() {
         .show()
         .size([400.0, 200.0])
         .run();
-
-    handle.join().unwrap();
 }
