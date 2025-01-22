@@ -24,7 +24,7 @@ impl<'a> LayoutArgs<'a> {
 }
 
 /// Trait for the unit of UI composition.
-pub trait DynView: private::Sealed + 'static {
+pub trait DynView: private::Sealed + DynClone + 'static {
     /// Builds an AccessKit tree. The node ID for the subtree is returned. All generated nodes are accumulated.
     fn access(
         &self,
@@ -85,6 +85,6 @@ pub trait DynView: private::Sealed + 'static {
     }
 }
 
-pub trait View: DynView {}
+pub trait View: DynView + Clone {}
 
-impl<V: DynView> View for V {}
+impl<V: DynView + Clone> View for V {}

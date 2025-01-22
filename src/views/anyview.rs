@@ -5,7 +5,10 @@ use std::any::TypeId;
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 
+dyn_clone::clone_trait_object!(DynView);
+
 /// Struct for `any_view`
+#[derive(Clone)]
 pub struct AnyView {
     child: Box<dyn DynView>,
 }
