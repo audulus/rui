@@ -20,7 +20,7 @@ impl<ID, V, F> DynView for List<ID, F>
 where
     ID: Hash + Clone + 'static,
     V: View,
-    F: Fn(&ID) -> V + 'static,
+    F: Fn(&ID) -> V + Clone + 'static,
 {
     fn process(
         &self,
