@@ -205,8 +205,8 @@ impl<S, F> private::Sealed for StateView<S, F> {}
 pub fn state<
     S: 'static,
     V: View,
-    D: Fn() -> S + 'static,
-    F: Fn(StateHandle<S>, &Context) -> V + 'static,
+    D: Fn() -> S + Clone + 'static,
+    F: Fn(StateHandle<S>, &Context) -> V + Clone + 'static,
 >(
     initial: D,
     f: F,
@@ -218,11 +218,11 @@ pub fn state<
 }
 
 /// Convenience to get the context.
-pub fn with_cx<V: View, F: Fn(&Context) -> V + 'static>(f: F) -> impl View {
+pub fn with_cx<V: View, F: Fn(&Context) -> V + Clone + 'static>(f: F) -> impl View {
     state(|| (), move |_, cx| f(cx))
 }
 
 /// Convenience to retreive a reference to a value in the context.
-pub fn with_ref<V: View, F: Fn(&T) -> V + 'static, T>(binding: impl Binding<T>, f: F) -> impl View {
+pub fn with_ref<V: View, F: Fn(&T) -> V + Clone + 'static, T>(binding: impl Binding<T>, f: F) -> impl View {
     with_cx(move |cx| f(binding.get(cx)))
 }

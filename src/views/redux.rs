@@ -5,8 +5,8 @@ pub fn redux<
     A: 'static,
     A2: 'static,
     S: 'static,
-    D: Fn() -> S + 'static,
-    F: Fn(&S) -> V + 'static,
+    D: Fn() -> S + Clone + 'static,
+    F: Fn(&S) -> V + Clone + 'static,
     R: Fn(&mut S, &A) -> A2 + 'static + Clone,
 >(
     initial: D,
