@@ -8,6 +8,6 @@ fn main() {
         .dark_mode()
         .rounded_corners()
         .show()
-        .size([300.0, 400.0])
+        // .size([300.0, 400.0])
         .run();
 }
