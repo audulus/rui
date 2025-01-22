@@ -243,6 +243,7 @@ impl<
     }
 }
 
+#[derive(Clone)]
 pub struct CommandGroup<V, C> {
     child: V,
     cmds: C,
