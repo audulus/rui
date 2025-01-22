@@ -3,6 +3,8 @@
 A modern, responsive calculator implementation in Rust with a clean user interface. This calculator supports both light and dark modes, keyboard input, and touch interactions.
 
 ![Calculator Light Mode](https://github.com/user-attachments/assets/fbdcde38-75cb-4152-8b76-8f07e42e8785)
+![Calculator Light Mode Fullscreen](https://github.com/user-attachments/assets/a348601a-3360-49d1-a918-3455b4958d9f)
+![Calculator Dark Mode Fullscreen](https://github.com/user-attachments/assets/38fe5d21-2eb2-4b9c-bcda-509743b7859d)
 ![Calculator Dark Mode](https://github.com/user-attachments/assets/3231c0b7-f2f5-452c-86e2-0a16fe63ba35)
 
 ## Features
