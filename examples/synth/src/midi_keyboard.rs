@@ -134,6 +134,7 @@ impl MidiCallback {
 
 /// Configuration builder for the MIDI keyboard widget
 /// Allows customization of keyboard properties and event handlers
+#[derive(Clone)]
 pub struct MidiKeyboardConfig {
     /// Number of keys on the keyboard (default: 25)
     num_keys: usize,

@@ -8,6 +8,7 @@ impl Toggle {
     }
 }
 
+#[derive(Clone)]
 pub struct ToggleConfig {
     width: f32,
     height: f32,

@@ -138,6 +138,7 @@ macro_rules! impl_text {
                     text: format!("{}", self),
                     size,
                     color: TEXT_COLOR,
+                    max_width: None,
                 }
             }
             fn color(self, color: Color) -> Text {
@@ -145,6 +146,16 @@ macro_rules! impl_text {
                     text: format!("{}", self),
                     size: Text::DEFAULT_SIZE,
                     color,
+                    max_width: None,
+                }
+            }
+
+            fn max_width(self, max_width: f32) -> Text {
+                Text {
+                    text: format!("{}", self),
+                    size: Text::DEFAULT_SIZE,
+                    color: TEXT_COLOR,
+                    max_width: Some(max_width),
                 }
             }
         }

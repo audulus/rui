@@ -12,25 +12,27 @@ pub struct TouchInfo {
     pub state: TouchState,
 }
 
-pub trait TouchFn {
+pub trait TouchFn: Clone {
     fn call(&self, cx: &mut Context, touch_info: TouchInfo, actions: &mut Vec<Box<dyn Any>>);
 }
 
+#[derive(Clone)]
 pub struct TouchFunc<F> {
     pub f: F,
 }
 
-impl<A: 'static, F: Fn(&mut Context, TouchInfo) -> A> TouchFn for TouchFunc<F> {
+impl<A: 'static, F: Fn(&mut Context, TouchInfo) -> A + Clone> TouchFn for TouchFunc<F> {
     fn call(&self, cx: &mut Context, touch_info: TouchInfo, actions: &mut Vec<Box<dyn Any>>) {
         actions.push(Box::new((self.f)(cx, touch_info)))
     }
 }
 
+#[derive(Clone)]
 pub struct TouchPositionFunc<F> {
     pub f: F,
 }
 
-impl<A: 'static, F: Fn(&mut Context, LocalPoint, Option<MouseButton>) -> A> TouchFn
+impl<A: 'static, F: Fn(&mut Context, LocalPoint, Option<MouseButton>) -> A + Clone> TouchFn
     for TouchPositionFunc<F>
 {
     fn call(&self, cx: &mut Context, touch_info: TouchInfo, actions: &mut Vec<Box<dyn Any>>) {
@@ -38,16 +40,18 @@ impl<A: 'static, F: Fn(&mut Context, LocalPoint, Option<MouseButton>) -> A> Touc
     }
 }
 
+#[derive(Clone)]
 pub struct TouchAdapter<F> {
     pub f: F,
 }
 
-impl<A: 'static, F: Fn(&mut Context) -> A> TouchFn for TouchAdapter<F> {
+impl<A: 'static, F: Fn(&mut Context) -> A + Clone> TouchFn for TouchAdapter<F> {
     fn call(&self, cx: &mut Context, _touch_info: TouchInfo, actions: &mut Vec<Box<dyn Any>>) {
         actions.push(Box::new((self.f)(cx)))
     }
 }
 
+#[derive(Clone)]
 pub struct TouchActionAdapter<A> {
     pub action: A,
 }
@@ -59,6 +63,7 @@ impl<A: Clone + 'static> TouchFn for TouchActionAdapter<A> {
 }
 
 /// Struct for the `touch` gesture.
+#[derive(Clone)]
 pub struct Touch<V: View, F> {
     /// Child view tree.
     child: V,
@@ -77,7 +82,7 @@ where
     }
 }
 
-impl<V, F> View for Touch<V, F>
+impl<V, F> DynView for Touch<V, F>
 where
     V: View,
     F: TouchFn + 'static,
