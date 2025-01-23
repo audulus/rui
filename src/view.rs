@@ -1,5 +1,6 @@
 use crate::*;
 use std::any::{Any, TypeId};
+use dyn_clone::DynClone;
 
 pub struct DrawArgs<'a> {
     pub cx: &'a mut Context,
@@ -22,8 +23,8 @@ impl<'a> LayoutArgs<'a> {
     }
 }
 
-/// Trait for the unit of UI composition.
-pub trait View: private::Sealed + 'static {
+/// Object-safe part of View for compatibility with AnyView.
+pub trait DynView: private::Sealed + DynClone + 'static {
     /// Builds an AccessKit tree. The node ID for the subtree is returned. All generated nodes are accumulated.
     fn access(
         &self,
@@ -83,3 +84,8 @@ pub trait View: private::Sealed + 'static {
         TypeId::of::<Self>()
     }
 }
+
+/// Trait for the unit of UI composition.
+pub trait View: DynView + Clone {}
+
+impl<V: DynView + Clone> View for V {}

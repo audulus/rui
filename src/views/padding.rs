@@ -2,12 +2,13 @@ use crate::*;
 use std::any::Any;
 
 /// Struct for the `padding` modifier.
+#[derive(Clone)]
 pub struct Padding<V> {
     child: V,
     padding: f32,
 }
 
-impl<V> View for Padding<V>
+impl<V> DynView for Padding<V>
 where
     V: View,
 {

@@ -33,6 +33,7 @@ accesskit = "0.16.0"
 lazy_static = "1.4.0"
 winit = { version = "0.30", optional = true }
 log = "0.4"
+dyn-clone = "1.0.17"
 
 # Seems we can't publish to crates.io with this dependency.
 # baseview = { git = "https://github.com/RustAudio/baseview", optional = true }

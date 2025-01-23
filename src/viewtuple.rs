@@ -1,9 +1,9 @@
 use crate::*;
 
 /// Allows rui to iterate over a tuple of `Views`.
-pub trait ViewTuple {
-    fn foreach_view<F: FnMut(&dyn View)>(&self, f: &mut F);
-    fn foreach_view_rev<F: FnMut(&dyn View)>(&self, f: &mut F);
+pub trait ViewTuple: Clone {
+    fn foreach_view<F: FnMut(&dyn DynView)>(&self, f: &mut F);
+    fn foreach_view_rev<F: FnMut(&dyn DynView)>(&self, f: &mut F);
     fn len(&self) -> usize;
     fn is_empty(&self) -> bool {
         false
@@ -14,10 +14,10 @@ macro_rules! impl_view_tuple {
     ( $n: tt; $( $t:ident),* ; $( $s:tt ),* ; $( $s_rev:tt ),* ) => {
 
         impl< $( $t: View, )* > ViewTuple for ( $( $t, )* ) {
-            fn foreach_view<FN: FnMut(&dyn View)>(&self, f: &mut FN) {
+            fn foreach_view<FN: FnMut(&dyn DynView)>(&self, f: &mut FN) {
                 $( f(&self.$s); )*
             }
-            fn foreach_view_rev<FN: FnMut(&dyn View)>(&self, f: &mut FN) {
+            fn foreach_view_rev<FN: FnMut(&dyn DynView)>(&self, f: &mut FN) {
                 $( f(&self.$s_rev); )*
             }
             fn len(&self) -> usize {

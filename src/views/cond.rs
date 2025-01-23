@@ -2,13 +2,14 @@ use crate::*;
 use std::any::Any;
 
 /// Struct for `cond`
+#[derive(Clone)]
 pub struct Cond<V0, V1> {
     cond: bool,
     if_true: V0,
     if_false: V1,
 }
 
-impl<V0, V1> View for Cond<V0, V1>
+impl<V0, V1> DynView for Cond<V0, V1>
 where
     V0: View,
     V1: View,

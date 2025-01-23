@@ -1,17 +1,18 @@
 use crate::*;
 use std::any::Any;
 
+#[derive(Clone)]
 struct EnvView<S, V, F> {
     func: F,
     phantom_s: std::marker::PhantomData<S>,
     phantom_v: std::marker::PhantomData<V>,
 }
 
-impl<S, V, F> View for EnvView<S, V, F>
+impl<S, V, F> DynView for EnvView<S, V, F>
 where
     V: View,
     S: Clone + Default + 'static,
-    F: Fn(S, &mut Context) -> V + 'static,
+    F: Fn(S, &mut Context) -> V + Clone + 'static,
 {
     fn process(
         &self,
@@ -80,7 +81,7 @@ where
 impl<S, V, F> private::Sealed for EnvView<S, V, F> {}
 
 /// Reads from the environment.
-pub fn env<S: Clone + Default + 'static, V: View, F: Fn(S, &mut Context) -> V + 'static>(
+pub fn env<S: Clone + Default + 'static, V: View, F: Fn(S, &mut Context) -> V + Clone + 'static>(
     f: F,
 ) -> impl View {
     EnvView {
@@ -91,6 +92,7 @@ pub fn env<S: Clone + Default + 'static, V: View, F: Fn(S, &mut Context) -> V + 
 }
 
 /// Struct for the `env` modifier.
+#[derive(Clone)]
 pub struct SetenvView<V, E> {
     child: V,
     env_val: E,
@@ -106,7 +108,7 @@ where
     }
 }
 
-impl<V, E> View for SetenvView<V, E>
+impl<V, E> DynView for SetenvView<V, E>
 where
     V: View,
     E: Clone + 'static,

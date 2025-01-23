@@ -1,16 +1,24 @@
 use crate::*;
 use std::any::Any;
+use std::fmt;
 
+#[derive(Clone)]
 pub struct ModView<S, F> {
     pub func: F,
     pub value: S,
 }
 
-impl<S, V, F> View for ModView<S, F>
+impl<S, F> fmt::Display for ModView<S, F> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "ModView")
+    }
+}
+
+impl<S, V, F> DynView for ModView<S, F>
 where
     V: View,
     S: Clone + Default + 'static,
-    F: Fn(S, &mut Context) -> V + 'static,
+    F: Fn(S, &mut Context) -> V + Clone + 'static,
 {
     fn process(
         &self,
@@ -76,10 +84,8 @@ where
     }
 }
 
-impl<S, F> private::Sealed for ModView<S, F> {}
-
 /// Passes a value to a function. Value can be updated by modifiers.
-pub fn modview<S: Clone + Default + 'static, V: View, F: Fn(S, &mut Context) -> V + 'static>(
+pub fn modview<S: Clone + Default + 'static, V: View, F: Fn(S, &mut Context) -> V + Clone + 'static>(
     f: F,
 ) -> ModView<S, F> {
     ModView {

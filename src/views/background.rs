@@ -2,15 +2,16 @@ use crate::*;
 use std::any::Any;
 
 /// Struct for the `background` modifier.
+#[derive(Clone)]
 pub struct Background<V, BG> {
     child: V,
     background: BG,
 }
 
-impl<V, BG> View for Background<V, BG>
+impl<V, BG> DynView for Background<V, BG>
 where
     V: View,
-    BG: View,
+    BG: View + Clone,
 {
     fn process(
         &self,
@@ -98,7 +99,7 @@ where
 impl<V, BG> Background<V, BG>
 where
     V: View,
-    BG: View,
+    BG: View + Clone,
 {
     pub fn new(child: V, background: BG) -> Self {
         Self { child, background }

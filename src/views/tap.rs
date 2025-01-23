@@ -7,25 +7,27 @@ pub struct TapInfo {
     pub state: TouchState,
 }
 
-pub trait TapFn {
+pub trait TapFn: Clone {
     fn call(&self, cx: &mut Context, tap_info: TapInfo, actions: &mut Vec<Box<dyn Any>>);
 }
 
+#[derive(Clone)]
 pub struct TapFunc<F> {
     pub f: F,
 }
 
-impl<A: 'static, F: Fn(&mut Context, TapInfo) -> A> TapFn for TapFunc<F> {
+impl<A: 'static, F: Fn(&mut Context, TapInfo) -> A + Clone + 'static> TapFn for TapFunc<F> {
     fn call(&self, cx: &mut Context, tap_info: TapInfo, actions: &mut Vec<Box<dyn Any>>) {
         actions.push(Box::new((self.f)(cx, tap_info)))
     }
 }
 
+#[derive(Clone)]
 pub struct TapPositionFunc<F> {
     pub f: F,
 }
 
-impl<A: 'static, F: Fn(&mut Context, LocalPoint, Option<MouseButton>) -> A> TapFn
+impl<A: 'static, F: Fn(&mut Context, LocalPoint, Option<MouseButton>) -> A + Clone + 'static> TapFn
     for TapPositionFunc<F>
 {
     fn call(&self, cx: &mut Context, tap_info: TapInfo, actions: &mut Vec<Box<dyn Any>>) {
@@ -33,16 +35,18 @@ impl<A: 'static, F: Fn(&mut Context, LocalPoint, Option<MouseButton>) -> A> TapF
     }
 }
 
+#[derive(Clone)]
 pub struct TapAdapter<F> {
     pub f: F,
 }
 
-impl<A: 'static, F: Fn(&mut Context) -> A> TapFn for TapAdapter<F> {
+impl<A: 'static, F: Fn(&mut Context) -> A + Clone + 'static> TapFn for TapAdapter<F> {
     fn call(&self, cx: &mut Context, _tap_info: TapInfo, actions: &mut Vec<Box<dyn Any>>) {
         actions.push(Box::new((self.f)(cx)))
     }
 }
 
+#[derive(Clone)]
 pub struct TapActionAdapter<A> {
     pub action: A,
 }
@@ -54,6 +58,7 @@ impl<A: Clone + 'static> TapFn for TapActionAdapter<A> {
 }
 
 /// Struct for the `tap` gesture.
+#[derive(Clone)]
 pub struct Tap<V, F> {
     /// Child view tree.
     child: V,
@@ -72,7 +77,7 @@ where
     }
 }
 
-impl<V, F> View for Tap<V, F>
+impl<V, F> DynView for Tap<V, F>
 where
     V: View,
     F: TapFn + 'static,

@@ -2,23 +2,25 @@ use crate::*;
 use std::any::Any;
 use std::hash::Hash;
 
+#[derive(Clone, Copy)]
 pub enum ListOrientation {
     Horizontal,
     Vertical,
     Z,
 }
 
+#[derive(Clone)]
 pub struct List<ID, F> {
     orientation: ListOrientation,
     ids: Vec<ID>,
     func: F,
 }
 
-impl<ID, V, F> View for List<ID, F>
+impl<ID, V, F> DynView for List<ID, F>
 where
-    ID: Hash + 'static,
+    ID: Hash + Clone + 'static,
     V: View,
-    F: Fn(&ID) -> V + 'static,
+    F: Fn(&ID) -> V + Clone + 'static,
 {
     fn process(
         &self,
@@ -225,7 +227,7 @@ impl<ID, F> private::Sealed for List<ID, F> {}
 ///
 /// `ids` is a Vec of items that implement Hash.
 ///
-/// `f` is a function called to generate a View for each item.
+/// `f` is a function called to generate a DynView for each item.
 ///
 /// For example:
 ///
@@ -238,7 +240,7 @@ impl<ID, F> private::Sealed for List<ID, F> {}
 ///     ))
 /// }));
 /// ```
-pub fn list<ID: Hash, V: View, F: Fn(&ID) -> V + 'static>(ids: Vec<ID>, f: F) -> List<ID, F> {
+pub fn list<ID: Hash + Clone, V: View, F: Fn(&ID) -> V + Clone + 'static>(ids: Vec<ID>, f: F) -> List<ID, F> {
     List {
         orientation: ListOrientation::Vertical,
         ids,
@@ -246,7 +248,7 @@ pub fn list<ID: Hash, V: View, F: Fn(&ID) -> V + 'static>(ids: Vec<ID>, f: F) ->
     }
 }
 
-pub fn hlist<ID: Hash, V: View, F: Fn(&ID) -> V + 'static>(ids: Vec<ID>, f: F) -> List<ID, F> {
+pub fn hlist<ID: Hash + Clone, V: View, F: Fn(&ID) -> V + Clone + 'static>(ids: Vec<ID>, f: F) -> List<ID, F> {
     List {
         orientation: ListOrientation::Horizontal,
         ids,
@@ -254,7 +256,7 @@ pub fn hlist<ID: Hash, V: View, F: Fn(&ID) -> V + 'static>(ids: Vec<ID>, f: F) -
     }
 }
 
-pub fn zlist<ID: Hash, V: View, F: Fn(&ID) -> V + 'static>(ids: Vec<ID>, f: F) -> List<ID, F> {
+pub fn zlist<ID: Hash + Clone, V: View, F: Fn(&ID) -> V + Clone + 'static>(ids: Vec<ID>, f: F) -> List<ID, F> {
     List {
         orientation: ListOrientation::Z,
         ids,

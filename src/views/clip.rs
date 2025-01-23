@@ -1,6 +1,7 @@
 use crate::*;
 use std::any::Any;
 
+#[derive(Clone)]
 pub struct Clip<V> {
     child: V,
 }
@@ -18,7 +19,7 @@ where
     }
 }
 
-impl<V> View for Clip<V>
+impl<V> DynView for Clip<V>
 where
     V: View,
 {

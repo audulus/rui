@@ -1,15 +1,16 @@
 use crate::*;
 use std::any::Any;
 
-pub trait HoverFn {
+pub trait HoverFn: Clone {
     fn call(&self, cx: &mut Context, pt: LocalPoint, inside: bool, actions: &mut Vec<Box<dyn Any>>);
 }
 
+#[derive(Clone)]
 pub struct HoverFuncP<F> {
     pub f: F,
 }
 
-impl<A: 'static, F: Fn(&mut Context, LocalPoint) -> A> HoverFn for HoverFuncP<F> {
+impl<A: 'static, F: Fn(&mut Context, LocalPoint) -> A + Clone + 'static> HoverFn for HoverFuncP<F> {
     fn call(
         &self,
         cx: &mut Context,
@@ -23,11 +24,12 @@ impl<A: 'static, F: Fn(&mut Context, LocalPoint) -> A> HoverFn for HoverFuncP<F>
     }
 }
 
+#[derive(Clone)]
 pub struct HoverFunc<F> {
     pub f: F,
 }
 
-impl<A: 'static, F: Fn(&mut Context, bool) -> A> HoverFn for HoverFunc<F> {
+impl<A: 'static, F: Fn(&mut Context, bool) -> A + Clone + 'static> HoverFn for HoverFunc<F> {
     fn call(
         &self,
         cx: &mut Context,
@@ -40,6 +42,7 @@ impl<A: 'static, F: Fn(&mut Context, bool) -> A> HoverFn for HoverFunc<F> {
 }
 
 /// Struct for the `hover` and 'hover_p` gestures.
+#[derive(Clone)]
 pub struct Hover<V, F> {
     child: V,
     func: F,
@@ -55,7 +58,7 @@ where
     }
 }
 
-impl<V, F> View for Hover<V, F>
+impl<V, F> DynView for Hover<V, F>
 where
     V: View,
     F: HoverFn + 'static,

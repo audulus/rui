@@ -9,10 +9,21 @@ pub struct Handle<V, F, A, A2> {
     phantom_action2: std::marker::PhantomData<A2>,
 }
 
+// Perhaps explicit Clone impl will get around A and A2 needing to be clone?
+impl<V, F, A, A2> Clone for Handle<V, F, A, A2>
+where
+    V: View + Clone,
+    F: Fn(&mut Context, &A) -> A2 + Clone + 'static,
+{
+    fn clone(&self) -> Self {
+        Handle::new(self.child.clone(), self.func.clone())
+    }
+}
+
 impl<V, F, A, A2> Handle<V, F, A, A2>
 where
     V: View,
-    F: Fn(&mut Context, &A) -> A2 + 'static,
+    F: Fn(&mut Context, &A) -> A2 + Clone + 'static,
 {
     pub fn new(v: V, f: F) -> Self {
         Self {
@@ -24,10 +35,10 @@ where
     }
 }
 
-impl<V, F, A, A2> View for Handle<V, F, A, A2>
+impl<V, F, A, A2> DynView for Handle<V, F, A, A2>
 where
     V: View,
-    F: Fn(&mut Context, &A) -> A2 + 'static,
+    F: Fn(&mut Context, &A) -> A2 + Clone + 'static,
     A: 'static,
     A2: 'static,
 {

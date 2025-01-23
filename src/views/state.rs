@@ -42,17 +42,17 @@ impl<S: 'static> Binding<S> for StateHandle<S> {
 }
 
 #[derive(Clone)]
-struct StateView<D, F> {
+pub struct StateView<D, F> {
     default: D,
     func: F,
 }
 
-impl<S, V, D, F> View for StateView<D, F>
+impl<S, V, D, F> DynView for StateView<D, F>
 where
     V: View,
     S: 'static,
-    D: Fn() -> S + 'static,
-    F: Fn(StateHandle<S>, &Context) -> V + 'static,
+    D: Fn() -> S + Clone + 'static,
+    F: Fn(StateHandle<S>, &Context) -> V + Clone + 'static,
 {
     fn process(
         &self,
@@ -205,12 +205,12 @@ impl<S, F> private::Sealed for StateView<S, F> {}
 pub fn state<
     S: 'static,
     V: View,
-    D: Fn() -> S + 'static,
-    F: Fn(StateHandle<S>, &Context) -> V + 'static,
+    D: Fn() -> S + Clone + 'static,
+    F: Fn(StateHandle<S>, &Context) -> V + Clone + 'static,
 >(
     initial: D,
     f: F,
-) -> impl View {
+) -> StateView<D, F> {
     StateView {
         default: initial,
         func: f,
@@ -218,11 +218,11 @@ pub fn state<
 }
 
 /// Convenience to get the context.
-pub fn with_cx<V: View, F: Fn(&Context) -> V + 'static>(f: F) -> impl View {
+pub fn with_cx<V: View, F: Fn(&Context) -> V + Clone + 'static>(f: F) -> impl View {
     state(|| (), move |_, cx| f(cx))
 }
 
 /// Convenience to retreive a reference to a value in the context.
-pub fn with_ref<V: View, F: Fn(&T) -> V + 'static, T>(binding: impl Binding<T>, f: F) -> impl View {
+pub fn with_ref<V: View, F: Fn(&T) -> V + Clone + 'static, T>(binding: impl Binding<T>, f: F) -> impl View {
     with_cx(move |cx| f(binding.get(cx)))
 }

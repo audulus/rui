@@ -9,7 +9,7 @@ pub enum GestureState {
     Ended,
 }
 
-pub trait DragFn {
+pub trait DragFn: Clone {
     fn call(
         &self,
         cx: &mut Context,
@@ -21,11 +21,12 @@ pub trait DragFn {
     );
 }
 
+#[derive(Clone)]
 pub struct DragFunc<F> {
     pub f: F,
 }
 
-impl<A: 'static, F: Fn(&mut Context, LocalOffset, GestureState, Option<MouseButton>) -> A> DragFn
+impl<A: 'static, F: Fn(&mut Context, LocalOffset, GestureState, Option<MouseButton>) -> A + Clone> DragFn
     for DragFunc<F>
 {
     fn call(
@@ -41,11 +42,12 @@ impl<A: 'static, F: Fn(&mut Context, LocalOffset, GestureState, Option<MouseButt
     }
 }
 
+#[derive(Clone)]
 pub struct DragFuncP<F> {
     pub f: F,
 }
 
-impl<A: 'static, F: Fn(&mut Context, LocalPoint, GestureState, Option<MouseButton>) -> A> DragFn
+impl<A: 'static, F: Fn(&mut Context, LocalPoint, GestureState, Option<MouseButton>) -> A + Clone> DragFn
     for DragFuncP<F>
 {
     fn call(
@@ -61,6 +63,7 @@ impl<A: 'static, F: Fn(&mut Context, LocalPoint, GestureState, Option<MouseButto
     }
 }
 
+#[derive(Clone)]
 pub struct DragFuncS<F, B, T> {
     pub f: F,
     pub b: B,
@@ -68,10 +71,10 @@ pub struct DragFuncS<F, B, T> {
 }
 
 impl<
-        F: Fn(&mut T, LocalOffset, GestureState, Option<MouseButton>) -> A + 'static,
+        F: Fn(&mut T, LocalOffset, GestureState, Option<MouseButton>) -> A + Clone + 'static,
         B: Binding<T>,
         A: 'static,
-        T: 'static,
+        T: Clone + 'static,
     > DragFn for DragFuncS<F, B, T>
 {
     fn call(
@@ -88,6 +91,7 @@ impl<
 }
 
 /// Struct for the `drag` and `drag_p` gestures.
+#[derive(Clone)]
 pub struct Drag<V, F> {
     child: V,
     func: F,
@@ -116,7 +120,7 @@ where
     }
 }
 
-impl<V, F> View for Drag<V, F>
+impl<V, F> DynView for Drag<V, F>
 where
     V: View,
     F: DragFn + 'static,

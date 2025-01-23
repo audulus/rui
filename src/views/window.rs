@@ -2,6 +2,7 @@ use crate::*;
 use std::any::Any;
 
 /// Struct for the `window_title` modifier.
+#[derive(Clone)]
 pub struct TitleView<V> {
     child: V,
     title: String,
@@ -19,7 +20,7 @@ where
     }
 }
 
-impl<V> View for TitleView<V>
+impl<V> DynView for TitleView<V>
 where
     V: View,
 {
@@ -93,6 +94,7 @@ where
 impl<V> private::Sealed for TitleView<V> {}
 
 /// Struct for the `fullscreen` modifier.
+#[derive(Clone)]
 pub struct FullscreenView<V> {
     child: V,
 }
@@ -106,7 +108,7 @@ where
     }
 }
 
-impl<V> View for FullscreenView<V>
+impl<V> DynView for FullscreenView<V>
 where
     V: View,
 {

@@ -20,7 +20,7 @@ impl Circle {
     }
 }
 
-impl View for Circle {
+impl DynView for Circle {
     fn draw(&self, path: &mut IdPath, args: &mut DrawArgs) {
         let (center, radius) = self.geom(path, args.cx);
 
@@ -93,7 +93,7 @@ impl Rectangle {
     }
 }
 
-impl View for Rectangle {
+impl DynView for Rectangle {
     fn draw(&self, path: &mut IdPath, args: &mut DrawArgs) {
         let rect = self.geom(path, args.cx);
 

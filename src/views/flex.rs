@@ -2,11 +2,12 @@ use crate::*;
 use std::any::Any;
 
 /// Struct for the `flex` modifier.
+#[derive(Clone)]
 pub struct Flex<V> {
     child: V,
 }
 
-impl<V> View for Flex<V>
+impl<V> DynView for Flex<V>
 where
     V: View,
 {

@@ -5,9 +5,12 @@ use std::any::TypeId;
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 
+dyn_clone::clone_trait_object!(DynView);
+
 /// Struct for `any_view`
+#[derive(Clone)]
 pub struct AnyView {
-    child: Box<dyn View>,
+    child: Box<dyn DynView>,
 }
 
 impl AnyView {
@@ -28,7 +31,7 @@ impl AnyView {
     }
 }
 
-impl View for AnyView {
+impl DynView for AnyView {
     fn tid(&self) -> TypeId {
         self.child.tid()
     }
@@ -112,7 +115,7 @@ mod tests {
 
     #[test]
     fn test_typeid() {
-        let b: Box<dyn View> = Box::new(EmptyView {});
+        let b: Box<dyn DynView> = Box::new(EmptyView {});
         let tid = b.tid();
         println!("{:?}", tid);
         assert_eq!(tid, TypeId::of::<EmptyView>());

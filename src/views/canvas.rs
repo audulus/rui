@@ -6,9 +6,9 @@ pub struct Canvas<F> {
     func: F,
 }
 
-impl<F> View for Canvas<F>
+impl<F> DynView for Canvas<F>
 where
-    F: Fn(&mut Context, LocalRect, &mut Vger) + 'static,
+    F: Fn(&mut Context, LocalRect, &mut Vger) + Clone + 'static,
 {
     fn draw(&self, path: &mut IdPath, args: &mut DrawArgs) {
         let rect = args.cx.get_layout(path).rect;
@@ -45,7 +45,7 @@ where
 }
 
 /// Canvas for GPU drawing with Vger. See https://github.com/audulus/vger-rs.
-pub fn canvas<F: Fn(&mut Context, LocalRect, &mut Vger) + 'static>(f: F) -> impl View {
+pub fn canvas<F: Fn(&mut Context, LocalRect, &mut Vger) + Clone + 'static>(f: F) -> Canvas<F> {
     Canvas { func: f }
 }
 

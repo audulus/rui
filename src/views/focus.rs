@@ -2,14 +2,15 @@ use crate::*;
 use std::any::Any;
 
 /// Struct for the `focus` modifier.
+#[derive(Clone)]
 pub struct Focus<F> {
     func: F,
 }
 
-impl<V, F> View for Focus<F>
+impl<V, F> DynView for Focus<F>
 where
     V: View,
-    F: Fn(bool) -> V + 'static,
+    F: Fn(bool) -> V + Clone + 'static,
 {
     fn process(
         &self,
@@ -101,6 +102,6 @@ impl<F> private::Sealed for Focus<F> {}
 
 /// Calls calls a function with true if the view subtree returned
 /// by the function has the keyboard focus.
-pub fn focus<V: View, F: Fn(bool) -> V + 'static>(f: F) -> impl View {
+pub fn focus<V: View, F: Fn(bool) -> V + Clone + 'static>(f: F) -> impl View {
     Focus { func: f }
 }

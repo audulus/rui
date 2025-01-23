@@ -3,6 +3,7 @@ use accesskit::Role;
 use std::any::Any;
 
 /// Struct for the `role` modifier.
+#[derive(Clone)]
 pub struct RoleView<V> {
     child: V,
     role: Role,
@@ -17,7 +18,7 @@ where
     }
 }
 
-impl<V> View for RoleView<V>
+impl<V> DynView for RoleView<V>
 where
     V: View,
 {
