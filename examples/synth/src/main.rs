@@ -36,6 +36,6 @@ fn main() {
             synth.release_source(source_id);
         })
         .show()
-        // .size([400.0, 200.0])
+        .size([400.0, 200.0])
         .run();
 }

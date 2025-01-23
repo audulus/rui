@@ -16,7 +16,8 @@ impl Default for MyState {
 trait MyMod: View + Sized {
     fn my_modifier(self) -> impl View {
         state(MyState::default, move |s, cx| {
-            self.clone().offset(LocalOffset::new(0.0, cx[s].offset))
+            self.clone()
+                .offset(LocalOffset::new(0.0, cx[s].offset))
                 .anim(move |cx, _| {
                     cx[s].offset *= 0.9;
                 })

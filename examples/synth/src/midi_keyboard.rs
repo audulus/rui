@@ -256,7 +256,7 @@ impl MidiKeyboard {
                     let mut hovered_key_idx: Option<usize> = None;
 
                     // Calculate hovered key
-                    if let Some(hover_pos) = cx.mouse_position {
+                    if let Some(hover_pos) = cx[s].hover_pos {
                         // First check black keys (they're on top)
                         for key_pos in 0..cx[s].num_keys {
                             if Self::is_black_key(key_pos) {
@@ -342,16 +342,46 @@ impl MidiKeyboard {
                         }
                     }
 
-                    // Handle mouse click and key release logic
-                    if cx.mouse_buttons.left {
-                        if let Some(idx) = hovered_key_idx {
-                            cx[s].keys[idx].held = Some(Instant::now());
-                            cx[s].on_note_begin.lock().unwrap().run(cx[s].keys[idx].id);
+                    if let Some(idx) = hovered_key_idx {
+                        cx[s].hovered_key_idx = Some(idx);
+                    }
+                })
+                .hover_p(move |cx, pos| {
+                    cx[s].hover_pos = Some(pos);
+                })
+                .hover(move |cx, hover| {
+                    if hover {
+                        // Hack for now to re-render when the mouse moves.
+                        cx[s].re_render += 1;
+                        cx[s].re_render = cx[s].re_render % u32::MAX;
+                    } else {
+                        cx[s].hover_pos = None;
+                    }
+                })
+                .drag(move |cx, _, gesture_state, mouse_button| {
+                    if mouse_button == Some(MouseButton::Left) {
+                        match gesture_state {
+                            GestureState::Began => {
+                                cx[s].dragging = true;
+                                println!("Dragging started");
+                            }
+                            GestureState::Changed => {
+                                // Handle mouse drag or click
+                                if let Some(idx) = cx[s].hovered_key_idx {
+                                    cx[s].keys[idx].held = Some(Instant::now());
+                                    cx[s].on_note_begin.lock().unwrap().run(cx[s].keys[idx].id);
+                                }
+                            }
+                            GestureState::Ended => {
+                                cx[s].dragging = false;
+                            }
+                            _ => {}
                         }
                     }
-
+                })
+                .anim(move |cx, _| {
                     // Handle mouse release
-                    if !cx.mouse_buttons.left {
+                    if !cx[s].dragging {
                         let keys_to_release: Vec<usize> = cx[s]
                             .keys
                             .iter()
@@ -371,14 +401,6 @@ impl MidiKeyboard {
                             cx[s].keys[idx].held = None;
                             cx[s].on_note_end.lock().unwrap().run(cx[s].keys[idx].id);
                         }
-                    }
-                })
-                .hover(move |cx, hover| {
-                    // Hack for now to re-render when the mouse moves.
-                    if hover {
-                        cx[s].re_render += 1;
-                        cx[s].re_render = cx[s].re_render % u32::MAX;
-                        println!("re_render: {}", cx[s].re_render);
                     }
                 })
             },
@@ -422,6 +444,12 @@ struct MidiKeyboardState {
     /// Trigger a re-render when the state changes
     /// This is necessary to update the visual state of the keyboard
     re_render: u32,
+    /// Is the user dragging the mouse
+    dragging: bool,
+    /// Hover position
+    hover_pos: Option<LocalPoint>,
+    /// Hovered key index
+    hovered_key_idx: Option<usize>,
 }
 
 impl MidiKeyboardState {
@@ -449,6 +477,9 @@ impl MidiKeyboardState {
             on_note_begin: config.on_note_begin.clone(),
             on_note_end: config.on_note_end.clone(),
             re_render: 0,
+            dragging: false,
+            hover_pos: None,
+            hovered_key_idx: None,
         }
     }
 
