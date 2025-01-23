@@ -9,11 +9,11 @@ use rui::*;
 /// Represents the state of the clear button functionality.
 /// Used to toggle between Clear (C) and All Clear (AC) modes.
 #[derive(PartialEq, Clone, Copy)]
-enum ClearState {
-    /// Initial state - displays "C"
-    Initial,
-    /// State after clearing - displays "AC"
-    JustCleared,
+enum ClearMode {
+    /// Initial state - displays "C", only clears current input
+    OnlyInput,
+    /// State after clearing - displays "AC", resets all calculator state
+    FullReset,
 }
 
 /// Represents the basic arithmetic operations supported by the calculator.
@@ -362,7 +362,7 @@ impl Calculator {
                             },
                             Button::Special(action) => match action {
                                 SpecialOperator::Clear => {
-                                    if cx[s].clear_state == ClearState::JustCleared {
+                                    if cx[s].clear_mode == ClearMode::FullReset {
                                         "AC".to_string()
                                     } else {
                                         "C".to_string()
@@ -404,7 +404,7 @@ pub struct CalculatorState {
     /// The last operator used (for repeat calculations)
     last_operator: Option<Operator>,
     /// Current state of the clear button (C/AC)
-    clear_state: ClearState,
+    clear_mode: ClearMode,
 }
 
 impl CalculatorState {
@@ -417,7 +417,7 @@ impl CalculatorState {
             has_error: false,
             is_result_displayed: false,
             last_operator: None,
-            clear_state: ClearState::Initial,
+            clear_mode: ClearMode::OnlyInput,
         }
     }
 
@@ -435,13 +435,7 @@ impl CalculatorState {
             Some(Operator::Add) => first_operand + second_operand,
             Some(Operator::Subtract) => first_operand - second_operand,
             Some(Operator::Multiply) => first_operand * second_operand,
-            Some(Operator::Divide) => {
-                if second_operand == 0.0 {
-                    self.has_error = true;
-                    return; // Early return on division by zero
-                }
-                first_operand / second_operand
-            }
+            Some(Operator::Divide) => first_operand / second_operand,
             None => return, // Handle the case where no operator is set
         };
 
@@ -511,7 +505,7 @@ impl CalculatorState {
         self.is_input_new = true;
         self.has_error = false;
         self.is_result_displayed = false;
-        self.clear_state = ClearState::Initial;
+        self.clear_mode = ClearMode::OnlyInput;
     }
 
     /// Processes button presses and updates calculator state accordingly.
@@ -523,10 +517,10 @@ impl CalculatorState {
             | Button::Special(SpecialOperator::Percentage)
             | Button::Special(SpecialOperator::Equals)
             | Button::Special(SpecialOperator::Decimal) => {
-                if self.clear_state == ClearState::JustCleared {
+                if self.clear_mode == ClearMode::FullReset {
                     self.reset();
                 } else {
-                    self.clear_state = ClearState::Initial;
+                    self.clear_mode = ClearMode::OnlyInput;
                 }
 
                 match button {
@@ -558,16 +552,20 @@ impl CalculatorState {
                 }
             }
             Button::Special(SpecialOperator::Clear) => {
-                if self.second_operand == "0"
-                    && self.first_operand == "0"
-                    && self.current_operator.is_none()
+                if self.second_operand != "0"
+                    || self.current_operator.is_some()
+                    || self.is_result_displayed
                 {
-                    self.reset();
-                    self.clear_state = ClearState::JustCleared;
-                } else {
+                    // If there's any ongoing state, first clear the current input
                     self.second_operand = "0".to_string();
+                    self.current_operator = None;
                     self.is_input_new = true;
-                    self.clear_state = ClearState::Initial;
+                    self.is_result_displayed = false;
+                    self.clear_mode = ClearMode::FullReset;
+                } else {
+                    // If already cleared, perform a full reset
+                    self.reset();
+                    self.clear_mode = ClearMode::OnlyInput;
                 }
             }
         }
