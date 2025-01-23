@@ -349,22 +349,35 @@ impl MidiKeyboard {
                         }
                     }
 
-                    let keys_to_release: Vec<usize> = cx[s]
-                        .keys
-                        .iter()
-                        .enumerate()
-                        .filter_map(|(idx, key)| {
-                            if key.held.is_some() && hovered_key_idx != Some(idx) {
-                                Some(idx)
-                            } else {
-                                None
-                            }
-                        })
-                        .collect();
+                    // Handle mouse release
+                    if !cx.mouse_buttons.left {
+                        let keys_to_release: Vec<usize> = cx[s]
+                            .keys
+                            .iter()
+                            .enumerate()
+                            .filter_map(
+                                |(idx, key)| {
+                                    if key.held.is_some() {
+                                        Some(idx)
+                                    } else {
+                                        None
+                                    }
+                                },
+                            )
+                            .collect();
 
-                    for idx in keys_to_release {
-                        cx[s].keys[idx].held = None;
-                        cx[s].on_note_end.lock().unwrap().run(cx[s].keys[idx].id);
+                        for idx in keys_to_release {
+                            cx[s].keys[idx].held = None;
+                            cx[s].on_note_end.lock().unwrap().run(cx[s].keys[idx].id);
+                        }
+                    }
+                })
+                .hover(move |cx, hover| {
+                    // Hack for now to re-render when the mouse moves.
+                    if hover {
+                        cx[s].re_render += 1;
+                        cx[s].re_render = cx[s].re_render % u32::MAX;
+                        println!("re_render: {}", cx[s].re_render);
                     }
                 })
             },
@@ -405,6 +418,9 @@ struct MidiKeyboardState {
     on_note_begin: Arc<Mutex<MidiCallback>>,
     /// Callback for note end events
     on_note_end: Arc<Mutex<MidiCallback>>,
+    /// Trigger a re-render when the state changes
+    /// This is necessary to update the visual state of the keyboard
+    re_render: u32,
 }
 
 impl MidiKeyboardState {
@@ -431,6 +447,7 @@ impl MidiKeyboardState {
             num_white_keys,
             on_note_begin: config.on_note_begin.clone(),
             on_note_end: config.on_note_end.clone(),
+            re_render: 0,
         }
     }
 
