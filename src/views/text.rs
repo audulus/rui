@@ -3,6 +3,7 @@ use crate::*;
 pub trait TextModifiers: View + Sized {
     fn font_size(self, size: u32) -> Text;
     fn color(self, color: Color) -> Text;
+    fn max_width(self, max_width: f32) -> Text;
 }
 
 /// Struct for `text`.
@@ -11,6 +12,7 @@ pub struct Text {
     text: String,
     size: u32,
     color: Color,
+    max_width: Option<f32>,
 }
 
 impl Text {
@@ -20,6 +22,7 @@ impl Text {
             text: self.text,
             size: self.size,
             color,
+            max_width: self.max_width,
         }
     }
 }
@@ -27,11 +30,13 @@ impl Text {
 impl DynView for Text {
     fn draw(&self, _path: &mut IdPath, args: &mut DrawArgs) {
         let vger = &mut args.vger;
-        let origin = vger.text_bounds(self.text.as_str(), self.size, None).origin;
+        let origin = vger
+            .text_bounds(self.text.as_str(), self.size, self.max_width)
+            .origin;
 
         vger.save();
         vger.translate([-origin.x, -origin.y]);
-        vger.text(self.text.as_str(), self.size, self.color, None);
+        vger.text(self.text.as_str(), self.size, self.color, self.max_width);
         vger.restore();
     }
     fn layout(&self, _path: &mut IdPath, args: &mut LayoutArgs) -> LocalSize {
@@ -61,6 +66,7 @@ impl TextModifiers for Text {
             text: self.text,
             color: self.color,
             size,
+            max_width: self.max_width,
         }
     }
     fn color(self, color: Color) -> Text {
@@ -68,6 +74,15 @@ impl TextModifiers for Text {
             text: self.text,
             size: self.size,
             color,
+            max_width: self.max_width,
+        }
+    }
+    fn max_width(self, max_width: f32) -> Text {
+        Text {
+            text: self.text,
+            size: self.size,
+            color: self.color,
+            max_width: Some(max_width),
         }
     }
 }
@@ -80,6 +95,7 @@ pub fn text(name: &str) -> Text {
         text: String::from(name),
         size: Text::DEFAULT_SIZE,
         color: TEXT_COLOR,
+        max_width: None,
     }
 }
 
@@ -122,6 +138,7 @@ macro_rules! impl_text {
                     text: format!("{}", self),
                     size,
                     color: TEXT_COLOR,
+                    max_width: None,
                 }
             }
             fn color(self, color: Color) -> Text {
@@ -129,6 +146,16 @@ macro_rules! impl_text {
                     text: format!("{}", self),
                     size: Text::DEFAULT_SIZE,
                     color,
+                    max_width: None,
+                }
+            }
+
+            fn max_width(self, max_width: f32) -> Text {
+                Text {
+                    text: format!("{}", self),
+                    size: Text::DEFAULT_SIZE,
+                    color: TEXT_COLOR,
+                    max_width: Some(max_width),
                 }
             }
         }
@@ -185,6 +212,7 @@ impl TextModifiers for &'static str
             text: format!("{}", self),
             size,
             color: TEXT_COLOR,
+            max_width: None,
         }
     }
     fn color(self, color: Color) -> Text {
@@ -192,6 +220,15 @@ impl TextModifiers for &'static str
             text: format!("{}", self),
             size: Text::DEFAULT_SIZE,
             color,
+            max_width: None,
+        }
+    }
+    fn max_width(self, max_width: f32) -> Text {
+        Text {
+            text: format!("{}", self),
+            size: Text::DEFAULT_SIZE,
+            color: TEXT_COLOR,
+            max_width: Some(max_width),
         }
     }
 }

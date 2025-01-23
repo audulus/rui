@@ -1,0 +1,11 @@
+[package]
+name = "synth"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+rui = { workspace = true }
+palette = "0.7.6"
+enterpolation = "0.2"
+rodio = { version = "0.20.1", default-features = false, features = ["symphonia-all"] }

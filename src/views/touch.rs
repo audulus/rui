@@ -1,86 +1,91 @@
 use crate::*;
 use std::any::Any;
 
-pub struct TapInfo {
+pub enum TouchState {
+    Begin,
+    End,
+}
+
+pub struct TouchInfo {
     pub pt: LocalPoint,
     pub button: Option<MouseButton>,
     pub state: TouchState,
 }
 
-pub trait TapFn: Clone {
-    fn call(&self, cx: &mut Context, tap_info: TapInfo, actions: &mut Vec<Box<dyn Any>>);
+pub trait TouchFn: Clone {
+    fn call(&self, cx: &mut Context, touch_info: TouchInfo, actions: &mut Vec<Box<dyn Any>>);
 }
 
 #[derive(Clone)]
-pub struct TapFunc<F> {
+pub struct TouchFunc<F> {
     pub f: F,
 }
 
-impl<A: 'static, F: Fn(&mut Context, TapInfo) -> A + Clone + 'static> TapFn for TapFunc<F> {
-    fn call(&self, cx: &mut Context, tap_info: TapInfo, actions: &mut Vec<Box<dyn Any>>) {
-        actions.push(Box::new((self.f)(cx, tap_info)))
+impl<A: 'static, F: Fn(&mut Context, TouchInfo) -> A + Clone> TouchFn for TouchFunc<F> {
+    fn call(&self, cx: &mut Context, touch_info: TouchInfo, actions: &mut Vec<Box<dyn Any>>) {
+        actions.push(Box::new((self.f)(cx, touch_info)))
     }
 }
 
 #[derive(Clone)]
-pub struct TapPositionFunc<F> {
+pub struct TouchPositionFunc<F> {
     pub f: F,
 }
 
-impl<A: 'static, F: Fn(&mut Context, LocalPoint, Option<MouseButton>) -> A + Clone + 'static> TapFn
-    for TapPositionFunc<F>
+impl<A: 'static, F: Fn(&mut Context, LocalPoint, Option<MouseButton>) -> A + Clone> TouchFn
+    for TouchPositionFunc<F>
 {
-    fn call(&self, cx: &mut Context, tap_info: TapInfo, actions: &mut Vec<Box<dyn Any>>) {
-        actions.push(Box::new((self.f)(cx, tap_info.pt, tap_info.button)))
+    fn call(&self, cx: &mut Context, touch_info: TouchInfo, actions: &mut Vec<Box<dyn Any>>) {
+        actions.push(Box::new((self.f)(cx, touch_info.pt, touch_info.button)))
     }
 }
 
 #[derive(Clone)]
-pub struct TapAdapter<F> {
+pub struct TouchAdapter<F> {
     pub f: F,
 }
 
-impl<A: 'static, F: Fn(&mut Context) -> A + Clone + 'static> TapFn for TapAdapter<F> {
-    fn call(&self, cx: &mut Context, _tap_info: TapInfo, actions: &mut Vec<Box<dyn Any>>) {
+impl<A: 'static, F: Fn(&mut Context) -> A + Clone> TouchFn for TouchAdapter<F> {
+    fn call(&self, cx: &mut Context, _touch_info: TouchInfo, actions: &mut Vec<Box<dyn Any>>) {
         actions.push(Box::new((self.f)(cx)))
     }
 }
 
 #[derive(Clone)]
-pub struct TapActionAdapter<A> {
+pub struct TouchActionAdapter<A> {
     pub action: A,
 }
 
-impl<A: Clone + 'static> TapFn for TapActionAdapter<A> {
-    fn call(&self, _cx: &mut Context, _tap_info: TapInfo, actions: &mut Vec<Box<dyn Any>>) {
+impl<A: Clone + 'static> TouchFn for TouchActionAdapter<A> {
+    fn call(&self, _cx: &mut Context, _touch_info: TouchInfo, actions: &mut Vec<Box<dyn Any>>) {
         actions.push(Box::new(self.action.clone()))
     }
 }
 
-/// Struct for the `tap` gesture.
+/// Struct for the `touch` gesture.
 #[derive(Clone)]
-pub struct Tap<V, F> {
+pub struct Touch<V: View, F> {
     /// Child view tree.
     child: V,
 
-    /// Called when a tap occurs.
+    /// Called when a touch occurs.
     func: F,
 }
 
-impl<V, F> Tap<V, F>
+impl<V, F> Touch<V, F>
 where
     V: View,
-    F: TapFn + 'static,
+    F: TouchFn + 'static,
 {
     pub fn new(v: V, f: F) -> Self {
         Self { child: v, func: f }
     }
 }
 
-impl<V, F> DynView for Tap<V, F>
+impl<V, F> DynView for Touch<V, F>
 where
     V: View,
-    F: TapFn + 'static,
+    F: TouchFn + 'static,
 {
     fn process(
         &self,
@@ -94,6 +99,15 @@ where
             Event::TouchBegin { id, position } => {
                 if self.hittest(path, *position, cx).is_some() {
                     cx.touches[*id] = vid;
+                    self.func.call(
+                        cx,
+                        TouchInfo {
+                            pt: *position,
+                            button: cx.mouse_button,
+                            state: TouchState::Begin,
+                        },
+                        actions,
+                    )
                 }
             }
             Event::TouchEnd { id, position } => {
@@ -101,7 +115,7 @@ where
                     cx.touches[*id] = ViewId::default();
                     self.func.call(
                         cx,
-                        TapInfo {
+                        TouchInfo {
                             pt: *position,
                             button: cx.mouse_button,
                             state: TouchState::End,
@@ -159,4 +173,4 @@ where
     }
 }
 
-impl<V, F> private::Sealed for Tap<V, F> {}
+impl<V, F> private::Sealed for Touch<V, F> where V: View {}

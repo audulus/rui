@@ -25,6 +25,11 @@ pub enum Event {
         position: LocalPoint,
     },
 
+    // /// Mouse Move.
+    // MouseMove {
+    //     position: LocalPoint,
+    //     delta: LocalOffset,
+    // },
     /// Menu command.
     Command(String),
 
@@ -48,11 +53,17 @@ impl Event {
     }
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
 pub enum MouseButton {
     Left,
     Right,
     Center,
+}
+#[derive(Copy, Clone, Debug, Default)]
+pub struct MouseButtons {
+    pub left: bool,
+    pub right: bool,
+    pub middle: bool,
 }
 
 #[derive(Copy, Clone, Debug, Default)]

@@ -31,7 +31,7 @@ pub fn button<A: 'static, F: Fn(&mut Context) -> A + 'static + Clone>(
                             BUTTON_BACKGROUND_COLOR
                         }),
                 )
-                .tap_with_info(move |cx, info| match info.state {
+                .touch(move |cx, info| match info.state {
                     TouchState::Begin => {
                         cx[s].down = true;
                     }

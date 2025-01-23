@@ -1,0 +1,10 @@
+[package]
+name = "calculator"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+rui = { workspace = true }
+palette = "0.7.6"
+enterpolation = "0.2"

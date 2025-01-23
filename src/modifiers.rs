@@ -138,24 +138,34 @@ pub trait Modifiers: View + Sized {
         Tap::new(self, TapActionAdapter { action })
     }
 
-    /// Calls a function in response to a tap. Version which passes a tap info struct.
-    /// #### Why use this version?
-    /// * You need to know the position of the tap.
-    /// * You need to know the mouse button that was pressed.
-    /// * You need to handle the beginning and end of the tap.
-    fn tap_with_info<A: 'static, F: Fn(&mut Context, TapInfo) -> A + Clone + 'static>(
-        self,
-        f: F,
-    ) -> Tap<Self, TapFunc<F>> {
-        Tap::new_with_info(self, TapFunc { f })
-    }
-
     /// Version of `tap` which passes the tap position and mouse button.
     fn tap_p<A: 'static, F: Fn(&mut Context, LocalPoint, Option<MouseButton>) -> A + Clone + 'static>(
         self,
         f: F,
     ) -> Tap<Self, TapPositionFunc<F>> {
         Tap::new(self, TapPositionFunc { f })
+    }
+
+    /// Calls a function in response to a touch.
+    /// #### Why use this?
+    /// * You need to know the position of the touch.
+    /// * You need to handle the beginning and end of the touch.
+    ///
+    /// #### Example
+    /// ```rust
+    /// use rui::*;
+    /// rectangle()
+    ///     .touch(move |_, info| match info.state {
+    ///         TouchState::Begin => { println!("Touched") }
+    ///         TouchState::End => { println!("Released") }
+    ///     });
+    ///     //.run();
+    /// ```
+    fn touch<A: 'static, F: Fn(&mut Context, TouchInfo) -> A + Clone + 'static>(
+        self,
+        f: F,
+    ) -> Touch<Self, TouchFunc<F>> {
+        Touch::new(self, TouchFunc { f })
     }
 
     /// Specify the title of the window.
