@@ -142,6 +142,22 @@ fn main() {
 
 <img src="screenshots/slider.png" alt="slider screenshot" style="width:50%;">
 
+calculator:
+
+```
+cd examples/calculator && cargo run
+```
+
+<img src="screenshots/calculator.png" alt="calculator screenshot" style="width:50%;">
+
+synth:
+
+```
+cd examples/synth && cargo run
+```
+
+<img src="screenshots/synth.png" alt="synth screenshot" style="width:50%;">
+
 widget gallery:
 
 ```
