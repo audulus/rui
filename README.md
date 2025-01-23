@@ -21,7 +21,11 @@ rui is GPU rendered and updates reactively (when your state changes). The focus 
 
 ## Examples
 
-obligatory Counter (`cargo run --example counter`):
+obligatory Counter:
+
+```
+cargo run --example counter
+```
 
 ```rust
 use rui::*;
@@ -45,7 +49,11 @@ fn main() {
 
 <img src="screenshots/counter.png" alt="counter screenshot" style="width:50%;">
 
-some shapes (`cargo run --example shapes`):
+some shapes:
+
+```
+cargo run --example shapes
+```
 
 ```rust
 use rui::*;
@@ -66,7 +74,11 @@ fn main() {
 
 <img src="screenshots/shapes.png" alt="shapes screenshot" style="width:50%;">
 
-canvas for gpu drawing (`cargo run --example canvas`):
+canvas for gpu drawing:
+
+```
+cargo run --example canvas
+```
 
 ```rust
 use rui::*;
@@ -92,7 +104,11 @@ fn main() {
 
 <img src="screenshots/canvas.png" alt="canvas screenshot" style="width:50%;">
 
-`slider` with `map` (`cargo run --example slider`):
+`slider` with `map`:
+
+```
+cargo run --example slider
+```
 
 ```rust
 use rui::*;
@@ -126,7 +142,11 @@ fn main() {
 
 <img src="screenshots/slider.png" alt="slider screenshot" style="width:50%;">
 
-widget gallery (`cargo run --example gallery`):
+widget gallery:
+
+```
+cargo run --example gallery
+```
 
 <img src="screenshots/gallery.png" alt="widgets gallery screenshot" style="width:50%;">
 
