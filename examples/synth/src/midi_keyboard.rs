@@ -196,7 +196,8 @@ pub struct MidiNoteEvent {
 pub struct MidiKeyboardConfig {
     start_octave: MidiNoteId,
     num_keys: MidiNoteId,
-    max_simultaneous_keys: MidiNoteId,
+    max_simultaneous_keys: u8,
+    default_velocity: u8,
     note_begin_handler: Option<Arc<dyn Fn(MidiNoteEvent) + Send + Sync>>,
     note_end_handler: Option<Arc<dyn Fn(MidiNoteEvent) + Send + Sync>>,
 }
@@ -214,6 +215,7 @@ impl MidiKeyboardConfig {
             start_octave: 4,
             num_keys: 25,
             max_simultaneous_keys: 10,
+            default_velocity: 127,
             note_begin_handler: None,
             note_end_handler: None,
         }
@@ -281,6 +283,8 @@ struct MidiKeyboardState {
     last_interaction: Instant,
     keyboard_layout: Vec<(f32, f32, bool)>, // (x, width, is_black_key)
     mouse_position: Option<LocalPoint>,
+    mouse_dragging: bool,
+    hovered_key: Option<MidiNoteId>,
 }
 
 impl MidiKeyboardState {
@@ -293,6 +297,8 @@ impl MidiKeyboardState {
             last_interaction: Instant::now(),
             keyboard_layout,
             mouse_position: None,
+            mouse_dragging: false,
+            hovered_key: None,
         }
     }
 
@@ -333,7 +339,16 @@ impl MidiKeyboardState {
 
     fn press_key(&mut self, index: MidiNoteId, velocity: MidiNoteId) -> Result<(), &'static str> {
         if self.pressed_keys.len() as MidiNoteId >= self.config.max_simultaneous_keys {
-            return Err("Maximum simultaneous keys reached");
+            // Release the oldest key to make room for the new one
+            let oldest_key = self
+                .keys
+                .iter()
+                .enumerate()
+                .filter_map(|(idx, key)| key.map(|_| idx as MidiNoteId))
+                .min_by_key(|&idx| self.keys[idx as usize].unwrap().timestamp)
+                .unwrap();
+
+            let _ = self.release_key(oldest_key);
         }
 
         if self.pressed_keys.contains(&index) {
@@ -378,10 +393,29 @@ impl MidiKeyboardState {
         MidiNote::new(note_kind, octave)
     }
 
-    fn release_all_keys(&mut self) {
-        let current_pressed = self.pressed_keys.clone();
-        for index in current_pressed {
-            let _ = self.release_key(index);
+    fn release_not_pressed_keys(&mut self) {
+        let now = Instant::now();
+        let release_time = now - self.last_interaction;
+
+        let release_keys = self
+            .keys
+            .iter()
+            .enumerate()
+            .filter_map(|(idx, key)| {
+                if let Some(note_event) = key {
+                    if now - note_event.timestamp > release_time {
+                        Some(idx as MidiNoteId)
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
+            })
+            .collect::<Vec<_>>();
+
+        for key in release_keys {
+            let _ = self.release_key(key);
         }
     }
 }
@@ -487,21 +521,47 @@ impl MidiKeyboard {
                         }
                     }
 
-                    // Handle mouse interactions
-                    if cx.mouse_buttons.left {
-                        if let Some(idx) = hovered_key_idx {
-                            let _ = cx[s].press_key(idx, 100);
+                    cx[s].hovered_key = hovered_key_idx;
+                })
+                .drag(move |cx, offset, gesture_state, mouse_button| {
+                    match gesture_state {
+                        GestureState::Began => {
+                            if mouse_button == Some(MouseButton::Left) {
+                                cx[s].mouse_dragging = true;
+                            }
                         }
-                    } else {
-                        cx[s].release_all_keys();
+                        GestureState::Changed => {
+                            if cx[s].mouse_position.is_some() {
+                                cx[s].mouse_position = Some(cx[s].mouse_position.unwrap() + offset);
+                            }
+                        }
+                        GestureState::Ended => {
+                            cx[s].mouse_dragging = false;
+                        }
+                        #[allow(unreachable_patterns)]
+                        _ => (),
                     }
+
+                    // Update key states
+                    if let Some(hovered_key) = cx[s].hovered_key {
+                        if cx[s].mouse_dragging {
+                            if !cx[s].pressed_keys.contains(&hovered_key) {
+                                let default_velocity = cx[s].config.default_velocity;
+                                let _ = cx[s].press_key(hovered_key, default_velocity);
+                            }
+                        } else {
+                            if cx[s].pressed_keys.contains(&hovered_key) {
+                                let _ = cx[s].release_key(hovered_key);
+                            }
+                        }
+                    }
+                    cx[s].release_not_pressed_keys();
                 })
                 .hover_p(move |cx, hover_position| {
                     cx[s].mouse_position = Some(hover_position);
                 })
                 .hover(move |cx, is_hovering| {
                     if !is_hovering {
-                        cx[s].release_all_keys();
                         cx[s].mouse_position = None;
                     }
                 })
