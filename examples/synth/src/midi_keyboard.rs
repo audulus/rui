@@ -280,6 +280,7 @@ struct MidiKeyboardState {
     config: MidiKeyboardConfig,
     last_interaction: Instant,
     keyboard_layout: Vec<(f32, f32, bool)>, // (x, width, is_black_key)
+    redraw: u8,
 }
 
 impl MidiKeyboardState {
@@ -291,6 +292,7 @@ impl MidiKeyboardState {
             config,
             last_interaction: Instant::now(),
             keyboard_layout,
+            redraw: 0,
         }
     }
 
@@ -498,6 +500,9 @@ impl MidiKeyboard {
                     if !is_hovering {
                         cx[s].release_all_keys();
                     }
+
+                    cx[s].redraw += 1;
+                    cx[s].redraw = cx[s].redraw % u8::MAX;
                 })
             },
         )
