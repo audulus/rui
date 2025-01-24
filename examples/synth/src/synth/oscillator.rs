@@ -3,6 +3,8 @@
 use rodio::source::Source;
 use std::f32::consts::PI;
 
+use super::osc::AnalogOsc;
+
 const SAMPLE_RATE: u32 = 48000; // The sample rate of the audio in Hz.
 
 // The wave type of the oscillator
@@ -19,6 +21,7 @@ pub struct Oscillator {
     freq: f32,
     num_sample: usize, // The number of samples that have been played
     wave_type: WaveType,
+    osc: AnalogOsc,
 }
 
 // Allow dead code is used because main.rs doesn't use all of the wave types, just one of them
@@ -26,41 +29,61 @@ pub struct Oscillator {
 impl Oscillator {
     #[allow(dead_code)]
     pub fn sine_wave(freq: f32) -> Oscillator {
+
+        let mut osc = AnalogOsc::new();
+        osc.set_sample_rate(SAMPLE_RATE as usize);
+
         // Create a new sine wave oscillator
         Oscillator {
             freq,
             num_sample: 0,
             wave_type: WaveType::Sine,
+            osc
         }
     }
 
     #[allow(dead_code)]
     pub fn square_wave(freq: f32) -> Oscillator {
+
+        let mut osc = AnalogOsc::new();
+        osc.set_sample_rate(SAMPLE_RATE as usize);
+
         // Create a new square wave oscillator
         Oscillator {
             freq,
             num_sample: 0,
             wave_type: WaveType::Square,
+            osc
         }
     }
 
     #[allow(dead_code)]
     pub fn sawtooth_wave(freq: f32) -> Oscillator {
+
+        let mut osc = AnalogOsc::new();
+        osc.set_sample_rate(SAMPLE_RATE as usize);
+
         // Create a new sawtooth wave oscillator
         Oscillator {
             freq,
             num_sample: 0,
             wave_type: WaveType::Sawtooth,
+            osc
         }
     }
 
     #[allow(dead_code)]
     pub fn triangle_wave(freq: f32) -> Oscillator {
+
+        let mut osc = AnalogOsc::new();
+        osc.set_sample_rate(SAMPLE_RATE as usize);
+
         // Create a new triangle wave oscillator
         Oscillator {
             freq,
             num_sample: 0,
             wave_type: WaveType::Triangle,
+            osc
         }
     }
 }
@@ -77,10 +100,10 @@ impl Iterator for Oscillator {
         let value = 2.0 * PI * self.freq * t;
 
         match self.wave_type {
-            WaveType::Sine => Some(value.sin()),            // Sine wave
-            WaveType::Square => Some(value.sin().signum()), // Signing the sine wave locks it to 1 or -1, making it a square wave.
-            WaveType::Sawtooth => Some(2.0 * (t % (1.0 / self.freq)) * self.freq - 1.0), // Sawtooth wave using modulo.
-            WaveType::Triangle => Some(value.sin().asin()), // The arcsine of the sine wave makes it a triangle wave.
+            WaveType::Sine => Some(value.sin()),            // Sine wave, no anti-aliasing needed
+            WaveType::Square => Some(self.osc.tick_square(self.freq, 0.0, 0.0)),
+            WaveType::Sawtooth => Some(self.osc.tick_saw(self.freq, 0.0, 0.0)),
+            WaveType::Triangle => Some(value.sin().asin()), // The arcsine of the sine wave makes it a triangle wave. The MinBLEP AA method doesn't support triangle waves.
         }
     }
 }

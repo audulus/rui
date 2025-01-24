@@ -7,6 +7,9 @@ use rodio::Sink;
 mod oscillator;
 pub use oscillator::Oscillator;
 
+mod osc;
+use osc::AnalogOsc;
+
 // The envelope state struct
 struct EnvelopeState {
     envelope: Envelope,
