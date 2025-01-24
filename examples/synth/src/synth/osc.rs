@@ -113,6 +113,7 @@ impl AnalogOsc {
         output
     }
 
+    #[allow(dead_code)]
     pub fn process_saw(&mut self, pitch: &[f32], sync: &[f32], shape: &[f32], out: &mut [f32]) {
         let n = pitch.len();
         for i in 0..n {
@@ -185,6 +186,7 @@ impl AnalogOsc {
         output
     }
 
+    #[allow(dead_code)]
     pub fn process_square(&mut self, pitch: &[f32], sync: &[f32], shape: &[f32], out: &mut [f32]) {
         let n = pitch.len();
         for i in 0..n {
