@@ -611,6 +611,6 @@ impl MidiKeyboard {
         };
         let paint_index = vger.color_paint(color);
         let rect = LocalRect::new(LocalPoint::new(x, y), LocalSize::new(width, height));
-        vger.fill_rect(rect, 2.0, paint_index); // Add rounded corners
+        vger.fill_rect(rect, 0.1 * width, paint_index); // Add rounded corners
     }
 }
