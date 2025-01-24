@@ -1,39 +1,20 @@
 use core::f32;
+use std::collections::HashSet;
 use std::convert::TryFrom;
-use std::{
-    sync::{Arc, Mutex},
-    time::Instant,
-};
+use std::sync::Arc;
+use std::time::Instant;
 
 use rui::*;
 
 /// Type alias for MIDI note identifiers (0-127)
 pub type MidiNoteId = u8;
+
 /// Type alias for MIDI note frequencies in Hz
 pub type MidiFrequency = f32;
 
-/// Converts a MidiNote to its corresponding frequency in Hz
-/// Uses the standard MIDI frequency formula: f = 440 * 2^((n-69)/12)
-/// where n is the MIDI note number and 440Hz is A4 (concert pitch)
-impl TryFrom<MidiNote> for MidiFrequency {
-    type Error = ();
-
-    fn try_from(value: MidiNote) -> Result<Self, Self::Error> {
-        let note_freqs = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0];
-
-        let freq = 440.0
-            * f32::powf(
-                2.0,
-                (value.octave as f32 - 4.0) + note_freqs[value.note as usize] / 12.0,
-            );
-        Ok(freq)
-    }
-}
-
 /// Represents a MIDI note type (C, C#, D, etc.) without octave information
-/// These represent the 12 standard notes in Western music
 #[derive(Clone, Copy, Debug, PartialEq)]
-pub enum MidiNoteType {
+pub enum MidiNoteKind {
     C,
     CSharp,
     D,
@@ -48,155 +29,547 @@ pub enum MidiNoteType {
     B,
 }
 
-/// Represents a complete MIDI note combining note type and octave
-/// Standard MIDI uses octaves from 0-10, where middle C is in octave 4
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub struct MidiNote {
-    /// The type of note (C, C#, D, etc.)
-    pub note: MidiNoteType,
-    /// The octave number (0-10, where 4 contains middle C)
-    pub octave: u8,
+/// Extension methods for MIDI note conversion and manipulation
+#[allow(dead_code)]
+pub trait MidiNoteIdMethods {
+    /// Converts a MIDI note ID to a complete MIDI note with note type and octave
+    fn as_note(&self) -> MidiNote;
+
+    /// Extracts the note type from a MIDI note ID
+    fn as_note_kind(&self) -> MidiNoteKind;
+
+    /// Calculates the frequency in Hz for the given MIDI note ID
+    fn as_frequency(&self) -> MidiFrequency;
 }
 
-/// Converts a MidiNote to its corresponding MIDI note number (0-127)
-/// The conversion follows the standard MIDI specification where:
-/// - Middle C (C4) = 60
-/// - Each octave has 12 notes
-/// - Note numbers increase by 1 for each semitone
-impl TryFrom<MidiNote> for MidiNoteId {
-    type Error = ();
+impl MidiNoteIdMethods for MidiNoteId {
+    fn as_note(&self) -> MidiNote {
+        let note = MidiNoteKind::try_from(*self % 12).unwrap();
+        let octave = *self / 12;
+        MidiNote::new(note, octave)
+    }
 
-    fn try_from(value: MidiNote) -> Result<Self, Self::Error> {
-        let note: u8 = match value.note {
-            MidiNoteType::C => 0,
-            MidiNoteType::CSharp => 1,
-            MidiNoteType::D => 2,
-            MidiNoteType::DSharp => 3,
-            MidiNoteType::E => 4,
-            MidiNoteType::F => 5,
-            MidiNoteType::FSharp => 6,
-            MidiNoteType::G => 7,
-            MidiNoteType::GSharp => 8,
-            MidiNoteType::A => 9,
-            MidiNoteType::ASharp => 10,
-            MidiNoteType::B => 11,
-        };
+    fn as_note_kind(&self) -> MidiNoteKind {
+        self.as_note().note
+    }
 
-        let octave = value.octave as u8;
-        Ok(octave * 12 + note)
+    fn as_frequency(&self) -> MidiFrequency {
+        self.as_note().frequency()
     }
 }
 
-/// Converts a MIDI note number (0-11) to its corresponding note type
-/// This conversion handles the mapping between numbers and musical notes
-/// within a single octave
-impl TryFrom<MidiNoteId> for MidiNoteType {
+impl MidiNoteKind {
+    /// Converts the MIDI note type to its corresponding MIDI note identifier
+    pub fn to_midi_note_id(&self) -> MidiNoteId {
+        match self {
+            MidiNoteKind::C => 0,
+            MidiNoteKind::CSharp => 1,
+            MidiNoteKind::D => 2,
+            MidiNoteKind::DSharp => 3,
+            MidiNoteKind::E => 4,
+            MidiNoteKind::F => 5,
+            MidiNoteKind::FSharp => 6,
+            MidiNoteKind::G => 7,
+            MidiNoteKind::GSharp => 8,
+            MidiNoteKind::A => 9,
+            MidiNoteKind::ASharp => 10,
+            MidiNoteKind::B => 11,
+        }
+    }
+}
+
+impl TryFrom<MidiNoteId> for MidiNoteKind {
     type Error = ();
 
     fn try_from(value: MidiNoteId) -> Result<Self, Self::Error> {
-        match value {
-            0 => Ok(MidiNoteType::C),
-            1 => Ok(MidiNoteType::CSharp),
-            2 => Ok(MidiNoteType::D),
-            3 => Ok(MidiNoteType::DSharp),
-            4 => Ok(MidiNoteType::E),
-            5 => Ok(MidiNoteType::F),
-            6 => Ok(MidiNoteType::FSharp),
-            7 => Ok(MidiNoteType::G),
-            8 => Ok(MidiNoteType::GSharp),
-            9 => Ok(MidiNoteType::A),
-            10 => Ok(MidiNoteType::ASharp),
-            11 => Ok(MidiNoteType::B),
+        match value % 12 {
+            0 => Ok(MidiNoteKind::C),
+            1 => Ok(MidiNoteKind::CSharp),
+            2 => Ok(MidiNoteKind::D),
+            3 => Ok(MidiNoteKind::DSharp),
+            4 => Ok(MidiNoteKind::E),
+            5 => Ok(MidiNoteKind::F),
+            6 => Ok(MidiNoteKind::FSharp),
+            7 => Ok(MidiNoteKind::G),
+            8 => Ok(MidiNoteKind::GSharp),
+            9 => Ok(MidiNoteKind::A),
+            10 => Ok(MidiNoteKind::ASharp),
+            11 => Ok(MidiNoteKind::B),
             _ => Err(()),
         }
     }
 }
 
-/// Wrapper for callback functions that handle MIDI note events
-/// Provides a type-safe way to store and execute note event callbacks
-struct MidiCallback {
-    callback: Box<dyn Fn(MidiNote)>,
+/// Represents a complete MIDI note combining note type and octave
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct MidiNote {
+    /// The type of note (C, C#, D, etc.)
+    pub note: MidiNoteKind,
+    /// The octave number (0-10, where 4 contains middle C)
+    pub octave: u8,
 }
 
-impl MidiCallback {
-    /// Creates a new MidiCallback with the specified callback function
-    pub fn new(callback: impl Fn(MidiNote) + 'static) -> Self {
-        MidiCallback {
-            callback: Box::new(callback),
+impl MidiNote {
+    /// Creates a new MIDI note with the specified note type and octave
+    ///
+    /// # Arguments
+    /// * `note` - The type of note (C, C#, D, etc.)
+    /// * `octave` - The octave number (0-10)
+    ///
+    /// # Returns
+    /// A new MidiNote instance
+    pub fn new(note: MidiNoteKind, octave: u8) -> Self {
+        assert!(octave <= 10, "Octave must be between 0 and 10");
+
+        Self { note, octave }
+    }
+
+    /// Returns the MIDI note one octave lower
+    pub fn lower_octave(&self) -> Self {
+        Self {
+            note: self.note,
+            octave: self.octave.saturating_sub(1),
         }
     }
 
-    /// Executes the stored callback function with the given note
-    pub fn run(&self, note: MidiNote) {
-        (self.callback)(note);
+    /// Returns the MIDI note one octave higher
+    pub fn higher_octave(&self) -> Self {
+        Self {
+            note: self.note,
+            octave: (self.octave + 1).min(10),
+        }
+    }
+
+    /// Returns the MIDI note one semitone lower
+    pub fn lower_semitone(&self) -> Self {
+        match self.note {
+            MidiNoteKind::C => Self {
+                note: MidiNoteKind::B,
+                octave: self.octave.saturating_sub(1),
+            },
+            _ => Self {
+                note: MidiNoteKind::try_from(self.note as MidiNoteId - 1).unwrap(),
+                octave: self.octave,
+            },
+        }
+    }
+
+    /// Returns the MIDI note one semitone higher
+    pub fn higher_semitone(&self) -> Self {
+        match self.note {
+            MidiNoteKind::B => Self {
+                note: MidiNoteKind::C,
+                octave: (self.octave + 1).min(10),
+            },
+            _ => Self {
+                note: MidiNoteKind::try_from(self.note as MidiNoteId + 1).unwrap(),
+                octave: self.octave,
+            },
+        }
+    }
+
+    /// Calculates the audio frequency of the MIDI note in Hz
+    pub fn frequency(&self) -> MidiFrequency {
+        440.0 * f32::powf(2.0, (self.id() as f32 - 69.0) / 12.0)
+    }
+
+    /// Returns the MIDI note identifier (0-127)
+    pub fn id(&self) -> MidiNoteId {
+        let note_id = self.note.to_midi_note_id();
+        self.octave * 12 + note_id
     }
 }
 
-/// Configuration builder for the MIDI keyboard widget
-/// Allows customization of keyboard properties and event handlers
+/// MIDI note event with velocity and timestamp
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct MidiNoteEvent {
+    /// The MIDI note details
+    pub note: MidiNote,
+    /// Note velocity (0-127)
+    pub velocity: MidiNoteId,
+    /// Timestamp of the note event
+    pub timestamp: Instant,
+}
+
+/// Configuration builder for MIDI keyboard with advanced customization options
 #[derive(Clone)]
 pub struct MidiKeyboardConfig {
-    /// Number of keys on the keyboard (default: 25)
-    num_keys: usize,
-    /// Callback triggered when a note begins (from any source)
-    on_note_begin: Arc<Mutex<MidiCallback>>,
-    /// Callback triggered when a note ends (from any source)
-    on_note_end: Arc<Mutex<MidiCallback>>,
+    start_octave: MidiNoteId,
+    num_keys: MidiNoteId,
+    max_simultaneous_keys: u8,
+    default_velocity: u8,
+    note_begin_handler: Option<Arc<dyn Fn(MidiNoteEvent) + Send + Sync>>,
+    note_end_handler: Option<Arc<dyn Fn(MidiNoteEvent) + Send + Sync>>,
 }
 
 impl MidiKeyboardConfig {
-    /// Creates a new keyboard configuration with default settings
+    /// Creates a new MIDI keyboard configuration with default settings
+    ///
+    /// Default configuration:
+    /// - Start octave: 4 (middle C)
+    /// - Number of keys: 25
+    /// - Maximum simultaneous keys: 10
+    /// - No note begin/end handlers
     pub fn new() -> Self {
         Self {
+            start_octave: 4,
             num_keys: 25,
-            on_note_begin: Arc::new(Mutex::new(MidiCallback::new(|_| {}))),
-            on_note_end: Arc::new(Mutex::new(MidiCallback::new(|_| {}))),
+            max_simultaneous_keys: 10,
+            default_velocity: 127,
+            note_begin_handler: None,
+            note_end_handler: None,
         }
     }
 
-    /// Sets the number of keys on the keyboard
-    pub fn num_keys(mut self, num_keys: usize) -> Self {
-        self.num_keys = num_keys;
+    /// Sets the starting octave for the keyboard
+    ///
+    /// # Arguments
+    /// * `octave` - Octave to start from (0-10)
+    pub fn start_octave(mut self, octave: MidiNoteId) -> Self {
+        self.start_octave = octave.clamp(0, 10);
         self
     }
 
-    /// Sets the callback for note begin events
-    pub fn on_note_begin(mut self, on_note_change: impl Fn(MidiNote) + 'static) -> Self {
-        self.on_note_begin = Arc::new(Mutex::new(MidiCallback::new(on_note_change)));
+    /// Sets the total number of keys on the keyboard
+    ///
+    /// # Arguments
+    /// * `keys` - Number of keys (1-88)
+    pub fn num_keys(mut self, keys: MidiNoteId) -> Self {
+        self.num_keys = keys.clamp(1, 88);
         self
     }
 
-    /// Sets the callback for note end events
-    pub fn on_note_end(mut self, on_note_change: impl Fn(MidiNote) + 'static) -> Self {
-        self.on_note_end = Arc::new(Mutex::new(MidiCallback::new(on_note_change)));
+    /// Sets the maximum number of keys that can be pressed simultaneously
+    ///
+    /// # Arguments
+    /// * `max_keys` - Maximum number of simultaneous key presses
+    pub fn max_simultaneous_keys(mut self, max_keys: MidiNoteId) -> Self {
+        self.max_simultaneous_keys = max_keys;
         self
     }
 
-    /// Creates and displays the keyboard widget with the current configuration
+    /// Sets a handler for when a note begins (key press)
+    ///
+    /// # Arguments
+    /// * `handler` - Callback function for note begin events
+    pub fn on_note_begin(
+        mut self,
+        handler: impl Fn(MidiNoteEvent) + Send + Sync + 'static,
+    ) -> Self {
+        self.note_begin_handler = Some(Arc::new(handler));
+        self
+    }
+
+    /// Sets a handler for when a note ends (key release)
+    ///
+    /// # Arguments
+    /// * `handler` - Callback function for note end events
+    pub fn on_note_end(mut self, handler: impl Fn(MidiNoteEvent) + Send + Sync + 'static) -> Self {
+        self.note_end_handler = Some(Arc::new(handler));
+        self
+    }
+
+    /// Renders and displays the MIDI keyboard
     pub fn show(self) -> impl View {
-        MidiKeyboard::without_config().show(self)
+        MidiKeyboard::show(self)
     }
 }
 
-/// Main MIDI keyboard widget implementation
-/// Provides a visual piano keyboard interface that responds to mouse input
-#[derive(Default, Clone)]
+/// Keyboard state management with advanced features
+struct MidiKeyboardState {
+    keys: Vec<Option<MidiNoteEvent>>,
+    pressed_keys: HashSet<MidiNoteId>,
+    config: MidiKeyboardConfig,
+    last_interaction: Instant,
+    keyboard_layout: Vec<(f32, f32, bool)>, // (x, width, is_black_key)
+    mouse_position: Option<LocalPoint>,
+    mouse_dragging: bool,
+    hovered_key: Option<MidiNoteId>,
+}
+
+impl MidiKeyboardState {
+    fn new(config: MidiKeyboardConfig) -> Self {
+        let keyboard_layout = Self::calculate_keyboard_layout(config.num_keys);
+        Self {
+            keys: vec![None; config.num_keys as usize],
+            pressed_keys: HashSet::new(),
+            config,
+            last_interaction: Instant::now(),
+            keyboard_layout,
+            mouse_position: None,
+            mouse_dragging: false,
+            hovered_key: None,
+        }
+    }
+
+    fn calculate_keyboard_layout(num_keys: MidiNoteId) -> Vec<(f32, f32, bool)> {
+        let mut layout = Vec::new();
+        let mut white_key_count = 0;
+        let black_key_positions = [1, 3, 6, 8, 10]; // Relative positions of black keys
+
+        for key_pos in 0..num_keys {
+            let key_in_octave = key_pos % 12;
+
+            let is_black_key = black_key_positions.contains(&key_in_octave);
+            let x = if is_black_key {
+                // Precise black key positioning
+                white_key_count as f32 - 0.3
+            } else {
+                let current_white_key = white_key_count;
+                white_key_count += 1;
+                current_white_key as f32
+            };
+
+            layout.push((
+                x,
+                if is_black_key { 0.6 } else { 1.0 }, // Narrower black keys
+                is_black_key,
+            ));
+        }
+
+        layout
+    }
+
+    fn num_white_keys(&self) -> usize {
+        self.keyboard_layout
+            .iter()
+            .filter(|&&(_, _, is_black_key)| !is_black_key)
+            .count()
+    }
+
+    fn press_key(&mut self, index: MidiNoteId, velocity: MidiNoteId) -> Result<(), &'static str> {
+        if self.pressed_keys.len() as MidiNoteId >= self.config.max_simultaneous_keys {
+            // Release the oldest key to make room for the new one
+            let oldest_key = self
+                .keys
+                .iter()
+                .enumerate()
+                .filter_map(|(idx, key)| key.map(|_| idx as MidiNoteId))
+                .min_by_key(|&idx| self.keys[idx as usize].unwrap().timestamp)
+                .unwrap();
+
+            let _ = self.release_key(oldest_key);
+        }
+
+        if self.pressed_keys.contains(&index) {
+            return Err("Key already pressed");
+        }
+
+        let note_event = MidiNoteEvent {
+            note: self.calculate_note_for_index(index as usize),
+            velocity,
+            timestamp: Instant::now(),
+        };
+
+        self.keys[index as usize] = Some(note_event);
+        self.pressed_keys.insert(index);
+        self.last_interaction = Instant::now();
+
+        if let Some(handler) = &self.config.note_begin_handler {
+            handler(note_event);
+        }
+
+        Ok(())
+    }
+
+    fn release_key(&mut self, index: MidiNoteId) -> Result<(), &'static str> {
+        if let Some(note_event) = self.keys[index as usize].take() {
+            self.pressed_keys.remove(&index);
+            self.last_interaction = Instant::now();
+
+            if let Some(handler) = &self.config.note_end_handler {
+                handler(note_event);
+            }
+
+            Ok(())
+        } else {
+            Err("No active key to release")
+        }
+    }
+
+    fn calculate_note_for_index(&self, index: usize) -> MidiNote {
+        let note_kind = MidiNoteKind::try_from((index % 12) as MidiNoteId).unwrap();
+        let octave = self.config.start_octave + (index / 12) as MidiNoteId;
+        MidiNote::new(note_kind, octave)
+    }
+
+    fn release_not_pressed_keys(&mut self) {
+        let now = Instant::now();
+        let release_time = now - self.last_interaction;
+
+        let release_keys = self
+            .keys
+            .iter()
+            .enumerate()
+            .filter_map(|(idx, key)| {
+                if let Some(note_event) = key {
+                    if now - note_event.timestamp > release_time {
+                        Some(idx as MidiNoteId)
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
+            })
+            .collect::<Vec<_>>();
+
+        for key in release_keys {
+            let _ = self.release_key(key);
+        }
+    }
+}
+
+/// Primary MIDI keyboard implementation
 pub struct MidiKeyboard;
 
 impl MidiKeyboard {
-    /// Creates a new keyboard configuration builder
+    /// Creates a new MIDI keyboard configuration with default settings
+    ///
+    /// Equivalent to `MidiKeyboardConfig::new()`
     pub fn new() -> MidiKeyboardConfig {
         MidiKeyboardConfig::new()
     }
 
-    /// Creates a keyboard instance without configuration
-    /// Typically used internally by the configuration builder
-    pub fn without_config() -> Self {
-        Self::default()
+    /// Renders the MIDI keyboard based on the provided configuration
+    ///
+    /// # Arguments
+    /// * `config` - Configuration for the MIDI keyboard
+    pub fn show(config: MidiKeyboardConfig) -> impl View {
+        state(
+            move || MidiKeyboardState::new(config.clone()),
+            |s, _| {
+                canvas(move |cx, rect, vger| {
+                    let total_white_keys = cx[s].num_white_keys();
+                    let white_key_width = rect.width() / total_white_keys as f32;
+                    let key_height = rect.height();
+                    let black_key_height = key_height * 0.6;
+
+                    let mut hovered_key_idx: Option<MidiNoteId> = None;
+
+                    // Calculate hovered key
+                    if let Some(mouse_position) = cx[s].mouse_position {
+                        for (index, (x, width, is_black_key)) in
+                            cx[s].keyboard_layout.iter().enumerate()
+                        {
+                            let key_x = x * white_key_width;
+                            let key_width = white_key_width * width;
+                            let key_y = if *is_black_key {
+                                key_height - black_key_height
+                            } else {
+                                0.0
+                            };
+                            let key_height_check = if *is_black_key {
+                                black_key_height
+                            } else {
+                                key_height
+                            };
+
+                            if mouse_position.x >= key_x
+                                && mouse_position.x <= key_x + key_width
+                                && mouse_position.y >= key_y
+                                && mouse_position.y <= key_y + key_height_check
+                            {
+                                // Prioritize black keys (they're rendered on top)
+                                if *is_black_key {
+                                    hovered_key_idx = Some(index as MidiNoteId);
+                                    break;
+                                } else if hovered_key_idx.is_none() {
+                                    hovered_key_idx = Some(index as MidiNoteId);
+                                }
+                            }
+                        }
+                    }
+
+                    // Draw white keys first (underneath)
+                    for (index, (x, width, is_black_key)) in
+                        cx[s].keyboard_layout.iter().enumerate()
+                    {
+                        if !is_black_key {
+                            let key_x = x * white_key_width;
+                            let key_width = white_key_width * width;
+
+                            Self::draw_white_key(
+                                vger,
+                                key_x,
+                                0.0,
+                                key_width,
+                                key_height,
+                                cx[s].keys[index].is_some(),
+                                hovered_key_idx == Some(index as MidiNoteId),
+                            );
+                        }
+                    }
+
+                    // Draw black keys on top
+                    for (index, (x, width, is_black_key)) in
+                        cx[s].keyboard_layout.iter().enumerate()
+                    {
+                        if *is_black_key {
+                            let key_x = x * white_key_width;
+                            let key_width = white_key_width * width;
+
+                            Self::draw_black_key(
+                                vger,
+                                key_x,
+                                key_height - black_key_height,
+                                key_width,
+                                black_key_height,
+                                cx[s].keys[index].is_some(),
+                                hovered_key_idx == Some(index as MidiNoteId),
+                            );
+                        }
+                    }
+
+                    cx[s].hovered_key = hovered_key_idx;
+                })
+                .drag(move |cx, offset, gesture_state, mouse_button| {
+                    match gesture_state {
+                        GestureState::Began => {
+                            if mouse_button == Some(MouseButton::Left) {
+                                cx[s].mouse_dragging = true;
+                            }
+                        }
+                        GestureState::Changed => {
+                            if cx[s].mouse_position.is_some() {
+                                cx[s].mouse_position = Some(cx[s].mouse_position.unwrap() + offset);
+                            }
+                        }
+                        GestureState::Ended => {
+                            cx[s].mouse_dragging = false;
+                        }
+                        #[allow(unreachable_patterns)]
+                        _ => (),
+                    }
+
+                    // Update key states
+                    if let Some(hovered_key) = cx[s].hovered_key {
+                        if cx[s].mouse_dragging {
+                            if !cx[s].pressed_keys.contains(&hovered_key) {
+                                let default_velocity = cx[s].config.default_velocity;
+                                let _ = cx[s].press_key(hovered_key, default_velocity);
+                            }
+                        } else {
+                            if cx[s].pressed_keys.contains(&hovered_key) {
+                                let _ = cx[s].release_key(hovered_key);
+                            }
+                        }
+                    }
+                    cx[s].release_not_pressed_keys();
+                })
+                .hover_p(move |cx, hover_position| {
+                    cx[s].mouse_position = Some(hover_position);
+                })
+                .hover(move |cx, is_hovering| {
+                    if !is_hovering {
+                        cx[s].mouse_position = None;
+                    }
+                })
+            },
+        )
     }
 
-    /// Renders a white key at the specified position
-    /// Handles normal, hover, and pressed states with appropriate coloring
+    // Draw methods remain the same as in the original implementation
     fn draw_white_key(
         vger: &mut Vger,
         x: f32,
@@ -209,17 +582,16 @@ impl MidiKeyboard {
         let color = if held {
             vger::Color::new(0.8, 0.8, 0.8, 1.0)
         } else if hovered {
-            vger::Color::new(0.85, 0.85, 0.85, 1.0) // Slightly darker than normal for hover effect
+            vger::Color::new(0.85, 0.85, 0.85, 1.0)
         } else {
-            vger::Color::new(0.9, 0.9, 0.9, 1.0)
+            vger::Color::new(1.0, 1.0, 1.0, 1.0) // Pure white for more realistic look
         };
         let paint_index = vger.color_paint(color);
         let rect = LocalRect::new(LocalPoint::new(x, y), LocalSize::new(width, height));
+
         vger.fill_rect(rect, 0.0, paint_index);
     }
 
-    /// Renders a black key at the specified position
-    /// Handles normal, hover, and pressed states with appropriate coloring
     fn draw_black_key(
         vger: &mut Vger,
         x: f32,
@@ -229,242 +601,16 @@ impl MidiKeyboard {
         held: bool,
         hovered: bool,
     ) {
-        let base_color = vger::Color::new(0.05, 0.05, 0.05, 1.0);
+        let base_color = vger::Color::new(0.1, 0.1, 0.1, 1.0);
         let color = if held {
-            vger::Color::new(0.2, 0.2, 0.2, 1.0)
+            vger::Color::new(0.3, 0.3, 0.3, 1.0)
         } else if hovered {
-            vger::Color::new(0.15, 0.15, 0.15, 1.0) // Slightly lighter than normal for hover effect
+            vger::Color::new(0.2, 0.2, 0.2, 1.0)
         } else {
             base_color
         };
         let paint_index = vger.color_paint(color);
         let rect = LocalRect::new(LocalPoint::new(x, y), LocalSize::new(width, height));
-        vger.fill_rect(rect, 0.0, paint_index);
-    }
-
-    /// Displays the keyboard widget with the specified configuration
-    pub fn show(self, config: MidiKeyboardConfig) -> impl View {
-        state(
-            move || MidiKeyboardState::new(&config),
-            |s, _| {
-                canvas(move |cx, rect, vger| {
-                    let white_key_width = rect.width() / cx[s].num_white_keys as f32;
-                    let key_height = rect.height();
-                    let black_key_height = key_height * 0.6;
-                    let black_key_width = white_key_width * 0.7;
-                    let mut white_key_count;
-                    let mut hovered_key_idx: Option<usize> = None;
-
-                    // Calculate hovered key
-                    if let Some(hover_pos) = cx.mouse_position {
-                        // First check black keys (they're on top)
-                        for key_pos in 0..cx[s].num_keys {
-                            if Self::is_black_key(key_pos) {
-                                let offset = match key_pos % 12 {
-                                    1 => 1.0,
-                                    3 => 2.0,
-                                    6 => 4.0,
-                                    8 => 5.0,
-                                    10 => 6.0,
-                                    _ => continue,
-                                };
-                                let octave = (key_pos / 12) as f32;
-                                let x = (octave * 7.0 + offset) * white_key_width
-                                    - (black_key_width / 2.0);
-                                if hover_pos.x >= x
-                                    && hover_pos.x <= x + black_key_width
-                                    && hover_pos.y >= (key_height - black_key_height)
-                                    && hover_pos.y <= key_height
-                                {
-                                    hovered_key_idx = Some(key_pos);
-                                }
-                            }
-                        }
-
-                        // If no black key is hovered, check white keys
-                        if hovered_key_idx.is_none() {
-                            white_key_count = 0;
-                            for key_pos in 0..cx[s].num_keys {
-                                if Self::is_white_key(key_pos) {
-                                    let x = white_key_count as f32 * white_key_width;
-                                    if hover_pos.x >= x && hover_pos.x <= x + white_key_width {
-                                        hovered_key_idx = Some(key_pos);
-                                    }
-                                    white_key_count += 1;
-                                }
-                            }
-                        }
-                    }
-
-                    // Reset white key count for drawing
-                    white_key_count = 0;
-
-                    // Draw white keys
-                    for key_pos in 0..cx[s].num_keys {
-                        if Self::is_white_key(key_pos) {
-                            let x = white_key_count as f32 * white_key_width;
-                            Self::draw_white_key(
-                                vger,
-                                x,
-                                0.0,
-                                white_key_width,
-                                key_height,
-                                cx[s].keys[key_pos].held.is_some(),
-                                hovered_key_idx == Some(key_pos),
-                            );
-                            white_key_count += 1;
-                        }
-                    }
-
-                    // Draw black keys
-                    for key_pos in 0..cx[s].num_keys {
-                        if Self::is_black_key(key_pos) {
-                            let offset = match key_pos % 12 {
-                                1 => 1.0,
-                                3 => 2.0,
-                                6 => 4.0,
-                                8 => 5.0,
-                                10 => 6.0,
-                                _ => continue,
-                            };
-                            let octave = (key_pos / 12) as f32;
-                            let x =
-                                (octave * 7.0 + offset) * white_key_width - (black_key_width / 2.0);
-                            Self::draw_black_key(
-                                vger,
-                                x,
-                                key_height - black_key_height,
-                                black_key_width,
-                                black_key_height,
-                                cx[s].keys[key_pos].held.is_some(),
-                                hovered_key_idx == Some(key_pos),
-                            );
-                        }
-                    }
-
-                    // Handle mouse click and key release logic
-                    if cx.mouse_buttons.left {
-                        if let Some(idx) = hovered_key_idx {
-                            cx[s].keys[idx].held = Some(Instant::now());
-                            cx[s].on_note_begin.lock().unwrap().run(cx[s].keys[idx].id);
-                        }
-                    }
-
-                    // Handle mouse release
-                    if !cx.mouse_buttons.left {
-                        let keys_to_release: Vec<usize> = cx[s]
-                            .keys
-                            .iter()
-                            .enumerate()
-                            .filter_map(
-                                |(idx, key)| {
-                                    if key.held.is_some() {
-                                        Some(idx)
-                                    } else {
-                                        None
-                                    }
-                                },
-                            )
-                            .collect();
-
-                        for idx in keys_to_release {
-                            cx[s].keys[idx].held = None;
-                            cx[s].on_note_end.lock().unwrap().run(cx[s].keys[idx].id);
-                        }
-                    }
-                })
-                .hover(move |cx, hover| {
-                    // Hack for now to re-render when the mouse moves.
-                    if hover {
-                        cx[s].re_render += 1;
-                        cx[s].re_render = cx[s].re_render % u32::MAX;
-                        println!("re_render: {}", cx[s].re_render);
-                    }
-                })
-            },
-        )
-    }
-
-    /// Determines if a key position corresponds to a white key
-    /// White keys follow the pattern of standard piano keys (C, D, E, F, G, A, B)
-    fn is_white_key(key_pos: usize) -> bool {
-        matches!(key_pos % 12, 0 | 2 | 4 | 5 | 7 | 9 | 11)
-    }
-
-    /// Determines if a key position corresponds to a black key
-    /// Black keys are the sharp/flat notes (C#, D#, F#, G#, A#)
-    fn is_black_key(key_pos: usize) -> bool {
-        matches!(key_pos % 12, 1 | 3 | 6 | 8 | 10)
-    }
-}
-
-/// Represents the state of a single key on the MIDI keyboard
-#[derive(Clone, Copy, Debug)]
-struct MidiKeyState {
-    /// The musical note associated with this key
-    id: MidiNote,
-    /// Timestamp of when the key was pressed, None if not pressed
-    held: Option<Instant>,
-}
-
-/// Maintains the state for the entire MIDI keyboard widget
-struct MidiKeyboardState {
-    /// State of all keys on the keyboard
-    keys: Vec<MidiKeyState>,
-    /// Total number of keys
-    num_keys: usize,
-    /// Number of white keys (used for layout calculations)
-    num_white_keys: usize,
-    /// Callback for note begin events
-    on_note_begin: Arc<Mutex<MidiCallback>>,
-    /// Callback for note end events
-    on_note_end: Arc<Mutex<MidiCallback>>,
-    /// Trigger a re-render when the state changes
-    /// This is necessary to update the visual state of the keyboard
-    re_render: u32,
-}
-
-impl MidiKeyboardState {
-    /// Creates a new keyboard state with the specified configuration
-    fn new(config: &MidiKeyboardConfig) -> Self {
-        let num_keys = config.num_keys;
-        let num_white_keys = Self::calculate_white_key_count(num_keys);
-        let start_octave = 4;
-
-        let keys = (0..num_keys)
-            .map(|index| {
-                let note: MidiNoteType = MidiNoteType::try_from(index as u8 % 12).unwrap();
-                let octave: u8 = start_octave + (index / 12) as u8;
-                MidiKeyState {
-                    id: MidiNote { note, octave },
-                    held: None,
-                }
-            })
-            .collect();
-
-        Self {
-            keys,
-            num_keys,
-            num_white_keys,
-            on_note_begin: config.on_note_begin.clone(),
-            on_note_end: config.on_note_end.clone(),
-            re_render: 0,
-        }
-    }
-
-    /// Calculates the total number of white keys based on the total number of keys
-    fn calculate_white_key_count(num_keys: usize) -> usize {
-        let total_octaves = num_keys / 12;
-        let remainder = num_keys % 12;
-        total_octaves * 7 + Self::white_key_count_in_remainder(remainder)
-    }
-
-    /// Calculates the number of white keys in a partial octave
-    fn white_key_count_in_remainder(remainder: usize) -> usize {
-        match remainder {
-            0 => 0,
-            1 | 3 | 4 | 5 | 7 | 8 | 10 | 11 => 1,
-            _ => 2,
-        }
+        vger.fill_rect(rect, 0.1 * width, paint_index); // Add rounded corners
     }
 }

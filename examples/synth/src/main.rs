@@ -5,7 +5,7 @@ use std::sync::{Arc, Mutex};
 mod midi_keyboard;
 mod synth;
 
-use midi_keyboard::{MidiFrequency, MidiNote, MidiNoteId};
+use midi_keyboard::{MidiFrequency, MidiKeyboard, MidiNoteId};
 use synth::{Oscillator, Synth};
 
 use rui::*;
@@ -21,18 +21,32 @@ fn main() {
     });
 
     // Create and configure the MIDI keyboard
-    midi_keyboard::MidiKeyboard::new()
+    MidiKeyboard::new()
         .num_keys(25)
-        .on_note_begin(move |note: MidiNote| {
+        .start_octave(4)
+        .max_simultaneous_keys(5)
+        .on_note_begin(move |event| {
+            let note = event.note;
+
             let mut synth = synth.lock().unwrap();
-            let frequency: MidiFrequency = note.try_into().unwrap();
+
+            // Get the frequency of the note.
+            let frequency: MidiFrequency = note.frequency();
+
+            // Create an audio source for the note.
             let audio_source = Oscillator::sine_wave(frequency).amplify(1.0);
-            let source_id: MidiNoteId = note.try_into().unwrap();
+
+            // Get the note id (u8) if you need it. 0 is the lowest note. 127 is the highest note.
+            let source_id: MidiNoteId = note.id();
+
+            // Send the audio source to the synth.
             synth.play_source(Box::new(audio_source), source_id);
         })
-        .on_note_end(move |note: MidiNote| {
+        .on_note_end(move |event| {
+            let note = event.note;
+
             let mut synth = synth_clone.lock().unwrap();
-            let source_id: MidiNoteId = note.try_into().unwrap();
+            let source_id: MidiNoteId = note.id();
             synth.release_source(source_id);
         })
         .show()
