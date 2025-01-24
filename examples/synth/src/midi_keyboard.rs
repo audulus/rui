@@ -106,7 +106,7 @@ pub struct MidiNote {
     /// The type of note (C, C#, D, etc.)
     pub note: MidiNoteKind,
     /// The octave number (0-10, where 4 contains middle C)
-    pub octave: MidiNoteId,
+    pub octave: u8,
 }
 
 impl MidiNote {
@@ -118,11 +118,10 @@ impl MidiNote {
     ///
     /// # Returns
     /// A new MidiNote instance
-    pub fn new(note: MidiNoteKind, octave: MidiNoteId) -> Self {
-        Self {
-            note,
-            octave: octave.clamp(0, 10),
-        }
+    pub fn new(note: MidiNoteKind, octave: u8) -> Self {
+        assert!(octave <= 10, "Octave must be between 0 and 10");
+
+        Self { note, octave }
     }
 
     /// Returns the MIDI note one octave lower
