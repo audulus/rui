@@ -280,7 +280,7 @@ struct MidiKeyboardState {
     config: MidiKeyboardConfig,
     last_interaction: Instant,
     keyboard_layout: Vec<(f32, f32, bool)>, // (x, width, is_black_key)
-    redraw: u8,
+    mouse_position: Option<LocalPoint>,
 }
 
 impl MidiKeyboardState {
@@ -292,7 +292,7 @@ impl MidiKeyboardState {
             config,
             last_interaction: Instant::now(),
             keyboard_layout,
-            redraw: 0,
+            mouse_position: None,
         }
     }
 
@@ -414,7 +414,7 @@ impl MidiKeyboard {
                     let mut hovered_key_idx: Option<MidiNoteId> = None;
 
                     // Calculate hovered key
-                    if let Some(hover_pos) = cx.mouse_position {
+                    if let Some(mouse_position) = cx[s].mouse_position {
                         for (index, (x, width, is_black_key)) in
                             cx[s].keyboard_layout.iter().enumerate()
                         {
@@ -431,10 +431,10 @@ impl MidiKeyboard {
                                 key_height
                             };
 
-                            if hover_pos.x >= key_x
-                                && hover_pos.x <= key_x + key_width
-                                && hover_pos.y >= key_y
-                                && hover_pos.y <= key_y + key_height_check
+                            if mouse_position.x >= key_x
+                                && mouse_position.x <= key_x + key_width
+                                && mouse_position.y >= key_y
+                                && mouse_position.y <= key_y + key_height_check
                             {
                                 // Prioritize black keys (they're rendered on top)
                                 if *is_black_key {
@@ -496,13 +496,14 @@ impl MidiKeyboard {
                         cx[s].release_all_keys();
                     }
                 })
+                .hover_p(move |cx, hover_position| {
+                    cx[s].mouse_position = Some(hover_position);
+                })
                 .hover(move |cx, is_hovering| {
                     if !is_hovering {
                         cx[s].release_all_keys();
+                        cx[s].mouse_position = None;
                     }
-
-                    cx[s].redraw += 1;
-                    cx[s].redraw = cx[s].redraw % u8::MAX;
                 })
             },
         )
