@@ -30,6 +30,7 @@ pub enum MidiNoteKind {
 }
 
 /// Extension methods for MIDI note conversion and manipulation
+#[allow(dead_code)]
 pub trait MidiNoteIdMethods {
     /// Converts a MIDI note ID to a complete MIDI note with note type and octave
     fn as_note(&self) -> MidiNote;
@@ -44,16 +45,16 @@ pub trait MidiNoteIdMethods {
 impl MidiNoteIdMethods for MidiNoteId {
     fn as_note(&self) -> MidiNote {
         let note = MidiNoteKind::try_from(*self % 12).unwrap();
-        let octave = (*self / 12) as u8;
+        let octave = *self / 12;
         MidiNote::new(note, octave)
     }
 
     fn as_note_kind(&self) -> MidiNoteKind {
-        MidiNoteKind::try_from(*self % 12).unwrap()
+        self.as_note().note
     }
 
     fn as_frequency(&self) -> MidiFrequency {
-        440.0 * f32::powf(2.0, (*self as f32 - 69.0) / 12.0)
+        self.as_note().frequency()
     }
 }
 
@@ -105,7 +106,7 @@ pub struct MidiNote {
     /// The type of note (C, C#, D, etc.)
     pub note: MidiNoteKind,
     /// The octave number (0-10, where 4 contains middle C)
-    pub octave: u8,
+    pub octave: MidiNoteId,
 }
 
 impl MidiNote {
@@ -117,7 +118,7 @@ impl MidiNote {
     ///
     /// # Returns
     /// A new MidiNote instance
-    pub fn new(note: MidiNoteKind, octave: u8) -> Self {
+    pub fn new(note: MidiNoteKind, octave: MidiNoteId) -> Self {
         Self {
             note,
             octave: octave.clamp(0, 10),
@@ -148,7 +149,7 @@ impl MidiNote {
                 octave: self.octave.saturating_sub(1),
             },
             _ => Self {
-                note: MidiNoteKind::try_from(self.note as u8 - 1).unwrap(),
+                note: MidiNoteKind::try_from(self.note as MidiNoteId - 1).unwrap(),
                 octave: self.octave,
             },
         }
@@ -162,7 +163,7 @@ impl MidiNote {
                 octave: (self.octave + 1).min(10),
             },
             _ => Self {
-                note: MidiNoteKind::try_from(self.note as u8 + 1).unwrap(),
+                note: MidiNoteKind::try_from(self.note as MidiNoteId + 1).unwrap(),
                 octave: self.octave,
             },
         }
@@ -186,7 +187,7 @@ pub struct MidiNoteEvent {
     /// The MIDI note details
     pub note: MidiNote,
     /// Note velocity (0-127)
-    pub velocity: u8,
+    pub velocity: MidiNoteId,
     /// Timestamp of the note event
     pub timestamp: Instant,
 }
@@ -194,9 +195,9 @@ pub struct MidiNoteEvent {
 /// Configuration builder for MIDI keyboard with advanced customization options
 #[derive(Clone)]
 pub struct MidiKeyboardConfig {
-    start_octave: u8,
-    num_keys: u8,
-    max_simultaneous_keys: u8,
+    start_octave: MidiNoteId,
+    num_keys: MidiNoteId,
+    max_simultaneous_keys: MidiNoteId,
     note_begin_handler: Option<Arc<dyn Fn(MidiNoteEvent) + Send + Sync>>,
     note_end_handler: Option<Arc<dyn Fn(MidiNoteEvent) + Send + Sync>>,
 }
@@ -223,7 +224,7 @@ impl MidiKeyboardConfig {
     ///
     /// # Arguments
     /// * `octave` - Octave to start from (0-10)
-    pub fn start_octave(mut self, octave: u8) -> Self {
+    pub fn start_octave(mut self, octave: MidiNoteId) -> Self {
         self.start_octave = octave.clamp(0, 10);
         self
     }
@@ -232,7 +233,7 @@ impl MidiKeyboardConfig {
     ///
     /// # Arguments
     /// * `keys` - Number of keys (1-88)
-    pub fn num_keys(mut self, keys: u8) -> Self {
+    pub fn num_keys(mut self, keys: MidiNoteId) -> Self {
         self.num_keys = keys.clamp(1, 88);
         self
     }
@@ -241,7 +242,7 @@ impl MidiKeyboardConfig {
     ///
     /// # Arguments
     /// * `max_keys` - Maximum number of simultaneous key presses
-    pub fn max_simultaneous_keys(mut self, max_keys: u8) -> Self {
+    pub fn max_simultaneous_keys(mut self, max_keys: MidiNoteId) -> Self {
         self.max_simultaneous_keys = max_keys;
         self
     }
@@ -276,7 +277,7 @@ impl MidiKeyboardConfig {
 /// Keyboard state management with advanced features
 struct MidiKeyboardState {
     keys: Vec<Option<MidiNoteEvent>>,
-    pressed_keys: HashSet<u8>,
+    pressed_keys: HashSet<MidiNoteId>,
     config: MidiKeyboardConfig,
     last_interaction: Instant,
     keyboard_layout: Vec<(f32, f32, bool)>, // (x, width, is_black_key)
@@ -294,13 +295,12 @@ impl MidiKeyboardState {
         }
     }
 
-    fn calculate_keyboard_layout(num_keys: u8) -> Vec<(f32, f32, bool)> {
+    fn calculate_keyboard_layout(num_keys: MidiNoteId) -> Vec<(f32, f32, bool)> {
         let mut layout = Vec::new();
         let mut white_key_count = 0;
         let black_key_positions = [1, 3, 6, 8, 10]; // Relative positions of black keys
 
         for key_pos in 0..num_keys {
-            let octave = key_pos / 12;
             let key_in_octave = key_pos % 12;
 
             let is_black_key = black_key_positions.contains(&key_in_octave);
@@ -330,8 +330,8 @@ impl MidiKeyboardState {
             .count()
     }
 
-    fn press_key(&mut self, index: u8, velocity: u8) -> Result<(), &'static str> {
-        if self.pressed_keys.len() as u8 >= self.config.max_simultaneous_keys {
+    fn press_key(&mut self, index: MidiNoteId, velocity: MidiNoteId) -> Result<(), &'static str> {
+        if self.pressed_keys.len() as MidiNoteId >= self.config.max_simultaneous_keys {
             return Err("Maximum simultaneous keys reached");
         }
 
@@ -356,7 +356,7 @@ impl MidiKeyboardState {
         Ok(())
     }
 
-    fn release_key(&mut self, index: u8) -> Result<(), &'static str> {
+    fn release_key(&mut self, index: MidiNoteId) -> Result<(), &'static str> {
         if let Some(note_event) = self.keys[index as usize].take() {
             self.pressed_keys.remove(&index);
             self.last_interaction = Instant::now();
@@ -372,8 +372,8 @@ impl MidiKeyboardState {
     }
 
     fn calculate_note_for_index(&self, index: usize) -> MidiNote {
-        let note_kind = MidiNoteKind::try_from((index % 12) as u8).unwrap();
-        let octave = self.config.start_octave + (index / 12) as u8;
+        let note_kind = MidiNoteKind::try_from((index % 12) as MidiNoteId).unwrap();
+        let octave = self.config.start_octave + (index / 12) as MidiNoteId;
         MidiNote::new(note_kind, octave)
     }
 
@@ -409,9 +409,8 @@ impl MidiKeyboard {
                     let white_key_width = rect.width() / total_white_keys as f32;
                     let key_height = rect.height();
                     let black_key_height = key_height * 0.6;
-                    let black_key_width = white_key_width * 0.6;
 
-                    let mut hovered_key_idx: Option<u8> = None;
+                    let mut hovered_key_idx: Option<MidiNoteId> = None;
 
                     // Calculate hovered key
                     if let Some(hover_pos) = cx.mouse_position {
@@ -438,10 +437,10 @@ impl MidiKeyboard {
                             {
                                 // Prioritize black keys (they're rendered on top)
                                 if *is_black_key {
-                                    hovered_key_idx = Some(index as u8);
+                                    hovered_key_idx = Some(index as MidiNoteId);
                                     break;
                                 } else if hovered_key_idx.is_none() {
-                                    hovered_key_idx = Some(index as u8);
+                                    hovered_key_idx = Some(index as MidiNoteId);
                                 }
                             }
                         }
@@ -462,7 +461,7 @@ impl MidiKeyboard {
                                 key_width,
                                 key_height,
                                 cx[s].keys[index].is_some(),
-                                hovered_key_idx == Some(index as u8),
+                                hovered_key_idx == Some(index as MidiNoteId),
                             );
                         }
                     }
@@ -482,7 +481,7 @@ impl MidiKeyboard {
                                 key_width,
                                 black_key_height,
                                 cx[s].keys[index].is_some(),
-                                hovered_key_idx == Some(index as u8),
+                                hovered_key_idx == Some(index as MidiNoteId),
                             );
                         }
                     }
