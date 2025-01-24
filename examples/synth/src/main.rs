@@ -34,7 +34,7 @@ fn main() {
             let frequency: MidiFrequency = note.frequency();
 
             // Create an audio source for the note.
-            let audio_source = Oscillator::sine_wave(frequency).amplify(1.0);
+            let audio_source = Oscillator::sawtooth_wave(frequency).amplify(1.0);
 
             // Get the note id (u8) if you need it. 0 is the lowest note. 127 is the highest note.
             let source_id: MidiNoteId = note.id();
