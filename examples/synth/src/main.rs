@@ -3,13 +3,15 @@ use std::time::Duration;
 
 use rodio::OutputStream;
 
+mod envelope;
 mod midi_keyboard;
 mod oscillator;
 mod synth;
 
+use envelope::ADSREnvelopeConfig;
 use midi_keyboard::{MidiFrequency, MidiKeyboard, MidiNoteId};
 use oscillator::Oscillator;
-use synth::{AdvancedSynth, EnvelopeConfig};
+use synth::Synth;
 
 use rui::Run;
 
@@ -19,8 +21,8 @@ fn main() {
         OutputStream::try_default().expect("Failed to create output stream");
 
     // Create a custom envelope configuration
-    let custom_envelope = EnvelopeConfig::builder()
-        .attack(Duration::from_millis(10))
+    let custom_envelope = ADSREnvelopeConfig::builder()
+        .attack(Duration::from_millis(1000))
         .decay(Duration::from_millis(50))
         .sustain(0.6)
         .release(Duration::from_millis(100))
@@ -28,10 +30,7 @@ fn main() {
         .expect("Failed to create envelope configuration");
 
     // Initialize the advanced synthesizer with custom default envelope
-    let synth = Arc::new(Mutex::new(AdvancedSynth::new(
-        stream_handle,
-        Some(custom_envelope),
-    )));
+    let synth = Arc::new(Mutex::new(Synth::new(stream_handle, Some(custom_envelope))));
 
     // Clone synthesizer references for different threads
     let synth_update = synth.clone();
