@@ -61,11 +61,46 @@ impl Synth {
         // Start the envelope
         envelope.start();
 
+        // Immediately set the initial volume
+        let now = Instant::now();
+        let initial_volume = envelope.get_amplitude(now);
+        sink.set_volume(initial_volume);
+
         // Store the sink and envelope
         self.audio_sources.insert(source_id, (sink, envelope));
 
         Ok(())
     }
+
+    // pub fn play_source(
+    //     &mut self,
+    //     audio_source: Box<dyn Source<Item = f32> + Send>,
+    //     source_id: u8,
+    //     envelope: Option<ADSREnvelopeConfig>,
+    // ) -> Result<(), String> {
+    //     // Remove existing source with the same ID to allow retriggering
+    //     if self.audio_sources.contains_key(&source_id) {
+    //         self.audio_sources.remove(&source_id);
+    //     }
+
+    //     // Proceed to create and add the new source
+    //     let sink = Sink::try_new(&self.stream_handle)
+    //         .map_err(|e| format!("Failed to create audio sink: {}", e))?;
+
+    //     sink.append(audio_source);
+
+    //     let envelope_config = envelope.unwrap_or_else(|| self.default_envelope_config.clone());
+    //     let mut envelope = ADSREnvelope::new(envelope_config);
+    //     envelope.start();
+
+    //     let now = Instant::now();
+    //     let initial_volume = envelope.get_amplitude(now);
+    //     sink.set_volume(initial_volume);
+
+    //     self.audio_sources.insert(source_id, (sink, envelope));
+
+    //     Ok(())
+    // }
 
     /// Release a specific audio source
     pub fn release_source(&mut self, source_id: u8) -> Result<(), String> {

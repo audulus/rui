@@ -71,6 +71,8 @@ fn main() {
             ) {
                 eprintln!("Failed to play source: {}", e);
             }
+
+            println!("Note {:#?} pressed", note);
         })
         .on_note_end(move |event| {
             let note = event.note;
