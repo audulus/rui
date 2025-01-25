@@ -1,67 +1,121 @@
 use std::collections::HashMap;
-use std::time::Instant;
+use std::sync::{Arc, Mutex};
+use std::time::{Duration, Instant};
 
 use rodio::source::Source;
-use rodio::Sink;
+use rodio::{OutputStreamHandle, Sink};
 
-mod oscillator;
-pub use oscillator::Oscillator;
+/// Represents the ADSR envelope parameters
+#[derive(Clone, Debug)]
+pub struct EnvelopeConfig {
+    attack: Duration,
+    decay: Duration,
+    sustain_level: f32,
+    release: Duration,
+}
 
-mod osc;
-use osc::AnalogOsc;
+impl EnvelopeConfig {
+    pub fn builder() -> EnvelopeConfigBuilder {
+        EnvelopeConfigBuilder::new()
+    }
+}
 
-// The envelope state struct
+/// Builder for creating flexible envelope configurations
+pub struct EnvelopeConfigBuilder {
+    attack: Option<Duration>,
+    decay: Option<Duration>,
+    sustain_level: Option<f32>,
+    release: Option<Duration>,
+}
+
+impl EnvelopeConfigBuilder {
+    fn new() -> Self {
+        Self {
+            attack: None,
+            decay: None,
+            sustain_level: None,
+            release: None,
+        }
+    }
+
+    pub fn attack(mut self, duration: Duration) -> Self {
+        self.attack = Some(duration);
+        self
+    }
+
+    pub fn decay(mut self, duration: Duration) -> Self {
+        self.decay = Some(duration);
+        self
+    }
+
+    pub fn sustain(mut self, level: f32) -> Self {
+        self.sustain_level = Some(level.clamp(0.0, 1.0));
+        self
+    }
+
+    pub fn release(mut self, duration: Duration) -> Self {
+        self.release = Some(duration);
+        self
+    }
+
+    pub fn build(self) -> Result<EnvelopeConfig, &'static str> {
+        Ok(EnvelopeConfig {
+            attack: self.attack.unwrap_or(Duration::from_millis(50)),
+            decay: self.decay.unwrap_or(Duration::from_millis(100)),
+            sustain_level: self.sustain_level.unwrap_or(0.7),
+            release: self.release.unwrap_or(Duration::from_millis(200)),
+        })
+    }
+}
+
+/// Advanced synthesizer with improved envelope and audio management
+pub struct AdvancedSynth {
+    audio_sinks: HashMap<u8, Sink>,
+    envelope_states: HashMap<u8, EnvelopeState>,
+    stream_handle: OutputStreamHandle,
+    default_envelope: EnvelopeConfig,
+}
+
 struct EnvelopeState {
-    envelope: Envelope,
+    config: EnvelopeConfig,
     start_time: Instant,
     is_releasing: bool,
     release_start_time: Option<Instant>,
 }
 
-// The envelope struct
-struct Envelope {
-    attack: f32,
-    decay: f32,
-    sustain: f32,
-    release: f32,
-}
-
-impl Envelope {
-    fn new(attack: f32, decay: f32, sustain: f32, release: f32) -> Envelope {
-        Envelope {
-            attack,
-            decay,
-            sustain,
-            release,
-        }
-    }
-}
-
-pub struct Synth {
-    audio_sinks: HashMap<u8, Sink>,
-    envelope_states: HashMap<u8, EnvelopeState>,
-    stream_handle: rodio::OutputStreamHandle,
-}
-
-impl Synth {
-    pub fn new(stream_handle: rodio::OutputStreamHandle) -> Synth {
-        // let (_stream, stream_handle) = rodio::OutputStream::try_default().unwrap();
-        // For some reason the above code would fail if it was in the new function
-
-        Synth {
+impl AdvancedSynth {
+    pub fn new(
+        stream_handle: OutputStreamHandle,
+        default_envelope: Option<EnvelopeConfig>,
+    ) -> Self {
+        AdvancedSynth {
             audio_sinks: HashMap::new(),
             envelope_states: HashMap::new(),
             stream_handle,
+            default_envelope: default_envelope.unwrap_or_else(|| {
+                EnvelopeConfig::builder()
+                    .attack(Duration::from_millis(50))
+                    .decay(Duration::from_millis(100))
+                    .sustain(0.7)
+                    .release(Duration::from_millis(200))
+                    .build()
+                    .expect("Default envelope configuration failed")
+            }),
         }
     }
 
-    pub fn play_source(&mut self, audio_source: Box<dyn Source<Item = f32> + Send>, source_id: u8) {
-        let sink = Sink::try_new(&self.stream_handle).expect("Failed to create sink");
+    pub fn play_source(
+        &mut self,
+        audio_source: Box<dyn Source<Item = f32> + Send>,
+        source_id: u8,
+        envelope: Option<EnvelopeConfig>,
+    ) -> Result<(), &'static str> {
+        let sink = Sink::try_new(&self.stream_handle).map_err(|_| "Failed to create audio sink")?;
+
         sink.append(audio_source);
 
-        let envelope = Envelope::new(0.1, 0.2, 0.7, 1.3); // example envelope
         let envelope_state = EnvelopeState {
-            envelope,
+            config: envelope.unwrap_or_else(|| self.default_envelope.clone()),
             start_time: Instant::now(),
             is_releasing: false,
             release_start_time: None,
@@ -69,55 +123,71 @@ impl Synth {
 
         self.audio_sinks.insert(source_id, sink);
         self.envelope_states.insert(source_id, envelope_state);
+
+        Ok(())
     }
 
-    pub fn release_source(&mut self, source_id: u8) {
-        if let Some(envelope_state) = self.envelope_states.get_mut(&source_id) {
-            envelope_state.is_releasing = true;
-            envelope_state.release_start_time = Some(Instant::now());
-        }
+    pub fn release_source(&mut self, source_id: u8) -> Result<(), &'static str> {
+        self.envelope_states
+            .get_mut(&source_id)
+            .map(|state| {
+                state.is_releasing = true;
+                state.release_start_time = Some(Instant::now());
+            })
+            .ok_or("Source not found")
     }
 
     pub fn update(&mut self) {
         let now = Instant::now();
-
-        let mut to_remove = Vec::new();
+        let mut sources_to_remove = Vec::new();
 
         for (source_id, envelope_state) in self.envelope_states.iter_mut() {
-            let elapsed = now.duration_since(envelope_state.start_time).as_secs_f32();
-
-            let envelope = &envelope_state.envelope;
-            let sink = self.audio_sinks.get_mut(source_id).unwrap();
-
-            let volume = if elapsed < envelope.attack {
-                // Attack
-                elapsed / envelope.attack
-            } else if elapsed < envelope.attack + envelope.decay {
-                // Decay
-                1.0 - (elapsed - envelope.attack) / envelope.decay * (1.0 - envelope.sustain)
-            } else if envelope_state.is_releasing {
-                // Release
-                let elapsed_since_released = now
-                    .duration_since(envelope_state.release_start_time.unwrap())
-                    .as_secs_f32();
-                envelope.sustain - elapsed_since_released / envelope.release * envelope.sustain
-            } else {
-                // Sustain
-                envelope.sustain
+            let sink = match self.audio_sinks.get_mut(source_id) {
+                Some(sink) => sink,
+                None => continue,
             };
 
+            let volume = calculate_envelope_volume(now, envelope_state);
             sink.set_volume(volume);
 
-            if envelope_state.is_releasing && elapsed > envelope.release {
-                // This is done as a separate step to avoid a second mutable borrow of self.envelope_states
-                // First borrow is when .iter_mut() is called, second is when .remove() is called
-                to_remove.push(*source_id);
+            if is_source_completed(now, envelope_state) {
+                sources_to_remove.push(*source_id);
             }
         }
 
-        for source_id in to_remove {
+        for source_id in sources_to_remove {
             self.envelope_states.remove(&source_id);
             self.audio_sinks.remove(&source_id);
         }
     }
+}
+
+fn calculate_envelope_volume(now: Instant, envelope_state: &EnvelopeState) -> f32 {
+    let elapsed = now.duration_since(envelope_state.start_time);
+    let config = &envelope_state.config;
+
+    match (elapsed, envelope_state.is_releasing) {
+        (t, false) if t < config.attack => (t.as_secs_f32() / config.attack.as_secs_f32()).min(1.0),
+
+        (t, false) if t < config.attack + config.decay => {
+            let decay_elapsed = t - config.attack;
+            1.0 - (decay_elapsed.as_secs_f32() / config.decay.as_secs_f32())
+                * (1.0 - config.sustain_level)
+        }
+
+        (_, true) => {
+            let release_time = now.duration_since(envelope_state.release_start_time.unwrap());
+            (config.sustain_level
+                * (1.0 - release_time.as_secs_f32() / config.release.as_secs_f32()))
+            .max(0.0)
+        }
+
+        _ => config.sustain_level,
+    }
+}
+
+fn is_source_completed(now: Instant, envelope_state: &EnvelopeState) -> bool {
+    envelope_state.is_releasing
+        && now.duration_since(envelope_state.release_start_time.unwrap())
+            >= envelope_state.config.release
 }
