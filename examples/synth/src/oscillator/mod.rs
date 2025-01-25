@@ -1,4 +1,3 @@
-use rodio::source::Source;
 use std::f32::consts::PI;
 
 /// Represents different wave types for audio synthesis
@@ -15,6 +14,10 @@ pub enum WaveType {
 pub struct OscillatorConfig {
     sample_rate: u32,
     anti_aliasing: bool,
+    oversampling: usize,
+    zero_crossings: usize,
+    transition_start: f32,
+    transition_end: f32,
 }
 
 impl Default for OscillatorConfig {
@@ -22,7 +25,98 @@ impl Default for OscillatorConfig {
         Self {
             sample_rate: 48000,
             anti_aliasing: true,
+            oversampling: 256,
+            zero_crossings: 16,
+            transition_start: 8000.0,
+            transition_end: 10000.0,
         }
+    }
+}
+
+impl OscillatorConfig {
+    /// Create a new configuration with custom parameters
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Set sample rate
+    pub fn sample_rate(mut self, rate: u32) -> Self {
+        self.sample_rate = rate;
+        self
+    }
+
+    /// Enable or disable anti-aliasing
+    pub fn anti_aliasing(mut self, enabled: bool) -> Self {
+        self.anti_aliasing = enabled;
+        self
+    }
+
+    /// Set oversampling rate
+    pub fn oversampling(mut self, rate: usize) -> Self {
+        self.oversampling = rate;
+        self
+    }
+
+    /// Set number of zero crossings
+    pub fn zero_crossings(mut self, crossings: usize) -> Self {
+        self.zero_crossings = crossings;
+        self
+    }
+
+    /// Set transition start frequency
+    pub fn transition_start(mut self, start: f32) -> Self {
+        self.transition_start = start;
+        self
+    }
+
+    /// Set transition end frequency
+    pub fn transition_end(mut self, end: f32) -> Self {
+        self.transition_end = end;
+        self
+    }
+}
+
+/// BLEP (Band-Limited Step) Table Builder
+pub struct BlepTableBuilder {
+    oversampling: usize,
+    zero_crossings: usize,
+}
+
+impl BlepTableBuilder {
+    /// Create a new builder with custom configuration
+    pub fn new() -> Self {
+        Self {
+            oversampling: 256,
+            zero_crossings: 16,
+        }
+    }
+
+    /// Set the oversampling rate
+    pub fn oversampling(mut self, rate: usize) -> Self {
+        self.oversampling = rate;
+        self
+    }
+
+    /// Set the number of zero crossings
+    pub fn zero_crossings(mut self, crossings: usize) -> Self {
+        self.zero_crossings = crossings;
+        self
+    }
+
+    /// Generate the BLEP table with the current configuration
+    pub fn generate(self) -> Vec<f32> {
+        let blep_size = self.oversampling * self.zero_crossings * 2 + 1;
+        (0..blep_size)
+            .map(|i| {
+                let x = (i as f32 / blep_size as f32 - 0.5) * self.zero_crossings as f32;
+                if x == 0.0 {
+                    1.0
+                } else {
+                    x.sin() / (std::f32::consts::PI * x)
+                        * (1.0 - (x / self.zero_crossings as f32).cos())
+                }
+            })
+            .collect()
     }
 }
 
@@ -37,34 +131,21 @@ pub struct AnalogOsc {
 }
 
 impl AnalogOsc {
-    /// Create a new analog oscillator with default configuration
-    pub fn new() -> Self {
-        let config = OscillatorConfig::default();
+    /// Create a new analog oscillator with custom configuration
+    pub fn new(config: OscillatorConfig) -> Self {
         let nyquist = config.sample_rate as f32 / 2.0;
+        let blep_table = BlepTableBuilder::new()
+            .oversampling(config.oversampling)
+            .zero_crossings(config.zero_crossings)
+            .generate();
+
         Self {
             config,
             phase: 0.0,
             nyquist,
             phase_increment: 0.0,
-            blep_table: Self::generate_blep_table(),
+            blep_table,
         }
-    }
-
-    /// Generate a high-quality BLEP (Band-Limited Step) table
-    fn generate_blep_table() -> Vec<f32> {
-        const BLEP_SIZE: usize = 1024;
-        const ZERO_CROSSINGS: usize = 16;
-
-        (0..BLEP_SIZE)
-            .map(|i| {
-                let x = (i as f32 / BLEP_SIZE as f32 - 0.5) * ZERO_CROSSINGS as f32;
-                if x == 0.0 {
-                    1.0
-                } else {
-                    x.sin() / (PI * x) * (1.0 - (x / ZERO_CROSSINGS as f32).cos())
-                }
-            })
-            .collect()
     }
 
     /// Generate a sawtooth wave sample with optional anti-aliasing
@@ -92,10 +173,10 @@ impl AnalogOsc {
         self.phase_increment = frequency / self.config.sample_rate as f32;
 
         let pw = pulse_width.clamp(0.0, 1.0);
-        let output = if self.phase < pw { 1.0 } else { -1.0 };
+        let mut output = if self.phase < pw { 1.0 } else { -1.0 };
 
         if self.config.anti_aliasing {
-            self.apply_blep(&mut output.clone());
+            self.apply_blep(&mut output);
         }
 
         self.phase += self.phase_increment;
@@ -108,8 +189,6 @@ impl AnalogOsc {
 
     /// Apply band-limited step correction
     fn apply_blep(&mut self, output: &mut f32) {
-        // Basic BLEP application - this is a simplified implementation
-        // A more advanced version would interpolate and add correction
         if self.phase < self.phase_increment {
             let index = (self.phase / self.phase_increment * self.blep_table.len() as f32) as usize;
             *output += self.blep_table.get(index).cloned().unwrap_or(0.0);
@@ -126,30 +205,40 @@ pub struct Oscillator {
 }
 
 impl Oscillator {
-    /// Create oscillators for different wave types
+    /// Create oscillators for different wave types with default configuration
     pub fn sine(freq: f32) -> Self {
-        Self::new(freq, WaveType::Sine)
+        Self::new(freq, WaveType::Sine, OscillatorConfig::default())
     }
 
     pub fn square(freq: f32) -> Self {
-        Self::new(freq, WaveType::Square)
+        Self::new(freq, WaveType::Square, OscillatorConfig::default())
     }
 
     pub fn sawtooth(freq: f32) -> Self {
-        Self::new(freq, WaveType::Sawtooth)
+        Self::new(freq, WaveType::Sawtooth, OscillatorConfig::default())
     }
 
     pub fn triangle(freq: f32) -> Self {
-        Self::new(freq, WaveType::Triangle)
+        Self::new(freq, WaveType::Triangle, OscillatorConfig::default())
     }
 
-    /// Internal constructor for oscillators
-    fn new(freq: f32, wave_type: WaveType) -> Self {
+    /// Create oscillators with custom configuration
+    pub fn new_with_config(freq: f32, wave_type: WaveType, config: OscillatorConfig) -> Self {
         Oscillator {
             freq,
             num_samples: 0,
             wave_type,
-            analog_osc: AnalogOsc::new(),
+            analog_osc: AnalogOsc::new(config),
+        }
+    }
+
+    /// Internal constructor for oscillators
+    fn new(freq: f32, wave_type: WaveType, config: OscillatorConfig) -> Self {
+        Oscillator {
+            freq,
+            num_samples: 0,
+            wave_type,
+            analog_osc: AnalogOsc::new(config),
         }
     }
 }
@@ -161,19 +250,23 @@ impl Iterator for Oscillator {
         self.num_samples = self.num_samples.wrapping_add(1);
 
         Some(match self.wave_type {
-            WaveType::Sine => (2.0 * PI * self.freq * self.num_samples as f32 / 48000.0).sin(),
+            WaveType::Sine => (2.0 * PI * self.freq * self.num_samples as f32
+                / self.analog_osc.config.sample_rate as f32)
+                .sin(),
             WaveType::Square => self.analog_osc.generate_square(self.freq, 0.5),
             WaveType::Sawtooth => self.analog_osc.generate_sawtooth(self.freq),
             WaveType::Triangle => {
                 // Derive triangle wave from sine wave
-                let sin_val = (2.0 * PI * self.freq * self.num_samples as f32 / 48000.0).sin();
+                let sin_val = (2.0 * PI * self.freq * self.num_samples as f32
+                    / self.analog_osc.config.sample_rate as f32)
+                    .sin();
                 sin_val.asin() * 2.0 / PI
             }
         })
     }
 }
 
-impl Source for Oscillator {
+impl rodio::Source for Oscillator {
     fn current_frame_len(&self) -> Option<usize> {
         None
     }
@@ -183,7 +276,7 @@ impl Source for Oscillator {
     }
 
     fn sample_rate(&self) -> u32 {
-        48000
+        self.analog_osc.config.sample_rate
     }
 
     fn total_duration(&self) -> Option<std::time::Duration> {
