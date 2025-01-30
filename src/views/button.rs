@@ -11,7 +11,7 @@ struct ButtonState {
 
 /// Calls a function when the button is tapped.
 pub fn button<A: 'static, F: Fn(&mut Context) -> A + 'static + Clone>(
-    view: impl View + Clone,
+    view: impl View,
     f: F,
 ) -> impl View {
     state(
