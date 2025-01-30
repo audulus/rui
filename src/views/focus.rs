@@ -27,7 +27,7 @@ where
                     cx.set_dirty();
                 }
             }
-            Event::Key(Key::Escape) => {
+            Event::KeyEvent(Key::Escape) => {
                 if cx.focused_id == Some(vid) {
                     cx.focused_id = None;
                     cx.set_dirty();

@@ -31,7 +31,7 @@ where
         cx: &mut Context,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
-        if let Event::Key(key) = &event {
+        if let Event::KeyEvent(key) = &event {
             actions.push(Box::new((self.func)(cx, key.clone())));
         }
     }

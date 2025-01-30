@@ -11,8 +11,8 @@ use winit::event_loop::EventLoopProxy;
 use winit::{
     application::ApplicationHandler,
     event::{
-        DeviceEvent, DeviceId, ElementState, KeyEvent as WKeyEvent, MouseButton as WMouseButton,
-        Touch, TouchPhase, WindowEvent,
+        DeviceEvent, DeviceId, ElementState as wElementState, KeyEvent as WKeyEvent,
+        MouseButton as WMouseButton, Touch, TouchPhase, WindowEvent,
     },
     event_loop::{ActiveEventLoop, ControlFlow, EventLoop},
     keyboard,
@@ -264,7 +264,7 @@ where
             }
             WindowEvent::MouseInput { state, button, .. } => {
                 match state {
-                    ElementState::Pressed => {
+                    wElementState::Pressed => {
                         self.cx.mouse_button = match button {
                             WMouseButton::Left => Some(MouseButton::Left),
                             WMouseButton::Right => Some(MouseButton::Right),
@@ -289,7 +289,7 @@ where
                             process_event(&mut self.cx, &self.view, &event, &window)
                         }
                     }
-                    ElementState::Released => {
+                    wElementState::Released => {
                         self.cx.mouse_button = None;
 
                         match button {
@@ -356,8 +356,6 @@ where
                     ]
                     .into();
 
-                    self.cx.mouse_position = Some(self.mouse_position);
-
                     // let event = Event::TouchMove {
                     //     id: 0,
                     //     position: self.mouse_position,
@@ -407,8 +405,17 @@ where
                     _ => None,
                 };
 
-                if let (Some(key), ElementState::Pressed) = (key, key_event.state) {
-                    self.cx.process(&self.view, &Event::Key(key))
+                if let (Some(key), wElementState::Pressed) = (key, key_event.state) {
+                    self.cx.process(&self.view, &Event::KeyEvent(key))
+                }
+
+                if let Some(key) = key {
+                    let state = match key_event.state {
+                        wElementState::Pressed => ElementState::Pressed,
+                        wElementState::Released => ElementState::Released,
+                    };
+
+                    self.cx.process(&self.view, &Event::Key { key, state })
                 }
             }
 

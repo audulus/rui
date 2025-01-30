@@ -25,16 +25,19 @@ pub enum Event {
         position: LocalPoint,
     },
 
-    // /// Mouse Move.
-    // MouseMove {
-    //     position: LocalPoint,
-    //     delta: LocalOffset,
-    // },
+    /// Called when the mouse gets outside the window
+    MouseLeftWindow,
+
     /// Menu command.
     Command(String),
 
-    /// Key press.
-    Key(Key),
+    /// Key press. (Deprecated)
+    KeyEvent(Key),
+
+    /// Key Event
+    Key { key: Key, state: ElementState },
+
+    /// Key Event
 
     /// Animation.
     Anim,
@@ -72,6 +75,12 @@ pub struct KeyboardModifiers {
     pub control: bool,
     pub alt: bool,
     pub command: bool,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum ElementState {
+    Pressed,
+    Released,
 }
 
 #[derive(Copy, Clone, Debug)]
