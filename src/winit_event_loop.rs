@@ -406,16 +406,11 @@ where
                 };
 
                 if let (Some(key), wElementState::Pressed) = (key, key_event.state) {
-                    self.cx.process(&self.view, &Event::KeyEvent(key))
+                    self.cx.process(&self.view, &Event::Key(key))
                 }
 
-                if let Some(key) = key {
-                    let state = match key_event.state {
-                        wElementState::Pressed => ElementState::Pressed,
-                        wElementState::Released => ElementState::Released,
-                    };
-
-                    self.cx.process(&self.view, &Event::Key { key, state })
+                if let (Some(key), wElementState::Released) = (key, key_event.state) {
+                    self.cx.process(&self.view, &Event::KeyReleased(key))
                 }
             }
 

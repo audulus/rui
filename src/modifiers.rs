@@ -30,7 +30,9 @@ pub trait Modifiers: View + Sized {
     }
 
     /// Calls a function in response to a drag.
-    fn drag<F: Fn(&mut Context, LocalOffset, GestureState, Option<MouseButton>) + Clone + 'static>(
+    fn drag<
+        F: Fn(&mut Context, LocalOffset, GestureState, Option<MouseButton>) + Clone + 'static,
+    >(
         self,
         f: F,
     ) -> Drag<Self, DragFunc<F>> {
@@ -38,7 +40,9 @@ pub trait Modifiers: View + Sized {
     }
 
     /// Calls a function in response to a drag. Version which passes the position.
-    fn drag_p<F: Fn(&mut Context, LocalPoint, GestureState, Option<MouseButton>) + Clone + 'static>(
+    fn drag_p<
+        F: Fn(&mut Context, LocalPoint, GestureState, Option<MouseButton>) + Clone + 'static,
+    >(
         self,
         f: F,
     ) -> Drag<Self, DragFuncP<F>> {
@@ -98,13 +102,21 @@ pub trait Modifiers: View + Sized {
 
     /// Calls a function with the view's geometry after layout runs.
     /// Currently only the view's size is returned.
-    fn geom<F: Fn(&mut Context, LocalSize, LocalToWorld) + Clone + 'static>(self, f: F) -> Geom<Self, F> {
+    fn geom<F: Fn(&mut Context, LocalSize, LocalToWorld) + Clone + 'static>(
+        self,
+        f: F,
+    ) -> Geom<Self, F> {
         Geom::new(self, f)
     }
 
     /// Responds to keyboard events
     fn key<F: Fn(&mut Context, Key) + Clone + 'static>(self, f: F) -> KeyView<Self, F> {
-        KeyView::new(self, f)
+        KeyView::new_pressed(self, f)
+    }
+
+    /// Responds to keyboard events
+    fn key_released<F: Fn(&mut Context, Key) + Clone + 'static>(self, f: F) -> KeyView<Self, F> {
+        KeyView::new_released(self, f)
     }
 
     /// Applies an offset to the view in local space.
@@ -128,7 +140,10 @@ pub trait Modifiers: View + Sized {
     }
 
     /// Calls a function in response to a tap.
-    fn tap<A: 'static, F: Fn(&mut Context) -> A + Clone + 'static>(self, f: F) -> Tap<Self, TapAdapter<F>> {
+    fn tap<A: 'static, F: Fn(&mut Context) -> A + Clone + 'static>(
+        self,
+        f: F,
+    ) -> Tap<Self, TapAdapter<F>> {
         Tap::new(self, TapAdapter { f })
     }
 
@@ -139,7 +154,10 @@ pub trait Modifiers: View + Sized {
     }
 
     /// Version of `tap` which passes the tap position and mouse button.
-    fn tap_p<A: 'static, F: Fn(&mut Context, LocalPoint, Option<MouseButton>) -> A + Clone + 'static>(
+    fn tap_p<
+        A: 'static,
+        F: Fn(&mut Context, LocalPoint, Option<MouseButton>) -> A + Clone + 'static,
+    >(
         self,
         f: F,
     ) -> Tap<Self, TapPositionFunc<F>> {

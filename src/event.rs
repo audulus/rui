@@ -1,7 +1,7 @@
 use crate::*;
 
 /// User interface event.
-#[derive(Clone, Debug)]
+#[derive(Clone, PartialEq, Debug)]
 pub enum Event {
     /// Touch event, or mouse down.
     TouchBegin {
@@ -31,13 +31,11 @@ pub enum Event {
     /// Menu command.
     Command(String),
 
-    /// Key press. (Deprecated)
-    KeyEvent(Key),
+    /// Key press.
+    Key(Key),
 
-    /// Key Event
-    Key { key: Key, state: ElementState },
-
-    /// Key Event
+    /// Key released.
+    KeyReleased(Key),
 
     /// Animation.
     Anim,
@@ -83,7 +81,7 @@ pub enum ElementState {
     Released,
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Key {
     Character(char),
 
