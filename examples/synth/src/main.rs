@@ -22,7 +22,7 @@ fn main() {
 
     // Create and configure the MIDI keyboard
     MidiKeyboard::new()
-        .num_keys(25)
+        .num_keys(127)
         .start_octave(4)
         .max_simultaneous_keys(5)
         .on_note_begin(move |event| {

@@ -56,7 +56,7 @@ impl Synth {
         let sink = Sink::try_new(&self.stream_handle).expect("Failed to create sink");
         sink.append(audio_source);
 
-        let envelope = Envelope::new(0.7, 0.2, 0.7, 1.3); // example envelope
+        let envelope = Envelope::new(0.1, 0.2, 0.7, 1.3); // example envelope
         let envelope_state = EnvelopeState {
             envelope,
             start_time: Instant::now(),
