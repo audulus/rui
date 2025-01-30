@@ -42,9 +42,9 @@ impl Synth {
         source_id: u8,
         envelope: Option<ADSREnvelopeConfig>,
     ) -> Result<(), String> {
-        // Check if source ID is already in use
+        // Remove existing source with the same ID to allow retriggering
         if self.audio_sources.contains_key(&source_id) {
-            return Err(format!("Source ID {} is already in use", source_id));
+            self.audio_sources.remove(&source_id);
         }
 
         // Create a new sink

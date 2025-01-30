@@ -1,86 +1,55 @@
-use std::sync::{Arc, Mutex};
-use std::time::Duration;
-
+use rodio::source::Source;
 use rodio::OutputStream;
+use std::sync::{Arc, Mutex};
 
-mod envelope;
 mod midi_keyboard;
-mod oscillator;
 mod synth;
 
-use envelope::ADSREnvelopeConfig;
 use midi_keyboard::{MidiFrequency, MidiKeyboard, MidiNoteId};
-use oscillator::Oscillator;
-use synth::Synth;
+use synth::{Oscillator, Synth};
 
-use rui::Run;
+use rui::*;
 
 fn main() {
-    // Create the audio output stream
-    let (_stream, stream_handle) =
-        OutputStream::try_default().expect("Failed to create output stream");
+    let (_stream, stream_handle) = OutputStream::try_default().unwrap();
+    let synth = Arc::new(Mutex::new(Synth::new(stream_handle)));
+    let synth_clone = synth.clone();
+    let synth_clone_update = synth.clone();
 
-    // Create a custom envelope configuration
-    let custom_envelope = ADSREnvelopeConfig::builder()
-        .attack(Duration::from_millis(1000))
-        .decay(Duration::from_millis(100))
-        .sustain(0.6)
-        .release(Duration::from_millis(1000))
-        .build()
-        .expect("Failed to create envelope configuration");
-
-    // Initialize the advanced synthesizer with custom default envelope
-    let synth = Arc::new(Mutex::new(Synth::new(stream_handle, Some(custom_envelope))));
-
-    // Clone synthesizer references for different threads
-    let synth_update = synth.clone();
-    let synth_note_begin = synth.clone();
-    let synth_note_end = synth.clone();
-
-    // Spawn a dedicated thread for continuous synth updates
-    std::thread::spawn(move || {
-        loop {
-            synth_update.lock().unwrap().update();
-            std::thread::sleep(Duration::from_millis(10)); // Prevent tight spinning
-        }
+    std::thread::spawn(move || loop {
+        synth_clone_update.lock().unwrap().update();
     });
 
-    // Configure MIDI keyboard
+    // Create and configure the MIDI keyboard
     MidiKeyboard::new()
         .num_keys(25)
         .start_octave(4)
         .max_simultaneous_keys(5)
         .on_note_begin(move |event| {
             let note = event.note;
-            let mut synth = synth_note_begin.lock().unwrap();
 
-            // Get the frequency of the pressed note
+            let mut synth = synth.lock().unwrap();
+
+            // Get the frequency of the note.
             let frequency: MidiFrequency = note.frequency();
 
-            // Create an audio source with a sawtooth wave
-            let audio_source = Oscillator::sine(frequency);
+            // Create an audio source for the note.
+            let audio_source = Oscillator::sawtooth(frequency).amplify(1.0);
 
-            // Get the note ID
+            // Get the note id (u8) if you need it. 0 is the lowest note. 127 is the highest note.
             let source_id: MidiNoteId = note.id();
 
-            // Play the source with optional custom envelope
-            if let Err(e) = synth.play_source(
-                Box::new(audio_source),
-                source_id,
-                None, // Use default envelope
-            ) {
-                eprintln!("Failed to play source: {}", e);
-            }
+            // Send the audio source to the synth.
+            synth.play_source(Box::new(audio_source), source_id);
         })
         .on_note_end(move |event| {
             let note = event.note;
-            let mut synth = synth_note_end.lock().unwrap();
-            let source_id: MidiNoteId = note.id();
 
-            if let Err(e) = synth.release_source(source_id) {
-                eprintln!("Failed to release source: {}", e);
-            }
+            let mut synth = synth_clone.lock().unwrap();
+            let source_id: MidiNoteId = note.id();
+            synth.release_source(source_id);
         })
         .show()
+        // .size([400.0, 200.0])
         .run();
 }

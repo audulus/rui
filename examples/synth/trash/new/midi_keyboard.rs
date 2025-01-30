@@ -285,6 +285,7 @@ struct MidiKeyboardState {
     mouse_position: Option<LocalPoint>,
     mouse_dragging: bool,
     hovered_key: Option<MidiNoteId>,
+    drag_pressed_keys: HashSet<MidiNoteId>,
 }
 
 impl MidiKeyboardState {
@@ -299,6 +300,7 @@ impl MidiKeyboardState {
             mouse_position: None,
             mouse_dragging: false,
             hovered_key: None,
+            drag_pressed_keys: HashSet::new(),
         }
     }
 
@@ -523,31 +525,42 @@ impl MidiKeyboard {
 
                     cx[s].hovered_key = hovered_key_idx;
                 })
-                .drag_p(move |cx, local_position, gesture_state, mouse_button| {
+                .drag(move |cx, offset, gesture_state, mouse_button| {
                     match gesture_state {
                         GestureState::Began => {
                             if mouse_button == Some(MouseButton::Left) {
                                 cx[s].mouse_dragging = true;
+                                cx[s].drag_pressed_keys.clear(); // Reset on drag start
                             }
                         }
                         GestureState::Changed => {
                             if cx[s].mouse_position.is_some() {
-                                cx[s].mouse_position = Some(local_position);
+                                cx[s].mouse_position = Some(cx[s].mouse_position.unwrap() + offset);
                             }
                         }
                         GestureState::Ended => {
                             cx[s].mouse_dragging = false;
+                            // Release all keys pressed during this drag
+                            let keys_to_release = cx[s].drag_pressed_keys.clone();
+                            keys_to_release.into_iter().for_each(|key| {
+                                let _ = cx[s].release_key(key);
+                            });
+                            cx[s].drag_pressed_keys.clear();
                         }
                         #[allow(unreachable_patterns)]
                         _ => (),
                     }
 
-                    // Update key states
                     if let Some(hovered_key) = cx[s].hovered_key {
                         if cx[s].mouse_dragging {
-                            if !cx[s].pressed_keys.contains(&hovered_key) {
+                            // Check if the key is not pressed and hasn't been pressed during this drag
+                            if !cx[s].pressed_keys.contains(&hovered_key)
+                                && !cx[s].drag_pressed_keys.contains(&hovered_key)
+                            {
                                 let default_velocity = cx[s].config.default_velocity;
-                                let _ = cx[s].press_key(hovered_key, default_velocity);
+                                if let Ok(()) = cx[s].press_key(hovered_key, default_velocity) {
+                                    cx[s].drag_pressed_keys.insert(hovered_key);
+                                }
                             }
                         } else {
                             if cx[s].pressed_keys.contains(&hovered_key) {
