@@ -29,6 +29,7 @@ impl Default for OscillatorConfig {
     }
 }
 
+#[allow(dead_code)]
 impl OscillatorConfig {
     /// Create a new configuration with custom parameters
     pub fn new() -> Self {
@@ -188,6 +189,7 @@ pub struct Oscillator {
     analog_osc: AnalogOsc,
 }
 
+#[allow(dead_code)]
 impl Oscillator {
     /// Create oscillators for different wave types with default configuration
     pub fn sine(freq: f32) -> Self {

@@ -392,7 +392,7 @@ impl MidiKeyboard {
     /// # Arguments
     /// * `config` - Configuration for the MIDI keyboard
     pub fn show(config: MidiKeyboardConfig) -> impl View {
-        focus(move |has_focus| {
+        focus(move |_| {
             let config = config.clone();
             state(
                 move || MidiKeyboardState::new(config.clone()),
