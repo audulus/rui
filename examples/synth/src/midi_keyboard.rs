@@ -239,6 +239,7 @@ struct MidiKeyboardState {
     mouse_position: Option<LocalPoint>,
     mouse_dragging: bool,
     hovered_key: Option<MidiNoteId>,
+    current_drag_key: Option<MidiNoteId>,
 }
 
 impl MidiKeyboardState {
@@ -253,6 +254,7 @@ impl MidiKeyboardState {
             mouse_position: None,
             mouse_dragging: false,
             hovered_key: None,
+            current_drag_key: None,
         }
     }
 
@@ -482,40 +484,42 @@ impl MidiKeyboard {
 
                     cx[s].hovered_key = hovered_key_idx;
                 })
-                .drag_p(move |cx, local_position, gesture_state, mouse_button| {
-                    match gesture_state {
+                .drag_p(
+                    move |cx, local_position, gesture_state, mouse_button| match gesture_state {
                         GestureState::Began => {
                             if mouse_button == Some(MouseButton::Left) {
                                 cx[s].mouse_dragging = true;
+                                cx[s].current_drag_key = cx[s].hovered_key;
+                                if let Some(current_drag_key) = cx[s].current_drag_key {
+                                    let default_velocity = cx[s].config.default_velocity;
+                                    let _ = cx[s].press_key(current_drag_key, default_velocity);
+                                }
                             }
                         }
                         GestureState::Changed => {
                             if cx[s].mouse_position.is_some() {
                                 cx[s].mouse_position = Some(local_position);
+                                if cx[s].current_drag_key != cx[s].hovered_key {
+                                    if let Some(preview_drag_key) = cx[s].current_drag_key {
+                                        let _ = cx[s].release_key(preview_drag_key);
+                                    }
+                                    cx[s].current_drag_key = cx[s].hovered_key;
+                                    if let Some(current_drag_key) = cx[s].current_drag_key {
+                                        let default_velocity = cx[s].config.default_velocity;
+                                        let _ = cx[s].press_key(current_drag_key, default_velocity);
+                                    }
+                                }
                             }
                         }
                         GestureState::Ended => {
                             cx[s].mouse_dragging = false;
+                            cx[s].current_drag_key = None;
+                            cx[s].release_not_pressed_keys();
                         }
                         #[allow(unreachable_patterns)]
                         _ => (),
-                    }
-
-                    // Update key states
-                    if let Some(hovered_key) = cx[s].hovered_key {
-                        if cx[s].mouse_dragging {
-                            if !cx[s].pressed_keys.contains(&hovered_key) {
-                                let default_velocity = cx[s].config.default_velocity;
-                                let _ = cx[s].press_key(hovered_key, default_velocity);
-                            }
-                        } else {
-                            if cx[s].pressed_keys.contains(&hovered_key) {
-                                let _ = cx[s].release_key(hovered_key);
-                            }
-                        }
-                    }
-                    cx[s].release_not_pressed_keys();
-                })
+                    },
+                )
                 .hover_p(move |cx, hover_position| {
                     cx[s].mouse_position = Some(hover_position);
                 })
