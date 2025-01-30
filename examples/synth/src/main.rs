@@ -23,9 +23,9 @@ fn main() {
     // Create a custom envelope configuration
     let custom_envelope = ADSREnvelopeConfig::builder()
         .attack(Duration::from_millis(1000))
-        .decay(Duration::from_millis(50))
+        .decay(Duration::from_millis(100))
         .sustain(0.6)
-        .release(Duration::from_millis(100))
+        .release(Duration::from_millis(1000))
         .build()
         .expect("Failed to create envelope configuration");
 
@@ -58,7 +58,7 @@ fn main() {
             let frequency: MidiFrequency = note.frequency();
 
             // Create an audio source with a sawtooth wave
-            let audio_source = Oscillator::square(frequency);
+            let audio_source = Oscillator::sine(frequency);
 
             // Get the note ID
             let source_id: MidiNoteId = note.id();
@@ -71,8 +71,6 @@ fn main() {
             ) {
                 eprintln!("Failed to play source: {}", e);
             }
-
-            println!("Note {:#?} pressed", note);
         })
         .on_note_end(move |event| {
             let note = event.note;

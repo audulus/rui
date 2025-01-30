@@ -1,3 +1,4 @@
+use std::cell::Cell;
 use std::time::{Duration, Instant};
 
 /// Configuration for a standard ADSR (Attack, Decay, Sustain, Release) envelope
@@ -66,67 +67,93 @@ impl ADSREnvelopeConfigBuilder {
 /// Concrete implementation of an ADSR envelope
 pub struct ADSREnvelope {
     config: ADSREnvelopeConfig,
-    start_time: Option<Instant>,
-    release_start_time: Option<Instant>,
+    start_time: Cell<Option<Instant>>,
+    release_start_time: Cell<Option<Instant>>,
+    release_start_amplitude: Cell<f32>,
 }
 
 impl ADSREnvelope {
     pub fn new(config: ADSREnvelopeConfig) -> Self {
         Self {
             config,
-            start_time: None,
-            release_start_time: None,
+            start_time: Cell::new(None),
+            release_start_time: Cell::new(None),
+            release_start_amplitude: Cell::new(0.0),
         }
     }
 
-    pub fn start(&mut self) {
-        self.start_time = Some(Instant::now());
-        self.release_start_time = None;
+    pub fn start(&self) {
+        self.start_time.set(None);
+        self.release_start_time.set(None);
+        self.release_start_amplitude.set(0.0);
     }
 
-    pub fn release(&mut self) {
-        if let Some(start_time) = self.start_time {
-            if self.release_start_time.is_none() {
-                self.release_start_time = Some(Instant::now());
-            }
+    pub fn release(&self) {
+        if self.start_time.get().is_some() && self.release_start_time.get().is_none() {
+            let now = Instant::now();
+            self.release_start_time.set(Some(now));
+            self.release_start_amplitude
+                .set(self.get_amplitude_internal(now, false));
         }
     }
 
     pub fn get_amplitude(&self, now: Instant) -> f32 {
-        // Require start_time to be set
-        let Some(start_time) = self.start_time else {
-            return 0.0;
+        self.get_amplitude_internal(now, true)
+    }
+
+    fn get_amplitude_internal(&self, now: Instant, clamp: bool) -> f32 {
+        // Set start_time if not set
+        let start_time = match self.start_time.get() {
+            Some(st) => st,
+            None => {
+                self.start_time.set(Some(now));
+                return 0.0;
+            }
         };
 
         let elapsed = now.duration_since(start_time);
 
         // Determine if in release phase
-        let is_releasing = self.release_start_time.is_some();
+        let is_releasing = self.release_start_time.get().is_some();
 
         match (elapsed, is_releasing) {
             // Attack phase: Linear ramp from 0 to 1
             (t, false) if t < self.config.attack => {
-                (t.as_secs_f32() / self.config.attack.as_secs_f32()).clamp(0.0, 1.0)
+                let amp = t.as_secs_f32() / self.config.attack.as_secs_f32();
+                if clamp {
+                    amp.clamp(0.0, 1.0)
+                } else {
+                    amp
+                }
             }
 
             // Decay phase: Linear ramp from 1 to sustain level
             (t, false) if t < self.config.attack + self.config.decay => {
                 let decay_progress =
                     (t - self.config.attack).as_secs_f32() / self.config.decay.as_secs_f32();
-                (1.0 - decay_progress * (1.0 - self.config.sustain_level))
-                    .clamp(self.config.sustain_level, 1.0)
+                let amp = 1.0 - decay_progress * (1.0 - self.config.sustain_level);
+                if clamp {
+                    amp.clamp(self.config.sustain_level, 1.0)
+                } else {
+                    amp
+                }
             }
 
-            // Release phase: Linear ramp from sustain level to 0
+            // Release phase: Linear ramp from current amplitude to 0
             (_, true) => {
-                let Some(release_start) = self.release_start_time else {
+                let Some(release_start) = self.release_start_time.get() else {
                     return self.config.sustain_level;
                 };
 
                 let release_time = now.duration_since(release_start);
-                (self.config.sustain_level
-                    * (1.0 - release_time.as_secs_f32() / self.config.release.as_secs_f32()))
-                .clamp(0.0, self.config.sustain_level)
+                let release_progress =
+                    release_time.as_secs_f32() / self.config.release.as_secs_f32();
+                let amp = self.release_start_amplitude.get() * (1.0 - release_progress);
+                if clamp {
+                    amp.clamp(0.0, self.release_start_amplitude.get())
+                } else {
+                    amp
+                }
             }
 
             // Sustain phase
@@ -135,9 +162,8 @@ impl ADSREnvelope {
     }
 
     pub fn is_finished(&self, now: Instant) -> bool {
-        // Envelope is finished if in release phase and release duration has passed
-        match (self.start_time, self.release_start_time) {
-            (Some(start), Some(release_start)) => {
+        match (self.start_time.get(), self.release_start_time.get()) {
+            (Some(_), Some(release_start)) => {
                 now.duration_since(release_start) >= self.config.release
             }
             _ => false,
@@ -159,14 +185,19 @@ mod tests {
             .build()
             .unwrap();
 
-        let mut envelope = ADSREnvelope::new(config);
+        let envelope = ADSREnvelope::new(config);
 
         // Start the envelope
         envelope.start();
 
-        // Immediately after start - amplitude should be 0
+        // Check amplitude immediately after start (should be near 0.0)
         let start = Instant::now();
-        assert_eq!(envelope.get_amplitude(start), 0.0);
+        let initial_amplitude = envelope.get_amplitude(start);
+        assert!(
+            initial_amplitude < 1e-5,
+            "Initial amplitude should be near 0.0, got {}",
+            initial_amplitude
+        );
 
         // Simulate partial attack phase
         let mid_attack = start + Duration::from_millis(50);
@@ -178,6 +209,22 @@ mod tests {
 
         // Simulate full attack phase completion
         let end_attack = start + Duration::from_millis(100);
-        assert_eq!(envelope.get_amplitude(end_attack), 1.0);
+        let amplitude = envelope.get_amplitude(end_attack);
+        assert!(
+            (amplitude - 1.0).abs() < 1e-5,
+            "Amplitude at end of attack should be approximately 1.0, got {}",
+            amplitude
+        );
+
+        // Test release during decay phase
+        let mid_decay = start + Duration::from_millis(125);
+        envelope.release();
+        let release_start = envelope.release_start_time.get().unwrap();
+        let release_progress = mid_decay.duration_since(release_start);
+        let amplitude = envelope.get_amplitude(mid_decay);
+        assert!(
+            amplitude < 1.0 && amplitude > 0.0,
+            "Amplitude should start from current level and release"
+        );
     }
 }
