@@ -526,6 +526,7 @@ impl MidiKeyboard {
                 .hover(move |cx, is_hovering| {
                     if !is_hovering {
                         cx[s].mouse_position = None;
+                        println!("stopped hovering");
                     }
                 })
             },
