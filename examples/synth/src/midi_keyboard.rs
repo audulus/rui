@@ -114,58 +114,12 @@ impl MidiNote {
     ///
     /// # Arguments
     /// * `note` - The type of note (C, C#, D, etc.)
-    /// * `octave` - The octave number (0-10)
+    /// * `octave` - The octave number
     ///
     /// # Returns
     /// A new MidiNote instance
     pub fn new(note: MidiNoteKind, octave: u8) -> Self {
-        assert!(octave <= 10, "Octave must be between 0 and 10");
-
         Self { note, octave }
-    }
-
-    /// Returns the MIDI note one octave lower
-    pub fn lower_octave(&self) -> Self {
-        Self {
-            note: self.note,
-            octave: self.octave.saturating_sub(1),
-        }
-    }
-
-    /// Returns the MIDI note one octave higher
-    pub fn higher_octave(&self) -> Self {
-        Self {
-            note: self.note,
-            octave: (self.octave + 1).min(10),
-        }
-    }
-
-    /// Returns the MIDI note one semitone lower
-    pub fn lower_semitone(&self) -> Self {
-        match self.note {
-            MidiNoteKind::C => Self {
-                note: MidiNoteKind::B,
-                octave: self.octave.saturating_sub(1),
-            },
-            _ => Self {
-                note: MidiNoteKind::try_from(self.note as MidiNoteId - 1).unwrap(),
-                octave: self.octave,
-            },
-        }
-    }
-
-    /// Returns the MIDI note one semitone higher
-    pub fn higher_semitone(&self) -> Self {
-        match self.note {
-            MidiNoteKind::B => Self {
-                note: MidiNoteKind::C,
-                octave: (self.octave + 1).min(10),
-            },
-            _ => Self {
-                note: MidiNoteKind::try_from(self.note as MidiNoteId + 1).unwrap(),
-                octave: self.octave,
-            },
-        }
     }
 
     /// Calculates the audio frequency of the MIDI note in Hz
@@ -285,6 +239,7 @@ struct MidiKeyboardState {
     mouse_position: Option<LocalPoint>,
     mouse_dragging: bool,
     hovered_key: Option<MidiNoteId>,
+    current_drag_key: Option<MidiNoteId>,
 }
 
 impl MidiKeyboardState {
@@ -299,6 +254,7 @@ impl MidiKeyboardState {
             mouse_position: None,
             mouse_dragging: false,
             hovered_key: None,
+            current_drag_key: None,
         }
     }
 
@@ -436,181 +392,204 @@ impl MidiKeyboard {
     /// # Arguments
     /// * `config` - Configuration for the MIDI keyboard
     pub fn show(config: MidiKeyboardConfig) -> impl View {
-        state(
-            move || MidiKeyboardState::new(config.clone()),
-            |s, _| {
-                canvas(move |cx, rect, vger| {
-                    let total_white_keys = cx[s].num_white_keys();
-                    let white_key_width = rect.width() / total_white_keys as f32;
-                    let key_height = rect.height();
-                    let black_key_height = key_height * 0.6;
+        focus(move |_| {
+            let config = config.clone();
+            state(
+                move || MidiKeyboardState::new(config.clone()),
+                move |s, _| {
+                    canvas(move |cx, rect, vger| {
+                        // Pre-calculate commonly used values
+                        let total_white_keys = cx[s].num_white_keys();
+                        let white_key_width = rect.width() / total_white_keys as f32;
+                        let key_height = rect.height();
+                        let black_key_height = key_height * 0.6;
 
-                    let mut hovered_key_idx: Option<MidiNoteId> = None;
+                        // Create paint indices once for reuse
+                        let white_paint = vger.color_paint(vger::Color::new(1.0, 1.0, 1.0, 1.0));
+                        let white_held_paint =
+                            vger.color_paint(vger::Color::new(0.8, 0.8, 0.8, 1.0));
+                        let white_hover_paint =
+                            vger.color_paint(vger::Color::new(0.85, 0.85, 0.85, 1.0));
+                        let black_paint = vger.color_paint(vger::Color::new(0.1, 0.1, 0.1, 1.0));
+                        let black_held_paint =
+                            vger.color_paint(vger::Color::new(0.3, 0.3, 0.3, 1.0));
+                        let black_hover_paint =
+                            vger.color_paint(vger::Color::new(0.2, 0.2, 0.2, 1.0));
 
-                    // Calculate hovered key
-                    if let Some(mouse_position) = cx[s].mouse_position {
-                        for (index, (x, width, is_black_key)) in
-                            cx[s].keyboard_layout.iter().enumerate()
-                        {
+                        // Calculate hovered key using binary search for mouse position
+                        let hovered_key_idx = if let Some(mouse_position) = cx[s].mouse_position {
+                            Self::find_hovered_key(
+                                &cx[s].keyboard_layout,
+                                mouse_position,
+                                white_key_width,
+                                key_height,
+                                black_key_height,
+                            )
+                        } else {
+                            None
+                        };
+
+                        // Batch render white keys
+                        let white_keys: Vec<_> = cx[s]
+                            .keyboard_layout
+                            .iter()
+                            .enumerate()
+                            .filter(|(_, (_, _, is_black))| !is_black)
+                            .collect();
+
+                        for (index, (x, width, _)) in white_keys {
                             let key_x = x * white_key_width;
                             let key_width = white_key_width * width;
-                            let key_y = if *is_black_key {
-                                key_height - black_key_height
+                            let is_held = cx[s].keys[index].is_some();
+                            let is_hovered = hovered_key_idx == Some(index as MidiNoteId);
+
+                            let paint = if is_held {
+                                white_held_paint
+                            } else if is_hovered {
+                                white_hover_paint
                             } else {
-                                0.0
-                            };
-                            let key_height_check = if *is_black_key {
-                                black_key_height
-                            } else {
-                                key_height
+                                white_paint
                             };
 
-                            if mouse_position.x >= key_x
-                                && mouse_position.x <= key_x + key_width
-                                && mouse_position.y >= key_y
-                                && mouse_position.y <= key_y + key_height_check
-                            {
-                                // Prioritize black keys (they're rendered on top)
-                                if *is_black_key {
-                                    hovered_key_idx = Some(index as MidiNoteId);
-                                    break;
-                                } else if hovered_key_idx.is_none() {
-                                    hovered_key_idx = Some(index as MidiNoteId);
+                            let rect = LocalRect::new(
+                                LocalPoint::new(key_x, 0.0),
+                                LocalSize::new(key_width, key_height),
+                            );
+                            vger.fill_rect(rect, 0.0, paint);
+                        }
+
+                        // Batch render black keys
+                        let black_keys: Vec<_> = cx[s]
+                            .keyboard_layout
+                            .iter()
+                            .enumerate()
+                            .filter(|(_, (_, _, is_black))| *is_black)
+                            .collect();
+
+                        for (index, (x, width, _)) in black_keys {
+                            let key_x = x * white_key_width;
+                            let key_width = white_key_width * width;
+                            let is_held = cx[s].keys[index].is_some();
+                            let is_hovered = hovered_key_idx == Some(index as MidiNoteId);
+
+                            let paint = if is_held {
+                                black_held_paint
+                            } else if is_hovered {
+                                black_hover_paint
+                            } else {
+                                black_paint
+                            };
+
+                            let rect = LocalRect::new(
+                                LocalPoint::new(key_x, key_height - black_key_height),
+                                LocalSize::new(key_width, black_key_height),
+                            );
+                            vger.fill_rect(rect, 0.1 * key_width, paint);
+                        }
+
+                        cx[s].hovered_key = hovered_key_idx;
+                    })
+                    // .key(move |cx, k| {
+                    //     if has_focus {
+                    //         println!("key pressed: {:#?}", k);
+                    //     }
+                    // })
+                    // .key_released(move |cx, k| {
+                    //     if has_focus {
+                    //         println!("key released: {:#?}", k);
+                    //     }
+                    // })
+                    .drag_p(move |cx, local_position, gesture_state, mouse_button| {
+                        match gesture_state {
+                            GestureState::Began => {
+                                if mouse_button == Some(MouseButton::Left) {
+                                    cx[s].mouse_dragging = true;
+                                    cx[s].current_drag_key = cx[s].hovered_key;
+                                    if let Some(current_drag_key) = cx[s].current_drag_key {
+                                        let default_velocity = cx[s].config.default_velocity;
+                                        let _ = cx[s].press_key(current_drag_key, default_velocity);
+                                    }
                                 }
                             }
-                        }
-                    }
-
-                    // Draw white keys first (underneath)
-                    for (index, (x, width, is_black_key)) in
-                        cx[s].keyboard_layout.iter().enumerate()
-                    {
-                        if !is_black_key {
-                            let key_x = x * white_key_width;
-                            let key_width = white_key_width * width;
-
-                            Self::draw_white_key(
-                                vger,
-                                key_x,
-                                0.0,
-                                key_width,
-                                key_height,
-                                cx[s].keys[index].is_some(),
-                                hovered_key_idx == Some(index as MidiNoteId),
-                            );
-                        }
-                    }
-
-                    // Draw black keys on top
-                    for (index, (x, width, is_black_key)) in
-                        cx[s].keyboard_layout.iter().enumerate()
-                    {
-                        if *is_black_key {
-                            let key_x = x * white_key_width;
-                            let key_width = white_key_width * width;
-
-                            Self::draw_black_key(
-                                vger,
-                                key_x,
-                                key_height - black_key_height,
-                                key_width,
-                                black_key_height,
-                                cx[s].keys[index].is_some(),
-                                hovered_key_idx == Some(index as MidiNoteId),
-                            );
-                        }
-                    }
-
-                    cx[s].hovered_key = hovered_key_idx;
-                })
-                .drag(move |cx, offset, gesture_state, mouse_button| {
-                    match gesture_state {
-                        GestureState::Began => {
-                            if mouse_button == Some(MouseButton::Left) {
-                                cx[s].mouse_dragging = true;
+                            GestureState::Changed => {
+                                if cx[s].mouse_position.is_some() {
+                                    cx[s].mouse_position = Some(local_position);
+                                    if cx[s].current_drag_key != cx[s].hovered_key {
+                                        if let Some(preview_drag_key) = cx[s].current_drag_key {
+                                            let _ = cx[s].release_key(preview_drag_key);
+                                        }
+                                        cx[s].current_drag_key = cx[s].hovered_key;
+                                        if let Some(current_drag_key) = cx[s].current_drag_key {
+                                            let default_velocity = cx[s].config.default_velocity;
+                                            let _ =
+                                                cx[s].press_key(current_drag_key, default_velocity);
+                                        }
+                                    }
+                                }
                             }
-                        }
-                        GestureState::Changed => {
-                            if cx[s].mouse_position.is_some() {
-                                cx[s].mouse_position = Some(cx[s].mouse_position.unwrap() + offset);
+                            GestureState::Ended => {
+                                cx[s].mouse_dragging = false;
+                                cx[s].current_drag_key = None;
+                                cx[s].release_not_pressed_keys();
                             }
+                            #[allow(unreachable_patterns)]
+                            _ => (),
                         }
-                        GestureState::Ended => {
-                            cx[s].mouse_dragging = false;
+                    })
+                    .hover_p(move |cx, hover_position| {
+                        cx[s].mouse_position = Some(hover_position);
+                    })
+                    .hover(move |cx, is_hovering| {
+                        if !is_hovering {
+                            cx[s].mouse_position = None;
                         }
-                        #[allow(unreachable_patterns)]
-                        _ => (),
-                    }
-
-                    // Update key states
-                    if let Some(hovered_key) = cx[s].hovered_key {
-                        if cx[s].mouse_dragging {
-                            if !cx[s].pressed_keys.contains(&hovered_key) {
-                                let default_velocity = cx[s].config.default_velocity;
-                                let _ = cx[s].press_key(hovered_key, default_velocity);
-                            }
-                        } else {
-                            if cx[s].pressed_keys.contains(&hovered_key) {
-                                let _ = cx[s].release_key(hovered_key);
-                            }
-                        }
-                    }
-                    cx[s].release_not_pressed_keys();
-                })
-                .hover_p(move |cx, hover_position| {
-                    cx[s].mouse_position = Some(hover_position);
-                })
-                .hover(move |cx, is_hovering| {
-                    if !is_hovering {
-                        cx[s].mouse_position = None;
-                    }
-                })
-            },
-        )
+                    })
+                },
+            )
+        })
     }
 
-    // Draw methods remain the same as in the original implementation
-    fn draw_white_key(
-        vger: &mut Vger,
-        x: f32,
-        y: f32,
-        width: f32,
-        height: f32,
-        held: bool,
-        hovered: bool,
-    ) {
-        let color = if held {
-            vger::Color::new(0.8, 0.8, 0.8, 1.0)
-        } else if hovered {
-            vger::Color::new(0.85, 0.85, 0.85, 1.0)
-        } else {
-            vger::Color::new(1.0, 1.0, 1.0, 1.0) // Pure white for more realistic look
-        };
-        let paint_index = vger.color_paint(color);
-        let rect = LocalRect::new(LocalPoint::new(x, y), LocalSize::new(width, height));
+    fn find_hovered_key(
+        keyboard_layout: &[(f32, f32, bool)],
+        mouse_position: LocalPoint,
+        white_key_width: f32,
+        key_height: f32,
+        black_key_height: f32,
+    ) -> Option<MidiNoteId> {
+        // First check black keys (they're on top)
+        let black_key = keyboard_layout
+            .iter()
+            .enumerate()
+            .filter(|(_, (_, _, is_black))| *is_black)
+            .find(|(_, (x, width, _))| {
+                let key_x = x * white_key_width;
+                let key_width = white_key_width * width;
+                let key_y = key_height - black_key_height;
 
-        vger.fill_rect(rect, 0.0, paint_index);
-    }
+                mouse_position.x >= key_x
+                    && mouse_position.x <= key_x + key_width
+                    && mouse_position.y >= key_y
+                    && mouse_position.y <= key_y + black_key_height
+            })
+            .map(|(index, _)| index as MidiNoteId);
 
-    fn draw_black_key(
-        vger: &mut Vger,
-        x: f32,
-        y: f32,
-        width: f32,
-        height: f32,
-        held: bool,
-        hovered: bool,
-    ) {
-        let base_color = vger::Color::new(0.1, 0.1, 0.1, 1.0);
-        let color = if held {
-            vger::Color::new(0.3, 0.3, 0.3, 1.0)
-        } else if hovered {
-            vger::Color::new(0.2, 0.2, 0.2, 1.0)
-        } else {
-            base_color
-        };
-        let paint_index = vger.color_paint(color);
-        let rect = LocalRect::new(LocalPoint::new(x, y), LocalSize::new(width, height));
-        vger.fill_rect(rect, 0.1 * width, paint_index); // Add rounded corners
+        if black_key.is_some() {
+            return black_key;
+        }
+
+        keyboard_layout
+            .iter()
+            .enumerate()
+            .filter(|(_, (_, _, is_black))| !is_black)
+            .find(|(_, (x, width, _))| {
+                let key_x = x * white_key_width;
+                let key_width = white_key_width * width;
+
+                mouse_position.x >= key_x
+                    && mouse_position.x <= key_x + key_width
+                    && mouse_position.y >= 0.0
+                    && mouse_position.y <= key_height
+            })
+            .map(|(index, _)| index as MidiNoteId)
     }
 }

@@ -1,7 +1,7 @@
 use crate::*;
 
 /// User interface event.
-#[derive(Clone, Debug)]
+#[derive(Clone, PartialEq, Debug)]
 pub enum Event {
     /// Touch event, or mouse down.
     TouchBegin {
@@ -25,16 +25,17 @@ pub enum Event {
         position: LocalPoint,
     },
 
-    // /// Mouse Move.
-    // MouseMove {
-    //     position: LocalPoint,
-    //     delta: LocalOffset,
-    // },
+    /// Called when the mouse gets outside the window
+    MouseLeftWindow,
+
     /// Menu command.
     Command(String),
 
     /// Key press.
     Key(Key),
+
+    /// Key released.
+    KeyReleased(Key),
 
     /// Animation.
     Anim,
@@ -74,7 +75,13 @@ pub struct KeyboardModifiers {
     pub command: bool,
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum ElementState {
+    Pressed,
+    Released,
+}
+
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Key {
     Character(char),
 

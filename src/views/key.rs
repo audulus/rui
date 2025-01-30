@@ -1,11 +1,19 @@
 use crate::*;
 use std::any::Any;
 
+/// Describes if the KeyView action should trigger when pressing or releasing a key
+#[derive(Clone)]
+pub enum KeyViewKind {
+    Pressed,
+    Released,
+}
+
 /// Struct for the `key` modifier.
 #[derive(Clone)]
 pub struct KeyView<V, F> {
     child: V,
     func: F,
+    kind: KeyViewKind,
 }
 
 impl<V, F, A> KeyView<V, F>
@@ -13,8 +21,20 @@ where
     V: View,
     F: Fn(&mut Context, Key) -> A + Clone + 'static,
 {
-    pub fn new(v: V, f: F) -> Self {
-        KeyView { child: v, func: f }
+    pub fn new_pressed(v: V, f: F) -> Self {
+        KeyView {
+            child: v,
+            func: f,
+            kind: KeyViewKind::Pressed,
+        }
+    }
+
+    pub fn new_released(v: V, f: F) -> Self {
+        KeyView {
+            child: v,
+            func: f,
+            kind: KeyViewKind::Released,
+        }
     }
 }
 
@@ -31,8 +51,17 @@ where
         cx: &mut Context,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
-        if let Event::Key(key) = &event {
-            actions.push(Box::new((self.func)(cx, key.clone())));
+        match self.kind {
+            KeyViewKind::Pressed => {
+                if let Event::Key(key) = &event {
+                    actions.push(Box::new((self.func)(cx, key.clone())));
+                }
+            }
+            KeyViewKind::Released => {
+                if let Event::KeyReleased(key) = &event {
+                    actions.push(Box::new((self.func)(cx, key.clone())));
+                }
+            }
         }
     }
 

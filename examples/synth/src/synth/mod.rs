@@ -7,18 +7,14 @@ use rodio::Sink;
 mod oscillator;
 pub use oscillator::Oscillator;
 
-mod osc;
-use osc::AnalogOsc;
-
-// The envelope state struct
 struct EnvelopeState {
     envelope: Envelope,
     start_time: Instant,
     is_releasing: bool,
     release_start_time: Option<Instant>,
+    release_start_volume: Option<f32>, // Track starting volume for release
 }
 
-// The envelope struct
 struct Envelope {
     attack: f32,
     decay: f32,
@@ -45,9 +41,6 @@ pub struct Synth {
 
 impl Synth {
     pub fn new(stream_handle: rodio::OutputStreamHandle) -> Synth {
-        // let (_stream, stream_handle) = rodio::OutputStream::try_default().unwrap();
-        // For some reason the above code would fail if it was in the new function
-
         Synth {
             audio_sinks: HashMap::new(),
             envelope_states: HashMap::new(),
@@ -59,12 +52,13 @@ impl Synth {
         let sink = Sink::try_new(&self.stream_handle).expect("Failed to create sink");
         sink.append(audio_source);
 
-        let envelope = Envelope::new(0.1, 0.2, 0.7, 1.3); // example envelope
+        let envelope = Envelope::new(0.8, 0.2, 0.7, 1.3);
         let envelope_state = EnvelopeState {
             envelope,
             start_time: Instant::now(),
             is_releasing: false,
             release_start_time: None,
+            release_start_volume: None,
         };
 
         self.audio_sinks.insert(source_id, sink);
@@ -73,48 +67,76 @@ impl Synth {
 
     pub fn release_source(&mut self, source_id: u8) {
         if let Some(envelope_state) = self.envelope_states.get_mut(&source_id) {
+            let now = Instant::now();
+            let elapsed = now.duration_since(envelope_state.start_time).as_secs_f32();
+            let envelope = &envelope_state.envelope;
+
+            // Calculate current volume at release time
+            let current_volume = if elapsed < envelope.attack {
+                // Attack phase
+                elapsed / envelope.attack
+            } else if elapsed < envelope.attack + envelope.decay {
+                // Decay phase
+                1.0 - (elapsed - envelope.attack) / envelope.decay * (1.0 - envelope.sustain)
+            } else {
+                // Sustain phase
+                envelope.sustain
+            };
+
             envelope_state.is_releasing = true;
-            envelope_state.release_start_time = Some(Instant::now());
+            envelope_state.release_start_time = Some(now);
+            envelope_state.release_start_volume = Some(current_volume);
         }
     }
 
     pub fn update(&mut self) {
         let now = Instant::now();
-
         let mut to_remove = Vec::new();
 
         for (source_id, envelope_state) in self.envelope_states.iter_mut() {
-            let elapsed = now.duration_since(envelope_state.start_time).as_secs_f32();
-
-            let envelope = &envelope_state.envelope;
             let sink = self.audio_sinks.get_mut(source_id).unwrap();
+            let envelope = &envelope_state.envelope;
 
-            let volume = if elapsed < envelope.attack {
-                // Attack
-                elapsed / envelope.attack
-            } else if elapsed < envelope.attack + envelope.decay {
-                // Decay
-                1.0 - (elapsed - envelope.attack) / envelope.decay * (1.0 - envelope.sustain)
-            } else if envelope_state.is_releasing {
-                // Release
-                let elapsed_since_released = now
+            let volume = if envelope_state.is_releasing {
+                // Release phase - use captured start volume and release time
+                let elapsed_release = now
                     .duration_since(envelope_state.release_start_time.unwrap())
                     .as_secs_f32();
-                envelope.sustain - elapsed_since_released / envelope.release * envelope.sustain
+
+                let start_volume = envelope_state.release_start_volume.unwrap();
+                let t = (elapsed_release / envelope.release).min(1.0);
+                start_volume * (1.0 - t)
             } else {
-                // Sustain
-                envelope.sustain
+                // Calculate based on ADSR phases
+                let elapsed = now.duration_since(envelope_state.start_time).as_secs_f32();
+
+                if elapsed < envelope.attack {
+                    // Attack phase
+                    elapsed / envelope.attack
+                } else if elapsed < envelope.attack + envelope.decay {
+                    // Decay phase
+                    1.0 - (elapsed - envelope.attack) / envelope.decay * (1.0 - envelope.sustain)
+                } else {
+                    // Sustain phase
+                    envelope.sustain
+                }
             };
 
             sink.set_volume(volume);
 
-            if envelope_state.is_releasing && elapsed > envelope.release {
-                // This is done as a separate step to avoid a second mutable borrow of self.envelope_states
-                // First borrow is when .iter_mut() is called, second is when .remove() is called
-                to_remove.push(*source_id);
+            // Check if release is complete
+            if envelope_state.is_releasing {
+                let elapsed_release = now
+                    .duration_since(envelope_state.release_start_time.unwrap())
+                    .as_secs_f32();
+
+                if elapsed_release >= envelope.release {
+                    to_remove.push(*source_id);
+                }
             }
         }
 
+        // Cleanup completed sounds
         for source_id in to_remove {
             self.envelope_states.remove(&source_id);
             self.audio_sinks.remove(&source_id);

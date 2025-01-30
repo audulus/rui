@@ -30,11 +30,13 @@ fn main() {
 
             let mut synth = synth.lock().unwrap();
 
+            // let notes = note + 1 + 3 + 5;
+
             // Get the frequency of the note.
             let frequency: MidiFrequency = note.frequency();
 
             // Create an audio source for the note.
-            let audio_source = Oscillator::sawtooth_wave(frequency).amplify(1.0);
+            let audio_source = Oscillator::sawtooth(frequency).amplify(1.0);
 
             // Get the note id (u8) if you need it. 0 is the lowest note. 127 is the highest note.
             let source_id: MidiNoteId = note.id();
