@@ -16,8 +16,6 @@ pub struct OscillatorConfig {
     anti_aliasing: bool,
     oversampling: usize,
     zero_crossings: usize,
-    transition_start: f32,
-    transition_end: f32,
 }
 
 impl Default for OscillatorConfig {
@@ -27,8 +25,6 @@ impl Default for OscillatorConfig {
             anti_aliasing: true,
             oversampling: 256,
             zero_crossings: 16,
-            transition_start: 8000.0,
-            transition_end: 10000.0,
         }
     }
 }
@@ -60,18 +56,6 @@ impl OscillatorConfig {
     /// Set number of zero crossings
     pub fn zero_crossings(mut self, crossings: usize) -> Self {
         self.zero_crossings = crossings;
-        self
-    }
-
-    /// Set transition start frequency
-    pub fn transition_start(mut self, start: f32) -> Self {
-        self.transition_start = start;
-        self
-    }
-
-    /// Set transition end frequency
-    pub fn transition_end(mut self, end: f32) -> Self {
-        self.transition_end = end;
         self
     }
 }
@@ -220,16 +204,6 @@ impl Oscillator {
 
     pub fn triangle(freq: f32) -> Self {
         Self::new(freq, WaveType::Triangle, OscillatorConfig::default())
-    }
-
-    /// Create oscillators with custom configuration
-    pub fn new_with_config(freq: f32, wave_type: WaveType, config: OscillatorConfig) -> Self {
-        Oscillator {
-            freq,
-            num_samples: 0,
-            wave_type,
-            analog_osc: AnalogOsc::new(config),
-        }
     }
 
     /// Internal constructor for oscillators

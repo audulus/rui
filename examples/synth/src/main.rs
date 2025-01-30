@@ -30,6 +30,8 @@ fn main() {
 
             let mut synth = synth.lock().unwrap();
 
+            // let notes = note + 1 + 3 + 5;
+
             // Get the frequency of the note.
             let frequency: MidiFrequency = note.frequency();
 
