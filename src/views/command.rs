@@ -1,10 +1,10 @@
 use crate::*;
-use std::any::Any;
+use std::{any::Any, sync::Arc};
 
 #[derive(Clone)]
 pub struct Command<V, F> {
     child: V,
-    name: String,
+    name: Arc<str>,
     key: Option<HotKey>,
     func: F,
 }
@@ -14,7 +14,7 @@ where
     V: View,
     F: Fn(&mut Context) + Clone + 'static,
 {
-    pub fn new(v: V, name: String, key: Option<HotKey>, f: F) -> Self {
+    pub fn new(v: V, name: Arc<str>, key: Option<HotKey>, f: F) -> Self {
         Self {
             child: v,
             name,
@@ -97,7 +97,7 @@ impl<V, F> private::Sealed for Command<V, F> {}
 
 pub trait DynCommandBase {
     fn exec(&self);
-    fn name(&self) -> String;
+    fn name(&self) -> Arc<str>;
     fn key(&self) -> Option<HotKey>;
 }
 
@@ -337,7 +337,7 @@ impl<V, C> private::Sealed for CommandGroup<V, C> {}
 
 #[derive(Clone)]
 pub struct NullCommand {
-    name: String,
+    name: Arc<str>,
     key: Option<HotKey>,
 }
 
@@ -351,7 +351,7 @@ pub fn command(name: &str) -> NullCommand {
 
 impl DynCommandBase for NullCommand {
     fn exec(&self) {}
-    fn name(&self) -> String {
+    fn name(&self) -> Arc<str> {
         self.name.clone()
     }
     fn key(&self) -> Option<HotKey> {
@@ -379,7 +379,7 @@ impl NullCommand {
 
 #[derive(Clone)]
 pub struct Command2<F> {
-    name: String,
+    name: Arc<str>,
     key: Option<HotKey>,
     func: F,
 }
@@ -391,7 +391,7 @@ where
     fn exec(&self) {
         (self.func)();
     }
-    fn name(&self) -> String {
+    fn name(&self) -> Arc<str> {
         self.name.clone()
     }
     fn key(&self) -> Option<HotKey> {

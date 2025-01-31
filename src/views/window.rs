@@ -1,11 +1,11 @@
 use crate::*;
-use std::any::Any;
+use std::{any::Any, sync::Arc};
 
 /// Struct for the `window_title` modifier.
 #[derive(Clone)]
 pub struct TitleView<V> {
     child: V,
-    title: String,
+    title: Arc<str>,
 }
 
 impl<V> TitleView<V>
