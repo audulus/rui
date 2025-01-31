@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::*;
 
 /// User interface event.
@@ -29,7 +31,7 @@ pub enum Event {
     MouseLeftWindow,
 
     /// Menu command.
-    Command(String),
+    Command(Arc<str>),
 
     /// Key press.
     Key(Key),

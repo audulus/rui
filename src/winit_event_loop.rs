@@ -157,7 +157,7 @@ struct EventHandler<T>
 where
     T: View,
 {
-    title: String,
+    title: Arc<str>,
     running: bool,
     // The GPU resources, if running.
     context: Option<DrawContext>,
@@ -189,7 +189,7 @@ where
         self.running = true;
 
         // Create the main window.
-        let window_attributes = Window::default_attributes().with_title(&self.title);
+        let window_attributes = Window::default_attributes().with_title(self.title.to_string());
         self.window = match event_loop.create_window(window_attributes) {
             Err(e) => {
                 log::error!("Error creating window: {:?}", e);
@@ -500,7 +500,7 @@ pub fn rui(view: impl View) {
 
     let window_title = String::from("rui");
     let mut app = EventHandler {
-        title: window_title,
+        title: window_title.into(),
         running: false,
         context: None,
         window: None,

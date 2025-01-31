@@ -5,6 +5,7 @@ use std::any::TypeId;
 use std::collections::{HashMap, HashSet};
 use std::iter::FromIterator;
 use std::ops;
+use std::sync::Arc;
 
 pub type LocalSpace = vger::defs::LocalSpace;
 pub type WorldSpace = vger::defs::WorldSpace;
@@ -19,7 +20,7 @@ pub type WorldToLocal = Transform2D<f32, WorldSpace, LocalSpace>;
 
 #[derive(Clone, Eq, PartialEq)]
 pub struct CommandInfo {
-    pub path: String,
+    pub path: Arc<str>,
     pub key: Option<HotKey>,
 }
 
@@ -81,7 +82,7 @@ pub struct Context {
     pub(crate) focused_id: Option<ViewId>,
 
     /// The current title of the window
-    pub window_title: String,
+    pub window_title: Arc<str>,
 
     /// Are we fullscreen?
     pub fullscreen: bool,
