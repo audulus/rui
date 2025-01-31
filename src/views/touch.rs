@@ -1,14 +1,21 @@
 use crate::*;
 use std::any::Any;
 
+#[derive(Clone, PartialEq)]
 pub enum TouchState {
     Begin,
     End,
 }
 
+#[derive(Clone)]
 pub struct TouchInfo {
+    /// The position of the touch in local space of the view that received the touch.
     pub pt: LocalPoint,
+
+    /// The mouse button that was used for the touch if a mouse was used.
     pub button: Option<MouseButton>,
+
+    /// The state of the touch. IE: Begin or End.
     pub state: TouchState,
 }
 
