@@ -106,7 +106,7 @@ macro_rules! impl_text {
                 let txt = &format!("{}", self);
                 let vger = &mut args.vger;
                 let origin = vger.text_bounds(txt, Text::DEFAULT_SIZE, None).origin;
-        
+
                 vger.save();
                 vger.translate([-origin.x, -origin.y]);
                 vger.text(txt, Text::DEFAULT_SIZE, TEXT_COLOR, None);
@@ -116,7 +116,7 @@ macro_rules! impl_text {
                 let txt = &format!("{}", self);
                 (args.text_bounds)(txt, Text::DEFAULT_SIZE, None).size
             }
-        
+
             fn access(
                 &self,
                 path: &mut IdPath,
@@ -131,8 +131,7 @@ macro_rules! impl_text {
             }
         }
 
-        impl TextModifiers for $ty
-        {
+        impl TextModifiers for $ty {
             fn font_size(self, size: u32) -> Text {
                 Text {
                     text: format!("{}", self),
@@ -159,8 +158,7 @@ macro_rules! impl_text {
                 }
             }
         }
-
-    }
+    };
 }
 
 // XXX: this used to be generic for any Display but
@@ -205,8 +203,7 @@ impl DynView for &'static str {
     }
 }
 
-impl TextModifiers for &'static str
-{
+impl TextModifiers for &'static str {
     fn font_size(self, size: u32) -> Text {
         Text {
             text: format!("{}", self),

@@ -3,6 +3,7 @@ use rust_search::SearchBuilder;
 use serde_json::{Map, Value};
 use std::collections::{HashSet, VecDeque};
 use std::fs;
+use std::sync::Arc;
 
 // Function to find and extract flip cards from JSON data
 fn find_flip_cards(value: &Value) -> Vec<Value> {
@@ -74,8 +75,8 @@ fn find_flip_cards(value: &Value) -> Vec<Value> {
 #[derive(Clone)]
 struct FlipCardState {
     show_answer: bool,
-    question: String,
-    answer: String,
+    question: Arc<str>,
+    answer: Arc<str>,
 }
 
 // Struct to represent the state of all flip cards
@@ -114,8 +115,8 @@ fn main() {
                     .iter()
                     .map(|card| FlipCardState {
                         show_answer: false,
-                        question: card["q"].as_str().unwrap().to_string(),
-                        answer: card["a"].as_str().unwrap().to_string(),
+                        question: card["q"].to_string().into(),
+                        answer: card["a"].to_string().into(),
                     })
                     .collect(),
                 current_index: 0, // Start at the first card
@@ -128,9 +129,9 @@ fn main() {
                 // Render the current flip card
                 vstack((
                     text(if current_card.show_answer {
-                        current_card.answer.as_str()
+                        &current_card.answer
                     } else {
-                        current_card.question.as_str()
+                        &current_card.question
                     })
                     .font_size(12)
                     .padding(Auto),
