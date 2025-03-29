@@ -47,19 +47,27 @@ where
     fn process(
         &self,
         event: &Event,
-        _path: &mut IdPath,
+        path: &mut IdPath,
         cx: &mut Context,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
         match self.kind {
             KeyViewKind::Pressed => {
                 if let Event::Key(key) = &event {
-                    actions.push(Box::new((self.func)(cx, key.clone())));
+                    actions.push(Box::new((self.func)(cx, *key)));
+                } else {
+                    path.push(0);
+                    self.child.process(event, path, cx, actions);
+                    path.pop();
                 }
             }
             KeyViewKind::Released => {
                 if let Event::KeyReleased(key) = &event {
-                    actions.push(Box::new((self.func)(cx, key.clone())));
+                    actions.push(Box::new((self.func)(cx, *key)));
+                } else {
+                    path.push(0);
+                    self.child.process(event, path, cx, actions);
+                    path.pop();
                 }
             }
         }
