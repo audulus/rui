@@ -223,6 +223,9 @@ pub fn with_cx<V: View, F: Fn(&Context) -> V + Clone + 'static>(f: F) -> impl Vi
 }
 
 /// Convenience to retreive a reference to a value in the context.
-pub fn with_ref<V: View, F: Fn(&T) -> V + Clone + 'static, T>(binding: impl Binding<T>, f: F) -> impl View {
+pub fn with_ref<V: View, F: Fn(&T) -> V + Clone + 'static, T>(
+    binding: impl Binding<T>,
+    f: F,
+) -> impl View {
     with_cx(move |cx| f(binding.get(cx)))
 }
