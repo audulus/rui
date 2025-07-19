@@ -8,6 +8,19 @@ struct TextEditorState {
 }
 
 impl TextEditorState {
+    /// Returns the position of the cursor in local coordinates.
+    fn cursor_pos(&self) -> LocalPoint {
+        if self.cursor == self.glyph_rects.len() {
+            if let Some(r) = self.glyph_rects.last() {
+                [r.origin.x + r.size.width, r.origin.y].into()
+            } else {
+                [0.0, -20.0].into()
+            }
+        } else {
+            self.glyph_rects[self.cursor].origin
+        }
+    }
+
     fn fwd(&mut self, len: usize) {
         self.cursor += 1;
         if self.cursor > len {
@@ -28,6 +41,8 @@ impl TextEditorState {
             }
             i += 1;
         }
+        // Ensure we don't go out of bounds.
+        i = i.min(self.lines.len() - 1);
         i
     }
 
@@ -40,7 +55,7 @@ impl TextEditorState {
         let mut d = std::f32::MAX;
         let mut closest = 0;
         for i in range {
-            let dp = rects[i].center().distance_to(p);
+            let dp = rects[i].origin.distance_to(p);
             if dp < d {
                 closest = i;
                 d = dp;
@@ -50,7 +65,7 @@ impl TextEditorState {
     }
 
     fn down(&mut self) {
-        let p = self.glyph_rects[self.cursor].center();
+        let p = self.cursor_pos();
 
         let line = self.find_line() + 1;
         if line < self.lines.len() {
@@ -61,7 +76,7 @@ impl TextEditorState {
     }
 
     fn up(&mut self) {
-        let p = self.glyph_rects[self.cursor].center();
+        let p = self.cursor_pos();
 
         let line = self.find_line();
         if line > 0 {
@@ -140,8 +155,7 @@ impl TextEditorState {
 /// state can be created from more atomic Views.
 pub fn text_editor(text: impl Binding<String>) -> impl View {
     focus(move |has_focus| {
-        state(TextEditorState::new, move |state, cx| {
-            let cursor = cx[state].cursor;
+        state(TextEditorState::new, move |state, _| {
             canvas(move |cx, rect, vger| {
                 vger.translate([0.0, rect.height()]);
                 let font_size = 18;
@@ -153,19 +167,12 @@ pub fn text_editor(text: impl Binding<String>) -> impl View {
                     let rects = vger.glyph_positions(text.get(cx), font_size, break_width);
                     let lines = vger.line_metrics(text.get(cx), font_size, break_width);
                     let glyph_rect_paint = vger.color_paint(vger::Color::MAGENTA);
-                    let p = if cursor == rects.len() {
-                        if let Some(r) = rects.last() {
-                            [r.origin.x + r.size.width, r.origin.y].into()
-                        } else {
-                            [0.0, -20.0].into()
-                        }
-                    } else {
-                        rects[cursor].origin
-                    };
-                    vger.fill_rect(LocalRect::new(p, [2.0, 20.0].into()), 0.0, glyph_rect_paint);
 
                     cx[state].glyph_rects = rects;
                     cx[state].lines = lines;
+
+                    let p = cx[state].cursor_pos();
+                    vger.fill_rect(LocalRect::new(p, [2.0, 20.0].into()), 0.0, glyph_rect_paint);
                 }
             })
             .key(move |cx, k| {
