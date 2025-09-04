@@ -1,5 +1,9 @@
 use wasm_bindgen::prelude::*;
 
+// Import rui but don't use it - just to see if it compiles
+#[allow(unused_imports)]
+use rui::*;
+
 // Import the `console.log` function from the `console` module
 #[wasm_bindgen]
 extern "C" {
