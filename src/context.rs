@@ -386,6 +386,14 @@ impl Context {
         }
     }
 
+    /// Returns all layout entries sorted by path, for use in snapshot tests.
+    #[cfg(test)]
+    pub(crate) fn layout_entries(&self) -> Vec<(IdPath, LayoutBox)> {
+        let mut entries: Vec<_> = self.layout.iter().map(|(k, v)| (k.clone(), *v)).collect();
+        entries.sort_by(|a, b| a.0.cmp(&b.0));
+        entries
+    }
+
     pub(crate) fn set_dirty(&mut self) {
         if self.enable_dirty {
             self.dirty = true

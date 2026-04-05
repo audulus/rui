@@ -1,0 +1,7 @@
+---
+source: src/snapshot_tests.rs
+assertion_line: 53
+expression: "layout_snapshot(&ui, [80.0, 60.0])"
+---
+root_size=[80.0, 60.0]
+path=[0] rect=[0.0, 0.0, 80.0, 60.0] offset=[0.0, 0.0]
