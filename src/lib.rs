@@ -62,6 +62,9 @@ pub(crate) mod private {
 mod snapshot_tests;
 
 #[cfg(test)]
+mod screenshot_tests;
+
+#[cfg(test)]
 mod tests {
 
     use super::*;
