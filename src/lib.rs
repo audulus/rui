@@ -65,6 +65,9 @@ mod snapshot_tests;
 mod screenshot_tests;
 
 #[cfg(test)]
+mod test_harness;
+
+#[cfg(test)]
 mod tests {
 
     use super::*;
