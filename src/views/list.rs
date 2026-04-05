@@ -272,3 +272,104 @@ pub fn zlist<ID: Hash + Clone, V: View, F: Fn(&ID) -> V + Clone + 'static>(
         func: f,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_vertical_list_layout() {
+        let mut cx = Context::new();
+        let ui = list(vec![0, 1, 2], |_id| rectangle().size([40.0, 20.0]));
+        let sz = [200.0, 200.0].into();
+        let mut path = vec![0];
+        let result = ui.layout(
+            &mut path,
+            &mut LayoutArgs {
+                sz,
+                cx: &mut cx,
+                text_bounds: &mut |_, _, _| LocalRect::zero(),
+            },
+        );
+        // 3 items each 20px tall, max width 40
+        assert_eq!(result.width, 40.0);
+        assert_eq!(result.height, 60.0);
+    }
+
+    #[test]
+    fn test_horizontal_list_layout() {
+        let mut cx = Context::new();
+        let ui = hlist(vec![0, 1, 2], |_id| rectangle().size([30.0, 50.0]));
+        let sz = [200.0, 200.0].into();
+        let mut path = vec![0];
+        let result = ui.layout(
+            &mut path,
+            &mut LayoutArgs {
+                sz,
+                cx: &mut cx,
+                text_bounds: &mut |_, _, _| LocalRect::zero(),
+            },
+        );
+        // 3 items each 30px wide, max height 50
+        assert_eq!(result.width, 90.0);
+        assert_eq!(result.height, 50.0);
+    }
+
+    #[test]
+    fn test_z_list_layout() {
+        let mut cx = Context::new();
+        let ui = zlist(vec![0, 1], |_id| rectangle());
+        let sz = [100.0, 80.0].into();
+        let mut path = vec![0];
+        let result = ui.layout(
+            &mut path,
+            &mut LayoutArgs {
+                sz,
+                cx: &mut cx,
+                text_bounds: &mut |_, _, _| LocalRect::zero(),
+            },
+        );
+        // Z layout returns the proposed size
+        assert_eq!(result, sz);
+    }
+
+    #[test]
+    fn test_list_empty() {
+        let mut cx = Context::new();
+        let ui = list(Vec::<i32>::new(), |_id| rectangle());
+        let sz = [100.0, 100.0].into();
+        let mut path = vec![0];
+        let result = ui.layout(
+            &mut path,
+            &mut LayoutArgs {
+                sz,
+                cx: &mut cx,
+                text_bounds: &mut |_, _, _| LocalRect::zero(),
+            },
+        );
+        assert_eq!(result.width, 0.0);
+        assert_eq!(result.height, 0.0);
+    }
+
+    #[test]
+    fn test_vertical_list_varying_heights() {
+        let mut cx = Context::new();
+        let ui = list(vec![0, 1, 2], |id| {
+            let h = (*id + 1) as f32 * 10.0;
+            rectangle().size([50.0, h])
+        });
+        let sz = [200.0, 200.0].into();
+        let mut path = vec![0];
+        let result = ui.layout(
+            &mut path,
+            &mut LayoutArgs {
+                sz,
+                cx: &mut cx,
+                text_bounds: &mut |_, _, _| LocalRect::zero(),
+            },
+        );
+        // Heights: 10 + 20 + 30 = 60
+        assert_eq!(result.height, 60.0);
+        assert_eq!(result.width, 50.0);
+    }
+}

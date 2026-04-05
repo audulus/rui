@@ -126,3 +126,50 @@ pub fn cond(cond: bool, if_true: impl View, if_false: impl View) -> impl View {
         if_false,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_cond_true_uses_first_view() {
+        let mut cx = Context::new();
+        let ui = cond(
+            true,
+            rectangle().size([50.0, 50.0]),
+            rectangle().size([100.0, 100.0]),
+        );
+        let sz = [200.0, 200.0].into();
+        let mut path = vec![0];
+        let result = ui.layout(
+            &mut path,
+            &mut LayoutArgs {
+                sz,
+                cx: &mut cx,
+                text_bounds: &mut |_, _, _| LocalRect::zero(),
+            },
+        );
+        assert_eq!(result, [50.0, 50.0].into());
+    }
+
+    #[test]
+    fn test_cond_false_uses_second_view() {
+        let mut cx = Context::new();
+        let ui = cond(
+            false,
+            rectangle().size([50.0, 50.0]),
+            rectangle().size([100.0, 100.0]),
+        );
+        let sz = [200.0, 200.0].into();
+        let mut path = vec![0];
+        let result = ui.layout(
+            &mut path,
+            &mut LayoutArgs {
+                sz,
+                cx: &mut cx,
+                text_bounds: &mut |_, _, _| LocalRect::zero(),
+            },
+        );
+        assert_eq!(result, [100.0, 100.0].into());
+    }
+}

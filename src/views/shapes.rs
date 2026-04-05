@@ -137,3 +137,112 @@ pub fn rectangle() -> Rectangle {
         paint: Paint::Color(Color::CYAN),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_circle_layout_fills_available() {
+        let mut cx = Context::new();
+        let ui = circle();
+        let sz = [80.0, 60.0].into();
+        let mut path = vec![0];
+        let result = ui.layout(
+            &mut path,
+            &mut LayoutArgs {
+                sz,
+                cx: &mut cx,
+                text_bounds: &mut |_, _, _| LocalRect::zero(),
+            },
+        );
+        assert_eq!(result, sz);
+    }
+
+    #[test]
+    fn test_circle_hittest_inside() {
+        let mut cx = Context::new();
+        let ui = circle();
+        let sz = [100.0, 100.0].into();
+        let mut path = vec![0];
+        ui.layout(
+            &mut path,
+            &mut LayoutArgs {
+                sz,
+                cx: &mut cx,
+                text_bounds: &mut |_, _, _| LocalRect::zero(),
+            },
+        );
+        // Center of a 100x100 circle is (50,50), radius 50
+        assert!(ui.hittest(&mut path, [50.0, 50.0].into(), &mut cx).is_some());
+    }
+
+    #[test]
+    fn test_circle_hittest_outside() {
+        let mut cx = Context::new();
+        let ui = circle();
+        let sz = [100.0, 100.0].into();
+        let mut path = vec![0];
+        ui.layout(
+            &mut path,
+            &mut LayoutArgs {
+                sz,
+                cx: &mut cx,
+                text_bounds: &mut |_, _, _| LocalRect::zero(),
+            },
+        );
+        // Corner of square is outside circle
+        assert!(ui.hittest(&mut path, [0.0, 0.0].into(), &mut cx).is_none());
+    }
+
+    #[test]
+    fn test_rectangle_layout_fills_available() {
+        let mut cx = Context::new();
+        let ui = rectangle();
+        let sz = [120.0, 40.0].into();
+        let mut path = vec![0];
+        let result = ui.layout(
+            &mut path,
+            &mut LayoutArgs {
+                sz,
+                cx: &mut cx,
+                text_bounds: &mut |_, _, _| LocalRect::zero(),
+            },
+        );
+        assert_eq!(result, sz);
+    }
+
+    #[test]
+    fn test_rectangle_hittest_inside() {
+        let mut cx = Context::new();
+        let ui = rectangle();
+        let sz = [100.0, 50.0].into();
+        let mut path = vec![0];
+        ui.layout(
+            &mut path,
+            &mut LayoutArgs {
+                sz,
+                cx: &mut cx,
+                text_bounds: &mut |_, _, _| LocalRect::zero(),
+            },
+        );
+        assert!(ui.hittest(&mut path, [50.0, 25.0].into(), &mut cx).is_some());
+    }
+
+    #[test]
+    fn test_rectangle_hittest_outside() {
+        let mut cx = Context::new();
+        let ui = rectangle();
+        let sz = [100.0, 50.0].into();
+        let mut path = vec![0];
+        ui.layout(
+            &mut path,
+            &mut LayoutArgs {
+                sz,
+                cx: &mut cx,
+                text_bounds: &mut |_, _, _| LocalRect::zero(),
+            },
+        );
+        assert!(ui.hittest(&mut path, [150.0, 25.0].into(), &mut cx).is_none());
+    }
+}

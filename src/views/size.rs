@@ -88,3 +88,43 @@ where
         Self { child, size }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_size_constrains_layout() {
+        let mut cx = Context::new();
+        let ui = Size::new(rectangle(), [50.0, 30.0].into());
+        let sz = [200.0, 200.0].into();
+        let mut path = vec![0];
+        let result = ui.layout(
+            &mut path,
+            &mut LayoutArgs {
+                sz,
+                cx: &mut cx,
+                text_bounds: &mut |_, _, _| LocalRect::zero(),
+            },
+        );
+        assert_eq!(result, [50.0, 30.0].into());
+    }
+
+    #[test]
+    fn test_size_ignores_parent_size() {
+        let mut cx = Context::new();
+        let ui = Size::new(rectangle(), [80.0, 40.0].into());
+        // Even with a tiny parent, Size returns its fixed size
+        let sz = [10.0, 10.0].into();
+        let mut path = vec![0];
+        let result = ui.layout(
+            &mut path,
+            &mut LayoutArgs {
+                sz,
+                cx: &mut cx,
+                text_bounds: &mut |_, _, _| LocalRect::zero(),
+            },
+        );
+        assert_eq!(result, [80.0, 40.0].into());
+    }
+}

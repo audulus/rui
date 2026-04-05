@@ -89,3 +89,47 @@ where
 }
 
 impl<V> private::Sealed for Offset<V> {}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_offset_preserves_size() {
+        let mut cx = Context::new();
+        let ui = Offset::new(rectangle(), [10.0, 20.0].into());
+        let sz = [100.0, 100.0].into();
+        let mut path = vec![0];
+        let result = ui.layout(
+            &mut path,
+            &mut LayoutArgs {
+                sz,
+                cx: &mut cx,
+                text_bounds: &mut |_, _, _| LocalRect::zero(),
+            },
+        );
+        // Offset doesn't change the layout size
+        assert_eq!(result, sz);
+    }
+
+    #[test]
+    fn test_offset_shifts_hittest() {
+        let mut cx = Context::new();
+        let ui = Offset::new(rectangle(), [50.0, 50.0].into());
+        let sz = [100.0, 100.0].into();
+        let mut path = vec![0];
+        ui.layout(
+            &mut path,
+            &mut LayoutArgs {
+                sz,
+                cx: &mut cx,
+                text_bounds: &mut |_, _, _| LocalRect::zero(),
+            },
+        );
+        // The rectangle is offset by (50,50), so point (25,25) maps to (-25,-25) in child space
+        // which is outside the 100x100 rect
+        assert!(ui.hittest(&mut path, [25.0, 25.0].into(), &mut cx).is_none());
+        // Point (75,75) maps to (25,25) in child space, which is inside
+        assert!(ui.hittest(&mut path, [75.0, 75.0].into(), &mut cx).is_some());
+    }
+}

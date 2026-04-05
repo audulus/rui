@@ -160,3 +160,100 @@ where
 }
 
 impl<V, F> private::Sealed for Tap<V, F> {}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_tap_fires_on_touch_end() {
+        let mut cx = Context::new();
+
+        let ui = state(
+            || false,
+            |tapped, _| {
+                rectangle().tap(move |cx| {
+                    *tapped.get_mut(cx) = true;
+                })
+            },
+        );
+
+        let sz = [100.0, 100.0].into();
+        let mut path = vec![0];
+        ui.layout(
+            &mut path,
+            &mut LayoutArgs {
+                sz,
+                cx: &mut cx,
+                text_bounds: &mut |_, _, _| LocalRect::zero(),
+            },
+        );
+
+        let s = StateHandle::<bool>::new(cx.view_id(&path));
+        assert!(!*s.get(&cx));
+
+        let events = [
+            Event::TouchBegin {
+                id: 0,
+                position: [50.0, 50.0].into(),
+            },
+            Event::TouchEnd {
+                id: 0,
+                position: [50.0, 50.0].into(),
+            },
+        ];
+
+        let mut actions = vec![];
+        for event in &events {
+            ui.process(event, &mut path, &mut cx, &mut actions);
+        }
+
+        assert!(*s.get(&cx));
+    }
+
+    #[test]
+    fn test_tap_outside_does_not_fire() {
+        let mut cx = Context::new();
+
+        let ui = state(
+            || false,
+            |tapped, _| {
+                rectangle().size([50.0, 50.0]).tap(move |cx| {
+                    *tapped.get_mut(cx) = true;
+                })
+            },
+        );
+
+        let sz = [100.0, 100.0].into();
+        let mut path = vec![0];
+        ui.layout(
+            &mut path,
+            &mut LayoutArgs {
+                sz,
+                cx: &mut cx,
+                text_bounds: &mut |_, _, _| LocalRect::zero(),
+            },
+        );
+
+        let s = StateHandle::<bool>::new(cx.view_id(&path));
+
+        // Touch outside the 50x50 rectangle
+        let events = [
+            Event::TouchBegin {
+                id: 0,
+                position: [80.0, 80.0].into(),
+            },
+            Event::TouchEnd {
+                id: 0,
+                position: [80.0, 80.0].into(),
+            },
+        ];
+
+        let mut actions = vec![];
+        for event in &events {
+            ui.process(event, &mut path, &mut cx, &mut actions);
+        }
+
+        assert!(!*s.get(&cx));
+    }
+}

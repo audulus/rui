@@ -171,8 +171,10 @@ impl TextEditorState {
             }
             Key::Backspace => {
                 // First try to delete selection
+                let had_selection = self.selection_range().is_some()
+                    && self.selection_range().unwrap().0 != self.selection_range().unwrap().1;
                 let t = self.delete_selection(text);
-                if self.selection_range().is_none() && self.cursor > 0 {
+                if !had_selection && self.cursor > 0 {
                     // No selection was deleted, do normal backspace
                     let mut t = t;
                     t.remove(self.cursor - 1);
@@ -184,8 +186,10 @@ impl TextEditorState {
             }
             Key::Delete => {
                 // Delete selection or character at cursor
+                let had_selection = self.selection_range().is_some()
+                    && self.selection_range().unwrap().0 != self.selection_range().unwrap().1;
                 let t = self.delete_selection(text);
-                if self.selection_range().is_none() && self.cursor < t.len() {
+                if !had_selection && self.cursor < t.len() {
                     // No selection was deleted, delete character at cursor
                     let mut t = t;
                     t.remove(self.cursor);
@@ -239,6 +243,301 @@ impl TextEditorState {
             glyph_rects: vec![],
             lines: vec![],
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn make_state(cursor: usize, text_len: usize) -> TextEditorState {
+        // Create glyph rects for a single line of text, each char 10px wide, 20px tall
+        let glyph_rects: Vec<LocalRect> = (0..text_len)
+            .map(|i| LocalRect::new([i as f32 * 10.0, 0.0].into(), [10.0, 20.0].into()))
+            .collect();
+        let lines = vec![LineMetrics {
+            glyph_start: 0,
+            glyph_end: text_len,
+            bounds: LocalRect::new(LocalPoint::zero(), [text_len as f32 * 10.0, 20.0].into()),
+        }];
+        TextEditorState {
+            cursor,
+            selection_start: None,
+            glyph_rects,
+            lines,
+        }
+    }
+
+    fn make_multiline_state(cursor: usize, line_lengths: &[usize]) -> TextEditorState {
+        let mut glyph_rects = vec![];
+        let mut lines = vec![];
+        let mut glyph_start = 0;
+        for (line_idx, &len) in line_lengths.iter().enumerate() {
+            let y = -(line_idx as f32) * 20.0;
+            for i in 0..len {
+                glyph_rects.push(LocalRect::new(
+                    [i as f32 * 10.0, y].into(),
+                    [10.0, 20.0].into(),
+                ));
+            }
+            lines.push(LineMetrics {
+                glyph_start,
+                glyph_end: glyph_start + len,
+                bounds: LocalRect::new([0.0, y].into(), [len as f32 * 10.0, 20.0].into()),
+            });
+            glyph_start += len;
+        }
+        TextEditorState {
+            cursor,
+            selection_start: None,
+            glyph_rects,
+            lines,
+        }
+    }
+
+    #[test]
+    fn test_cursor_pos_middle() {
+        let s = make_state(2, 5);
+        let p = s.cursor_pos();
+        assert_eq!(p.x, 20.0);
+        assert_eq!(p.y, 0.0);
+    }
+
+    #[test]
+    fn test_cursor_pos_at_end() {
+        let s = make_state(5, 5);
+        let p = s.cursor_pos();
+        // At end: last glyph origin.x + width
+        assert_eq!(p.x, 50.0);
+        assert_eq!(p.y, 0.0);
+    }
+
+    #[test]
+    fn test_cursor_pos_empty() {
+        let s = TextEditorState::new();
+        let p = s.cursor_pos();
+        assert_eq!(p.x, 0.0);
+        assert_eq!(p.y, -20.0);
+    }
+
+    #[test]
+    fn test_fwd_and_back() {
+        let mut s = make_state(0, 5);
+        s.fwd(5, false);
+        assert_eq!(s.cursor, 1);
+        s.fwd(5, false);
+        assert_eq!(s.cursor, 2);
+        s.back(false);
+        assert_eq!(s.cursor, 1);
+        s.back(false);
+        assert_eq!(s.cursor, 0);
+        // Can't go before 0
+        s.back(false);
+        assert_eq!(s.cursor, 0);
+    }
+
+    #[test]
+    fn test_fwd_clamps_at_end() {
+        let mut s = make_state(5, 5);
+        s.fwd(5, false);
+        assert_eq!(s.cursor, 5);
+    }
+
+    #[test]
+    fn test_selection_with_shift() {
+        let mut s = make_state(2, 5);
+        // Move right with shift to start selection
+        s.fwd(5, true);
+        assert_eq!(s.cursor, 3);
+        assert_eq!(s.selection_start, Some(2));
+        assert_eq!(s.selection_range(), Some((2, 3)));
+
+        // Extend selection
+        s.fwd(5, true);
+        assert_eq!(s.cursor, 4);
+        assert_eq!(s.selection_range(), Some((2, 4)));
+
+        // Move without shift clears selection
+        s.fwd(5, false);
+        assert_eq!(s.cursor, 5);
+        assert_eq!(s.selection_start, None);
+    }
+
+    #[test]
+    fn test_selection_backwards() {
+        let mut s = make_state(3, 5);
+        s.back(true);
+        assert_eq!(s.cursor, 2);
+        assert_eq!(s.selection_start, Some(3));
+        // selection_range normalizes: start <= end
+        assert_eq!(s.selection_range(), Some((2, 3)));
+    }
+
+    #[test]
+    fn test_delete_selection() {
+        let mut s = make_state(1, 5);
+        s.selection_start = Some(1);
+        s.cursor = 3;
+        let result = s.delete_selection("abcde".to_string());
+        assert_eq!(result, "ade");
+        assert_eq!(s.cursor, 1);
+        assert_eq!(s.selection_start, None);
+    }
+
+    #[test]
+    fn test_delete_empty_selection() {
+        let mut s = make_state(2, 5);
+        s.selection_start = Some(2);
+        s.cursor = 2;
+        let result = s.delete_selection("abcde".to_string());
+        // start == end, so nothing deleted
+        assert_eq!(result, "abcde");
+    }
+
+    #[test]
+    fn test_key_character() {
+        let mut s = make_state(2, 5);
+        let result = s.key(&Key::Character('x'), "abcde".to_string(), false);
+        assert_eq!(result, "abxcde");
+        assert_eq!(s.cursor, 3);
+    }
+
+    #[test]
+    fn test_key_space() {
+        let mut s = make_state(0, 3);
+        let result = s.key(&Key::Space, "abc".to_string(), false);
+        assert_eq!(result, " abc");
+        assert_eq!(s.cursor, 1);
+    }
+
+    #[test]
+    fn test_key_backspace() {
+        let mut s = make_state(3, 5);
+        let result = s.key(&Key::Backspace, "abcde".to_string(), false);
+        assert_eq!(result, "abde");
+        assert_eq!(s.cursor, 2);
+    }
+
+    #[test]
+    fn test_key_backspace_at_start() {
+        let mut s = make_state(0, 3);
+        let result = s.key(&Key::Backspace, "abc".to_string(), false);
+        assert_eq!(result, "abc");
+        assert_eq!(s.cursor, 0);
+    }
+
+    #[test]
+    fn test_key_backspace_with_selection() {
+        let mut s = make_state(0, 5);
+        s.selection_start = Some(1);
+        s.cursor = 4;
+        let result = s.key(&Key::Backspace, "abcde".to_string(), false);
+        assert_eq!(result, "ae");
+        assert_eq!(s.cursor, 1);
+    }
+
+    #[test]
+    fn test_key_delete() {
+        let mut s = make_state(2, 5);
+        let result = s.key(&Key::Delete, "abcde".to_string(), false);
+        assert_eq!(result, "abde");
+        assert_eq!(s.cursor, 2);
+    }
+
+    #[test]
+    fn test_key_delete_at_end() {
+        let mut s = make_state(3, 3);
+        let result = s.key(&Key::Delete, "abc".to_string(), false);
+        assert_eq!(result, "abc");
+        assert_eq!(s.cursor, 3);
+    }
+
+    #[test]
+    fn test_key_home_end() {
+        let mut s = make_state(3, 5);
+        let result = s.key(&Key::Home, "abcde".to_string(), false);
+        assert_eq!(result, "abcde");
+        assert_eq!(s.cursor, 0);
+
+        s.key(&Key::End, result, false);
+        assert_eq!(s.cursor, 5);
+    }
+
+    #[test]
+    fn test_key_home_with_shift() {
+        let mut s = make_state(3, 5);
+        s.key(&Key::Home, "abcde".to_string(), true);
+        assert_eq!(s.cursor, 0);
+        assert_eq!(s.selection_start, Some(3));
+        assert_eq!(s.selection_range(), Some((0, 3)));
+    }
+
+    #[test]
+    fn test_key_character_replaces_selection() {
+        let mut s = make_state(0, 5);
+        s.selection_start = Some(1);
+        s.cursor = 3;
+        let result = s.key(&Key::Character('x'), "abcde".to_string(), false);
+        assert_eq!(result, "axde");
+        assert_eq!(s.cursor, 2);
+    }
+
+    #[test]
+    fn test_arrow_keys() {
+        let mut s = make_state(2, 5);
+        let text = "abcde".to_string();
+
+        let result = s.key(&Key::ArrowLeft, text, false);
+        assert_eq!(s.cursor, 1);
+
+        let result = s.key(&Key::ArrowRight, result, false);
+        assert_eq!(s.cursor, 2);
+        assert_eq!(result, "abcde");
+    }
+
+    #[test]
+    fn test_up_down_multiline() {
+        // Two lines: "abc" (3 chars) and "defgh" (5 chars)
+        let mut s = make_multiline_state(1, &[3, 5]);
+        // cursor at index 1 in first line, move down
+        s.down(false);
+        // Should move to closest glyph in second line
+        assert!(s.cursor >= 3 && s.cursor < 8);
+
+        // Move back up
+        s.up(false);
+        assert!(s.cursor < 3);
+    }
+
+    #[test]
+    fn test_up_at_first_line_stays() {
+        let mut s = make_multiline_state(1, &[3, 5]);
+        s.up(false);
+        // Already on first line, cursor shouldn't change
+        assert_eq!(s.cursor, 1);
+    }
+
+    #[test]
+    fn test_down_at_last_line_stays() {
+        let mut s = make_multiline_state(4, &[3, 5]);
+        s.down(false);
+        // Already on last line, cursor shouldn't change
+        assert_eq!(s.cursor, 4);
+    }
+
+    #[test]
+    fn test_find_line() {
+        let s = make_multiline_state(0, &[3, 5, 2]);
+        // cursor 0 is on line 0
+        assert_eq!(s.find_line(), 0);
+
+        let s2 = make_multiline_state(4, &[3, 5, 2]);
+        // cursor 4 is on line 1 (glyphs 3..8)
+        assert_eq!(s2.find_line(), 1);
+
+        let s3 = make_multiline_state(9, &[3, 5, 2]);
+        // cursor 9 is on line 2 (glyphs 8..10)
+        assert_eq!(s3.find_line(), 2);
     }
 }
 

@@ -120,3 +120,64 @@ where
 }
 
 impl<V> private::Sealed for Padding<V> {}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_padding_increases_size() {
+        let mut cx = Context::new();
+        let ui = Padding::new(rectangle(), PaddingParam::Px(10.0));
+        let sz = [100.0, 100.0].into();
+        let mut path = vec![0];
+        let result = ui.layout(
+            &mut path,
+            &mut LayoutArgs {
+                sz,
+                cx: &mut cx,
+                text_bounds: &mut |_, _, _| LocalRect::zero(),
+            },
+        );
+        // rectangle fills available space (100-20=80), then padding adds 20 back
+        assert_eq!(result, [100.0, 100.0].into());
+    }
+
+    #[test]
+    fn test_padding_auto() {
+        let mut cx = Context::new();
+        let ui = Padding::new(rectangle(), PaddingParam::Auto);
+        let sz = [50.0, 50.0].into();
+        let mut path = vec![0];
+        let result = ui.layout(
+            &mut path,
+            &mut LayoutArgs {
+                sz,
+                cx: &mut cx,
+                text_bounds: &mut |_, _, _| LocalRect::zero(),
+            },
+        );
+        // Auto padding is 5.0, so child gets 40x40, result is 50x50
+        assert_eq!(result, [50.0, 50.0].into());
+    }
+
+    #[test]
+    fn test_padding_hittest_offsets() {
+        let mut cx = Context::new();
+        let ui = Padding::new(rectangle(), PaddingParam::Px(20.0));
+        let sz = [100.0, 100.0].into();
+        let mut path = vec![0];
+        ui.layout(
+            &mut path,
+            &mut LayoutArgs {
+                sz,
+                cx: &mut cx,
+                text_bounds: &mut |_, _, _| LocalRect::zero(),
+            },
+        );
+        // Point inside the padded child area (child starts at 20,20)
+        assert!(ui.hittest(&mut path, [50.0, 50.0].into(), &mut cx).is_some());
+        // Point in the padding area (outside child)
+        assert!(ui.hittest(&mut path, [5.0, 5.0].into(), &mut cx).is_none());
+    }
+}
