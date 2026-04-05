@@ -332,7 +332,7 @@ impl Context {
 
         for action in actions {
             if !action.is::<()>() {
-                log::debug!("unhandled action: {:?}", action.type_id());
+                log::debug!("unhandled action: {:?}", (*action).type_id());
             }
         }
     }
@@ -379,7 +379,7 @@ impl Context {
                     path.clone(),
                     LayoutBox {
                         rect: LocalRect::default(),
-                        offset: offset,
+                        offset,
                     },
                 );
             }

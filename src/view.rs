@@ -14,7 +14,7 @@ pub struct LayoutArgs<'a> {
 }
 
 impl<'a> LayoutArgs<'a> {
-    pub fn size(&mut self, sz: LocalSize) -> LayoutArgs {
+    pub fn size(&mut self, sz: LocalSize) -> LayoutArgs<'_> {
         LayoutArgs {
             sz,
             cx: self.cx,

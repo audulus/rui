@@ -286,7 +286,7 @@ where
                                 id: 0,
                                 position: self.mouse_position,
                             };
-                            process_event(&mut self.cx, &self.view, &event, &window)
+                            process_event(&mut self.cx, &self.view, &event, window)
                         }
                     }
                     wElementState::Released => {
@@ -306,7 +306,7 @@ where
                                 id: 0,
                                 position: self.mouse_position,
                             };
-                            process_event(&mut self.cx, &self.view, &event, &window)
+                            process_event(&mut self.cx, &self.view, &event, window)
                         }
                     }
                 };
@@ -343,7 +343,7 @@ where
                     };
 
                     if let Some(event) = event {
-                        process_event(&mut self.cx, &self.view, &event, &window);
+                        process_event(&mut self.cx, &self.view, &event, window);
                     }
                 }
             }
@@ -396,11 +396,7 @@ where
                     keyboard::Key::Named(keyboard::NamedKey::F11) => Some(Key::F11),
                     keyboard::Key::Named(keyboard::NamedKey::F12) => Some(Key::F12),
                     keyboard::Key::Character(str) => {
-                        if let Some(c) = str.chars().next() {
-                            Some(Key::Character(c))
-                        } else {
-                            None
-                        }
+                        str.chars().next().map(Key::Character)
                     }
                     _ => None,
                 };
@@ -456,7 +452,7 @@ where
             };
 
             if let Some(window) = &self.window {
-                process_event(&mut self.cx, &self.view, &event, &window);
+                process_event(&mut self.cx, &self.view, &event, window);
             }
         }
     }

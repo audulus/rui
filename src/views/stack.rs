@@ -292,7 +292,7 @@ impl<VT: ViewTuple, D: StackDirection> Stack<VT, D> {
     pub fn new(children: VT) -> Self {
         Self {
             children,
-            phantom_direction: std::marker::PhantomData::default(),
+            phantom_direction: std::marker::PhantomData,
         }
     }
 

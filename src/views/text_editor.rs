@@ -104,7 +104,7 @@ impl TextEditorState {
         range: std::ops::Range<usize>,
         rects: &[LocalRect],
     ) -> usize {
-        let mut d = std::f32::MAX;
+        let mut d = f32::MAX;
         let mut closest = 0;
         for i in range {
             let dp = rects[i].origin.distance_to(p);
@@ -201,7 +201,7 @@ impl TextEditorState {
             Key::Character(c) => {
                 // Replace selection or insert character
                 let mut t = self.delete_selection(text);
-                t.insert_str(self.cursor, &c.to_string());
+                t.insert(self.cursor, *c);
                 self.cursor += 1;
                 t
             }

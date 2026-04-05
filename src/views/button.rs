@@ -15,7 +15,7 @@ pub fn button<A: 'static, F: Fn(&mut Context) -> A + 'static + Clone>(
     f: F,
 ) -> impl View {
     state(
-        || ButtonState::default(),
+        ButtonState::default,
         move |s, cx| {
             let f = f.clone();
             view.clone()
@@ -51,7 +51,7 @@ pub fn button<A: 'static, F: Fn(&mut Context) -> A + 'static + Clone>(
 }
 
 /// Version of button which emits an action directly instead of taking a callback.
-pub fn button_a<A: Clone + 'static>(view: impl View + Clone, action: A) -> impl View {
+pub fn button_a<A: Clone + 'static>(view: impl View, action: A) -> impl View {
     button(view, move |_| action.clone())
 }
 

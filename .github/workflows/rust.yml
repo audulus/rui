@@ -28,10 +28,14 @@ jobs:
     - name: Install GCC Multilib
       if: matrix.os == 'ubuntu-latest'
       run: sudo apt-get install gcc-multilib
+    - name: Clippy
+      run: cargo clippy -- -D warnings
     - name: Build
       run: cargo build --verbose
     - name: Test
       run: cargo test
+    - name: Build examples
+      run: cargo build --examples
     - name: Build w/o default features
       run: cargo build --no-default-features
     - name: Build for wasm

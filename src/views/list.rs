@@ -59,8 +59,7 @@ where
                 let n = self.ids.len() as f32;
                 let proposed_child_size = LocalSize::new(args.sz.width / n, args.sz.height);
 
-                let mut sizes = Vec::<LocalSize>::new();
-                sizes.reserve(self.ids.len());
+                let mut sizes = Vec::<LocalSize>::with_capacity(self.ids.len());
 
                 let mut width_sum = 0.0;
                 for child in &self.ids {
@@ -79,12 +78,11 @@ where
                 }
 
                 let mut x = 0.0;
-                for c in 0..self.ids.len() {
-                    path.push(hh(&self.ids[c]));
-                    let child_size = sizes[c];
+                for (id, child_size) in self.ids.iter().zip(sizes.iter()) {
+                    path.push(hh(id));
 
                     let child_offset = align_v(
-                        LocalRect::new(LocalPoint::origin(), child_size),
+                        LocalRect::new(LocalPoint::origin(), *child_size),
                         LocalRect::new([x, 0.0].into(), [child_size.width, max_height].into()),
                         VAlignment::Middle,
                     );
@@ -102,8 +100,7 @@ where
                 let n = self.ids.len() as f32;
                 let proposed_child_size = LocalSize::new(args.sz.width, args.sz.height / n);
 
-                let mut sizes = Vec::<LocalSize>::new();
-                sizes.reserve(self.ids.len());
+                let mut sizes = Vec::<LocalSize>::with_capacity(self.ids.len());
 
                 let mut height_sum = 0.0;
                 for child in &self.ids {
@@ -122,12 +119,11 @@ where
                 }
 
                 let mut y = height_sum;
-                for c in 0..self.ids.len() {
-                    path.push(hh(&self.ids[c]));
-                    let child_size = sizes[c];
+                for (id, child_size) in self.ids.iter().zip(sizes.iter()) {
+                    path.push(hh(id));
 
                     let child_offset = align_h(
-                        LocalRect::new(LocalPoint::origin(), child_size),
+                        LocalRect::new(LocalPoint::origin(), *child_size),
                         LocalRect::new(
                             [0.0, y - child_size.height].into(),
                             [max_width, child_size.height].into(),

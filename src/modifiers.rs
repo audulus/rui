@@ -64,7 +64,7 @@ pub trait Modifiers: View + Sized {
             DragFuncS {
                 f,
                 b,
-                phantom: PhantomData::default(),
+                phantom: PhantomData,
             },
         )
     }

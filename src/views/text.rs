@@ -175,7 +175,7 @@ impl_text!(f64);
 // XXX: Can't do impl_text!(&'static str)
 impl DynView for &'static str {
     fn draw(&self, _path: &mut IdPath, args: &mut DrawArgs) {
-        let txt = &format!("{}", self);
+        let txt = &self.to_string();
         let vger = &mut args.vger;
         let origin = vger.text_bounds(txt, Text::DEFAULT_SIZE, None).origin;
 
@@ -185,7 +185,7 @@ impl DynView for &'static str {
         vger.restore();
     }
     fn layout(&self, _path: &mut IdPath, args: &mut LayoutArgs) -> LocalSize {
-        let txt = &format!("{}", self);
+        let txt = &self.to_string();
         (args.text_bounds)(txt, Text::DEFAULT_SIZE, None).size
     }
 
@@ -197,7 +197,7 @@ impl DynView for &'static str {
     ) -> Option<accesskit::NodeId> {
         let aid = cx.view_id(path).access_id();
         let mut builder = accesskit::NodeBuilder::new(accesskit::Role::Label);
-        builder.set_name(format!("{}", self));
+        builder.set_name(self.to_string());
         nodes.push((aid, builder.build()));
         Some(aid)
     }
@@ -206,7 +206,7 @@ impl DynView for &'static str {
 impl TextModifiers for &'static str {
     fn font_size(self, size: u32) -> Text {
         Text {
-            text: format!("{}", self),
+            text: self.to_string(),
             size,
             color: TEXT_COLOR,
             max_width: None,
@@ -214,7 +214,7 @@ impl TextModifiers for &'static str {
     }
     fn color(self, color: Color) -> Text {
         Text {
-            text: format!("{}", self),
+            text: self.to_string(),
             size: Text::DEFAULT_SIZE,
             color,
             max_width: None,
@@ -222,7 +222,7 @@ impl TextModifiers for &'static str {
     }
     fn max_width(self, max_width: f32) -> Text {
         Text {
-            text: format!("{}", self),
+            text: self.to_string(),
             size: Text::DEFAULT_SIZE,
             color: TEXT_COLOR,
             max_width: Some(max_width),
