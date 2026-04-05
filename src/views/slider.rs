@@ -86,36 +86,51 @@ where
 }
 
 /// Vertical slider built from other Views.
-pub fn vslider(
-    value: f32,
-    set_value: impl Fn(&mut Context, f32) + 'static + Copy,
-) -> impl SliderMods {
+pub fn vslider(value: impl Binding<f32>) -> impl SliderMods {
     modview(move |opts: SliderOptions, _| {
         state(
             || 0.0,
-            move |height, _| {
+            move |height, cx| {
+                let h = cx[height];
                 canvas(move |cx, sz, vger| {
                     let h = cx[height];
-                    let y = value * h;
+                    let v = value.get(cx);
                     let c = sz.center();
+                    let r = SLIDER_THUMB_RADIUS;
+                    let start_y = r;
+                    let end_y = h - r;
+                    let y = (1.0 - v) * start_y + v * end_y;
+
                     let paint = vger.color_paint(BUTTON_BACKGROUND_COLOR);
                     vger.fill_rect(
-                        euclid::rect(c.x - SLIDER_WIDTH / 2.0, 0.0, SLIDER_WIDTH, sz.height()),
+                        euclid::rect(
+                            c.x - SLIDER_WIDTH / 2.0,
+                            start_y,
+                            SLIDER_WIDTH,
+                            sz.height() - 2.0 * r,
+                        ),
+                        0.0,
+                        paint,
+                    );
+                    let paint = vger.color_paint(AZURE_HIGHLIGHT_BACKGROUND);
+                    vger.fill_rect(
+                        euclid::rect(c.x - SLIDER_WIDTH / 2.0, start_y, SLIDER_WIDTH, y),
                         0.0,
                         paint,
                     );
                     let paint = vger.color_paint(opts.thumb);
-                    vger.fill_circle([c.x, y], SLIDER_THUMB_RADIUS, paint);
+                    vger.fill_circle([c.x, y], r, paint);
                 })
                 .geom(move |cx, sz, _| {
                     if sz.height != cx[height] {
                         cx[height] = sz.height;
                     }
                 })
-                .drag(move |cx, delta, _, _| {
-                    (set_value)(cx, (value + delta.y / cx[height]).clamp(0.0, 1.0));
+                .drag_s(value, move |v, delta, _, _| {
+                    *v = (*v + delta.y / h).clamp(0.0, 1.0)
                 })
             },
         )
+        .role(accesskit::Role::Slider)
     })
 }
