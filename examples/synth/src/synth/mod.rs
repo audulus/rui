@@ -5,14 +5,48 @@ use rodio::source::Source;
 use rodio::Sink;
 
 mod oscillator;
-pub use oscillator::Oscillator;
+pub use oscillator::{Oscillator, WaveType};
+
+/// All user-controllable synth parameters.
+#[derive(Clone, Debug)]
+pub struct SynthParams {
+    pub wave_type: WaveType,
+    pub attack: f32,
+    pub decay: f32,
+    pub sustain: f32,
+    pub release: f32,
+    pub gain: f32,
+    pub octave_offset: i8,
+    pub filter_cutoff: f32,
+    pub filter_resonance: f32,
+    pub detune_cents: f32,
+    pub unison_voices: u8,
+}
+
+impl Default for SynthParams {
+    fn default() -> Self {
+        Self {
+            wave_type: WaveType::Sawtooth,
+            attack: 0.01,
+            decay: 0.2,
+            sustain: 0.7,
+            release: 0.5,
+            gain: 0.7,
+            octave_offset: 0,
+            filter_cutoff: 20000.0,
+            filter_resonance: 0.0,
+            detune_cents: 0.0,
+            unison_voices: 1,
+        }
+    }
+}
 
 struct EnvelopeState {
     envelope: Envelope,
     start_time: Instant,
     is_releasing: bool,
     release_start_time: Option<Instant>,
-    release_start_volume: Option<f32>, // Track starting volume for release
+    release_start_volume: Option<f32>,
 }
 
 struct Envelope {
@@ -37,6 +71,7 @@ pub struct Synth {
     audio_sinks: HashMap<u8, Sink>,
     envelope_states: HashMap<u8, EnvelopeState>,
     stream_handle: rodio::OutputStreamHandle,
+    pub params: SynthParams,
 }
 
 impl Synth {
@@ -45,6 +80,7 @@ impl Synth {
             audio_sinks: HashMap::new(),
             envelope_states: HashMap::new(),
             stream_handle,
+            params: SynthParams::default(),
         }
     }
 
@@ -52,7 +88,12 @@ impl Synth {
         let sink = Sink::try_new(&self.stream_handle).expect("Failed to create sink");
         sink.append(audio_source);
 
-        let envelope = Envelope::new(0.8, 0.2, 0.7, 1.3);
+        let envelope = Envelope::new(
+            self.params.attack,
+            self.params.decay,
+            self.params.sustain,
+            self.params.release,
+        );
         let envelope_state = EnvelopeState {
             envelope,
             start_time: Instant::now(),
@@ -71,15 +112,11 @@ impl Synth {
             let elapsed = now.duration_since(envelope_state.start_time).as_secs_f32();
             let envelope = &envelope_state.envelope;
 
-            // Calculate current volume at release time
             let current_volume = if elapsed < envelope.attack {
-                // Attack phase
                 elapsed / envelope.attack
             } else if elapsed < envelope.attack + envelope.decay {
-                // Decay phase
                 1.0 - (elapsed - envelope.attack) / envelope.decay * (1.0 - envelope.sustain)
             } else {
-                // Sustain phase
                 envelope.sustain
             };
 
@@ -98,7 +135,6 @@ impl Synth {
             let envelope = &envelope_state.envelope;
 
             let volume = if envelope_state.is_releasing {
-                // Release phase - use captured start volume and release time
                 let elapsed_release = now
                     .duration_since(envelope_state.release_start_time.unwrap())
                     .as_secs_f32();
@@ -107,24 +143,19 @@ impl Synth {
                 let t = (elapsed_release / envelope.release).min(1.0);
                 start_volume * (1.0 - t)
             } else {
-                // Calculate based on ADSR phases
                 let elapsed = now.duration_since(envelope_state.start_time).as_secs_f32();
 
                 if elapsed < envelope.attack {
-                    // Attack phase
                     elapsed / envelope.attack
                 } else if elapsed < envelope.attack + envelope.decay {
-                    // Decay phase
                     1.0 - (elapsed - envelope.attack) / envelope.decay * (1.0 - envelope.sustain)
                 } else {
-                    // Sustain phase
                     envelope.sustain
                 }
             };
 
             sink.set_volume(volume);
 
-            // Check if release is complete
             if envelope_state.is_releasing {
                 let elapsed_release = now
                     .duration_since(envelope_state.release_start_time.unwrap())
@@ -136,7 +167,6 @@ impl Synth {
             }
         }
 
-        // Cleanup completed sounds
         for source_id in to_remove {
             self.envelope_states.remove(&source_id);
             self.audio_sinks.remove(&source_id);

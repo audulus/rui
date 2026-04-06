@@ -1,7 +1,9 @@
 use std::f32::consts::PI;
 
+use super::SynthParams;
+
 /// Represents different wave types for audio synthesis
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum WaveType {
     Sine,
     Square,
@@ -9,10 +11,29 @@ pub enum WaveType {
     Triangle,
 }
 
+impl WaveType {
+    pub const ALL: [WaveType; 4] = [
+        WaveType::Sine,
+        WaveType::Square,
+        WaveType::Sawtooth,
+        WaveType::Triangle,
+    ];
+
+    #[allow(dead_code)]
+    pub fn name(&self) -> &'static str {
+        match self {
+            WaveType::Sine => "Sin",
+            WaveType::Square => "Sq",
+            WaveType::Sawtooth => "Saw",
+            WaveType::Triangle => "Tri",
+        }
+    }
+}
+
 /// Configuration parameters for oscillator generation
 #[derive(Clone, Debug)]
 pub struct OscillatorConfig {
-    sample_rate: u32,
+    pub sample_rate: u32,
     anti_aliasing: bool,
     oversampling: usize,
     zero_crossings: usize,
@@ -29,38 +50,6 @@ impl Default for OscillatorConfig {
     }
 }
 
-#[allow(dead_code)]
-impl OscillatorConfig {
-    /// Create a new configuration with custom parameters
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    /// Set sample rate
-    pub fn sample_rate(mut self, rate: u32) -> Self {
-        self.sample_rate = rate;
-        self
-    }
-
-    /// Enable or disable anti-aliasing
-    pub fn anti_aliasing(mut self, enabled: bool) -> Self {
-        self.anti_aliasing = enabled;
-        self
-    }
-
-    /// Set oversampling rate
-    pub fn oversampling(mut self, rate: usize) -> Self {
-        self.oversampling = rate;
-        self
-    }
-
-    /// Set number of zero crossings
-    pub fn zero_crossings(mut self, crossings: usize) -> Self {
-        self.zero_crossings = crossings;
-        self
-    }
-}
-
 /// BLEP (Band-Limited Step) Table Builder
 pub struct BlepTableBuilder {
     oversampling: usize,
@@ -68,7 +57,6 @@ pub struct BlepTableBuilder {
 }
 
 impl BlepTableBuilder {
-    /// Create a new builder with custom configuration
     pub fn new() -> Self {
         Self {
             oversampling: 256,
@@ -76,19 +64,16 @@ impl BlepTableBuilder {
         }
     }
 
-    /// Set the oversampling rate
     pub fn oversampling(mut self, rate: usize) -> Self {
         self.oversampling = rate;
         self
     }
 
-    /// Set the number of zero crossings
     pub fn zero_crossings(mut self, crossings: usize) -> Self {
         self.zero_crossings = crossings;
         self
     }
 
-    /// Generate the BLEP table with the current configuration
     pub fn generate(self) -> Vec<f32> {
         let blep_size = self.oversampling * self.zero_crossings * 2 + 1;
         (0..blep_size)
@@ -97,15 +82,73 @@ impl BlepTableBuilder {
                 if x == 0.0 {
                     1.0
                 } else {
-                    x.sin() / (std::f32::consts::PI * x)
-                        * (1.0 - (x / self.zero_crossings as f32).cos())
+                    x.sin() / (PI * x) * (1.0 - (x / self.zero_crossings as f32).cos())
                 }
             })
             .collect()
     }
 }
 
-/// Advanced analog oscillator with high-quality wave generation
+// --- Moog Ladder Filter (Huovilainen improved model) ---
+
+fn fast_tanh(x: f32) -> f32 {
+    let x2 = x * x;
+    x * (27.0 + x2) / (27.0 + 9.0 * x2)
+}
+
+/// 4-pole (24dB/oct) Moog-style ladder filter.
+#[derive(Clone, Debug)]
+pub struct MoogLadderFilter {
+    stage: [f32; 4],
+    stage_tanh: [f32; 3],
+    tune: f32,
+    resonance: f32,
+    sample_rate: f32,
+}
+
+impl MoogLadderFilter {
+    pub fn new(sample_rate: f32) -> Self {
+        Self {
+            stage: [0.0; 4],
+            stage_tanh: [0.0; 3],
+            tune: 1.0,
+            resonance: 0.0,
+            sample_rate,
+        }
+    }
+
+    /// Set filter parameters.
+    /// cutoff: frequency in Hz (20-20000)
+    /// resonance: 0.0-1.0 (mapped internally to 0-3.99)
+    pub fn set_params(&mut self, cutoff: f32, resonance: f32) {
+        let cutoff = cutoff.clamp(20.0, self.sample_rate * 0.49);
+        let f = 2.0 * cutoff / self.sample_rate;
+        self.tune = 1.0 - (-2.0 * PI * f).exp();
+        self.resonance = (resonance * 4.0).min(3.99);
+    }
+
+    /// Process a single sample through the filter.
+    pub fn process(&mut self, input: f32) -> f32 {
+        // 2x oversampling to reduce nonlinear aliasing
+        for _ in 0..2 {
+            let inp = input - self.resonance * self.stage[3];
+            self.stage[0] += self.tune * (fast_tanh(inp) - self.stage_tanh[0]);
+            self.stage_tanh[0] = fast_tanh(self.stage[0]);
+
+            self.stage[1] += self.tune * (self.stage_tanh[0] - self.stage_tanh[1]);
+            self.stage_tanh[1] = fast_tanh(self.stage[1]);
+
+            self.stage[2] += self.tune * (self.stage_tanh[1] - self.stage_tanh[2]);
+            self.stage_tanh[2] = fast_tanh(self.stage[2]);
+
+            self.stage[3] += self.tune * (self.stage_tanh[2] - fast_tanh(self.stage[3]));
+        }
+        self.stage[3]
+    }
+}
+
+// --- AnalogOsc ---
+
 #[derive(Clone, Debug)]
 pub struct AnalogOsc {
     config: OscillatorConfig,
@@ -116,7 +159,6 @@ pub struct AnalogOsc {
 }
 
 impl AnalogOsc {
-    /// Create a new analog oscillator with custom configuration
     pub fn new(config: OscillatorConfig) -> Self {
         let nyquist = config.sample_rate as f32 / 2.0;
         let blep_table = BlepTableBuilder::new()
@@ -133,7 +175,35 @@ impl AnalogOsc {
         }
     }
 
-    /// Generate a sawtooth wave sample with optional anti-aliasing
+    pub fn with_phase(mut self, phase: f32) -> Self {
+        self.phase = phase;
+        self
+    }
+
+    fn advance_phase(&mut self, frequency: f32) {
+        let frequency = frequency.min(self.nyquist);
+        self.phase_increment = frequency / self.config.sample_rate as f32;
+        self.phase += self.phase_increment;
+        if self.phase >= 1.0 {
+            self.phase -= 1.0;
+        }
+    }
+
+    pub fn generate(&mut self, wave_type: WaveType, frequency: f32) -> f32 {
+        match wave_type {
+            WaveType::Sine => self.generate_sine(frequency),
+            WaveType::Square => self.generate_square(frequency, 0.5),
+            WaveType::Sawtooth => self.generate_sawtooth(frequency),
+            WaveType::Triangle => self.generate_triangle(frequency),
+        }
+    }
+
+    pub fn generate_sine(&mut self, frequency: f32) -> f32 {
+        let output = (2.0 * PI * self.phase).sin();
+        self.advance_phase(frequency);
+        output
+    }
+
     pub fn generate_sawtooth(&mut self, frequency: f32) -> f32 {
         let frequency = frequency.min(self.nyquist);
         self.phase_increment = frequency / self.config.sample_rate as f32;
@@ -152,7 +222,6 @@ impl AnalogOsc {
         output
     }
 
-    /// Generate a square wave sample with optional anti-aliasing
     pub fn generate_square(&mut self, frequency: f32, pulse_width: f32) -> f32 {
         let frequency = frequency.min(self.nyquist);
         self.phase_increment = frequency / self.config.sample_rate as f32;
@@ -172,7 +241,17 @@ impl AnalogOsc {
         output
     }
 
-    /// Apply band-limited step correction
+    pub fn generate_triangle(&mut self, frequency: f32) -> f32 {
+        // Triangle from phase directly: linear ramps
+        let output = if self.phase < 0.5 {
+            4.0 * self.phase - 1.0
+        } else {
+            3.0 - 4.0 * self.phase
+        };
+        self.advance_phase(frequency);
+        output
+    }
+
     fn apply_blep(&mut self, output: &mut f32) {
         if self.phase < self.phase_increment {
             let index = (self.phase / self.phase_increment * self.blep_table.len() as f32) as usize;
@@ -181,40 +260,94 @@ impl AnalogOsc {
     }
 }
 
-/// Implements a flexible audio oscillator for different wave types
+// --- Oscillator (public, implements rodio::Source) ---
+
 pub struct Oscillator {
     freq: f32,
-    num_samples: usize,
     wave_type: WaveType,
-    analog_osc: AnalogOsc,
+    voices: Vec<AnalogOsc>,
+    voice_freq_multipliers: Vec<f32>,
+    filter: Option<MoogLadderFilter>,
 }
 
 #[allow(dead_code)]
 impl Oscillator {
-    /// Create oscillators for different wave types with default configuration
     pub fn sine(freq: f32) -> Self {
-        Self::new(freq, WaveType::Sine, OscillatorConfig::default())
+        Self::new_single(freq, WaveType::Sine)
     }
 
     pub fn square(freq: f32) -> Self {
-        Self::new(freq, WaveType::Square, OscillatorConfig::default())
+        Self::new_single(freq, WaveType::Square)
     }
 
     pub fn sawtooth(freq: f32) -> Self {
-        Self::new(freq, WaveType::Sawtooth, OscillatorConfig::default())
+        Self::new_single(freq, WaveType::Sawtooth)
     }
 
     pub fn triangle(freq: f32) -> Self {
-        Self::new(freq, WaveType::Triangle, OscillatorConfig::default())
+        Self::new_single(freq, WaveType::Triangle)
     }
 
-    /// Internal constructor for oscillators
-    fn new(freq: f32, wave_type: WaveType, config: OscillatorConfig) -> Self {
+    fn new_single(freq: f32, wave_type: WaveType) -> Self {
+        let config = OscillatorConfig::default();
         Oscillator {
             freq,
-            num_samples: 0,
             wave_type,
-            analog_osc: AnalogOsc::new(config),
+            voices: vec![AnalogOsc::new(config)],
+            voice_freq_multipliers: vec![1.0],
+            filter: None,
+        }
+    }
+
+    /// Construct an oscillator from synth parameters.
+    pub fn with_params(freq: f32, params: &SynthParams) -> Self {
+        let config = OscillatorConfig::default();
+        let n = params.unison_voices.max(1) as usize;
+
+        let mut voices = Vec::with_capacity(n);
+        let mut multipliers = Vec::with_capacity(n);
+
+        for i in 0..n {
+            // Spread voices symmetrically around center frequency
+            let detune_cents = if n > 1 {
+                let spread = params.detune_cents;
+                let offset = i as f32 - (n - 1) as f32 / 2.0;
+                let max_offset = (n - 1) as f32 / 2.0;
+                if max_offset > 0.0 {
+                    offset / max_offset * spread
+                } else {
+                    0.0
+                }
+            } else {
+                0.0
+            };
+            let multiplier = 2.0_f32.powf(detune_cents / 1200.0);
+            multipliers.push(multiplier);
+
+            // Randomize initial phase per voice to avoid constructive interference
+            let phase = if n > 1 {
+                // Simple hash-based phase from voice index
+                (i as f32 * 0.618033988) % 1.0
+            } else {
+                0.0
+            };
+            voices.push(AnalogOsc::new(config.clone()).with_phase(phase));
+        }
+
+        let filter = if params.filter_cutoff < 19900.0 {
+            let mut f = MoogLadderFilter::new(config.sample_rate as f32);
+            f.set_params(params.filter_cutoff, params.filter_resonance);
+            Some(f)
+        } else {
+            None
+        };
+
+        Oscillator {
+            freq,
+            wave_type: params.wave_type,
+            voices,
+            voice_freq_multipliers: multipliers,
+            filter,
         }
     }
 }
@@ -223,22 +356,19 @@ impl Iterator for Oscillator {
     type Item = f32;
 
     fn next(&mut self) -> Option<f32> {
-        self.num_samples = self.num_samples.wrapping_add(1);
+        let n = self.voices.len() as f32;
+        let mut sample = 0.0;
 
-        Some(match self.wave_type {
-            WaveType::Sine => (2.0 * PI * self.freq * self.num_samples as f32
-                / self.analog_osc.config.sample_rate as f32)
-                .sin(),
-            WaveType::Square => self.analog_osc.generate_square(self.freq, 0.5),
-            WaveType::Sawtooth => self.analog_osc.generate_sawtooth(self.freq),
-            WaveType::Triangle => {
-                // Derive triangle wave from sine wave
-                let sin_val = (2.0 * PI * self.freq * self.num_samples as f32
-                    / self.analog_osc.config.sample_rate as f32)
-                    .sin();
-                sin_val.asin() * 2.0 / PI
-            }
-        })
+        for (voice, &mult) in self.voices.iter_mut().zip(self.voice_freq_multipliers.iter()) {
+            sample += voice.generate(self.wave_type, self.freq * mult);
+        }
+        sample /= n;
+
+        if let Some(ref mut filter) = self.filter {
+            sample = filter.process(sample);
+        }
+
+        Some(sample)
     }
 }
 
@@ -252,7 +382,7 @@ impl rodio::Source for Oscillator {
     }
 
     fn sample_rate(&self) -> u32 {
-        self.analog_osc.config.sample_rate
+        48000
     }
 
     fn total_duration(&self) -> Option<std::time::Duration> {
