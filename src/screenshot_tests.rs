@@ -436,7 +436,9 @@ fn test_screenshot_cond() {
     screenshot_test(&mut renderer, &ui, "cond_true");
 }
 
-/// Synth-style control panel layout matching the synth example's UI structure.
+/// Synth-style control panel layout.
+/// The real synth UI is tested in examples/synth/tests/screenshot.rs
+/// using the actual synth view tree.
 #[test]
 fn test_screenshot_synth_controls() {
     let mut renderer = TestRenderer::new();
@@ -445,7 +447,6 @@ fn test_screenshot_synth_controls() {
     let control_bg = Color::new(0.3, 0.3, 0.3, 1.0);
     let highlight = Color::new(0.2, 0.5, 1.0, 1.0);
 
-    // Wave selector buttons (4 buttons, one highlighted)
     let wave_buttons = hstack((
         text("Wave").font_size(10).padding(Auto),
         rectangle().corner_radius(4.0).color(control_bg).size([40.0, 25.0]).padding(2.0),
@@ -454,7 +455,6 @@ fn test_screenshot_synth_controls() {
         rectangle().corner_radius(4.0).color(control_bg).size([40.0, 25.0]).padding(2.0),
     )).padding(5.0);
 
-    // Octave selector
     let octave = hstack((
         text("Oct").font_size(10).padding(Auto),
         rectangle().corner_radius(4.0).color(control_bg).size([25.0, 25.0]).padding(2.0),
@@ -462,13 +462,11 @@ fn test_screenshot_synth_controls() {
         rectangle().corner_radius(4.0).color(control_bg).size([25.0, 25.0]).padding(2.0),
     )).padding(5.0);
 
-    // Gain (label + slider placeholder)
     let gain = hstack((
         text("Gain").font_size(10).size([35.0, 18.0]),
         rectangle().corner_radius(2.0).color(control_bg).size([120.0, 8.0]).padding(Auto),
     )).padding(5.0);
 
-    // Labeled slider row helper
     let slider_row = |label: &str| {
         hstack((
             text(label).font_size(10).size([55.0, 18.0]),
@@ -476,54 +474,36 @@ fn test_screenshot_synth_controls() {
         )).padding(2.0)
     };
 
-    // ADSR group
-    let adsr = vstack((
-        text("Envelope").font_size(10).padding(Auto),
-        slider_row("Attack"),
-        slider_row("Decay"),
-        slider_row("Sustain"),
-        slider_row("Release"),
-    )).padding(5.0);
-
-    // Filter group
-    let filter = vstack((
-        text("Filter").font_size(10).padding(Auto),
-        slider_row("Cutoff"),
-        slider_row("Reso"),
-    )).padding(5.0);
-
-    // Unison group
-    let unison = vstack((
-        text("Unison").font_size(10).padding(Auto),
-        slider_row("Detune"),
-        hstack((
-            text("Voices").font_size(10).size([55.0, 18.0]),
-            rectangle().corner_radius(4.0).color(control_bg).size([25.0, 20.0]).padding(2.0),
-            text("1").font_size(12).padding(Auto),
-            rectangle().corner_radius(4.0).color(control_bg).size([25.0, 20.0]).padding(2.0),
-        )).padding(2.0),
-    )).padding(5.0);
-
-    // Piano keyboard (simplified: white and black keys)
-    let keyboard = hlist(vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], |id| {
-        let is_black = matches!(id, 1 | 3 | 6 | 8 | 10);
-        let color = if is_black {
-            Color::new(0.1, 0.1, 0.1, 1.0)
-        } else {
-            Color::new(0.95, 0.95, 0.95, 1.0)
-        };
-        rectangle().color(color).size([40.0, 120.0]).padding(1.0)
-    });
-
     let ui = vstack((
-        // Top row
         hstack((wave_buttons, octave, gain)).size([700.0, 40.0]),
-        // Middle row
-        hstack((adsr, filter, unison)).size([700.0, 130.0]),
-        // Keyboard
-        keyboard,
-    ))
-    .background(rectangle().color(dark_bg));
+        hstack((
+            vstack((
+                text("Envelope").font_size(10).padding(Auto),
+                slider_row("Attack"), slider_row("Decay"),
+                slider_row("Sustain"), slider_row("Release"),
+            )).padding(5.0),
+            vstack((
+                text("Filter").font_size(10).padding(Auto),
+                slider_row("Cutoff"), slider_row("Reso"),
+            )).padding(5.0),
+            vstack((
+                text("Unison").font_size(10).padding(Auto),
+                slider_row("Detune"),
+                hstack((
+                    text("Voices").font_size(10).size([55.0, 18.0]),
+                    rectangle().corner_radius(4.0).color(control_bg).size([25.0, 20.0]).padding(2.0),
+                    text("1").font_size(12).padding(Auto),
+                    rectangle().corner_radius(4.0).color(control_bg).size([25.0, 20.0]).padding(2.0),
+                )).padding(2.0),
+            )).padding(5.0),
+        )).size([700.0, 130.0]),
+        hlist(vec![0,1,2,3,4,5,6,7,8,9,10,11,12,13], |id| {
+            let is_black = matches!(id, 1 | 3 | 6 | 8 | 10);
+            let color = if is_black { Color::new(0.1, 0.1, 0.1, 1.0) }
+                else { Color::new(0.95, 0.95, 0.95, 1.0) };
+            rectangle().color(color).size([40.0, 120.0]).padding(1.0)
+        }),
+    )).background(rectangle().color(dark_bg));
 
     screenshot_test_sized(&mut renderer, &ui, "synth_controls", 768, 512);
 }

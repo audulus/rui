@@ -11,3 +11,8 @@ rui = { workspace = true }
 rodio = { version = "0.20.1", default-features = false, features = [
     "symphonia-all",
 ] }
+
+[dev-dependencies]
+png = "0.17"
+futures = "0.3"
+wgpu = "0.20.0"
