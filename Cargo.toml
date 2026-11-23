@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = [".", "./examples/flip_cards", "./examples/calculator", "./examples/synth"]
+members = [".", "./macros", "./examples/flip_cards", "./examples/calculator", "./examples/synth"]
 default-members = ["."]
 
 [workspace.dependencies]
@@ -34,6 +34,7 @@ accesskit = "0.16.0"
 winit = { version = "0.30", optional = true }
 log = "0.4"
 dyn-clone = "1.0.17"
+rui_macros = { version = "0.1.0", path = "macros" }
 
 # Seems we can't publish to crates.io with this dependency.
 # baseview = { git = "https://github.com/RustAudio/baseview", optional = true }

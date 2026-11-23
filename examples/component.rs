@@ -31,21 +31,52 @@ impl<B: Binding<i32>> Component for Stepper<B> {
     }
 }
 
-/// A component with private state of its own.
+/// A component that declares state of its own.
 #[derive(Clone)]
-struct ClickCounter;
+struct ClickCounter {
+    label: &'static str,
+}
 
-impl Component for ClickCounter {
-    fn body(&self) -> impl View {
-        state(
-            || 0,
-            |clicks, cx| {
-                button(format!("clicked {} times", cx[clicks]), move |cx| {
-                    cx[clicks] += 1
-                })
-                .padding(Auto)
-            },
-        )
+impl StatefulComponent for ClickCounter {
+    type State = u32;
+
+    fn init(&self) -> u32 {
+        0
+    }
+
+    fn body(self, clicks: u32, set: StateHandle<u32>) -> impl View {
+        button(format!("{}: {clicks}", self.label), move |cx| cx[set] += 1).padding(Auto)
+    }
+}
+
+/// State declared as fields with `#[component]`, like SwiftUI's `@State`.
+/// The parent passes only the props (`title`, `detail`, `start_open`).
+#[component]
+#[derive(Clone)]
+struct Disclosure {
+    title: &'static str,
+    detail: &'static str,
+    start_open: bool,
+    #[state = self.start_open]
+    open: bool,
+    #[state]
+    times_toggled: u32,
+}
+
+impl Disclosure {
+    fn body(self, state: DisclosureState, set: DisclosureSet) -> impl View {
+        let arrow = if state.open { "v" } else { ">" };
+        vstack((
+            button(format!("{arrow} {}", self.title), move |cx| {
+                cx[set.open] = !cx[set.open];
+                cx[set.times_toggled] += 1;
+            }),
+            cond(
+                state.open,
+                format!("{} (toggled {} times)", self.detail, state.times_toggled).padding(Auto),
+                EmptyView {},
+            ),
+        ))
     }
 }
 
@@ -75,8 +106,13 @@ fn main() {
                     value: bind(s, ModelB {}),
                 },
                 format!("a + b = {total}").padding(Auto),
-                ClickCounter,
-                ClickCounter,
+                ClickCounter { label: "left" },
+                ClickCounter { label: "right" },
+                Disclosure {
+                    title: "Details",
+                    detail: "State declared on the component.",
+                    start_open: true,
+                },
             ))
         },
     )
