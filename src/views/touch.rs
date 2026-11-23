@@ -117,19 +117,17 @@ where
                     )
                 }
             }
-            Event::TouchEnd { id, position } => {
-                if cx.touches[*id] == vid {
-                    cx.touches[*id] = ViewId::default();
-                    self.func.call(
-                        cx,
-                        TouchInfo {
-                            pt: *position,
-                            button: cx.mouse_button,
-                            state: TouchState::End,
-                        },
-                        actions,
-                    )
-                }
+            Event::TouchEnd { id, position } if cx.touches[*id] == vid => {
+                cx.touches[*id] = ViewId::default();
+                self.func.call(
+                    cx,
+                    TouchInfo {
+                        pt: *position,
+                        button: cx.mouse_button,
+                        state: TouchState::End,
+                    },
+                    actions,
+                )
             }
             _ => (),
         }

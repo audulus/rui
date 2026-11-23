@@ -23,12 +23,11 @@ use winit::{
 type WorkQueue = VecDeque<Box<dyn FnOnce(&mut Context) + Send>>;
 
 #[cfg(not(target_arch = "wasm32"))]
-lazy_static! {
-    /// Allows us to wake the event loop whenever we want.
-    static ref GLOBAL_EVENT_LOOP_PROXY: Mutex<Option<EventLoopProxy<()>>> = Mutex::new(None);
+/// Allows us to wake the event loop whenever we want.
+static GLOBAL_EVENT_LOOP_PROXY: Mutex<Option<EventLoopProxy<()>>> = Mutex::new(None);
 
-    static ref GLOBAL_WORK_QUEUE: Mutex<WorkQueue> = Mutex::new(WorkQueue::new());
-}
+#[cfg(not(target_arch = "wasm32"))]
+static GLOBAL_WORK_QUEUE: Mutex<WorkQueue> = Mutex::new(WorkQueue::new());
 
 #[cfg(not(target_arch = "wasm32"))]
 pub fn on_main(f: impl FnOnce(&mut Context) + Send + 'static) {
@@ -36,10 +35,10 @@ pub fn on_main(f: impl FnOnce(&mut Context) + Send + 'static) {
 
     // Wake up the event loop.
     let opt_proxy = GLOBAL_EVENT_LOOP_PROXY.lock().unwrap();
-    if let Some(proxy) = &*opt_proxy {
-        if let Err(err) = proxy.send_event(()) {
-            log::debug!("error waking up event loop: {:?}", err);
-        }
+    if let Some(proxy) = &*opt_proxy
+        && let Err(err) = proxy.send_event(())
+    {
+        log::debug!("error waking up event loop: {:?}", err);
     }
 }
 
@@ -395,9 +394,7 @@ where
                     keyboard::Key::Named(keyboard::NamedKey::F10) => Some(Key::F10),
                     keyboard::Key::Named(keyboard::NamedKey::F11) => Some(Key::F11),
                     keyboard::Key::Named(keyboard::NamedKey::F12) => Some(Key::F12),
-                    keyboard::Key::Character(str) => {
-                        str.chars().next().map(Key::Character)
-                    }
+                    keyboard::Key::Character(str) => str.chars().next().map(Key::Character),
                     _ => None,
                 };
 

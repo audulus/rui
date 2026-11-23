@@ -1,5 +1,5 @@
 [workspace]
-resolver = "2" # What does this do?
+resolver = "3"
 members = [".", "./examples/flip_cards", "./examples/calculator", "./examples/synth"]
 default-members = ["."]
 
@@ -9,14 +9,15 @@ rui = { path = "." }
 [package]
 name = "rui"
 description = "Experimental Declarative UI library"
-version = "0.6.1"
+version = "0.7.0"
 license = "MIT"
 readme = "README.md"
 authors = ["Taylor Holliday <rui@audulus.com>"]
 keywords = ["ui", "gui", "declarative"]
 categories = ["gui"]
 repository = "https://github.com/audulus/rui"
-edition = "2018"
+edition = "2024"
+rust-version = "1.88"
 exclude = [ "screenshots/*" ]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -30,7 +31,6 @@ wgpu = "0.20.0"
 futures = "0.3"
 vger = "0.3"
 accesskit = "0.16.0"
-lazy_static = "1.4.0"
 winit = { version = "0.30", optional = true }
 log = "0.4"
 dyn-clone = "1.0.17"
