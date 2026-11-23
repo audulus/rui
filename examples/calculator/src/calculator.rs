@@ -248,7 +248,7 @@ impl Calculator {
         })
     }
 
-    fn display_value(&self, state: &CalculatorState) -> impl View {
+    fn display_value(&self, state: &CalculatorState) -> impl View + use<> {
         let display_text = if state.has_error {
             "Error".to_string()
         } else if state.second_operand.is_empty() {
@@ -301,7 +301,7 @@ impl Calculator {
         // })
     }
 
-    fn button_view(&self, s: StateHandle<CalculatorState>, button: Button, id: usize) -> impl View {
+    fn button_view(&self, s: StateHandle<CalculatorState>, button: Button, id: usize) -> impl View + use<> {
         let calculator = self.clone();
 
         let is_number = matches!(button, Button::Digit(_));
@@ -328,9 +328,9 @@ impl Calculator {
                 let color = {
                     let color = if is_number {
                         // cx[s].blue_gradient.gen(id as f32 / 18.0)
-                        calculator.ocean.gen(digit as f32 / 9.0)
+                        calculator.ocean.r#gen(digit as f32 / 9.0)
                     } else {
-                        calculator.sky.gen(id as f32 / 18.0)
+                        calculator.sky.r#gen(id as f32 / 18.0)
                     };
                     vger::Color::new(color.red, color.green, color.blue, alpha)
                 };

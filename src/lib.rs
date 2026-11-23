@@ -4,10 +4,6 @@ pub use vger;
 use vger::color::*;
 pub use vger::{LineMetrics, PaintIndex, Vger};
 
-#[cfg(all(feature = "winit", not(target_arch = "wasm32")))]
-#[macro_use]
-extern crate lazy_static;
-
 mod view;
 pub use view::*;
 

@@ -50,14 +50,14 @@ impl TextEditorState {
 
     /// Deletes the selected text and returns the new text
     fn delete_selection(&mut self, text: String) -> String {
-        if let Some((start, end)) = self.selection_range() {
-            if start != end {
-                let mut t = text;
-                t.drain(start..end);
-                self.cursor = start;
-                self.clear_selection();
-                return t;
-            }
+        if let Some((start, end)) = self.selection_range()
+            && start != end
+        {
+            let mut t = text;
+            t.drain(start..end);
+            self.cursor = start;
+            self.clear_selection();
+            return t;
         }
         text
     }
@@ -73,7 +73,7 @@ impl TextEditorState {
             self.cursor = len;
         }
     }
-    
+
     fn back(&mut self, extend_selection: bool) {
         if extend_selection {
             self.start_selection();
@@ -122,7 +122,7 @@ impl TextEditorState {
         } else {
             self.clear_selection();
         }
-        
+
         let p = self.cursor_pos();
 
         let line = self.find_line() + 1;
@@ -139,7 +139,7 @@ impl TextEditorState {
         } else {
             self.clear_selection();
         }
-        
+
         let p = self.cursor_pos();
 
         let line = self.find_line();
@@ -151,7 +151,6 @@ impl TextEditorState {
     }
 
     fn key(&mut self, k: &Key, text: String, shift_pressed: bool) -> String {
-        
         match k {
             Key::ArrowLeft => {
                 self.back(shift_pressed);
@@ -563,30 +562,38 @@ pub fn text_editor(text: impl Binding<String>) -> impl View {
                     cx[state].lines = lines;
 
                     // Render selection background
-                    if let Some((start, end)) = cx[state].selection_range() {
-                        if start != end {
-                            let selection_paint = vger.color_paint(vger::Color::new(0.3, 0.6, 1.0, 0.3));
-                            
-                            for i in start..end.min(cx[state].glyph_rects.len()) {
-                                let rect = cx[state].glyph_rects[i];
-                                vger.fill_rect(
-                                    LocalRect::new(rect.origin, [rect.size.width.max(2.0), 20.0].into()),
-                                    0.0,
-                                    selection_paint
-                                );
-                            }
-                            
-                            // Handle selection at end of text
-                            if end >= cx[state].glyph_rects.len() && !cx[state].glyph_rects.is_empty() {
-                                if let Some(last_rect) = cx[state].glyph_rects.last() {
-                                    let end_pos = [last_rect.origin.x + last_rect.size.width, last_rect.origin.y];
-                                    vger.fill_rect(
-                                        LocalRect::new(end_pos.into(), [2.0, 20.0].into()),
-                                        0.0,
-                                        selection_paint
-                                    );
-                                }
-                            }
+                    if let Some((start, end)) = cx[state].selection_range()
+                        && start != end
+                    {
+                        let selection_paint =
+                            vger.color_paint(vger::Color::new(0.3, 0.6, 1.0, 0.3));
+
+                        let rects = &cx[state].glyph_rects;
+                        for rect in &rects[start.min(rects.len())..end.min(rects.len())] {
+                            vger.fill_rect(
+                                LocalRect::new(
+                                    rect.origin,
+                                    [rect.size.width.max(2.0), 20.0].into(),
+                                ),
+                                0.0,
+                                selection_paint,
+                            );
+                        }
+
+                        // Handle selection at end of text
+                        if end >= cx[state].glyph_rects.len()
+                            && !cx[state].glyph_rects.is_empty()
+                            && let Some(last_rect) = cx[state].glyph_rects.last()
+                        {
+                            let end_pos = [
+                                last_rect.origin.x + last_rect.size.width,
+                                last_rect.origin.y,
+                            ];
+                            vger.fill_rect(
+                                LocalRect::new(end_pos.into(), [2.0, 20.0].into()),
+                                0.0,
+                                selection_paint,
+                            );
                         }
                     }
 

@@ -36,10 +36,10 @@ where
         cx: &mut Context,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
-        if let Event::Command(name) = &event {
-            if *name == self.name {
-                (self.func)(cx);
-            }
+        if let Event::Command(name) = &event
+            && *name == self.name
+        {
+            (self.func)(cx);
         }
         path.push(0);
         self.child.process(event, path, cx, actions);

@@ -70,11 +70,11 @@ where
         cx: &mut Context,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
-        if let Event::TouchMove { position, .. } = &event {
-            if cx.mouse_button.is_none() {
-                let inside = self.hittest(path, *position, cx).is_some();
-                self.func.call(cx, *position, inside, actions);
-            }
+        if let Event::TouchMove { position, .. } = &event
+            && cx.mouse_button.is_none()
+        {
+            let inside = self.hittest(path, *position, cx).is_some();
+            self.func.call(cx, *position, inside, actions);
         }
         if let Event::TouchEnd { position, .. } = &event {
             let inside = self.hittest(path, *position, cx).is_some();

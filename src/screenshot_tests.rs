@@ -30,7 +30,7 @@ impl TestRenderer {
             let adapter = wgpu::util::initialize_adapter_from_env_or_default(&instance, None)
                 .await
                 .expect("No suitable GPU adapters found!");
-            adapter
+            let device_and_queue = adapter
                 .request_device(
                     &wgpu::DeviceDescriptor {
                         label: None,
@@ -40,7 +40,8 @@ impl TestRenderer {
                     None,
                 )
                 .await
-                .expect("Unable to find a suitable GPU adapter!")
+                .expect("Unable to find a suitable GPU adapter!");
+            device_and_queue
         });
         let device = Arc::new(device);
         let queue = Arc::new(queue);
