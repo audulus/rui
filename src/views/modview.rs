@@ -14,6 +14,8 @@ impl<S, F> fmt::Display for ModView<S, F> {
     }
 }
 
+impl<S, F> private::Sealed for ModView<S, F> {}
+
 impl<S, V, F> DynView for ModView<S, F>
 where
     V: View,

@@ -101,6 +101,8 @@ pub fn text(name: &str) -> Text {
 
 macro_rules! impl_text {
     ( $ty:ident ) => {
+        impl private::Sealed for $ty {}
+
         impl DynView for $ty {
             fn draw(&self, _path: &mut IdPath, args: &mut DrawArgs) {
                 let txt = &format!("{}", self);
@@ -230,4 +232,4 @@ impl TextModifiers for &'static str {
     }
 }
 
-impl<V> private::Sealed for V where V: std::fmt::Display {}
+impl private::Sealed for &'static str {}
