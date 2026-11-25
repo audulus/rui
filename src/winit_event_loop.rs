@@ -10,14 +10,39 @@ use euclid::Point2D;
 use winit::event_loop::EventLoopProxy;
 use winit::{
     application::ApplicationHandler,
+    dpi::LogicalSize,
     event::{
         DeviceEvent, DeviceId, ElementState as wElementState, KeyEvent as WKeyEvent,
-        MouseButton as WMouseButton, Touch, TouchPhase, WindowEvent,
+        MouseButton as WMouseButton, MouseScrollDelta, Touch, TouchPhase, WindowEvent,
     },
     event_loop::{ActiveEventLoop, ControlFlow, EventLoop},
     keyboard,
     window::{Window, WindowId},
 };
+
+/// How far one notch of a mouse wheel scrolls, in logical pixels.
+const WHEEL_LINE: f32 = 40.0;
+
+/// The main window of an app run with `rui_with_config`.
+#[derive(Clone, Debug)]
+pub struct WindowConfig {
+    /// The window title.
+    pub title: String,
+    /// The inner size in logical pixels, or the platform default.
+    pub size: Option<[f32; 2]>,
+    /// Whether the window has a title bar and borders.
+    pub decorations: bool,
+}
+
+impl Default for WindowConfig {
+    fn default() -> Self {
+        Self {
+            title: String::from("rui"),
+            size: None,
+            decorations: true,
+        }
+    }
+}
 
 #[cfg(not(target_arch = "wasm32"))]
 type WorkQueue = VecDeque<Box<dyn FnOnce(&mut Context) + Send>>;
@@ -106,9 +131,18 @@ async fn setup(window: Arc<Window>) -> DrawContext {
     let device = Arc::new(device);
     let queue = Arc::new(queue);
 
+    // Prefer an sRGB format, so colors look the same on every platform: vger blends in linear
+    // space and the surface encodes to sRGB.
+    let formats = surface.get_capabilities(&adapter).formats;
+    let format = formats
+        .iter()
+        .copied()
+        .find(|format| format.is_srgb())
+        .unwrap_or(formats[0]);
+
     let config = wgpu::SurfaceConfiguration {
         usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-        format: surface.get_capabilities(&adapter).formats[0],
+        format,
         width: size.width,
         height: size.height,
         present_mode: wgpu::PresentMode::Fifo,
@@ -157,6 +191,7 @@ where
     T: View,
 {
     title: Arc<str>,
+    config: WindowConfig,
     running: bool,
     // The GPU resources, if running.
     context: Option<DrawContext>,
@@ -188,7 +223,12 @@ where
         self.running = true;
 
         // Create the main window.
-        let window_attributes = Window::default_attributes().with_title(self.title.to_string());
+        let mut window_attributes = Window::default_attributes()
+            .with_title(self.title.to_string())
+            .with_decorations(self.config.decorations);
+        if let Some([width, height]) = self.config.size {
+            window_attributes = window_attributes.with_inner_size(LogicalSize::new(width, height));
+        }
         self.window = match event_loop.create_window(window_attributes) {
             Err(e) => {
                 log::error!("Error creating window: {:?}", e);
@@ -349,17 +389,41 @@ where
             WindowEvent::CursorMoved { position, .. } => {
                 if let (Some(window), Some(context)) = (&self.window, &self.context) {
                     let scale = window.scale_factor() as f32;
-                    self.mouse_position = [
+                    let position: LocalPoint = [
                         position.x as f32 / scale,
                         (context.config.height as f32 - position.y as f32) / scale,
                     ]
                     .into();
+                    let delta = position - self.mouse_position;
+                    self.mouse_position = position;
 
-                    // let event = Event::TouchMove {
-                    //     id: 0,
-                    //     position: self.mouse_position,
-                    // };
-                    // process_event(&mut self.cx, &self.view, &event, &window)
+                    // While the cursor is grabbed, motion comes from device events instead.
+                    if !self.cx.grab_cursor {
+                        let event = Event::TouchMove {
+                            id: 0,
+                            position,
+                            delta,
+                        };
+                        process_event(&mut self.cx, &self.view, &event, window);
+                    }
+                }
+            }
+            WindowEvent::MouseWheel { delta, .. } => {
+                if let Some(window) = &self.window {
+                    let scale = window.scale_factor() as f32;
+                    // winit's y is positive when the content should move down; rui's y is up.
+                    let delta: LocalOffset = match delta {
+                        MouseScrollDelta::LineDelta(x, y) => [x * WHEEL_LINE, -y * WHEEL_LINE],
+                        MouseScrollDelta::PixelDelta(d) => {
+                            [d.x as f32 / scale, -(d.y as f32) / scale]
+                        }
+                    }
+                    .into();
+                    let event = Event::Scroll {
+                        position: self.mouse_position,
+                        delta,
+                    };
+                    process_event(&mut self.cx, &self.view, &event, window);
                 }
             }
 
@@ -438,7 +502,12 @@ where
         _device_id: DeviceId,
         event: DeviceEvent,
     ) {
-        if let DeviceEvent::MouseMotion { delta, .. } = event {
+        // Without a grab, `CursorMoved` reports the motion; device events would also report
+        // motion outside the window, and some platforms (such as Wayland compositors without
+        // relative pointers) never send them.
+        if let DeviceEvent::MouseMotion { delta, .. } = event
+            && self.cx.grab_cursor
+        {
             // Flip y coordinate.
             let d: LocalOffset = [delta.0 as f32, -delta.1 as f32].into();
 
@@ -489,11 +558,16 @@ where
 
 /// Call this function to run your UI.
 pub fn rui(view: impl View) {
+    rui_with_config(view, WindowConfig::default())
+}
+
+/// Runs your UI in a window with the given title, size and decorations.
+pub fn rui_with_config(view: impl View, config: WindowConfig) {
     let event_loop = EventLoop::new().unwrap();
 
-    let window_title = String::from("rui");
     let mut app = EventHandler {
-        title: window_title.into(),
+        title: config.title.clone().into(),
+        config,
         running: false,
         context: None,
         window: None,
@@ -502,6 +576,7 @@ pub fn rui(view: impl View) {
         view,
         access_nodes: vec![],
     };
+    app.cx.window_title = app.title.clone();
 
     #[cfg(not(target_arch = "wasm32"))]
     {

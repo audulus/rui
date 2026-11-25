@@ -41,6 +41,14 @@ pub enum Event {
 
     /// Animation.
     Anim,
+
+    /// Mouse wheel or touchpad scroll over `position`. `delta` is how far the content under the
+    /// pointer should move, in local units (y up): a wheel turned away from the user gives a
+    /// negative y, which moves the content down.
+    Scroll {
+        position: LocalPoint,
+        delta: LocalOffset,
+    },
 }
 
 impl Event {
@@ -50,6 +58,7 @@ impl Event {
             Event::TouchBegin { position, .. } => *position += offset,
             Event::TouchMove { position, .. } => *position += offset,
             Event::TouchEnd { position, .. } => *position += offset,
+            Event::Scroll { position, .. } => *position += offset,
             _ => (),
         }
         event

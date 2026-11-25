@@ -8,11 +8,15 @@ const HEIGHT: u32 = 512;
 const TEXTURE_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Rgba8UnormSrgb;
 
 fn reference_dir() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("screenshots").join("reference")
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("screenshots")
+        .join("reference")
 }
 
 fn output_dir() -> PathBuf {
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("screenshots").join("test_output");
+    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("screenshots")
+        .join("test_output");
     std::fs::create_dir_all(&dir).ok();
     dir
 }
@@ -46,7 +50,11 @@ impl TestRenderer {
         let device = Arc::new(device);
         let queue = Arc::new(queue);
         let vger = Vger::new(device.clone(), queue.clone(), TEXTURE_FORMAT);
-        Self { device, queue, vger }
+        Self {
+            device,
+            queue,
+            vger,
+        }
     }
 
     /// Render a view to RGBA pixel data.
@@ -70,7 +78,13 @@ impl TestRenderer {
         let offset: LocalOffset = ((sz - view_sz) / 2.0).into();
         self.vger.translate(offset);
 
-        view.draw(&mut path, &mut DrawArgs { cx: &mut cx, vger: &mut self.vger });
+        view.draw(
+            &mut path,
+            &mut DrawArgs {
+                cx: &mut cx,
+                vger: &mut self.vger,
+            },
+        );
 
         // Create offscreen texture.
         let texture_size = wgpu::Extent3d {
@@ -120,7 +134,9 @@ impl TestRenderer {
             mapped_at_creation: false,
         });
 
-        let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
+        let mut encoder = self
+            .device
+            .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
         encoder.copy_texture_to_buffer(
             render_texture.as_image_copy(),
             wgpu::ImageCopyBuffer {
@@ -236,9 +252,8 @@ fn screenshot_test(renderer: &mut TestRenderer, view: &impl View, name: &str) {
             .chunks(4)
             .zip(ref_pixels.chunks(4))
             .flat_map(|(a, b)| {
-                let differs = (0..4).any(|c| {
-                    (a[c] as i16 - b[c] as i16).unsigned_abs() > threshold as u16
-                });
+                let differs =
+                    (0..4).any(|c| (a[c] as i16 - b[c] as i16).unsigned_abs() > threshold as u16);
                 if differs {
                     [255, 0, 0, 255] // Red for differing pixels
                 } else {
@@ -267,14 +282,18 @@ fn screenshot_test(renderer: &mut TestRenderer, view: &impl View, name: &str) {
 #[test]
 fn test_screenshot_rectangle() {
     let mut renderer = TestRenderer::new();
-    let ui = rectangle().color(Color::new(0.2, 0.5, 0.8, 1.0)).size([200.0, 100.0]);
+    let ui = rectangle()
+        .color(Color::new(0.2, 0.5, 0.8, 1.0))
+        .size([200.0, 100.0]);
     screenshot_test(&mut renderer, &ui, "rectangle");
 }
 
 #[test]
 fn test_screenshot_circle() {
     let mut renderer = TestRenderer::new();
-    let ui = circle().color(Color::new(1.0, 0.3, 0.3, 1.0)).size([200.0, 200.0]);
+    let ui = circle()
+        .color(Color::new(1.0, 0.3, 0.3, 1.0))
+        .size([200.0, 200.0]);
     screenshot_test(&mut renderer, &ui, "circle");
 }
 
@@ -307,9 +326,7 @@ fn test_screenshot_vlist() {
         Color::new(0.2, 0.2, 1.0, 1.0),
     ];
     let ui = list(vec![0, 1, 2], move |id| {
-        rectangle()
-            .color(colors[*id as usize])
-            .size([300.0, 80.0])
+        rectangle().color(colors[*id as usize]).size([300.0, 80.0])
     });
     screenshot_test(&mut renderer, &ui, "vlist");
 }
@@ -323,9 +340,7 @@ fn test_screenshot_hlist() {
         Color::new(0.5, 0.0, 1.0, 1.0),
     ];
     let ui = hlist(vec![0, 1, 2], move |id| {
-        rectangle()
-            .color(colors[*id as usize])
-            .size([100.0, 200.0])
+        rectangle().color(colors[*id as usize]).size([100.0, 200.0])
     });
     screenshot_test(&mut renderer, &ui, "hlist");
 }
@@ -339,10 +354,7 @@ fn test_screenshot_nested() {
         } else {
             Color::new(0.2, 0.5, 0.8, 1.0)
         };
-        rectangle()
-            .color(color)
-            .size([200.0, 80.0])
-            .padding(10.0)
+        rectangle().color(color).size([200.0, 80.0]).padding(10.0)
     });
     screenshot_test(&mut renderer, &ui, "nested");
 }
@@ -370,8 +382,12 @@ fn test_screenshot_cond() {
     let mut renderer = TestRenderer::new();
     let ui = cond(
         true,
-        circle().color(Color::new(0.0, 1.0, 0.5, 1.0)).size([250.0, 250.0]),
-        rectangle().color(Color::new(1.0, 0.0, 0.0, 1.0)).size([250.0, 250.0]),
+        circle()
+            .color(Color::new(0.0, 1.0, 0.5, 1.0))
+            .size([250.0, 250.0]),
+        rectangle()
+            .color(Color::new(1.0, 0.0, 0.0, 1.0))
+            .size([250.0, 250.0]),
     );
     screenshot_test(&mut renderer, &ui, "cond_true");
 }

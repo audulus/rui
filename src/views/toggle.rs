@@ -103,11 +103,17 @@ pub fn toggle_with_config(on: impl Binding<bool>, config: ToggleConfig) -> impl 
                 let target = if is_on { 1.0 } else { 0.0 };
                 let delta = target - cx[animation];
 
-                cx[animation] += delta * animation_speed * dt;
+                // Write the state only while the knob moves: every write marks the UI dirty, so
+                // writing at rest would re-render every frame.
+                if delta == 0.0 {
+                    return;
+                }
 
                 // Snap to final position when very close
                 if delta.abs() < 0.01 {
                     cx[animation] = target;
+                } else {
+                    cx[animation] += delta * animation_speed * dt;
                 }
             })
         },

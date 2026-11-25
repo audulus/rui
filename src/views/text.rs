@@ -4,6 +4,8 @@ pub trait TextModifiers: View + Sized {
     fn font_size(self, size: u32) -> Text;
     fn color(self, color: Color) -> Text;
     fn max_width(self, max_width: f32) -> Text;
+    /// Wraps the text to the width it is offered.
+    fn wrap(self) -> Text;
 }
 
 /// Struct for `text`.
@@ -13,34 +15,60 @@ pub struct Text {
     size: u32,
     color: Color,
     max_width: Option<f32>,
+    wrap: bool,
 }
 
 impl Text {
     pub const DEFAULT_SIZE: u32 = 18;
     pub fn color(self, color: Color) -> Text {
-        Text {
-            text: self.text,
-            size: self.size,
-            color,
-            max_width: self.max_width,
+        Text { color, ..self }
+    }
+}
+
+impl Text {
+    /// The width the text breaks its lines at, if any.
+    fn break_width(&self, path: &IdPath, cx: &mut Context) -> Option<f32> {
+        if self.wrap {
+            Some(cx.get_layout(path).rect.width())
+        } else {
+            self.max_width
         }
     }
 }
 
 impl DynView for Text {
-    fn draw(&self, _path: &mut IdPath, args: &mut DrawArgs) {
+    fn draw(&self, path: &mut IdPath, args: &mut DrawArgs) {
+        let max_width = self.break_width(path, args.cx);
         let vger = &mut args.vger;
         let origin = vger
-            .text_bounds(self.text.as_str(), self.size, self.max_width)
+            .text_bounds(self.text.as_str(), self.size, max_width)
             .origin;
 
         vger.save();
         vger.translate([-origin.x, -origin.y]);
-        vger.text(self.text.as_str(), self.size, self.color, self.max_width);
+        vger.text(self.text.as_str(), self.size, self.color, max_width);
         vger.restore();
     }
-    fn layout(&self, _path: &mut IdPath, args: &mut LayoutArgs) -> LocalSize {
-        (args.text_bounds)(self.text.as_str(), self.size, None).size
+    fn layout(&self, path: &mut IdPath, args: &mut LayoutArgs) -> LocalSize {
+        if self.wrap {
+            let width = args.sz.width.max(1.0);
+            let size = (args.text_bounds)(self.text.as_str(), self.size, Some(width)).size;
+            args.cx.update_layout(
+                path,
+                LayoutBox {
+                    rect: LocalRect::new(LocalPoint::zero(), [width, size.height].into()),
+                    offset: LocalOffset::zero(),
+                },
+            );
+            [width, size.height].into()
+        } else {
+            (args.text_bounds)(self.text.as_str(), self.size, self.max_width).size
+        }
+    }
+    fn gc(&self, path: &mut IdPath, cx: &mut Context, map: &mut Vec<ViewId>) {
+        if self.wrap {
+            map.push(cx.view_id(path));
+        }
     }
     fn hittest(&self, _path: &mut IdPath, _pt: LocalPoint, _cx: &mut Context) -> Option<ViewId> {
         None
@@ -62,28 +90,19 @@ impl DynView for Text {
 
 impl TextModifiers for Text {
     fn font_size(self, size: u32) -> Self {
-        Self {
-            text: self.text,
-            color: self.color,
-            size,
-            max_width: self.max_width,
-        }
+        Self { size, ..self }
     }
     fn color(self, color: Color) -> Text {
-        Text {
-            text: self.text,
-            size: self.size,
-            color,
-            max_width: self.max_width,
-        }
+        Text { color, ..self }
     }
     fn max_width(self, max_width: f32) -> Text {
         Text {
-            text: self.text,
-            size: self.size,
-            color: self.color,
             max_width: Some(max_width),
+            ..self
         }
+    }
+    fn wrap(self) -> Text {
+        Text { wrap: true, ..self }
     }
 }
 
@@ -96,6 +115,7 @@ pub fn text(name: &str) -> Text {
         size: Text::DEFAULT_SIZE,
         color: TEXT_COLOR,
         max_width: None,
+        wrap: false,
     }
 }
 
@@ -138,6 +158,7 @@ macro_rules! impl_text {
                     size,
                     color: TEXT_COLOR,
                     max_width: None,
+                    wrap: false,
                 }
             }
             fn color(self, color: Color) -> Text {
@@ -146,6 +167,7 @@ macro_rules! impl_text {
                     size: Text::DEFAULT_SIZE,
                     color,
                     max_width: None,
+                    wrap: false,
                 }
             }
 
@@ -155,7 +177,12 @@ macro_rules! impl_text {
                     size: Text::DEFAULT_SIZE,
                     color: TEXT_COLOR,
                     max_width: Some(max_width),
+                    wrap: false,
                 }
+            }
+
+            fn wrap(self) -> Text {
+                text(&format!("{}", self)).wrap()
             }
         }
     };
@@ -205,28 +232,16 @@ impl DynView for &'static str {
 
 impl TextModifiers for &'static str {
     fn font_size(self, size: u32) -> Text {
-        Text {
-            text: self.to_string(),
-            size,
-            color: TEXT_COLOR,
-            max_width: None,
-        }
+        text(self).font_size(size)
     }
     fn color(self, color: Color) -> Text {
-        Text {
-            text: self.to_string(),
-            size: Text::DEFAULT_SIZE,
-            color,
-            max_width: None,
-        }
+        text(self).color(color)
     }
     fn max_width(self, max_width: f32) -> Text {
-        Text {
-            text: self.to_string(),
-            size: Text::DEFAULT_SIZE,
-            color: TEXT_COLOR,
-            max_width: Some(max_width),
-        }
+        text(self).max_width(max_width)
+    }
+    fn wrap(self) -> Text {
+        text(self).wrap()
     }
 }
 

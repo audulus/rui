@@ -174,7 +174,10 @@ mod tests {
             },
         );
         // Center of a 100x100 circle is (50,50), radius 50
-        assert!(ui.hittest(&mut path, [50.0, 50.0].into(), &mut cx).is_some());
+        assert!(
+            ui.hittest(&mut path, [50.0, 50.0].into(), &mut cx)
+                .is_some()
+        );
     }
 
     #[test]
@@ -226,7 +229,10 @@ mod tests {
                 text_bounds: &mut |_, _, _| LocalRect::zero(),
             },
         );
-        assert!(ui.hittest(&mut path, [50.0, 25.0].into(), &mut cx).is_some());
+        assert!(
+            ui.hittest(&mut path, [50.0, 25.0].into(), &mut cx)
+                .is_some()
+        );
     }
 
     #[test]
@@ -243,6 +249,9 @@ mod tests {
                 text_bounds: &mut |_, _, _| LocalRect::zero(),
             },
         );
-        assert!(ui.hittest(&mut path, [150.0, 25.0].into(), &mut cx).is_none());
+        assert!(
+            ui.hittest(&mut path, [150.0, 25.0].into(), &mut cx)
+                .is_none()
+        );
     }
 }

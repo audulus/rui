@@ -26,10 +26,8 @@ pub struct DragFunc<F> {
     pub f: F,
 }
 
-impl<
-        A: 'static,
-        F: Fn(&mut Context, LocalOffset, GestureState, Option<MouseButton>) -> A + Clone,
-    > DragFn for DragFunc<F>
+impl<A: 'static, F: Fn(&mut Context, LocalOffset, GestureState, Option<MouseButton>) -> A + Clone>
+    DragFn for DragFunc<F>
 {
     fn call(
         &self,
@@ -49,10 +47,8 @@ pub struct DragFuncP<F> {
     pub f: F,
 }
 
-impl<
-        A: 'static,
-        F: Fn(&mut Context, LocalPoint, GestureState, Option<MouseButton>) -> A + Clone,
-    > DragFn for DragFuncP<F>
+impl<A: 'static, F: Fn(&mut Context, LocalPoint, GestureState, Option<MouseButton>) -> A + Clone>
+    DragFn for DragFuncP<F>
 {
     fn call(
         &self,
@@ -75,11 +71,11 @@ pub struct DragFuncS<F, B, T> {
 }
 
 impl<
-        F: Fn(&mut T, LocalOffset, GestureState, Option<MouseButton>) -> A + Clone + 'static,
-        B: Binding<T>,
-        A: 'static,
-        T: Clone + 'static,
-    > DragFn for DragFuncS<F, B, T>
+    F: Fn(&mut T, LocalOffset, GestureState, Option<MouseButton>) -> A + Clone + 'static,
+    B: Binding<T>,
+    A: 'static,
+    T: Clone + 'static,
+> DragFn for DragFuncS<F, B, T>
 {
     fn call(
         &self,

@@ -268,11 +268,7 @@ mod tests {
     fn test_tap_miss() {
         let ui = state(
             || 0i32,
-            |count, _| {
-                rectangle()
-                    .size([50.0, 50.0])
-                    .tap(move |cx| cx[count] += 1)
-            },
+            |count, _| rectangle().size([50.0, 50.0]).tap(move |cx| cx[count] += 1),
         );
 
         let mut h = TestHarness::new(&ui, [200.0, 200.0]);
@@ -461,9 +457,6 @@ mod tests {
         }
 
         assert_eq!(actions.len(), 1);
-        assert_eq!(
-            actions[0].downcast_ref::<Action>(),
-            Some(&Action::Clicked)
-        );
+        assert_eq!(actions[0].downcast_ref::<Action>(), Some(&Action::Clicked));
     }
 }

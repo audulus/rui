@@ -85,6 +85,27 @@ pub trait Modifiers: View + Sized {
         Hover::new(self, HoverFuncP { f })
     }
 
+    /// Fixes the width of the view, which keeps the height it takes. The child is laid out at
+    /// that width and centered in it.
+    fn fixed_width(self, width: f32) -> Frame<Self> {
+        Frame::new(self, Some(width), None)
+    }
+
+    /// Fixes the height of the view, which keeps the width it takes. The child is laid out at
+    /// that height and centered in it.
+    fn fixed_height(self, height: f32) -> Frame<Self> {
+        Frame::new(self, None, Some(height))
+    }
+
+    /// Calls a function when the mouse wheel or touchpad scrolls over the view. The function gets
+    /// how far the content should move, in local units (y up).
+    fn on_scroll<A: 'static, F: Fn(&mut Context, LocalOffset) -> A + Clone + 'static>(
+        self,
+        f: F,
+    ) -> ScrollGesture<Self, F> {
+        ScrollGesture::new(self, f)
+    }
+
     /// Add an environment value.
     fn env<E: Clone + 'static>(self, value: E) -> SetenvView<Self, E> {
         SetenvView::new(self, value)

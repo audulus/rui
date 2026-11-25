@@ -128,8 +128,14 @@ mod tests {
         );
         // The rectangle is offset by (50,50), so point (25,25) maps to (-25,-25) in child space
         // which is outside the 100x100 rect
-        assert!(ui.hittest(&mut path, [25.0, 25.0].into(), &mut cx).is_none());
+        assert!(
+            ui.hittest(&mut path, [25.0, 25.0].into(), &mut cx)
+                .is_none()
+        );
         // Point (75,75) maps to (25,25) in child space, which is inside
-        assert!(ui.hittest(&mut path, [75.0, 75.0].into(), &mut cx).is_some());
+        assert!(
+            ui.hittest(&mut path, [75.0, 75.0].into(), &mut cx)
+                .is_some()
+        );
     }
 }
