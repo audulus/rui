@@ -71,7 +71,7 @@ mod tests {
         );
         let sz = [100.0, 100.0].into();
 
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         let button_sz = ui.layout(
             &mut path,
             &mut LayoutArgs {

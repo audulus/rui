@@ -2,7 +2,7 @@ use crate::*;
 use euclid::*;
 use std::any::Any;
 use std::any::TypeId;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::iter::FromIterator;
 use std::ops;
 use std::sync::Arc;
@@ -37,7 +37,7 @@ pub(crate) struct StateHolder {
     pub dirty: bool,
 }
 
-pub(crate) type StateMap = HashMap<ViewId, StateHolder>;
+pub(crate) type StateMap = IdMap<StateHolder>;
 
 pub(crate) type EnvMap = HashMap<TypeId, Box<dyn Any>>;
 
@@ -52,13 +52,11 @@ pub struct RenderInfo<'a, 'window> {
 /// shouldn't have to interact with it directly.
 pub struct Context {
     /// Layout information for all views.
-    layout: HashMap<IdPath, LayoutBox>,
+    layout: IdMap<LayoutBox>,
 
-    /// Allocated ViewIds.
-    view_ids: HashMap<IdPath, ViewId>,
-
-    /// Next allocated id.
-    next_id: ViewId,
+    /// The path of every layout entry, for snapshot tests.
+    #[cfg(test)]
+    layout_paths: IdMap<IdPath>,
 
     /// Which views each touch (or mouse pointer) is interacting with.
     pub(crate) touches: [ViewId; 16],
@@ -103,7 +101,7 @@ pub struct Context {
     pub(crate) dirty_region: Region<WorldSpace>,
 
     /// State dependencies.
-    pub(crate) deps: HashMap<ViewId, Vec<ViewId>>,
+    pub(crate) deps: IdMap<Vec<ViewId>>,
 
     /// A stack of ids for states to get parent dependencies.
     pub(crate) id_stack: Vec<ViewId>,
@@ -133,9 +131,9 @@ impl Default for Context {
 impl Context {
     pub fn new() -> Self {
         Self {
-            layout: HashMap::new(),
-            view_ids: HashMap::new(),
-            next_id: ViewId { id: 0 },
+            layout: IdMap::default(),
+            #[cfg(test)]
+            layout_paths: IdMap::default(),
             touches: [ViewId::default(); 16],
             starts: [LocalPoint::zero(); 16],
             previous_position: [LocalPoint::zero(); 16],
@@ -145,12 +143,12 @@ impl Context {
             focused_id: None,
             window_title: "rui".into(),
             fullscreen: false,
-            state_map: HashMap::new(),
+            state_map: IdMap::default(),
             dirty: false,
             enable_dirty: true,
             env: HashMap::new(),
             dirty_region: Region::EMPTY,
-            deps: HashMap::new(),
+            deps: IdMap::default(),
             id_stack: vec![],
             window_size: Size2D::default(),
             root_offset: LocalOffset::zero(),
@@ -174,7 +172,7 @@ impl Context {
             self.window_size = window_size;
         }
 
-        let mut path = vec![0];
+        let mut path = IdPath::root();
 
         // Run any animations.
         let mut actions = vec![];
@@ -186,12 +184,11 @@ impl Context {
             let mut keep = vec![];
             view.gc(&mut path, self, &mut keep);
             assert!(path.len() == 1);
-            let keep_set = HashSet::<ViewId>::from_iter(keep);
+            let keep_set = IdSet::from_iter(keep);
             self.state_map.retain(|k, _| keep_set.contains(k));
-
-            let mut new_layout = self.layout.clone();
-            new_layout.retain(|k, _| keep_set.contains(&self.view_id(k)));
-            self.layout = new_layout;
+            self.layout.retain(|k, _| keep_set.contains(k));
+            #[cfg(test)]
+            self.layout_paths.retain(|k, _| keep_set.contains(k));
 
             // Get a new accesskit tree.
             let mut nodes = vec![];
@@ -260,7 +257,7 @@ impl Context {
 
         vger.begin(window_size.width, window_size.height, scale);
 
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         // Disable dirtying the state during layout and rendering
         // to avoid constantly re-rendering if some state is saved.
         self.enable_dirty = false;
@@ -322,7 +319,7 @@ impl Context {
     /// Process a UI event.
     pub fn process(&mut self, view: &impl View, event: &Event) {
         let mut actions = vec![];
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         view.process(
             &event.offset(-self.root_offset),
             &mut path,
@@ -339,57 +336,39 @@ impl Context {
 
     /// Get menu commands.
     pub fn commands(&mut self, view: &impl View, cmds: &mut Vec<CommandInfo>) {
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         view.commands(&mut path, self, cmds);
     }
 
-    pub(crate) fn view_id(&mut self, path: &IdPath) -> ViewId {
-        match self.view_ids.get_mut(path) {
-            Some(id) => *id,
-            None => {
-                let id = self.next_id;
-                self.view_ids.insert(path.clone(), id);
-                self.next_id.id += 1;
-                id
-            }
-        }
+    /// Returns the id of the view at the end of `path`.
+    pub(crate) fn view_id(&self, path: &IdPath) -> ViewId {
+        path.id()
     }
 
     pub(crate) fn get_layout(&self, path: &IdPath) -> LayoutBox {
-        match self.layout.get(path) {
-            Some(b) => *b,
-            None => LayoutBox::default(),
-        }
+        self.layout.get(&path.id()).copied().unwrap_or_default()
     }
 
     pub(crate) fn update_layout(&mut self, path: &IdPath, layout_box: LayoutBox) {
-        match self.layout.get_mut(path) {
-            Some(bref) => *bref = layout_box,
-            None => {
-                self.layout.insert(path.clone(), layout_box);
-            }
-        }
+        self.layout.insert(path.id(), layout_box);
+        #[cfg(test)]
+        self.layout_paths.insert(path.id(), path.clone());
     }
 
     pub(crate) fn set_layout_offset(&mut self, path: &IdPath, offset: LocalOffset) {
-        match self.layout.get_mut(path) {
-            Some(boxref) => boxref.offset = offset,
-            None => {
-                self.layout.insert(
-                    path.clone(),
-                    LayoutBox {
-                        rect: LocalRect::default(),
-                        offset,
-                    },
-                );
-            }
-        }
+        self.layout.entry(path.id()).or_default().offset = offset;
+        #[cfg(test)]
+        self.layout_paths.insert(path.id(), path.clone());
     }
 
     /// Returns all layout entries sorted by path, for use in snapshot tests.
     #[cfg(test)]
     pub(crate) fn layout_entries(&self) -> Vec<(IdPath, LayoutBox)> {
-        let mut entries: Vec<_> = self.layout.iter().map(|(k, v)| (k.clone(), *v)).collect();
+        let mut entries: Vec<_> = self
+            .layout
+            .iter()
+            .map(|(id, v)| (self.layout_paths[id].clone(), *v))
+            .collect();
         entries.sort_by(|a, b| a.0.cmp(&b.0));
         entries
     }

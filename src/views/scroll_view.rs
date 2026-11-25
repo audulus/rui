@@ -191,12 +191,12 @@ mod tests {
     }
 
     fn position(h: &mut TestHarness<impl View>) -> f32 {
-        let id = h.cx.view_id(&vec![0, 0]);
+        let id = h.cx.view_id(&IdPath::from(vec![0, 0]));
         h.cx[StateHandle::<f32>::new(id)]
     }
 
     fn taps(h: &mut TestHarness<impl View>) -> i32 {
-        let id = h.cx.view_id(&vec![0]);
+        let id = h.cx.view_id(&IdPath::root());
         h.cx[StateHandle::<i32>::new(id)]
     }
 

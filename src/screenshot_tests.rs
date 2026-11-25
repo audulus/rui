@@ -64,7 +64,7 @@ impl TestRenderer {
 
         self.vger.begin(width as f32, height as f32, 1.0);
 
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         let view_sz = view.layout(
             &mut path,
             &mut LayoutArgs {

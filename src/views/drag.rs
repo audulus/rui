@@ -258,7 +258,7 @@ mod tests {
             |states, _| rectangle().drag(move |cx, _delta, state, _| cx[states].push(state)),
         );
         let sz = [100.0, 100.0].into();
-        let mut path = vec![0];
+        let mut path = IdPath::root();
 
         let rect_sz = ui.layout(
             &mut path,

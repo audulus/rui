@@ -130,7 +130,7 @@ mod tests {
         let mut cx = Context::new();
         let ui = Padding::new(rectangle(), PaddingParam::Px(10.0));
         let sz = [100.0, 100.0].into();
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         let result = ui.layout(
             &mut path,
             &mut LayoutArgs {
@@ -148,7 +148,7 @@ mod tests {
         let mut cx = Context::new();
         let ui = Padding::new(rectangle(), PaddingParam::Auto);
         let sz = [50.0, 50.0].into();
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         let result = ui.layout(
             &mut path,
             &mut LayoutArgs {
@@ -166,7 +166,7 @@ mod tests {
         let mut cx = Context::new();
         let ui = Padding::new(rectangle(), PaddingParam::Px(20.0));
         let sz = [100.0, 100.0].into();
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         ui.layout(
             &mut path,
             &mut LayoutArgs {

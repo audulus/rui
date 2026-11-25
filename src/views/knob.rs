@@ -48,7 +48,7 @@ mod tests {
         let ui = state(|| 0.0, |s, _| knob(s));
         let sz = [100.0, 100.0].into();
 
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         let knob_sz = ui.layout(
             &mut path,
             &mut LayoutArgs {

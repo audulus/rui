@@ -98,7 +98,7 @@ mod tests {
         let mut cx = Context::new();
         let ui = Size::new(rectangle(), [50.0, 30.0].into());
         let sz = [200.0, 200.0].into();
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         let result = ui.layout(
             &mut path,
             &mut LayoutArgs {
@@ -116,7 +116,7 @@ mod tests {
         let ui = Size::new(rectangle(), [80.0, 40.0].into());
         // Even with a tiny parent, Size returns its fixed size
         let sz = [10.0, 10.0].into();
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         let result = ui.layout(
             &mut path,
             &mut LayoutArgs {

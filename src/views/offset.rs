@@ -99,7 +99,7 @@ mod tests {
         let mut cx = Context::new();
         let ui = Offset::new(rectangle(), [10.0, 20.0].into());
         let sz = [100.0, 100.0].into();
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         let result = ui.layout(
             &mut path,
             &mut LayoutArgs {
@@ -117,7 +117,7 @@ mod tests {
         let mut cx = Context::new();
         let ui = Offset::new(rectangle(), [50.0, 50.0].into());
         let sz = [100.0, 100.0].into();
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         ui.layout(
             &mut path,
             &mut LayoutArgs {

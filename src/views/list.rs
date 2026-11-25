@@ -278,7 +278,7 @@ mod tests {
         let mut cx = Context::new();
         let ui = list(vec![0, 1, 2], |_id| rectangle().size([40.0, 20.0]));
         let sz = [200.0, 200.0].into();
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         let result = ui.layout(
             &mut path,
             &mut LayoutArgs {
@@ -297,7 +297,7 @@ mod tests {
         let mut cx = Context::new();
         let ui = hlist(vec![0, 1, 2], |_id| rectangle().size([30.0, 50.0]));
         let sz = [200.0, 200.0].into();
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         let result = ui.layout(
             &mut path,
             &mut LayoutArgs {
@@ -316,7 +316,7 @@ mod tests {
         let mut cx = Context::new();
         let ui = zlist(vec![0, 1], |_id| rectangle());
         let sz = [100.0, 80.0].into();
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         let result = ui.layout(
             &mut path,
             &mut LayoutArgs {
@@ -334,7 +334,7 @@ mod tests {
         let mut cx = Context::new();
         let ui = list(Vec::<i32>::new(), |_id| rectangle());
         let sz = [100.0, 100.0].into();
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         let result = ui.layout(
             &mut path,
             &mut LayoutArgs {
@@ -355,7 +355,7 @@ mod tests {
             rectangle().size([50.0, h])
         });
         let sz = [200.0, 200.0].into();
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         let result = ui.layout(
             &mut path,
             &mut LayoutArgs {

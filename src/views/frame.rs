@@ -122,7 +122,7 @@ mod tests {
     use super::*;
 
     fn layout(view: &impl View, sz: [f32; 2], cx: &mut Context) -> LocalSize {
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         view.layout(
             &mut path,
             &mut LayoutArgs {
@@ -152,6 +152,9 @@ mod tests {
         let mut cx = Context::new();
         let ui = rectangle().size([10.0, 10.0]).fixed_width(30.0);
         layout(&ui, [100.0, 100.0], &mut cx);
-        assert_eq!(cx.get_layout(&vec![0, 0]).offset, [10.0, 0.0].into());
+        assert_eq!(
+            cx.get_layout(&IdPath::from(vec![0, 0])).offset,
+            [10.0, 0.0].into()
+        );
     }
 }

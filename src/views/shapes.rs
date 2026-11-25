@@ -147,7 +147,7 @@ mod tests {
         let mut cx = Context::new();
         let ui = circle();
         let sz = [80.0, 60.0].into();
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         let result = ui.layout(
             &mut path,
             &mut LayoutArgs {
@@ -164,7 +164,7 @@ mod tests {
         let mut cx = Context::new();
         let ui = circle();
         let sz = [100.0, 100.0].into();
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         ui.layout(
             &mut path,
             &mut LayoutArgs {
@@ -185,7 +185,7 @@ mod tests {
         let mut cx = Context::new();
         let ui = circle();
         let sz = [100.0, 100.0].into();
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         ui.layout(
             &mut path,
             &mut LayoutArgs {
@@ -203,7 +203,7 @@ mod tests {
         let mut cx = Context::new();
         let ui = rectangle();
         let sz = [120.0, 40.0].into();
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         let result = ui.layout(
             &mut path,
             &mut LayoutArgs {
@@ -220,7 +220,7 @@ mod tests {
         let mut cx = Context::new();
         let ui = rectangle();
         let sz = [100.0, 50.0].into();
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         ui.layout(
             &mut path,
             &mut LayoutArgs {
@@ -240,7 +240,7 @@ mod tests {
         let mut cx = Context::new();
         let ui = rectangle();
         let sz = [100.0, 50.0].into();
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         ui.layout(
             &mut path,
             &mut LayoutArgs {
