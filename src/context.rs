@@ -464,6 +464,19 @@ impl Context {
             // Already freed, as for a key that appears twice in a list.
             return;
         }
+        // Release what the view held: nothing would match its id again, so a touch would
+        // block other drags with that pointer, and the focus would go nowhere.
+        for touch in &mut self.touches {
+            if *touch == id {
+                *touch = ViewId::default();
+                // Only a drag holds the grab, and only while it holds a touch.
+                self.grab_cursor = false;
+            }
+        }
+        if self.focused_id == Some(id) {
+            self.focused_id = None;
+        }
+
         let node = &mut self.nodes[id.index as usize];
         let children = std::mem::take(&mut node.children);
         node.live = false;

@@ -1,6 +1,8 @@
 //! Tests of the node tree that stores per-view data.
 
 use crate::*;
+use std::cell::Cell;
+use std::rc::Rc;
 
 fn layout(cx: &mut Context, view: &impl View) {
     let root = cx.root_id();
@@ -162,4 +164,52 @@ fn test_state_layout_is_cached_until_state_changes() {
     cx.layout_epoch += 1;
     layout(&mut cx, &ui);
     assert_eq!(cx.get_layout(cx.root_id()).rect.width(), 40.0);
+}
+
+/// Rows of `ids`, 20 tall, that count the drags each one sees.
+fn draggable_rows(ids: Vec<i32>, drags: Rc<[Cell<usize>; 3]>) -> impl View {
+    list(ids, move |&i| {
+        let drags = drags.clone();
+        rectangle()
+            .size([50.0, 20.0])
+            .drag(move |_, _, _, _| drags[i as usize].set(drags[i as usize].get() + 1))
+    })
+}
+
+#[test]
+fn test_removing_a_dragged_view_releases_its_touch() {
+    let drags = Rc::new([Cell::new(0), Cell::new(0), Cell::new(0)]);
+    let mut cx = Context::new();
+    let root = cx.root_id();
+    let mut actions = vec![];
+
+    // Two rows: row 1 at y 20..40, row 2 at y 0..20.
+    let ui = draggable_rows(vec![1, 2], drags.clone());
+    layout(&mut cx, &ui);
+    let begin = |y: f32| Event::TouchBegin {
+        id: 0,
+        position: [25.0, y].into(),
+    };
+    ui.process(&begin(30.0), root, &mut cx, &mut actions);
+    assert_eq!(drags[1].get(), 1);
+    assert!(!cx.touches[0].is_default());
+
+    // Row 1 goes away mid-drag, so its touch is released.
+    let ui = draggable_rows(vec![2], drags.clone());
+    layout(&mut cx, &ui);
+    assert!(cx.touches[0].is_default());
+
+    // A new drag on row 2 starts.
+    ui.process(&begin(10.0), root, &mut cx, &mut actions);
+    assert_eq!(drags[2].get(), 1);
+}
+
+#[test]
+fn test_removing_the_focused_view_clears_the_focus() {
+    let mut cx = Context::new();
+    let ui = counter_list(vec![1]);
+    layout(&mut cx, &ui);
+    cx.focused_id = Some(cx.id_at(&[0, hh(&1)]));
+    layout(&mut cx, &counter_list(vec![]));
+    assert_eq!(cx.focused_id, None);
 }
