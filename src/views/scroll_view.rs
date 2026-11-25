@@ -78,10 +78,12 @@ impl<V: View> DynView for ScrollView<V> {
         let (viewport, offset) = Self::geometry(path, args.cx);
         args.vger.save();
         args.vger.scissor(viewport);
+        let visible = args.cx.clip_visible(viewport, args.vger);
         args.vger.translate(offset);
         path.push(0);
         self.child.draw(path, args);
         path.pop();
+        args.cx.restore_visible(visible);
         args.vger.restore();
     }
 

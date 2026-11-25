@@ -112,6 +112,11 @@ pub struct Context {
     /// Offset for events at the root level.
     root_offset: LocalOffset,
 
+    /// While drawing, the part of the window that can show anything, in world space: the window
+    /// narrowed by the clips and scroll views around the view being drawn. Views outside it may
+    /// skip drawing. None draws everything.
+    pub(crate) visible: Option<WorldRect>,
+
     /// Render the dirty rectangle for debugging?
     render_dirty: bool,
 
@@ -152,6 +157,7 @@ impl Context {
             id_stack: vec![],
             window_size: Size2D::default(),
             root_offset: LocalOffset::zero(),
+            visible: None,
             render_dirty: false,
             grab_cursor: false,
             prev_grab_cursor: false,
@@ -276,7 +282,12 @@ impl Context {
         self.root_offset = ((local_window_size - sz) / 2.0).into();
 
         vger.translate(self.root_offset);
+        self.visible = Some(WorldRect::new(
+            WorldPoint::origin(),
+            window_size.cast_unit(),
+        ));
         view.draw(&mut path, &mut DrawArgs { cx: self, vger });
+        self.visible = None;
         self.enable_dirty = true;
 
         if self.render_dirty {
@@ -338,6 +349,34 @@ impl Context {
     pub fn commands(&mut self, view: &impl View, cmds: &mut Vec<CommandInfo>) {
         let mut path = IdPath::root();
         view.commands(&mut path, self, cmds);
+    }
+
+    /// Narrows the visible area to `rect`, a rectangle in the local space of `vger`'s current
+    /// transform, and returns the area it was before, for `restore_visible`.
+    pub(crate) fn clip_visible(&mut self, rect: LocalRect, vger: &Vger) -> Option<WorldRect> {
+        let before = self.visible;
+        if let Some(visible) = before {
+            let world = vger.current_transform().outer_transformed_rect(&rect);
+            self.visible = Some(visible.intersection(&world).unwrap_or(WorldRect::zero()));
+        }
+        before
+    }
+
+    /// Restores the visible area that `clip_visible` returned.
+    pub(crate) fn restore_visible(&mut self, before: Option<WorldRect>) {
+        self.visible = before;
+    }
+
+    /// Returns false when `rect`, in the local space of `vger`'s current transform, lies
+    /// entirely outside the visible area, so drawing it would show nothing.
+    pub(crate) fn is_visible(&self, rect: LocalRect, vger: &Vger) -> bool {
+        match self.visible {
+            None => true,
+            Some(visible) => {
+                let world = vger.current_transform().outer_transformed_rect(&rect);
+                visible.intersects(&world)
+            }
+        }
     }
 
     /// Returns the id of the view at the end of `path`.
