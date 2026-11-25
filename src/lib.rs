@@ -25,6 +25,9 @@ pub use binding::*;
 mod context;
 pub use context::*;
 
+mod node;
+pub(crate) use node::*;
+
 mod views;
 pub use views::*;
 
