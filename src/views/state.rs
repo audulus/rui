@@ -62,8 +62,15 @@ where
         actions: &mut Vec<Box<dyn Any>>,
     ) {
         cx.init_state(vid, &self.default);
+        if let Event::Anim = event
+            && cx.skip_anim(vid)
+        {
+            return;
+        }
+        let before = cx.enter_state(vid);
         let cid = cx.child(vid, 0);
         (self.func)(StateHandle::new(vid), cx).process(event, cid, cx, actions);
+        cx.leave_state(before);
     }
 
     fn draw(&self, vid: ViewId, args: &mut DrawArgs) {
@@ -75,32 +82,31 @@ where
     fn layout(&self, vid: ViewId, args: &mut LayoutArgs) -> LocalSize {
         args.cx.init_state(vid, &self.default);
 
-        // Do we need to recompute layout? Only if this is the first layout since the window
-        // changed size, or a state it depends on changed: the state of an enclosing `state`
-        // view, or any state at or under this one.
-        let compute_layout = args.cx.layout_epoch_of(vid) != args.cx.layout_epoch
-            || args.cx.id_stack.iter().any(|id| args.cx.is_dirty(*id))
-            || args.cx.subtree_dirty(vid);
-
-        if compute_layout {
-            args.cx.id_stack.push(vid);
-
-            let view = (self.func)(StateHandle::new(vid), args.cx);
-
-            let cid = args.cx.child(vid, 0);
-            let child_size = view.layout(cid, args);
-
-            let layout_box = LayoutBox {
-                rect: LocalRect::new(LocalPoint::zero(), child_size),
-                offset: LocalOffset::zero(),
-            };
-            args.cx.update_layout(vid, layout_box);
-            args.cx.set_layout_epoch(vid);
-
-            args.cx.id_stack.pop();
+        // Reuse the last layout unless the proposed size changed, or a state it depends on
+        // was written: the state of an enclosing `state` view, or any state at or under this
+        // one.
+        if let Some(size) = args.cx.cached_layout(vid, args.sz) {
+            return size;
         }
 
-        args.cx.get_layout(vid).rect.size
+        let stamp = args.cx.write_gen;
+        let proposed = args.sz;
+        let before = args.cx.enter_state(vid);
+
+        let view = (self.func)(StateHandle::new(vid), args.cx);
+        let cid = args.cx.child(vid, 0);
+        let child_size = view.layout(cid, args);
+
+        args.cx.leave_state(before);
+
+        let layout_box = LayoutBox {
+            rect: LocalRect::new(LocalPoint::zero(), child_size),
+            offset: LocalOffset::zero(),
+        };
+        args.cx.update_layout(vid, layout_box);
+        args.cx.store_layout(vid, stamp, proposed, child_size);
+
+        child_size
     }
 
     fn dirty(&self, vid: ViewId, xform: LocalToWorld, cx: &mut Context) {
@@ -117,7 +123,7 @@ where
             ];
             let world_pts = pts.map(|p| xform.transform_point(p));
             cx.dirty_region.add_rect(WorldRect::from_points(world_pts));
-        } else {
+        } else if cx.is_subtree_dirty(vid) {
             let cid = cx.child(vid, 0);
             (self.func)(StateHandle::new(vid), cx).dirty(cid, xform, cx);
         }
@@ -142,8 +148,20 @@ where
         nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
     ) -> Option<accesskit::NodeId> {
         cx.init_state(vid, &self.default);
+
+        // The nodes under this view were sent in an earlier update and nothing they depend on
+        // changed since.
+        if let Some(id) = cx.cached_access(vid) {
+            return id;
+        }
+
+        let stamp = cx.write_gen;
+        let before = cx.enter_state(vid);
         let cid = cx.child(vid, 0);
-        (self.func)(StateHandle::new(vid), cx).access(cid, cx, nodes)
+        let id = (self.func)(StateHandle::new(vid), cx).access(cid, cx, nodes);
+        cx.leave_state(before);
+        cx.store_access(vid, stamp, id);
+        id
     }
 }
 

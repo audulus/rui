@@ -13,6 +13,9 @@ pub(crate) struct Node {
     /// Is the slot in use?
     live: bool,
 
+    /// The parent node, or `ViewId::default()` for the root.
+    parent: ViewId,
+
     /// Identifies the node among its parent's children: the child index for stacks and
     /// modifiers, the hashed key for list items. Used to rebuild paths for tests.
     label: u64,
@@ -30,31 +33,65 @@ pub(crate) struct Node {
     #[cfg(test)]
     has_layout: bool,
 
-    /// The `Context::layout_epoch` in which a `state` view last computed its layout, so a
-    /// window resize can invalidate cached layouts.
-    pub(crate) layout_epoch: u64,
-
     /// User state created by `state`.
     pub(crate) state: Option<Box<dyn Any>>,
 
-    /// Has the state been written since the last update?
-    pub(crate) state_dirty: bool,
+    /// The write generation (`Context::write_gen`) of the last write to `state`, or 0.
+    pub(crate) state_gen: u64,
+
+    /// The latest write generation of any state at or under this node. Writing a state raises
+    /// this on the node and all its ancestors, so a walk can tell in one check that nothing
+    /// under a node changed.
+    subtree_gen: u64,
+
+    /// The size a `state` view computed in its last layout, kept while nothing it depends on
+    /// changes.
+    layout_cache: Option<LayoutCache>,
+
+    /// The accessibility node id a `state` view returned from its last `access`, kept while
+    /// nothing it depends on changes.
+    access_cache: Option<AccessCache>,
+
+    /// Has an `anim` view been seen at or under this node? Set once and never cleared, which
+    /// can only make the `Event::Anim` pass visit more than it needs to.
+    has_anim: bool,
+}
+
+/// What a `state` view's layout depends on, and the size it computed.
+#[derive(Clone, Copy)]
+struct LayoutCache {
+    /// `Context::write_gen` when the layout started.
+    stamp: u64,
+    /// The proposed size.
+    proposed: LocalSize,
+    size: LocalSize,
+}
+
+#[derive(Clone, Copy)]
+struct AccessCache {
+    /// `Context::write_gen` when the walk started.
+    stamp: u64,
+    id: Option<accesskit::NodeId>,
 }
 
 impl Node {
-    pub(crate) fn new(generation: u32, label: u64) -> Self {
+    pub(crate) fn new(generation: u32, parent: ViewId, label: u64) -> Self {
         Self {
             generation,
             live: true,
+            parent,
             label,
             children: vec![],
             tid: None,
             layout: LayoutBox::default(),
             #[cfg(test)]
             has_layout: false,
-            layout_epoch: 0,
             state: None,
-            state_dirty: false,
+            state_gen: 0,
+            subtree_gen: 0,
+            layout_cache: None,
+            access_cache: None,
+            has_anim: false,
         }
     }
 }
@@ -94,16 +131,16 @@ impl Context {
         node
     }
 
-    /// Creates a node with the given label.
-    fn alloc(&mut self, label: u64) -> ViewId {
+    /// Creates a child of `parent` with the given label.
+    fn alloc(&mut self, parent: ViewId, label: u64) -> ViewId {
         if let Some(index) = self.free.pop() {
             let node = &mut self.nodes[index as usize];
             let generation = node.generation;
-            *node = Node::new(generation, label);
+            *node = Node::new(generation, parent, label);
             ViewId { index, generation }
         } else {
             let index = self.nodes.len() as u32;
-            self.nodes.push(Node::new(1, label));
+            self.nodes.push(Node::new(1, parent, label));
             ViewId {
                 index,
                 generation: 1,
@@ -149,7 +186,7 @@ impl Context {
         {
             return child;
         }
-        let child = self.alloc(slot as u64);
+        let child = self.alloc(parent, slot as u64);
         let children = &mut self.node_mut(parent).children;
         if children.len() <= slot {
             children.resize(slot + 1, ViewId::default());
@@ -194,7 +231,7 @@ impl Context {
             }
             self.free_subtree(child);
         }
-        let child = self.alloc(hh(&tid));
+        let child = self.alloc(parent, hh(&tid));
         self.node_mut(child).tid = Some(tid);
         let children = &mut self.node_mut(parent).children;
         children.clear();
@@ -234,7 +271,9 @@ impl Context {
             let child = if let Some(&c) = used.get(&key) {
                 c
             } else {
-                let c = by_key.remove(&key).unwrap_or_else(|| self.alloc(key));
+                let c = by_key
+                    .remove(&key)
+                    .unwrap_or_else(|| self.alloc(parent, key));
                 used.insert(key, c);
                 c
             };
@@ -246,14 +285,116 @@ impl Context {
         self.node_mut(parent).children = children;
     }
 
-    /// Is the state of `id`, or of any view under it, dirty?
-    pub(crate) fn subtree_dirty(&self, id: ViewId) -> bool {
-        let node = &self.nodes[id.index as usize];
-        node.state_dirty
-            || node
-                .children
-                .iter()
-                .any(|c| !c.is_default() && self.subtree_dirty(*c))
+    /// Records a write to the state of `id`: raises the state's generation and the subtree
+    /// generations of `id` and all its ancestors.
+    pub(crate) fn mark_written(&mut self, id: ViewId) {
+        self.write_gen += 1;
+        let stamp = self.write_gen;
+        self.node_mut(id).state_gen = stamp;
+        let mut node = id;
+        while !node.is_default() {
+            let n = &mut self.nodes[node.index as usize];
+            n.subtree_gen = stamp;
+            node = n.parent;
+        }
+    }
+
+    /// Has the state of `id` been written since the last update?
+    pub(crate) fn is_dirty(&self, id: ViewId) -> bool {
+        self.node(id).state_gen > self.clean_gen
+    }
+
+    /// Has any state at or under `id` been written since the last update?
+    pub(crate) fn is_subtree_dirty(&self, id: ViewId) -> bool {
+        self.node(id).subtree_gen > self.clean_gen
+    }
+
+    /// Makes every cached layout and accessibility result stale, for changes that aren't
+    /// state writes, such as a new window size or keyboard focus.
+    pub(crate) fn invalidate_all(&mut self) {
+        self.write_gen += 1;
+        self.floor_gen = self.write_gen;
+        self.set_dirty();
+    }
+
+    /// Is a result computed for `id` at generation `stamp` still valid: nothing under `id`, and
+    /// no enclosing `state` view, written since, and nothing invalidated everything?
+    fn still_valid(&self, node: &Node, stamp: u64) -> bool {
+        stamp >= self.floor_gen && node.subtree_gen <= stamp && self.ancestor_gen <= stamp
+    }
+
+    /// Enters the `state` view at `id` during a walk: the views under it depend on its state.
+    /// Returns what `leave_state` needs to restore.
+    pub(crate) fn enter_state(&mut self, id: ViewId) -> u64 {
+        let before = self.ancestor_gen;
+        self.ancestor_gen = before.max(self.node(id).state_gen);
+        before
+    }
+
+    pub(crate) fn leave_state(&mut self, before: u64) {
+        self.ancestor_gen = before;
+    }
+
+    /// The size a `state` view at `id` computed for proposed size `proposed`, if it is still
+    /// valid, so its layout can be skipped without building its view.
+    pub(crate) fn cached_layout(&self, id: ViewId, proposed: LocalSize) -> Option<LocalSize> {
+        let node = self.node(id);
+        let cache = node.layout_cache?;
+        (cache.proposed == proposed && self.still_valid(node, cache.stamp)).then_some(cache.size)
+    }
+
+    pub(crate) fn store_layout(
+        &mut self,
+        id: ViewId,
+        stamp: u64,
+        proposed: LocalSize,
+        size: LocalSize,
+    ) {
+        self.node_mut(id).layout_cache = Some(LayoutCache {
+            stamp,
+            proposed,
+            size,
+        });
+    }
+
+    /// The accessibility node id a `state` view at `id` returned, if still valid. The nodes
+    /// under it were sent in an earlier update and haven't changed.
+    pub(crate) fn cached_access(&self, id: ViewId) -> Option<Option<accesskit::NodeId>> {
+        let node = self.node(id);
+        let cache = node.access_cache?;
+        self.still_valid(node, cache.stamp).then_some(cache.id)
+    }
+
+    pub(crate) fn store_access(
+        &mut self,
+        id: ViewId,
+        stamp: u64,
+        result: Option<accesskit::NodeId>,
+    ) {
+        self.node_mut(id).access_cache = Some(AccessCache { stamp, id: result });
+    }
+
+    /// Records that an `anim` view is at `id`.
+    pub(crate) fn mark_anim(&mut self, id: ViewId) {
+        let mut node = id;
+        while !node.is_default() {
+            let n = &mut self.nodes[node.index as usize];
+            if n.has_anim {
+                break;
+            }
+            n.has_anim = true;
+            node = n.parent;
+        }
+    }
+
+    /// Can the `Event::Anim` pass skip the `state` view at `id`? Only if its last layout visited
+    /// everything under it, nothing changed since, and no `anim` view was seen there.
+    pub(crate) fn skip_anim(&self, id: ViewId) -> bool {
+        let node = self.node(id);
+        !node.has_anim
+            && node
+                .layout_cache
+                .is_some_and(|c| self.still_valid(node, c.stamp))
     }
 
     pub(crate) fn get_layout(&self, id: ViewId) -> LayoutBox {
@@ -276,15 +417,6 @@ impl Context {
         {
             node.has_layout = true;
         }
-    }
-
-    pub(crate) fn layout_epoch_of(&self, id: ViewId) -> u64 {
-        self.node(id).layout_epoch
-    }
-
-    pub(crate) fn set_layout_epoch(&mut self, id: ViewId) {
-        let epoch = self.layout_epoch;
-        self.node_mut(id).layout_epoch = epoch;
     }
 
     /// Returns all layout entries with their paths (the labels from the root), sorted by path,

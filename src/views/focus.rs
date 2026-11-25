@@ -23,12 +23,13 @@ where
             Event::TouchBegin { id: _, position } => {
                 if self.hittest(vid, *position, cx).is_some() {
                     cx.focused_id = Some(vid);
-                    cx.set_dirty();
+                    // Views read the focus without a state, so cached results can't tell.
+                    cx.invalidate_all();
                 }
             }
             Event::Key(Key::Escape) if cx.focused_id == Some(vid) => {
                 cx.focused_id = None;
-                cx.set_dirty();
+                cx.invalidate_all();
             }
             _ => (),
         }

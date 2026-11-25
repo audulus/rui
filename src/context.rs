@@ -49,11 +49,19 @@ pub struct Context {
     /// Indices of freed slots in `nodes`.
     pub(crate) free: Vec<u32>,
 
-    /// Nodes whose state was written since the last update.
-    dirty_nodes: Vec<ViewId>,
+    /// Counts state writes. Each write takes the next value, so comparing generations tells
+    /// whether something was written after a result was computed.
+    pub(crate) write_gen: u64,
 
-    /// Bumped to invalidate every cached layout, as when the window resizes.
-    pub(crate) layout_epoch: u64,
+    /// `write_gen` at the end of the last update: states written later are dirty.
+    pub(crate) clean_gen: u64,
+
+    /// Cached results computed before this generation are stale (see `invalidate_all`).
+    pub(crate) floor_gen: u64,
+
+    /// During a walk, the latest write generation of the states of the enclosing `state`
+    /// views, on which everything under them depends.
+    pub(crate) ancestor_gen: u64,
 
     /// Which views each touch (or mouse pointer) is interacting with.
     pub(crate) touches: [ViewId; 16],
@@ -94,10 +102,6 @@ pub struct Context {
     /// Regions of window that needs repainting.
     pub(crate) dirty_region: Region<WorldSpace>,
 
-    /// The `state` views whose layout is being computed, innermost last. A `state` view's
-    /// layout depends on the states of these ancestors.
-    pub(crate) id_stack: Vec<ViewId>,
-
     /// Previous window size.
     window_size: Size2D<f32, WorldSpace>,
 
@@ -128,10 +132,12 @@ impl Default for Context {
 impl Context {
     pub fn new() -> Self {
         Self {
-            nodes: vec![Node::new(1, 0)],
+            nodes: vec![Node::new(1, ViewId::default(), 0)],
             free: vec![],
-            dirty_nodes: vec![],
-            layout_epoch: 1,
+            write_gen: 0,
+            clean_gen: 0,
+            floor_gen: 0,
+            ancestor_gen: 0,
             touches: [ViewId::default(); 16],
             starts: [LocalPoint::zero(); 16],
             previous_position: [LocalPoint::zero(); 16],
@@ -145,7 +151,6 @@ impl Context {
             enable_dirty: true,
             env: HashMap::new(),
             dirty_region: Region::EMPTY,
-            id_stack: vec![],
             window_size: Size2D::default(),
             root_offset: LocalOffset::zero(),
             visible: None,
@@ -156,6 +161,11 @@ impl Context {
     }
 
     /// Call this after the event queue is cleared.
+    ///
+    /// When anything changed, replaces `access_nodes` with the AccessKit nodes that changed
+    /// since the last update, as for an AccessKit `TreeUpdate`: the first update gives the whole
+    /// tree, later ones only the nodes under `state` views whose state, or whose enclosing
+    /// states, were written.
     pub fn update(
         &mut self,
         view: &impl View,
@@ -165,7 +175,7 @@ impl Context {
     ) -> bool {
         // If the window size has changed, force a relayout.
         if window_size != self.window_size {
-            self.layout_epoch += 1;
+            self.invalidate_all();
             self.window_size = window_size;
         }
 
@@ -176,25 +186,10 @@ impl Context {
         view.process(&Event::Anim, root, self, &mut actions);
 
         if self.dirty {
-            // Get a new accesskit tree.
-            let mut nodes = vec![];
-
-            view.access(root, self, &mut nodes);
-
-            if nodes != *access_nodes {
-                log::debug!("access nodes:");
-                for (id, node) in &nodes {
-                    log::debug!(
-                        "  id: {:?} role: {:?}, children: {:?}",
-                        id,
-                        node.role(),
-                        node.children()
-                    );
-                }
-                *access_nodes = nodes;
-            } else {
-                // log::debug!("access nodes unchanged");
-            }
+            // Get the accesskit nodes that changed.
+            access_nodes.clear();
+            view.access(root, self, access_nodes);
+            log::debug!("access nodes changed: {}", access_nodes.len());
 
             // XXX: we're doing layout both here and in rendering.
             view.layout(
@@ -359,21 +354,15 @@ impl Context {
 
     pub(crate) fn clear_dirty(&mut self) {
         self.dirty = false;
-        for id in std::mem::take(&mut self.dirty_nodes) {
-            if self.is_live(id) {
-                self.nodes[id.index as usize].state_dirty = false;
-            }
-        }
+        self.clean_gen = self.write_gen;
     }
 
     pub(crate) fn set_state<S: 'static>(&mut self, id: ViewId, value: S) {
         let node = self.node_mut(id);
         node.state = Some(Box::new(value));
-        node.state_dirty = false;
-    }
-
-    pub(crate) fn is_dirty(&self, id: ViewId) -> bool {
-        self.node(id).state_dirty
+        // Setting the value isn't a write by the app: `map` sets it on every walk, and then
+        // checks whether its child wrote it.
+        node.state_gen = 0;
     }
 
     pub(crate) fn init_state<S: 'static, D: Fn() -> S + 'static>(&mut self, id: ViewId, func: &D) {
@@ -420,12 +409,7 @@ impl Context {
     {
         self.set_dirty();
 
-        let node = self.node_mut(id.id);
-        let newly_dirty = !node.state_dirty;
-        node.state_dirty = true;
-        if newly_dirty {
-            self.dirty_nodes.push(id.id);
-        }
+        self.mark_written(id.id);
         self.nodes[id.id.index as usize]
             .state
             .as_mut()

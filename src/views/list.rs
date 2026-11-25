@@ -24,6 +24,24 @@ impl<ID, F> List<ID, F>
 where
     ID: Hash,
 {
+    /// Lays out an item, or reuses its last size without building its view when the item is a
+    /// `state` view whose layout is still valid.
+    fn layout_child<V: View>(
+        &self,
+        id: &ID,
+        cid: ViewId,
+        sz: LocalSize,
+        args: &mut LayoutArgs,
+    ) -> LocalSize
+    where
+        F: Fn(&ID) -> V,
+    {
+        if let Some(size) = args.cx.cached_layout(cid, sz) {
+            return size;
+        }
+        ((self.func)(id)).layout(cid, &mut args.size(sz))
+    }
+
     /// Matches the list's child nodes to its items, so child `i` is the node of `ids[i]`.
     fn sync(&self, vid: ViewId, cx: &mut Context) {
         cx.sync_keyed_children(vid, self.ids.iter().map(hh));
@@ -46,6 +64,11 @@ where
         self.sync(vid, cx);
         for (i, child) in self.ids.iter().enumerate().rev() {
             let cid = cx.child(vid, i);
+            if let Event::Anim = event
+                && cx.skip_anim(cid)
+            {
+                continue;
+            }
             let offset = cx.get_layout(cid).offset;
             ((self.func)(child)).process(&event.offset(-offset), cid, cx, actions);
         }
@@ -93,8 +116,7 @@ where
                 let mut width_sum = 0.0;
                 for (i, child) in self.ids.iter().enumerate() {
                     let cid = args.cx.child(vid, i);
-                    let child_size =
-                        ((self.func)(child)).layout(cid, &mut args.size(proposed_child_size));
+                    let child_size = self.layout_child(child, cid, proposed_child_size, args);
                     sizes.push(child_size);
 
                     width_sum += child_size.width;
@@ -139,8 +161,7 @@ where
                 let mut height_sum = 0.0;
                 for (i, child) in self.ids.iter().enumerate() {
                     let cid = args.cx.child(vid, i);
-                    let child_size =
-                        ((self.func)(child)).layout(cid, &mut args.size(proposed_child_size));
+                    let child_size = self.layout_child(child, cid, proposed_child_size, args);
                     sizes.push(child_size);
 
                     height_sum += child_size.height;
@@ -182,7 +203,8 @@ where
             ListOrientation::Z => {
                 for (i, child) in self.ids.iter().enumerate() {
                     let cid = args.cx.child(vid, i);
-                    ((self.func)(child)).layout(cid, args);
+                    let sz = args.sz;
+                    self.layout_child(child, cid, sz, args);
                 }
                 args.sz
             }
@@ -193,6 +215,9 @@ where
         self.sync(vid, cx);
         for (i, child) in self.ids.iter().enumerate() {
             let cid = cx.child(vid, i);
+            if !cx.is_subtree_dirty(cid) {
+                continue;
+            }
             let offset = cx.get_layout(cid).offset;
             let xf = xform.pre_translate(offset);
             ((self.func)(child)).dirty(cid, xf, cx);
@@ -236,7 +261,10 @@ where
             .enumerate()
             .filter_map(|(i, child)| {
                 let cid = cx.child(vid, i);
-                ((self.func)(child)).access(cid, cx, nodes)
+                // An item whose nodes were sent before and haven't changed is skipped without
+                // building its view.
+                cx.cached_access(cid)
+                    .unwrap_or_else(|| ((self.func)(child)).access(cid, cx, nodes))
             })
             .collect();
 

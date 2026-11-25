@@ -142,28 +142,228 @@ fn test_any_view_type_change_resets_state() {
     assert_eq!(cx.root_id(), first);
 }
 
+/// Counts calls per item: of the list's item function, and of each item's `state` function.
+#[derive(Clone, Default)]
+struct Calls {
+    item: Rc<[Cell<usize>; 3]>,
+    body: Rc<[Cell<usize>; 3]>,
+}
+
+impl Calls {
+    fn items(&self) -> [usize; 3] {
+        [0, 1, 2].map(|i| self.item[i].get())
+    }
+    fn bodies(&self) -> [usize; 3] {
+        [0, 1, 2].map(|i| self.body[i].get())
+    }
+    fn reset(&self) {
+        for i in 0..3 {
+            self.item[i].set(0);
+            self.body[i].set(0);
+        }
+    }
+}
+
+/// Three rows, each a `state` with a width, inside an outer `state` holding a spacing.
+fn rows(calls: &Calls) -> impl View + use<> {
+    let calls = calls.clone();
+    state(
+        || 0.0f32,
+        move |spacing, cx| {
+            let spacing = cx[spacing];
+            let calls = calls.clone();
+            list(vec![0usize, 1, 2], move |&i| {
+                calls.item[i].set(calls.item[i].get() + 1);
+                let calls = calls.clone();
+                state(
+                    || 10.0f32,
+                    move |w, cx| {
+                        calls.body[i].set(calls.body[i].get() + 1);
+                        rectangle()
+                            .size([cx[w], 10.0 + spacing])
+                            .role(accesskit::Role::Button)
+                    },
+                )
+            })
+        },
+    )
+}
+
+fn row_handle(cx: &Context, i: usize) -> StateHandle<f32> {
+    StateHandle::new(cx.id_at(&[0, 0, hh(&i)]))
+}
+
 #[test]
-fn test_state_layout_is_cached_until_state_changes() {
+fn test_layout_skips_clean_rows() {
+    let calls = Calls::default();
+    let ui = rows(&calls);
     let mut cx = Context::new();
-    let ui = state(|| 10.0f32, |w, cx| rectangle().size([cx[w], 10.0]));
     layout(&mut cx, &ui);
-    let s = StateHandle::<f32>::new(cx.root_id());
-    assert_eq!(cx.get_layout(cx.root_id()).rect.width(), 10.0);
+    assert_eq!(calls.bodies(), [1, 1, 1]);
 
-    // Writing the state invalidates the cached layout.
+    // Nothing changed: no row is rebuilt.
+    calls.reset();
+    layout(&mut cx, &ui);
+    assert_eq!(calls.items(), [0, 0, 0]);
+    assert_eq!(calls.bodies(), [0, 0, 0]);
+
+    // A write to row 1 rebuilds row 1 only, and its new size is used.
+    let s = row_handle(&cx, 1);
     cx[s] = 30.0;
+    calls.reset();
     layout(&mut cx, &ui);
-    assert_eq!(cx.get_layout(cx.root_id()).rect.width(), 30.0);
+    assert_eq!(calls.items(), [0, 1, 0]);
+    assert_eq!(calls.bodies(), [0, 1, 0]);
+    assert_eq!(
+        cx.get_layout(cx.id_at(&[0, 0, hh(&1usize)])).rect.width(),
+        30.0
+    );
+}
+
+#[test]
+fn test_layout_redoes_rows_when_an_enclosing_state_changes() {
+    let calls = Calls::default();
+    let ui = rows(&calls);
+    let mut cx = Context::new();
+    layout(&mut cx, &ui);
+
+    let spacing = StateHandle::<f32>::new(cx.root_id());
+    cx[spacing] = 5.0;
+    calls.reset();
+    layout(&mut cx, &ui);
+    assert_eq!(calls.bodies(), [1, 1, 1]);
+    assert_eq!(
+        cx.get_layout(cx.id_at(&[0, 0, hh(&0usize)])).rect.height(),
+        15.0
+    );
+}
+
+#[test]
+fn test_write_then_clear_still_invalidates() {
+    let calls = Calls::default();
+    let ui = rows(&calls);
+    let mut cx = Context::new();
+    layout(&mut cx, &ui);
+
+    // The write is cleared before any layout sees it; the cache must still go stale.
+    let s = row_handle(&cx, 2);
+    cx[s] = 20.0;
+    cx.clear_dirty();
+    calls.reset();
+    layout(&mut cx, &ui);
+    assert_eq!(calls.bodies(), [0, 0, 1]);
+}
+
+#[test]
+fn test_invalidate_all_redoes_everything() {
+    let calls = Calls::default();
+    let ui = rows(&calls);
+    let mut cx = Context::new();
+    layout(&mut cx, &ui);
+
+    cx.invalidate_all();
+    calls.reset();
+    layout(&mut cx, &ui);
+    assert_eq!(calls.bodies(), [1, 1, 1]);
+}
+
+#[test]
+fn test_layout_redoes_a_row_given_another_size() {
+    let mut cx = Context::new();
+    let ui = state(|| (), |_, _| rectangle());
+    let root = cx.root_id();
+    let lay = |cx: &mut Context, sz: LocalSize| {
+        ui.layout(
+            root,
+            &mut LayoutArgs {
+                sz,
+                cx,
+                text_bounds: &mut |_, _, _| LocalRect::zero(),
+            },
+        )
+    };
+    assert_eq!(lay(&mut cx, [50.0, 50.0].into()), [50.0, 50.0].into());
+    assert_eq!(lay(&mut cx, [80.0, 20.0].into()), [80.0, 20.0].into());
+}
+
+#[test]
+fn test_access_sends_only_changed_rows() {
+    let calls = Calls::default();
+    let ui = rows(&calls);
+    let mut cx = Context::new();
+    layout(&mut cx, &ui);
+    let root = cx.root_id();
+
+    let mut nodes = vec![];
+    ui.access(root, &mut cx, &mut nodes);
+    let all: Vec<_> = nodes.iter().map(|(id, _)| *id).collect();
+    // The list and three buttons.
+    assert_eq!(all.len(), 4);
     cx.clear_dirty();
 
-    // A layout epoch change, as on a window resize, also does.
-    *cx.get_mut(s) = 40.0;
+    // Nothing changed: nothing is sent.
+    nodes.clear();
+    ui.access(root, &mut cx, &mut nodes);
+    assert!(nodes.is_empty());
+
+    // A write to row 0 sends the list, whose subtree changed, and row 0's node.
+    let s = row_handle(&cx, 0);
+    cx[s] = 12.0;
+    calls.reset();
+    nodes.clear();
+    ui.access(root, &mut cx, &mut nodes);
+    assert_eq!(nodes.len(), 2);
+    assert_eq!(calls.bodies(), [1, 0, 0]);
+    assert!(nodes.iter().all(|(id, _)| all.contains(id)));
+}
+
+#[test]
+fn test_dirty_regions_skip_clean_rows() {
+    let calls = Calls::default();
+    let ui = rows(&calls);
+    let mut cx = Context::new();
+    layout(&mut cx, &ui);
     cx.clear_dirty();
+    let root = cx.root_id();
+
+    let s = row_handle(&cx, 2);
+    cx[s] = 40.0;
+    calls.reset();
+    ui.dirty(root, LocalToWorld::identity(), &mut cx);
+    assert_eq!(calls.items(), [0, 0, 1]);
+    assert_eq!(calls.bodies(), [0, 0, 0]);
+    assert_eq!(cx.dirty_region.rects().len(), 1);
+}
+
+#[test]
+fn test_anim_pass_visits_only_anim_subtrees() {
+    let ticks = Rc::new(Cell::new(0));
+    let built = Rc::new([Cell::new(0), Cell::new(0)]);
+    let (t, b) = (ticks.clone(), built.clone());
+    let ui = list(vec![0usize, 1], move |&i| {
+        b[i].set(b[i].get() + 1);
+        let t = t.clone();
+        state(
+            || 0,
+            move |_, _| {
+                let t = t.clone();
+                cond(
+                    i == 0,
+                    rectangle().anim(move |_, _| t.set(t.get() + 1)),
+                    rectangle(),
+                )
+            },
+        )
+    });
+    let mut cx = Context::new();
     layout(&mut cx, &ui);
-    assert_eq!(cx.get_layout(cx.root_id()).rect.width(), 30.0);
-    cx.layout_epoch += 1;
-    layout(&mut cx, &ui);
-    assert_eq!(cx.get_layout(cx.root_id()).rect.width(), 40.0);
+    let root = cx.root_id();
+    built[0].set(0);
+    built[1].set(0);
+
+    ui.process(&Event::Anim, root, &mut cx, &mut vec![]);
+    assert_eq!(ticks.get(), 1);
+    assert_eq!([built[0].get(), built[1].get()], [1, 0]);
 }
 
 /// Rows of `ids`, 20 tall, that count the drags each one sees.
