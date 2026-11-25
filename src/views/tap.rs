@@ -85,14 +85,13 @@ where
     fn process(
         &self,
         event: &Event,
-        path: &mut IdPath,
+        vid: ViewId,
         cx: &mut Context,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
-        let vid = cx.view_id(path);
         match &event {
             Event::TouchBegin { id, position } => {
-                if self.hittest(path, *position, cx).is_some() {
+                if self.hittest(vid, *position, cx).is_some() {
                     cx.touches[*id] = vid;
                 }
             }
@@ -112,48 +111,37 @@ where
         }
     }
 
-    fn draw(&self, path: &mut IdPath, args: &mut DrawArgs) {
-        path.push(0);
-        self.child.draw(path, args);
-        path.pop();
+    fn draw(&self, vid: ViewId, args: &mut DrawArgs) {
+        let cid = args.cx.child(vid, 0);
+        self.child.draw(cid, args);
     }
 
-    fn layout(&self, path: &mut IdPath, args: &mut LayoutArgs) -> LocalSize {
-        path.push(0);
-        let sz = self.child.layout(path, args);
-        path.pop();
-        sz
+    fn layout(&self, vid: ViewId, args: &mut LayoutArgs) -> LocalSize {
+        let cid = args.cx.child(vid, 0);
+
+        self.child.layout(cid, args)
     }
 
-    fn hittest(&self, path: &mut IdPath, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
-        path.push(0);
-        let id = self.child.hittest(path, pt, cx);
-        path.pop();
-        id
+    fn hittest(&self, vid: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
+        let cid = cx.child(vid, 0);
+
+        self.child.hittest(cid, pt, cx)
     }
 
-    fn commands(&self, path: &mut IdPath, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
-        path.push(0);
-        self.child.commands(path, cx, cmds);
-        path.pop();
-    }
-
-    fn gc(&self, path: &mut IdPath, cx: &mut Context, map: &mut Vec<ViewId>) {
-        path.push(0);
-        self.child.gc(path, cx, map);
-        path.pop();
+    fn commands(&self, vid: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
+        let cid = cx.child(vid, 0);
+        self.child.commands(cid, cx, cmds);
     }
 
     fn access(
         &self,
-        path: &mut IdPath,
+        vid: ViewId,
         cx: &mut Context,
         nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
     ) -> Option<accesskit::NodeId> {
-        path.push(0);
-        let node_id = self.child.access(path, cx, nodes);
-        path.pop();
-        node_id
+        let cid = cx.child(vid, 0);
+
+        self.child.access(cid, cx, nodes)
     }
 }
 
@@ -177,9 +165,9 @@ mod tests {
         );
 
         let sz = [100.0, 100.0].into();
-        let mut path = IdPath::root();
+        let vid = cx.root_id();
         ui.layout(
-            &mut path,
+            vid,
             &mut LayoutArgs {
                 sz,
                 cx: &mut cx,
@@ -187,7 +175,7 @@ mod tests {
             },
         );
 
-        let s = StateHandle::<bool>::new(cx.view_id(&path));
+        let s = StateHandle::<bool>::new(vid);
         assert!(!*s.get(&cx));
 
         let events = [
@@ -203,7 +191,7 @@ mod tests {
 
         let mut actions = vec![];
         for event in &events {
-            ui.process(event, &mut path, &mut cx, &mut actions);
+            ui.process(event, vid, &mut cx, &mut actions);
         }
 
         assert!(*s.get(&cx));
@@ -223,9 +211,9 @@ mod tests {
         );
 
         let sz = [100.0, 100.0].into();
-        let mut path = IdPath::root();
+        let vid = cx.root_id();
         ui.layout(
-            &mut path,
+            vid,
             &mut LayoutArgs {
                 sz,
                 cx: &mut cx,
@@ -233,7 +221,7 @@ mod tests {
             },
         );
 
-        let s = StateHandle::<bool>::new(cx.view_id(&path));
+        let s = StateHandle::<bool>::new(vid);
 
         // Touch outside the 50x50 rectangle
         let events = [
@@ -249,7 +237,7 @@ mod tests {
 
         let mut actions = vec![];
         for event in &events {
-            ui.process(event, &mut path, &mut cx, &mut actions);
+            ui.process(event, vid, &mut cx, &mut actions);
         }
 
         assert!(!*s.get(&cx));

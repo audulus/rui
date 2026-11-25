@@ -3,7 +3,6 @@ use euclid::*;
 use std::any::Any;
 use std::any::TypeId;
 use std::collections::HashMap;
-use std::iter::FromIterator;
 use std::ops;
 use std::sync::Arc;
 
@@ -32,12 +31,61 @@ pub(crate) struct LayoutBox {
     pub offset: LocalOffset,
 }
 
-pub(crate) struct StateHolder {
-    pub state: Box<dyn Any>,
-    pub dirty: bool,
+/// Everything the `Context` stores for one view: one node of the tree that mirrors the views.
+/// Nodes live in an arena (`Context::nodes`) and are addressed by `ViewId`.
+pub(crate) struct Node {
+    /// The generation of the slot. Never zero; it changes when the node is freed, so the ids
+    /// of freed nodes go stale.
+    generation: u32,
+
+    /// Is the slot in use?
+    live: bool,
+
+    /// Identifies the node among its parent's children: the child index for stacks and
+    /// modifiers, the hashed key for list items. Used to rebuild paths for tests.
+    label: u64,
+
+    /// Child nodes, indexed by slot.
+    children: Vec<ViewId>,
+
+    /// Type of the view owning the node, where it can change (children of `any_view`).
+    tid: Option<TypeId>,
+
+    /// Layout information.
+    pub(crate) layout: LayoutBox,
+
+    /// Has layout been set? For snapshot tests.
+    #[cfg(test)]
+    has_layout: bool,
+
+    /// The `Context::layout_epoch` in which a `state` view last computed its layout, so a
+    /// window resize can invalidate cached layouts.
+    pub(crate) layout_epoch: u64,
+
+    /// User state created by `state`.
+    pub(crate) state: Option<Box<dyn Any>>,
+
+    /// Has the state been written since the last update?
+    pub(crate) state_dirty: bool,
 }
 
-pub(crate) type StateMap = IdMap<StateHolder>;
+impl Node {
+    fn new(generation: u32, label: u64) -> Self {
+        Self {
+            generation,
+            live: true,
+            label,
+            children: vec![],
+            tid: None,
+            layout: LayoutBox::default(),
+            #[cfg(test)]
+            has_layout: false,
+            layout_epoch: 0,
+            state: None,
+            state_dirty: false,
+        }
+    }
+}
 
 pub(crate) type EnvMap = HashMap<TypeId, Box<dyn Any>>;
 
@@ -51,12 +99,17 @@ pub struct RenderInfo<'a, 'window> {
 /// The Context stores all UI state. A user of the library
 /// shouldn't have to interact with it directly.
 pub struct Context {
-    /// Layout information for all views.
-    layout: IdMap<LayoutBox>,
+    /// Per-view storage: a tree of nodes in an arena. Slot 0 is the root.
+    nodes: Vec<Node>,
 
-    /// The path of every layout entry, for snapshot tests.
-    #[cfg(test)]
-    layout_paths: IdMap<IdPath>,
+    /// Indices of freed slots in `nodes`.
+    free: Vec<u32>,
+
+    /// Nodes whose state was written since the last update.
+    dirty_nodes: Vec<ViewId>,
+
+    /// Bumped to invalidate every cached layout, as when the window resizes.
+    pub(crate) layout_epoch: u64,
 
     /// Which views each touch (or mouse pointer) is interacting with.
     pub(crate) touches: [ViewId; 16],
@@ -85,9 +138,6 @@ pub struct Context {
     /// Are we fullscreen?
     pub fullscreen: bool,
 
-    /// User state created by `state`.
-    pub(crate) state_map: StateMap,
-
     /// Has the state changed?
     pub(crate) dirty: bool,
 
@@ -100,10 +150,8 @@ pub struct Context {
     /// Regions of window that needs repainting.
     pub(crate) dirty_region: Region<WorldSpace>,
 
-    /// State dependencies.
-    pub(crate) deps: IdMap<Vec<ViewId>>,
-
-    /// A stack of ids for states to get parent dependencies.
+    /// The `state` views whose layout is being computed, innermost last. A `state` view's
+    /// layout depends on the states of these ancestors.
     pub(crate) id_stack: Vec<ViewId>,
 
     /// Previous window size.
@@ -136,9 +184,10 @@ impl Default for Context {
 impl Context {
     pub fn new() -> Self {
         Self {
-            layout: IdMap::default(),
-            #[cfg(test)]
-            layout_paths: IdMap::default(),
+            nodes: vec![Node::new(1, 0)],
+            free: vec![],
+            dirty_nodes: vec![],
+            layout_epoch: 1,
             touches: [ViewId::default(); 16],
             starts: [LocalPoint::zero(); 16],
             previous_position: [LocalPoint::zero(); 16],
@@ -148,12 +197,10 @@ impl Context {
             focused_id: None,
             window_title: "rui".into(),
             fullscreen: false,
-            state_map: IdMap::default(),
             dirty: false,
             enable_dirty: true,
             env: HashMap::new(),
             dirty_region: Region::EMPTY,
-            deps: IdMap::default(),
             id_stack: vec![],
             window_size: Size2D::default(),
             root_offset: LocalOffset::zero(),
@@ -174,33 +221,21 @@ impl Context {
     ) -> bool {
         // If the window size has changed, force a relayout.
         if window_size != self.window_size {
-            self.deps.clear();
+            self.layout_epoch += 1;
             self.window_size = window_size;
         }
 
-        let mut path = IdPath::root();
+        let root = self.root_id();
 
         // Run any animations.
         let mut actions = vec![];
-        view.process(&Event::Anim, &mut path, self, &mut actions);
-        assert!(path.len() == 1);
+        view.process(&Event::Anim, root, self, &mut actions);
 
         if self.dirty {
-            // Clean up state and layout.
-            let mut keep = vec![];
-            view.gc(&mut path, self, &mut keep);
-            assert!(path.len() == 1);
-            let keep_set = IdSet::from_iter(keep);
-            self.state_map.retain(|k, _| keep_set.contains(k));
-            self.layout.retain(|k, _| keep_set.contains(k));
-            #[cfg(test)]
-            self.layout_paths.retain(|k, _| keep_set.contains(k));
-
             // Get a new accesskit tree.
             let mut nodes = vec![];
 
-            view.access(&mut path, self, &mut nodes);
-            assert_eq!(path.len(), 1);
+            view.access(root, self, &mut nodes);
 
             if nodes != *access_nodes {
                 log::debug!("access nodes:");
@@ -219,17 +254,16 @@ impl Context {
 
             // XXX: we're doing layout both here and in rendering.
             view.layout(
-                &mut path,
+                root,
                 &mut LayoutArgs {
                     sz: [window_size.width, window_size.height].into(),
                     cx: self,
                     text_bounds: &mut |str, size, max_width| vger.text_bounds(str, size, max_width),
                 },
             );
-            assert_eq!(path.len(), 1);
 
             // Get dirty rectangles.
-            view.dirty(&mut path, LocalToWorld::identity(), self);
+            view.dirty(root, LocalToWorld::identity(), self);
 
             self.clear_dirty();
 
@@ -263,20 +297,19 @@ impl Context {
 
         vger.begin(window_size.width, window_size.height, scale);
 
-        let mut path = IdPath::root();
+        let root = self.root_id();
         // Disable dirtying the state during layout and rendering
         // to avoid constantly re-rendering if some state is saved.
         self.enable_dirty = false;
         let local_window_size = window_size.cast_unit::<LocalSpace>();
         let sz = view.layout(
-            &mut path,
+            root,
             &mut LayoutArgs {
                 sz: local_window_size,
                 cx: self,
                 text_bounds: &mut |str, size, max_width| vger.text_bounds(str, size, max_width),
             },
         );
-        assert!(path.len() == 1);
 
         // Center the root view in the window.
         self.root_offset = ((local_window_size - sz) / 2.0).into();
@@ -286,7 +319,7 @@ impl Context {
             WorldPoint::origin(),
             window_size.cast_unit(),
         ));
-        view.draw(&mut path, &mut DrawArgs { cx: self, vger });
+        view.draw(root, &mut DrawArgs { cx: self, vger });
         self.visible = None;
         self.enable_dirty = true;
 
@@ -330,13 +363,8 @@ impl Context {
     /// Process a UI event.
     pub fn process(&mut self, view: &impl View, event: &Event) {
         let mut actions = vec![];
-        let mut path = IdPath::root();
-        view.process(
-            &event.offset(-self.root_offset),
-            &mut path,
-            self,
-            &mut actions,
-        );
+        let root = self.root_id();
+        view.process(&event.offset(-self.root_offset), root, self, &mut actions);
 
         for action in actions {
             if !action.is::<()>() {
@@ -347,8 +375,8 @@ impl Context {
 
     /// Get menu commands.
     pub fn commands(&mut self, view: &impl View, cmds: &mut Vec<CommandInfo>) {
-        let mut path = IdPath::root();
-        view.commands(&mut path, self, cmds);
+        let root = self.root_id();
+        view.commands(root, self, cmds);
     }
 
     /// Narrows the visible area to `rect`, a rectangle in the local space of `vger`'s current
@@ -379,37 +407,269 @@ impl Context {
         }
     }
 
-    /// Returns the id of the view at the end of `path`.
-    pub(crate) fn view_id(&self, path: &IdPath) -> ViewId {
-        path.id()
+    /// The id of the root view: what to pass to the root view's `DynView` methods when driving
+    /// them directly, as for rendering offscreen.
+    pub fn root_id(&self) -> ViewId {
+        ViewId {
+            index: 0,
+            generation: self.nodes[0].generation,
+        }
     }
 
-    pub(crate) fn get_layout(&self, path: &IdPath) -> LayoutBox {
-        self.layout.get(&path.id()).copied().unwrap_or_default()
+    /// Does `id` refer to a node that hasn't been freed?
+    pub(crate) fn is_live(&self, id: ViewId) -> bool {
+        self.nodes
+            .get(id.index as usize)
+            .is_some_and(|node| node.live && node.generation == id.generation)
     }
 
-    pub(crate) fn update_layout(&mut self, path: &IdPath, layout_box: LayoutBox) {
-        self.layout.insert(path.id(), layout_box);
-        #[cfg(test)]
-        self.layout_paths.insert(path.id(), path.clone());
+    fn node(&self, id: ViewId) -> &Node {
+        let node = &self.nodes[id.index as usize];
+        assert!(
+            node.live && node.generation == id.generation,
+            "rui: a view id or state handle refers to a view that no longer exists"
+        );
+        node
     }
 
-    pub(crate) fn set_layout_offset(&mut self, path: &IdPath, offset: LocalOffset) {
-        self.layout.entry(path.id()).or_default().offset = offset;
-        #[cfg(test)]
-        self.layout_paths.insert(path.id(), path.clone());
+    fn node_mut(&mut self, id: ViewId) -> &mut Node {
+        let node = &mut self.nodes[id.index as usize];
+        assert!(
+            node.live && node.generation == id.generation,
+            "rui: a view id or state handle refers to a view that no longer exists"
+        );
+        node
     }
 
-    /// Returns all layout entries sorted by path, for use in snapshot tests.
-    #[cfg(test)]
-    pub(crate) fn layout_entries(&self) -> Vec<(IdPath, LayoutBox)> {
-        let mut entries: Vec<_> = self
-            .layout
+    /// Creates a node with the given label.
+    fn alloc(&mut self, label: u64) -> ViewId {
+        if let Some(index) = self.free.pop() {
+            let node = &mut self.nodes[index as usize];
+            let generation = node.generation;
+            *node = Node::new(generation, label);
+            ViewId { index, generation }
+        } else {
+            let index = self.nodes.len() as u32;
+            self.nodes.push(Node::new(1, label));
+            ViewId {
+                index,
+                generation: 1,
+            }
+        }
+    }
+
+    /// Frees a node and everything under it. Ids of freed nodes go stale.
+    fn free_subtree(&mut self, id: ViewId) {
+        if !self.is_live(id) {
+            // Already freed, as for a key that appears twice in a list.
+            return;
+        }
+        let node = &mut self.nodes[id.index as usize];
+        let children = std::mem::take(&mut node.children);
+        node.live = false;
+        node.state = None;
+        node.generation = node.generation.wrapping_add(1).max(1);
+        self.free.push(id.index);
+        for child in children {
+            self.free_subtree(child);
+        }
+    }
+
+    /// Returns child `slot` of `parent`, creating it the first time.
+    pub(crate) fn child(&mut self, parent: ViewId, slot: usize) -> ViewId {
+        if let Some(&child) = self.node(parent).children.get(slot)
+            && !child.is_default()
+        {
+            return child;
+        }
+        let child = self.alloc(slot as u64);
+        let children = &mut self.node_mut(parent).children;
+        if children.len() <= slot {
+            children.resize(slot + 1, ViewId::default());
+        }
+        children[slot] = child;
+        child
+    }
+
+    /// Returns child `slot` of `parent`, freeing any other children, as for the branch
+    /// `cond` shows.
+    pub(crate) fn sole_child(&mut self, parent: ViewId, slot: usize) -> ViewId {
+        let others: Vec<ViewId> = self
+            .node(parent)
+            .children
             .iter()
-            .map(|(id, v)| (self.layout_paths[id].clone(), *v))
+            .enumerate()
+            .filter(|(i, c)| *i != slot && !c.is_default())
+            .map(|(_, c)| *c)
             .collect();
+        if !others.is_empty() {
+            for other in others {
+                self.free_subtree(other);
+            }
+            for (i, c) in self.node_mut(parent).children.iter_mut().enumerate() {
+                if i != slot {
+                    *c = ViewId::default();
+                }
+            }
+        }
+        self.child(parent, slot)
+    }
+
+    /// Returns the only child of `parent`, for a view of type `tid`. If the child was made for a
+    /// view of another type, it is freed and made again, so state doesn't carry over to an
+    /// unrelated view.
+    pub(crate) fn typed_child(&mut self, parent: ViewId, tid: TypeId) -> ViewId {
+        if let Some(&child) = self.node(parent).children.first()
+            && !child.is_default()
+        {
+            if self.node(child).tid == Some(tid) {
+                return child;
+            }
+            self.free_subtree(child);
+        }
+        let child = self.alloc(hh(&tid));
+        self.node_mut(child).tid = Some(tid);
+        let children = &mut self.node_mut(parent).children;
+        children.clear();
+        children.push(child);
+        child
+    }
+
+    /// Matches the children of `parent` to a list's keys, so that afterwards child `i` (see
+    /// `child`) is the node for `keys[i]`. Nodes of keys that persist are kept, wherever they
+    /// moved; nodes of keys that are gone are freed. Equal keys share a node.
+    pub(crate) fn sync_keyed_children<I>(&mut self, parent: ViewId, keys: I)
+    where
+        I: ExactSizeIterator<Item = u64> + Clone,
+    {
+        // Fast path: the keys are unchanged.
+        {
+            let node = self.node(parent);
+            if node.children.len() == keys.len()
+                && node
+                    .children
+                    .iter()
+                    .zip(keys.clone())
+                    .all(|(c, k)| self.nodes[c.index as usize].label == k)
+            {
+                return;
+            }
+        }
+
+        let old = std::mem::take(&mut self.node_mut(parent).children);
+        let mut by_key: std::collections::HashMap<u64, ViewId> = old
+            .iter()
+            .map(|c| (self.nodes[c.index as usize].label, *c))
+            .collect();
+        let mut used = std::collections::HashMap::<u64, ViewId>::new();
+        let mut children = Vec::with_capacity(keys.len());
+        for key in keys {
+            let child = if let Some(&c) = used.get(&key) {
+                c
+            } else {
+                let c = by_key.remove(&key).unwrap_or_else(|| self.alloc(key));
+                used.insert(key, c);
+                c
+            };
+            children.push(child);
+        }
+        for (_, gone) in by_key {
+            self.free_subtree(gone);
+        }
+        self.node_mut(parent).children = children;
+    }
+
+    /// Is the state of `id`, or of any view under it, dirty?
+    pub(crate) fn subtree_dirty(&self, id: ViewId) -> bool {
+        let node = &self.nodes[id.index as usize];
+        node.state_dirty
+            || node
+                .children
+                .iter()
+                .any(|c| !c.is_default() && self.subtree_dirty(*c))
+    }
+
+    pub(crate) fn get_layout(&self, id: ViewId) -> LayoutBox {
+        self.node(id).layout
+    }
+
+    pub(crate) fn update_layout(&mut self, id: ViewId, layout_box: LayoutBox) {
+        let node = self.node_mut(id);
+        node.layout = layout_box;
+        #[cfg(test)]
+        {
+            node.has_layout = true;
+        }
+    }
+
+    pub(crate) fn set_layout_offset(&mut self, id: ViewId, offset: LocalOffset) {
+        let node = self.node_mut(id);
+        node.layout.offset = offset;
+        #[cfg(test)]
+        {
+            node.has_layout = true;
+        }
+    }
+
+    pub(crate) fn layout_epoch_of(&self, id: ViewId) -> u64 {
+        self.node(id).layout_epoch
+    }
+
+    pub(crate) fn set_layout_epoch(&mut self, id: ViewId) {
+        let epoch = self.layout_epoch;
+        self.node_mut(id).layout_epoch = epoch;
+    }
+
+    /// Returns all layout entries with their paths (the labels from the root), sorted by path,
+    /// for use in snapshot tests.
+    #[cfg(test)]
+    pub(crate) fn layout_entries(&self) -> Vec<(Vec<u64>, LayoutBox)> {
+        fn walk(
+            cx: &Context,
+            id: ViewId,
+            path: &mut Vec<u64>,
+            out: &mut Vec<(Vec<u64>, LayoutBox)>,
+        ) {
+            let node = cx.node(id);
+            path.push(node.label);
+            if node.has_layout {
+                out.push((path.clone(), node.layout));
+            }
+            for child in &node.children {
+                if !child.is_default() {
+                    walk(cx, *child, path, out);
+                }
+            }
+            path.pop();
+        }
+        let mut entries = vec![];
+        walk(self, self.root_id(), &mut vec![], &mut entries);
         entries.sort_by(|a, b| a.0.cmp(&b.0));
+        entries.dedup_by(|a, b| a.0 == b.0);
         entries
+    }
+
+    /// Returns the id of the view at `path`, a list of labels from the root (whose label is 0),
+    /// for tests.
+    #[cfg(test)]
+    pub(crate) fn id_at(&self, path: &[u64]) -> ViewId {
+        assert_eq!(path.first(), Some(&0));
+        let mut id = self.root_id();
+        for label in &path[1..] {
+            id = *self
+                .node(id)
+                .children
+                .iter()
+                .find(|c| !c.is_default() && self.nodes[c.index as usize].label == *label)
+                .expect("no view at path");
+        }
+        id
+    }
+
+    /// The number of live nodes, for tests.
+    #[cfg(test)]
+    pub(crate) fn live_nodes(&self) -> usize {
+        self.nodes.len() - self.free.len()
     }
 
     pub(crate) fn set_dirty(&mut self) {
@@ -420,30 +680,28 @@ impl Context {
 
     pub(crate) fn clear_dirty(&mut self) {
         self.dirty = false;
-        for holder in &mut self.state_map.values_mut() {
-            holder.dirty = false;
+        for id in std::mem::take(&mut self.dirty_nodes) {
+            if self.is_live(id) {
+                self.nodes[id.index as usize].state_dirty = false;
+            }
         }
     }
 
     pub(crate) fn set_state<S: 'static>(&mut self, id: ViewId, value: S) {
-        self.state_map.insert(
-            id,
-            StateHolder {
-                state: Box::new(value),
-                dirty: false,
-            },
-        );
+        let node = self.node_mut(id);
+        node.state = Some(Box::new(value));
+        node.state_dirty = false;
     }
 
     pub(crate) fn is_dirty(&self, id: ViewId) -> bool {
-        self.state_map[&id].dirty
+        self.node(id).state_dirty
     }
 
     pub(crate) fn init_state<S: 'static, D: Fn() -> S + 'static>(&mut self, id: ViewId, func: &D) {
-        self.state_map.entry(id).or_insert_with(|| StateHolder {
-            state: Box::new((func)()),
-            dirty: false,
-        });
+        let node = self.node_mut(id);
+        if node.state.is_none() {
+            node.state = Some(Box::new((func)()));
+        }
     }
 
     pub(crate) fn init_env<S: Clone + 'static, D: Fn() -> S + 'static>(&mut self, func: &D) -> S {
@@ -469,7 +727,12 @@ impl Context {
     where
         S: 'static,
     {
-        self.state_map[&id.id].state.downcast_ref().unwrap()
+        self.node(id.id)
+            .state
+            .as_ref()
+            .expect("rui: no state for handle")
+            .downcast_ref()
+            .unwrap()
     }
 
     pub fn get_mut<S>(&mut self, id: StateHandle<S>) -> &mut S
@@ -478,9 +741,18 @@ impl Context {
     {
         self.set_dirty();
 
-        let holder = self.state_map.get_mut(&id.id).unwrap();
-        holder.dirty = true;
-        holder.state.downcast_mut().unwrap()
+        let node = self.node_mut(id.id);
+        let newly_dirty = !node.state_dirty;
+        node.state_dirty = true;
+        if newly_dirty {
+            self.dirty_nodes.push(id.id);
+        }
+        self.nodes[id.id.index as usize]
+            .state
+            .as_mut()
+            .expect("rui: no state for handle")
+            .downcast_mut()
+            .unwrap()
     }
 }
 

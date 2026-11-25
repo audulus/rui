@@ -15,76 +15,62 @@ where
     fn process(
         &self,
         event: &Event,
-        path: &mut IdPath,
+        vid: ViewId,
         cx: &mut Context,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
         let off = LocalOffset::new(self.padding, self.padding);
-        path.push(0);
-        self.child.process(&event.offset(-off), path, cx, actions);
-        path.pop();
+        let cid = cx.child(vid, 0);
+        self.child.process(&event.offset(-off), cid, cx, actions);
     }
 
-    fn draw(&self, path: &mut IdPath, args: &mut DrawArgs) {
+    fn draw(&self, vid: ViewId, args: &mut DrawArgs) {
         args.vger.save();
         args.vger.translate([self.padding, self.padding]);
-        path.push(0);
-        self.child.draw(path, args);
-        path.pop();
+        let cid = args.cx.child(vid, 0);
+        self.child.draw(cid, args);
         args.vger.restore();
     }
 
-    fn layout(&self, path: &mut IdPath, args: &mut LayoutArgs) -> LocalSize {
-        path.push(0);
+    fn layout(&self, vid: ViewId, args: &mut LayoutArgs) -> LocalSize {
+        let cid = args.cx.child(vid, 0);
         let child_size = self.child.layout(
-            path,
+            cid,
             &mut args.size(args.sz - [2.0 * self.padding, 2.0 * self.padding].into()),
         );
-        path.pop();
         child_size + LocalSize::new(2.0 * self.padding, 2.0 * self.padding)
     }
 
-    fn dirty(&self, path: &mut IdPath, xform: LocalToWorld, cx: &mut Context) {
-        path.push(0);
+    fn dirty(&self, vid: ViewId, xform: LocalToWorld, cx: &mut Context) {
+        let cid = cx.child(vid, 0);
         self.child.dirty(
-            path,
+            cid,
             xform.pre_translate([self.padding, self.padding].into()),
             cx,
         );
-        path.pop();
     }
 
-    fn hittest(&self, path: &mut IdPath, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
-        path.push(0);
-        let hit_id =
-            self.child
-                .hittest(path, pt - LocalOffset::new(self.padding, self.padding), cx);
-        path.pop();
-        hit_id
+    fn hittest(&self, vid: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
+        let cid = cx.child(vid, 0);
+
+        self.child
+            .hittest(cid, pt - LocalOffset::new(self.padding, self.padding), cx)
     }
 
-    fn commands(&self, path: &mut IdPath, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
-        path.push(0);
-        self.child.commands(path, cx, cmds);
-        path.pop();
-    }
-
-    fn gc(&self, path: &mut IdPath, cx: &mut Context, map: &mut Vec<ViewId>) {
-        path.push(0);
-        self.child.gc(path, cx, map);
-        path.pop();
+    fn commands(&self, vid: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
+        let cid = cx.child(vid, 0);
+        self.child.commands(cid, cx, cmds);
     }
 
     fn access(
         &self,
-        path: &mut IdPath,
+        vid: ViewId,
         cx: &mut Context,
         nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
     ) -> Option<accesskit::NodeId> {
-        path.push(0);
-        let node_id = self.child.access(path, cx, nodes);
-        path.pop();
-        node_id
+        let cid = cx.child(vid, 0);
+
+        self.child.access(cid, cx, nodes)
     }
 }
 
@@ -130,9 +116,9 @@ mod tests {
         let mut cx = Context::new();
         let ui = Padding::new(rectangle(), PaddingParam::Px(10.0));
         let sz = [100.0, 100.0].into();
-        let mut path = IdPath::root();
+        let vid = cx.root_id();
         let result = ui.layout(
-            &mut path,
+            vid,
             &mut LayoutArgs {
                 sz,
                 cx: &mut cx,
@@ -148,9 +134,9 @@ mod tests {
         let mut cx = Context::new();
         let ui = Padding::new(rectangle(), PaddingParam::Auto);
         let sz = [50.0, 50.0].into();
-        let mut path = IdPath::root();
+        let vid = cx.root_id();
         let result = ui.layout(
-            &mut path,
+            vid,
             &mut LayoutArgs {
                 sz,
                 cx: &mut cx,
@@ -166,9 +152,9 @@ mod tests {
         let mut cx = Context::new();
         let ui = Padding::new(rectangle(), PaddingParam::Px(20.0));
         let sz = [100.0, 100.0].into();
-        let mut path = IdPath::root();
+        let vid = cx.root_id();
         ui.layout(
-            &mut path,
+            vid,
             &mut LayoutArgs {
                 sz,
                 cx: &mut cx,
@@ -176,11 +162,8 @@ mod tests {
             },
         );
         // Point inside the padded child area (child starts at 20,20)
-        assert!(
-            ui.hittest(&mut path, [50.0, 50.0].into(), &mut cx)
-                .is_some()
-        );
+        assert!(ui.hittest(vid, [50.0, 50.0].into(), &mut cx).is_some());
         // Point in the padding area (outside child)
-        assert!(ui.hittest(&mut path, [5.0, 5.0].into(), &mut cx).is_none());
+        assert!(ui.hittest(vid, [5.0, 5.0].into(), &mut cx).is_none());
     }
 }

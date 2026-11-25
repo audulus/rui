@@ -55,6 +55,9 @@ pub(crate) mod private {
 }
 
 #[cfg(test)]
+mod node_tests;
+
+#[cfg(test)]
 mod snapshot_tests;
 
 #[cfg(test)]

@@ -9,18 +9,17 @@ pub struct ScrollView<V> {
 
 impl<V: View> ScrollView<V> {
     /// The scroll position: how far the top of the content is above the top of the view.
-    fn position(&self, path: &IdPath, cx: &mut Context) -> StateHandle<f32> {
-        let id = cx.view_id(path);
+    fn position(&self, vid: ViewId, cx: &mut Context) -> StateHandle<f32> {
+        let id = vid;
         cx.init_state(id, &|| 0.0f32);
         StateHandle::new(id)
     }
 
     /// The viewport and the offset of the content inside it.
-    fn geometry(path: &mut IdPath, cx: &mut Context) -> (LocalRect, LocalOffset) {
-        let viewport = cx.get_layout(path).rect;
-        path.push(0);
-        let offset = cx.get_layout(path).offset;
-        path.pop();
+    fn geometry(vid: ViewId, cx: &mut Context) -> (LocalRect, LocalOffset) {
+        let viewport = cx.get_layout(vid).rect;
+        let cid = cx.child(vid, 0);
+        let offset = cx.get_layout(cid).offset;
         (viewport, offset)
     }
 }
@@ -29,11 +28,11 @@ impl<V: View> DynView for ScrollView<V> {
     fn process(
         &self,
         event: &Event,
-        path: &mut IdPath,
+        vid: ViewId,
         cx: &mut Context,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
-        let (viewport, offset) = Self::geometry(path, cx);
+        let (viewport, offset) = Self::geometry(vid, cx);
 
         let inside = match event {
             Event::TouchBegin { position, .. }
@@ -59,17 +58,15 @@ impl<V: View> DynView for ScrollView<V> {
         };
 
         if let Some(child_event) = child_event {
-            path.push(0);
-            self.child.process(&child_event, path, cx, actions);
-            path.pop();
+            let cid = cx.child(vid, 0);
+            self.child.process(&child_event, cid, cx, actions);
         }
 
         if let (Event::Scroll { delta, .. }, Some(true)) = (event, inside) {
-            path.push(0);
-            let content = cx.get_layout(path).rect.size;
-            path.pop();
+            let cid = cx.child(vid, 0);
+            let content = cx.get_layout(cid).rect.size;
             let max = (content.height - viewport.height()).max(0.0);
-            let handle = self.position(path, cx);
+            let handle = self.position(vid, cx);
             // The stored position may be past the end if the content got shorter since; start
             // from where the content is shown.
             let new_position = (cx[handle].min(max) + delta.y).clamp(0.0, max);
@@ -79,43 +76,40 @@ impl<V: View> DynView for ScrollView<V> {
         }
     }
 
-    fn draw(&self, path: &mut IdPath, args: &mut DrawArgs) {
-        let (viewport, offset) = Self::geometry(path, args.cx);
+    fn draw(&self, vid: ViewId, args: &mut DrawArgs) {
+        let (viewport, offset) = Self::geometry(vid, args.cx);
         args.vger.save();
         args.vger.scissor(viewport);
         let visible = args.cx.clip_visible(viewport, args.vger);
         args.vger.translate(offset);
-        path.push(0);
-        self.child.draw(path, args);
-        path.pop();
+        let cid = args.cx.child(vid, 0);
+        self.child.draw(cid, args);
         args.cx.restore_visible(visible);
         args.vger.restore();
     }
 
-    fn layout(&self, path: &mut IdPath, args: &mut LayoutArgs) -> LocalSize {
-        let handle = self.position(path, args.cx);
+    fn layout(&self, vid: ViewId, args: &mut LayoutArgs) -> LocalSize {
+        let handle = self.position(vid, args.cx);
 
-        path.push(0);
-        let content = self.child.layout(path, args);
-        path.pop();
+        let cid = args.cx.child(vid, 0);
+        let content = self.child.layout(cid, args);
 
         // Keep the position in range when the content or the view changes size.
         let max = (content.height - args.sz.height).max(0.0);
         let position = args.cx[handle].min(max);
 
         // The content's top sits at the view's top, moved up by the position (y is up).
-        path.push(0);
+        let cid = args.cx.child(vid, 0);
         args.cx.update_layout(
-            path,
+            cid,
             LayoutBox {
                 rect: LocalRect::new(LocalPoint::zero(), content),
                 offset: [0.0, args.sz.height - content.height + position].into(),
             },
         );
-        path.pop();
 
         args.cx.update_layout(
-            path,
+            vid,
             LayoutBox {
                 rect: LocalRect::new(LocalPoint::zero(), args.sz),
                 offset: LocalOffset::zero(),
@@ -124,48 +118,36 @@ impl<V: View> DynView for ScrollView<V> {
         args.sz
     }
 
-    fn dirty(&self, path: &mut IdPath, xform: LocalToWorld, cx: &mut Context) {
-        let (_, offset) = Self::geometry(path, cx);
-        path.push(0);
-        self.child.dirty(path, xform.pre_translate(offset), cx);
-        path.pop();
+    fn dirty(&self, vid: ViewId, xform: LocalToWorld, cx: &mut Context) {
+        let (_, offset) = Self::geometry(vid, cx);
+        let cid = cx.child(vid, 0);
+        self.child.dirty(cid, xform.pre_translate(offset), cx);
     }
 
-    fn hittest(&self, path: &mut IdPath, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
-        let (viewport, offset) = Self::geometry(path, cx);
+    fn hittest(&self, vid: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
+        let (viewport, offset) = Self::geometry(vid, cx);
         if !viewport.contains(pt) {
             return None;
         }
-        path.push(0);
-        let id = self.child.hittest(path, pt - offset, cx);
-        path.pop();
-        id
+        let cid = cx.child(vid, 0);
+
+        self.child.hittest(cid, pt - offset, cx)
     }
 
-    fn commands(&self, path: &mut IdPath, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
-        path.push(0);
-        self.child.commands(path, cx, cmds);
-        path.pop();
-    }
-
-    fn gc(&self, path: &mut IdPath, cx: &mut Context, map: &mut Vec<ViewId>) {
-        map.push(cx.view_id(path));
-        path.push(0);
-        map.push(cx.view_id(path));
-        self.child.gc(path, cx, map);
-        path.pop();
+    fn commands(&self, vid: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
+        let cid = cx.child(vid, 0);
+        self.child.commands(cid, cx, cmds);
     }
 
     fn access(
         &self,
-        path: &mut IdPath,
+        vid: ViewId,
         cx: &mut Context,
         nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
     ) -> Option<accesskit::NodeId> {
-        path.push(0);
-        let node_id = self.child.access(path, cx, nodes);
-        path.pop();
-        node_id
+        let cid = cx.child(vid, 0);
+
+        self.child.access(cid, cx, nodes)
     }
 }
 
@@ -198,12 +180,12 @@ mod tests {
     }
 
     fn position(h: &mut TestHarness<impl View>) -> f32 {
-        let id = h.cx.view_id(&IdPath::from(vec![0, 0]));
+        let id = h.cx.id_at(&[0, 0]);
         h.cx[StateHandle::<f32>::new(id)]
     }
 
     fn taps(h: &mut TestHarness<impl View>) -> i32 {
-        let id = h.cx.view_id(&IdPath::root());
+        let id = h.cx.root_id();
         h.cx[StateHandle::<i32>::new(id)]
     }
 
@@ -264,7 +246,7 @@ mod tests {
         );
         let mut h = TestHarness::new(&ui, [100.0, 200.0]);
         let wheels = |h: &mut TestHarness<_>| {
-            let id = h.cx.view_id(&IdPath::root());
+            let id = h.cx.root_id();
             h.cx[StateHandle::<i32>::new(id)]
         };
         let wheel = |h: &mut TestHarness<_>, y: f32| {
@@ -285,16 +267,13 @@ mod tests {
 
     #[test]
     fn test_drag_keeps_its_position_outside() {
-        let ui = state(
-            || LocalPoint::zero(),
-            |last, _| {
-                scroll(
-                    rectangle()
-                        .size([100.0, 500.0])
-                        .drag_p(move |cx, pt, _, _| cx[last] = pt),
-                )
-            },
-        );
+        let ui = state(LocalPoint::zero, |last, _| {
+            scroll(
+                rectangle()
+                    .size([100.0, 500.0])
+                    .drag_p(move |cx, pt, _, _| cx[last] = pt),
+            )
+        });
         let mut h = TestHarness::new(&ui, [100.0, 100.0]);
         // Press inside, then move above the viewport while still pressed.
         h.event(&Event::TouchBegin {
@@ -306,7 +285,7 @@ mod tests {
             position: [50.0, 150.0].into(),
             delta: [0.0, 100.0].into(),
         });
-        let id = h.cx.view_id(&IdPath::root());
+        let id = h.cx.root_id();
         let last = h.cx[StateHandle::<LocalPoint>::new(id)];
         assert!(last.y > 100.0, "{last:?}");
     }
@@ -326,7 +305,7 @@ mod tests {
             h.layout();
         };
         scroll_by(&mut h, 400.0);
-        let height = StateHandle::<f32>::new(h.cx.view_id(&IdPath::root()));
+        let height = StateHandle::<f32>::new(h.cx.root_id());
         h.cx[height] = 200.0;
         h.layout();
         // At most 100 px down now; one notch up shows a move at once.

@@ -4,8 +4,8 @@ use crate::*;
 pub struct EmptyView {}
 
 impl DynView for EmptyView {
-    fn draw(&self, _path: &mut IdPath, _args: &mut DrawArgs) {}
-    fn layout(&self, _path: &mut IdPath, _args: &mut LayoutArgs) -> LocalSize {
+    fn draw(&self, _vid: ViewId, _args: &mut DrawArgs) {}
+    fn layout(&self, _vid: ViewId, _args: &mut LayoutArgs) -> LocalSize {
         [0.0, 0.0].into()
     }
 }
@@ -21,9 +21,9 @@ mod tests {
         let mut cx = Context::new();
         let ui = EmptyView {};
         let sz = [100.0, 100.0].into();
-        let mut path = IdPath::root();
+        let vid = cx.root_id();
         let result = ui.layout(
-            &mut path,
+            vid,
             &mut LayoutArgs {
                 sz,
                 cx: &mut cx,

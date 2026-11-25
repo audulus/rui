@@ -64,9 +64,9 @@ impl TestRenderer {
 
         self.vger.begin(width as f32, height as f32, 1.0);
 
-        let mut path = IdPath::root();
+        let root = cx.root_id();
         let view_sz = view.layout(
-            &mut path,
+            root,
             &mut LayoutArgs {
                 sz,
                 cx: &mut cx,
@@ -79,7 +79,7 @@ impl TestRenderer {
         self.vger.translate(offset);
 
         view.draw(
-            &mut path,
+            root,
             &mut DrawArgs {
                 cx: &mut cx,
                 vger: &mut self.vger,

@@ -24,11 +24,15 @@ impl<'a> LayoutArgs<'a> {
 }
 
 /// Object-safe part of View for compatibility with AnyView.
+///
+/// Every method gets `vid`, the id of the view's node in the `Context`. A view that stores
+/// layout or state keeps it in its node; a view with children passes child `i` the id
+/// `cx.child(vid, i)`.
 pub trait DynView: private::Sealed + DynClone + 'static {
     /// Builds an AccessKit tree. The node ID for the subtree is returned. All generated nodes are accumulated.
     fn access(
         &self,
-        _path: &mut IdPath,
+        _vid: ViewId,
         _cx: &mut Context,
         _nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
     ) -> Option<accesskit::NodeId> {
@@ -36,24 +40,19 @@ pub trait DynView: private::Sealed + DynClone + 'static {
     }
 
     /// Accumulates information about menu bar commands.
-    fn commands(&self, _path: &mut IdPath, _cx: &mut Context, _cmds: &mut Vec<CommandInfo>) {}
+    fn commands(&self, _vid: ViewId, _cx: &mut Context, _cmds: &mut Vec<CommandInfo>) {}
 
     /// Determines dirty regions which need repainting.
-    fn dirty(&self, _path: &mut IdPath, _xform: LocalToWorld, _cx: &mut Context) {}
+    fn dirty(&self, _vid: ViewId, _xform: LocalToWorld, _cx: &mut Context) {}
 
     /// Draws the view using vger.
     ///
     /// A container may skip drawing a child that lies outside the visible area (see `list`),
     /// so drawing should not have side effects that other code relies on.
-    fn draw(&self, path: &mut IdPath, args: &mut DrawArgs);
-
-    /// Gets IDs for views currently in use.
-    ///
-    /// Push onto map if the view stores layout or state info.
-    fn gc(&self, _path: &mut IdPath, _cx: &mut Context, _map: &mut Vec<ViewId>) {}
+    fn draw(&self, vid: ViewId, args: &mut DrawArgs);
 
     /// Returns the topmost view which the point intersects.
-    fn hittest(&self, _path: &mut IdPath, _pt: LocalPoint, _cx: &mut Context) -> Option<ViewId> {
+    fn hittest(&self, _vid: ViewId, _pt: LocalPoint, _cx: &mut Context) -> Option<ViewId> {
         None
     }
 
@@ -70,13 +69,13 @@ pub trait DynView: private::Sealed + DynClone + 'static {
     /// Note that we should probably have a separate text
     /// sizing interface so we don't need a GPU and graphics
     /// context set up to test layout.
-    fn layout(&self, path: &mut IdPath, args: &mut LayoutArgs) -> LocalSize;
+    fn layout(&self, vid: ViewId, args: &mut LayoutArgs) -> LocalSize;
 
     /// Processes an event.
     fn process(
         &self,
         _event: &Event,
-        _path: &mut IdPath,
+        _vid: ViewId,
         _cx: &mut Context,
         _actions: &mut Vec<Box<dyn Any>>,
     ) {

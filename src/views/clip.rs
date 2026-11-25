@@ -10,8 +10,8 @@ impl<V> Clip<V>
 where
     V: View,
 {
-    fn geom(&self, path: &IdPath, cx: &mut Context) -> LocalRect {
-        cx.get_layout(path).rect
+    fn geom(&self, vid: ViewId, cx: &mut Context) -> LocalRect {
+        cx.get_layout(vid).rect
     }
 
     pub fn new(child: V) -> Self {
@@ -26,34 +26,31 @@ where
     fn process(
         &self,
         event: &Event,
-        path: &mut IdPath,
+        vid: ViewId,
         cx: &mut Context,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
-        path.push(0);
-        self.child.process(event, path, cx, actions);
-        path.pop();
+        let cid = cx.child(vid, 0);
+        self.child.process(event, cid, cx, actions);
     }
 
-    fn draw(&self, path: &mut IdPath, args: &mut DrawArgs) {
-        let rect = self.geom(path, args.cx);
+    fn draw(&self, vid: ViewId, args: &mut DrawArgs) {
+        let rect = self.geom(vid, args.cx);
 
         args.vger.save();
         args.vger.scissor(rect);
         let visible = args.cx.clip_visible(rect, args.vger);
-        path.push(0);
-        self.child.draw(path, args);
-        path.pop();
+        let cid = args.cx.child(vid, 0);
+        self.child.draw(cid, args);
         args.cx.restore_visible(visible);
         args.vger.restore();
     }
 
-    fn layout(&self, path: &mut IdPath, args: &mut LayoutArgs) -> LocalSize {
-        path.push(0);
-        self.child.layout(path, args);
-        path.pop();
+    fn layout(&self, vid: ViewId, args: &mut LayoutArgs) -> LocalSize {
+        let cid = args.cx.child(vid, 0);
+        self.child.layout(cid, args);
         args.cx.update_layout(
-            path,
+            vid,
             LayoutBox {
                 rect: LocalRect::new(LocalPoint::zero(), args.sz),
                 offset: LocalOffset::zero(),
@@ -63,43 +60,33 @@ where
         args.sz
     }
 
-    fn hittest(&self, path: &mut IdPath, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
-        let rect = self.geom(path, cx);
+    fn hittest(&self, vid: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
+        let rect = self.geom(vid, cx);
 
         if rect.contains(pt) {
             // Test against children.
-            path.push(0);
-            let vid = self.child.hittest(path, pt, cx);
-            path.pop();
-            vid
+            let cid = cx.child(vid, 0);
+
+            self.child.hittest(cid, pt, cx)
         } else {
             None
         }
     }
 
-    fn commands(&self, path: &mut IdPath, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
-        path.push(0);
-        self.child.commands(path, cx, cmds);
-        path.pop();
-    }
-
-    fn gc(&self, path: &mut IdPath, cx: &mut Context, map: &mut Vec<ViewId>) {
-        map.push(cx.view_id(path));
-        path.push(0);
-        self.child.gc(path, cx, map);
-        path.pop();
+    fn commands(&self, vid: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
+        let cid = cx.child(vid, 0);
+        self.child.commands(cid, cx, cmds);
     }
 
     fn access(
         &self,
-        path: &mut IdPath,
+        vid: ViewId,
         cx: &mut Context,
         nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
     ) -> Option<accesskit::NodeId> {
-        path.push(0);
-        let node_id = self.child.access(path, cx, nodes);
-        path.pop();
-        node_id
+        let cid = cx.child(vid, 0);
+
+        self.child.access(cid, cx, nodes)
     }
 }
 

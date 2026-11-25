@@ -57,86 +57,58 @@ where
     fn process(
         &self,
         event: &Event,
-        path: &mut IdPath,
+        vid: ViewId,
         cx: &mut Context,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
-        let id = cx.view_id(path);
-        cx.init_state(id, &self.default);
-        path.push(0);
-        (self.func)(StateHandle::new(id), cx).process(event, path, cx, actions);
-        path.pop();
+        cx.init_state(vid, &self.default);
+        let cid = cx.child(vid, 0);
+        (self.func)(StateHandle::new(vid), cx).process(event, cid, cx, actions);
     }
 
-    fn draw(&self, path: &mut IdPath, args: &mut DrawArgs) {
-        let id = args.cx.view_id(path);
-        args.cx.init_state(id, &self.default);
-        path.push(0);
-        (self.func)(StateHandle::new(id), args.cx).draw(path, args);
-        path.pop();
+    fn draw(&self, vid: ViewId, args: &mut DrawArgs) {
+        args.cx.init_state(vid, &self.default);
+        let cid = args.cx.child(vid, 0);
+        (self.func)(StateHandle::new(vid), args.cx).draw(cid, args);
     }
 
-    fn layout(&self, path: &mut IdPath, args: &mut LayoutArgs) -> LocalSize {
-        let id = args.cx.view_id(path);
-        args.cx.init_state(id, &self.default);
+    fn layout(&self, vid: ViewId, args: &mut LayoutArgs) -> LocalSize {
+        args.cx.init_state(vid, &self.default);
 
-        // Do we need to recompute layout?
-        let mut compute_layout = true;
-
-        if let Some(deps) = args.cx.deps.get(&id) {
-            let mut any_dirty = false;
-            for dep in deps {
-                if let Some(holder) = args.cx.state_map.get_mut(dep)
-                    && holder.dirty
-                {
-                    any_dirty = true;
-                    break;
-                }
-            }
-
-            compute_layout = any_dirty;
-        }
+        // Do we need to recompute layout? Only if this is the first layout since the window
+        // changed size, or a state it depends on changed: the state of an enclosing `state`
+        // view, or any state at or under this one.
+        let compute_layout = args.cx.layout_epoch_of(vid) != args.cx.layout_epoch
+            || args.cx.id_stack.iter().any(|id| args.cx.is_dirty(*id))
+            || args.cx.subtree_dirty(vid);
 
         if compute_layout {
-            args.cx.id_stack.push(id);
+            args.cx.id_stack.push(vid);
 
-            let view = (self.func)(StateHandle::new(id), args.cx);
+            let view = (self.func)(StateHandle::new(vid), args.cx);
 
-            path.push(0);
-            let child_size = view.layout(path, args);
-
-            // Compute layout dependencies.
-            let mut deps = vec![];
-            deps.append(&mut args.cx.id_stack.clone());
-            view.gc(path, args.cx, &mut deps);
-
-            path.pop();
-
-            args.cx.deps.insert(id, deps);
+            let cid = args.cx.child(vid, 0);
+            let child_size = view.layout(cid, args);
 
             let layout_box = LayoutBox {
                 rect: LocalRect::new(LocalPoint::zero(), child_size),
                 offset: LocalOffset::zero(),
             };
-            args.cx.update_layout(path, layout_box);
+            args.cx.update_layout(vid, layout_box);
+            args.cx.set_layout_epoch(vid);
 
             args.cx.id_stack.pop();
         }
 
-        args.cx.get_layout(path).rect.size
+        args.cx.get_layout(vid).rect.size
     }
 
-    fn dirty(&self, path: &mut IdPath, xform: LocalToWorld, cx: &mut Context) {
-        let default = &self.default;
-        let id = cx.view_id(path);
-        let holder = cx.state_map.entry(id).or_insert_with(|| StateHolder {
-            state: Box::new((default)()),
-            dirty: false,
-        });
+    fn dirty(&self, vid: ViewId, xform: LocalToWorld, cx: &mut Context) {
+        cx.init_state(vid, &self.default);
 
-        if holder.dirty {
+        if cx.is_dirty(vid) {
             // Add a region.
-            let rect = cx.get_layout(path).rect;
+            let rect = cx.get_layout(vid).rect;
             let pts: [LocalPoint; 4] = [
                 rect.min(),
                 [rect.max_x(), rect.min_y()].into(),
@@ -146,50 +118,32 @@ where
             let world_pts = pts.map(|p| xform.transform_point(p));
             cx.dirty_region.add_rect(WorldRect::from_points(world_pts));
         } else {
-            path.push(0);
-            (self.func)(StateHandle::new(id), cx).dirty(path, xform, cx);
-            path.pop();
+            let cid = cx.child(vid, 0);
+            (self.func)(StateHandle::new(vid), cx).dirty(cid, xform, cx);
         }
     }
 
-    fn hittest(&self, path: &mut IdPath, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
-        let id = cx.view_id(path);
-        cx.init_state(id, &self.default);
-        path.push(0);
-        let hit_id = (self.func)(StateHandle::new(id), cx).hittest(path, pt, cx);
-        path.pop();
-        hit_id
+    fn hittest(&self, vid: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
+        cx.init_state(vid, &self.default);
+        let cid = cx.child(vid, 0);
+        (self.func)(StateHandle::new(vid), cx).hittest(cid, pt, cx)
     }
 
-    fn commands(&self, path: &mut IdPath, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
-        let id = cx.view_id(path);
-        cx.init_state(id, &self.default);
-        path.push(0);
-        (self.func)(StateHandle::new(id), cx).commands(path, cx, cmds);
-        path.pop();
-    }
-
-    fn gc(&self, path: &mut IdPath, cx: &mut Context, map: &mut Vec<ViewId>) {
-        let id = cx.view_id(path);
-        cx.init_state(id, &self.default);
-        map.push(id);
-        path.push(0);
-        (self.func)(StateHandle::new(id), cx).gc(path, cx, map);
-        path.pop();
+    fn commands(&self, vid: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
+        cx.init_state(vid, &self.default);
+        let cid = cx.child(vid, 0);
+        (self.func)(StateHandle::new(vid), cx).commands(cid, cx, cmds);
     }
 
     fn access(
         &self,
-        path: &mut IdPath,
+        vid: ViewId,
         cx: &mut Context,
         nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
     ) -> Option<accesskit::NodeId> {
-        let id = cx.view_id(path);
-        cx.init_state(id, &self.default);
-        path.push(0);
-        let node_id = (self.func)(StateHandle::new(id), cx).access(path, cx, nodes);
-        path.pop();
-        node_id
+        cx.init_state(vid, &self.default);
+        let cid = cx.child(vid, 0);
+        (self.func)(StateHandle::new(vid), cx).access(cid, cx, nodes)
     }
 }
 

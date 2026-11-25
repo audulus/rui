@@ -1,7 +1,7 @@
 use crate::*;
 
 /// Helper to format a layout entry as a readable string.
-fn fmt_layout(path: &IdPath, lb: &context::LayoutBox) -> String {
+fn fmt_layout(path: &[u64], lb: &context::LayoutBox) -> String {
     format!(
         "path={:?} rect=[{:.1}, {:.1}, {:.1}, {:.1}] offset=[{:.1}, {:.1}]",
         path,
@@ -18,9 +18,9 @@ fn fmt_layout(path: &IdPath, lb: &context::LayoutBox) -> String {
 fn layout_snapshot(view: &impl View, sz: impl Into<LocalSize>) -> String {
     let mut cx = Context::new();
     let sz = sz.into();
-    let mut path = IdPath::root();
+    let root = cx.root_id();
     let root_size = view.layout(
-        &mut path,
+        root,
         &mut LayoutArgs {
             sz,
             cx: &mut cx,

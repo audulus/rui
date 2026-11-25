@@ -20,6 +20,16 @@ pub struct List<ID, F> {
     func: F,
 }
 
+impl<ID, F> List<ID, F>
+where
+    ID: Hash,
+{
+    /// Matches the list's child nodes to its items, so child `i` is the node of `ids[i]`.
+    fn sync(&self, vid: ViewId, cx: &mut Context) {
+        cx.sync_keyed_children(vid, self.ids.iter().map(hh));
+    }
+}
+
 impl<ID, V, F> DynView for List<ID, F>
 where
     ID: Hash + Clone + 'static,
@@ -29,22 +39,23 @@ where
     fn process(
         &self,
         event: &Event,
-        path: &mut IdPath,
+        vid: ViewId,
         cx: &mut Context,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
-        for child in self.ids.iter().rev() {
-            path.push(hh(child));
-            let offset = cx.get_layout(path).offset;
-            ((self.func)(child)).process(&event.offset(-offset), path, cx, actions);
-            path.pop();
+        self.sync(vid, cx);
+        for (i, child) in self.ids.iter().enumerate().rev() {
+            let cid = cx.child(vid, i);
+            let offset = cx.get_layout(cid).offset;
+            ((self.func)(child)).process(&event.offset(-offset), cid, cx, actions);
         }
     }
 
-    fn draw(&self, path: &mut IdPath, args: &mut DrawArgs) {
-        for child in &self.ids {
-            path.push(hh(child));
-            let layout = args.cx.get_layout(path);
+    fn draw(&self, vid: ViewId, args: &mut DrawArgs) {
+        self.sync(vid, args.cx);
+        for (i, child) in self.ids.iter().enumerate() {
+            let cid = args.cx.child(vid, i);
+            let layout = args.cx.get_layout(cid);
             let offset = layout.offset;
 
             // Skip a child that lies entirely outside the visible area, with some slack for
@@ -56,7 +67,6 @@ where
                     .translate(offset)
                     .inflate(DRAW_SLACK, DRAW_SLACK);
                 if !args.cx.is_visible(bounds, args.vger) {
-                    path.pop();
                     continue;
                 }
             }
@@ -65,14 +75,14 @@ where
 
             args.vger.translate(offset);
 
-            ((self.func)(child)).draw(path, args);
+            ((self.func)(child)).draw(cid, args);
 
             args.vger.restore();
-            path.pop();
         }
     }
 
-    fn layout(&self, path: &mut IdPath, args: &mut LayoutArgs) -> LocalSize {
+    fn layout(&self, vid: ViewId, args: &mut LayoutArgs) -> LocalSize {
+        self.sync(vid, args.cx);
         match self.orientation {
             ListOrientation::Horizontal => {
                 let n = self.ids.len() as f32;
@@ -81,12 +91,11 @@ where
                 let mut sizes = Vec::<LocalSize>::with_capacity(self.ids.len());
 
                 let mut width_sum = 0.0;
-                for child in &self.ids {
-                    path.push(hh(child));
+                for (i, child) in self.ids.iter().enumerate() {
+                    let cid = args.cx.child(vid, i);
                     let child_size =
-                        ((self.func)(child)).layout(path, &mut args.size(proposed_child_size));
+                        ((self.func)(child)).layout(cid, &mut args.size(proposed_child_size));
                     sizes.push(child_size);
-                    path.pop();
 
                     width_sum += child_size.width;
                 }
@@ -97,8 +106,8 @@ where
                 }
 
                 let mut x = 0.0;
-                for (id, child_size) in self.ids.iter().zip(sizes.iter()) {
-                    path.push(hh(id));
+                for (i, child_size) in sizes.iter().enumerate() {
+                    let cid = args.cx.child(vid, i);
 
                     let child_offset = align_v(
                         LocalRect::new(LocalPoint::origin(), *child_size),
@@ -109,14 +118,12 @@ where
                     // Keep the child's size with its offset, so drawing can skip children
                     // outside the visible area.
                     args.cx.update_layout(
-                        path,
+                        cid,
                         LayoutBox {
                             rect: LocalRect::new(LocalPoint::origin(), *child_size),
                             offset: child_offset,
                         },
                     );
-
-                    path.pop();
 
                     x += child_size.width;
                 }
@@ -130,12 +137,11 @@ where
                 let mut sizes = Vec::<LocalSize>::with_capacity(self.ids.len());
 
                 let mut height_sum = 0.0;
-                for child in &self.ids {
-                    path.push(hh(child));
+                for (i, child) in self.ids.iter().enumerate() {
+                    let cid = args.cx.child(vid, i);
                     let child_size =
-                        ((self.func)(child)).layout(path, &mut args.size(proposed_child_size));
+                        ((self.func)(child)).layout(cid, &mut args.size(proposed_child_size));
                     sizes.push(child_size);
-                    path.pop();
 
                     height_sum += child_size.height;
                 }
@@ -146,8 +152,8 @@ where
                 }
 
                 let mut y = height_sum;
-                for (id, child_size) in self.ids.iter().zip(sizes.iter()) {
-                    path.push(hh(id));
+                for (i, child_size) in sizes.iter().enumerate() {
+                    let cid = args.cx.child(vid, i);
 
                     let child_offset = align_h(
                         LocalRect::new(LocalPoint::origin(), *child_size),
@@ -161,13 +167,12 @@ where
                     // Keep the child's size with its offset, so drawing can skip children
                     // outside the visible area.
                     args.cx.update_layout(
-                        path,
+                        cid,
                         LayoutBox {
                             rect: LocalRect::new(LocalPoint::origin(), *child_size),
                             offset: child_offset,
                         },
                     );
-                    path.pop();
 
                     y -= child_size.height;
                 }
@@ -175,80 +180,69 @@ where
                 LocalSize::new(max_width, height_sum)
             }
             ListOrientation::Z => {
-                for child in &self.ids {
-                    path.push(hh(child));
-                    ((self.func)(child)).layout(path, args);
-                    path.pop();
+                for (i, child) in self.ids.iter().enumerate() {
+                    let cid = args.cx.child(vid, i);
+                    ((self.func)(child)).layout(cid, args);
                 }
                 args.sz
             }
         }
     }
 
-    fn dirty(&self, path: &mut IdPath, xform: LocalToWorld, cx: &mut Context) {
-        for child in &self.ids {
-            path.push(hh(child));
-            let offset = cx.get_layout(path).offset;
+    fn dirty(&self, vid: ViewId, xform: LocalToWorld, cx: &mut Context) {
+        self.sync(vid, cx);
+        for (i, child) in self.ids.iter().enumerate() {
+            let cid = cx.child(vid, i);
+            let offset = cx.get_layout(cid).offset;
             let xf = xform.pre_translate(offset);
-            ((self.func)(child)).dirty(path, xf, cx);
-            path.pop();
+            ((self.func)(child)).dirty(cid, xf, cx);
         }
     }
 
-    fn hittest(&self, path: &mut IdPath, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
+    fn hittest(&self, vid: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
+        self.sync(vid, cx);
         let mut hit = None;
-        for child in &self.ids {
-            path.push(hh(child));
-            let offset = cx.get_layout(path).offset;
+        for (i, child) in self.ids.iter().enumerate() {
+            let cid = cx.child(vid, i);
+            let offset = cx.get_layout(cid).offset;
 
-            if let Some(h) = ((self.func)(child)).hittest(path, pt - offset, cx) {
+            if let Some(h) = ((self.func)(child)).hittest(cid, pt - offset, cx) {
                 hit = Some(h)
             }
-            path.pop();
         }
         hit
     }
 
-    fn commands(&self, path: &mut IdPath, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
-        for child in &self.ids {
-            path.push(hh(child));
-            ((self.func)(child)).commands(path, cx, cmds);
-            path.pop();
-        }
-    }
-
-    fn gc(&self, path: &mut IdPath, cx: &mut Context, map: &mut Vec<ViewId>) {
-        map.push(cx.view_id(path));
-        for child in &self.ids {
-            path.push(hh(child));
-            map.push(cx.view_id(path));
-            ((self.func)(child)).gc(path, cx, map);
-            path.pop();
+    fn commands(&self, vid: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
+        self.sync(vid, cx);
+        for (i, child) in self.ids.iter().enumerate() {
+            let cid = cx.child(vid, i);
+            ((self.func)(child)).commands(cid, cx, cmds);
         }
     }
 
     fn access(
         &self,
-        path: &mut IdPath,
+        vid: ViewId,
         cx: &mut Context,
         nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
     ) -> Option<accesskit::NodeId> {
+        self.sync(vid, cx);
         let mut builder = accesskit::NodeBuilder::new(accesskit::Role::List);
 
         let children: Vec<accesskit::NodeId> = self
             .ids
             .iter()
-            .filter_map(|child| {
-                path.push(hh(child));
-                let node_id = ((self.func)(child)).access(path, cx, nodes);
-                path.pop();
-                node_id
+            .enumerate()
+            .filter_map(|(i, child)| {
+                let cid = cx.child(vid, i);
+                ((self.func)(child)).access(cid, cx, nodes)
             })
             .collect();
 
         builder.set_children(children);
-        nodes.push((cx.view_id(path).access_id(), builder.build()));
-        Some(cx.view_id(path).access_id())
+        nodes.push((vid.access_id(), builder.build()));
+        Some(vid.access_id())
     }
 }
 
@@ -317,9 +311,9 @@ mod tests {
         let mut cx = Context::new();
         let ui = list(vec![0, 1, 2], |_id| rectangle().size([40.0, 20.0]));
         let sz = [200.0, 200.0].into();
-        let mut path = IdPath::root();
+        let root = cx.root_id();
         let result = ui.layout(
-            &mut path,
+            root,
             &mut LayoutArgs {
                 sz,
                 cx: &mut cx,
@@ -336,9 +330,9 @@ mod tests {
         let mut cx = Context::new();
         let ui = hlist(vec![0, 1, 2], |_id| rectangle().size([30.0, 50.0]));
         let sz = [200.0, 200.0].into();
-        let mut path = IdPath::root();
+        let root = cx.root_id();
         let result = ui.layout(
-            &mut path,
+            root,
             &mut LayoutArgs {
                 sz,
                 cx: &mut cx,
@@ -355,9 +349,9 @@ mod tests {
         let mut cx = Context::new();
         let ui = zlist(vec![0, 1], |_id| rectangle());
         let sz = [100.0, 80.0].into();
-        let mut path = IdPath::root();
+        let root = cx.root_id();
         let result = ui.layout(
-            &mut path,
+            root,
             &mut LayoutArgs {
                 sz,
                 cx: &mut cx,
@@ -373,9 +367,9 @@ mod tests {
         let mut cx = Context::new();
         let ui = list(Vec::<i32>::new(), |_id| rectangle());
         let sz = [100.0, 100.0].into();
-        let mut path = IdPath::root();
+        let root = cx.root_id();
         let result = ui.layout(
-            &mut path,
+            root,
             &mut LayoutArgs {
                 sz,
                 cx: &mut cx,
@@ -394,9 +388,9 @@ mod tests {
             rectangle().size([50.0, h])
         });
         let sz = [200.0, 200.0].into();
-        let mut path = IdPath::root();
+        let root = cx.root_id();
         let result = ui.layout(
-            &mut path,
+            root,
             &mut LayoutArgs {
                 sz,
                 cx: &mut cx,

@@ -18,16 +18,15 @@ where
     fn process(
         &self,
         event: &Event,
-        path: &mut IdPath,
+        vid: ViewId,
         cx: &mut Context,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
-        let id = cx.view_id(path);
+        let id = vid;
         cx.set_state(id, self.value.clone());
         let s = StateHandle::new(id);
-        path.push(0);
-        (self.func)(s, cx).process(event, path, cx, actions);
-        path.pop();
+        let cid = cx.child(vid, 0);
+        (self.func)(s, cx).process(event, cid, cx, actions);
 
         // If processing the event changed the state, then call the set_value function.
         if cx.is_dirty(id) {
@@ -35,70 +34,55 @@ where
         }
     }
 
-    fn draw(&self, path: &mut IdPath, args: &mut DrawArgs) {
-        let id = args.cx.view_id(path);
+    fn draw(&self, vid: ViewId, args: &mut DrawArgs) {
+        let id = vid;
         args.cx.set_state(id, self.value.clone());
-        path.push(0);
-        (self.func)(StateHandle::new(id), args.cx).draw(path, args);
-        path.pop();
+        let cid = args.cx.child(vid, 0);
+        (self.func)(StateHandle::new(id), args.cx).draw(cid, args);
     }
 
-    fn layout(&self, path: &mut IdPath, args: &mut LayoutArgs) -> LocalSize {
-        let id = args.cx.view_id(path);
+    fn layout(&self, vid: ViewId, args: &mut LayoutArgs) -> LocalSize {
+        let id = vid;
         args.cx.set_state(id, self.value.clone());
 
-        path.push(0);
-        let sz = (self.func)(StateHandle::new(id), args.cx).layout(path, args);
-        path.pop();
-        sz
+        let cid = args.cx.child(vid, 0);
+
+        (self.func)(StateHandle::new(id), args.cx).layout(cid, args)
     }
 
-    fn dirty(&self, path: &mut IdPath, xform: LocalToWorld, cx: &mut Context) {
-        let id = cx.view_id(path);
+    fn dirty(&self, vid: ViewId, xform: LocalToWorld, cx: &mut Context) {
+        let id = vid;
         cx.set_state(id, self.value.clone());
-        path.push(0);
-        (self.func)(StateHandle::new(id), cx).dirty(path, xform, cx);
-        path.pop();
+        let cid = cx.child(vid, 0);
+        (self.func)(StateHandle::new(id), cx).dirty(cid, xform, cx);
     }
 
-    fn hittest(&self, path: &mut IdPath, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
-        let id = cx.view_id(path);
+    fn hittest(&self, vid: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
+        let id = vid;
         cx.set_state(id, self.value.clone());
-        path.push(0);
-        let hit_id = (self.func)(StateHandle::new(id), cx).hittest(path, pt, cx);
-        path.pop();
-        hit_id
+        let cid = cx.child(vid, 0);
+
+        (self.func)(StateHandle::new(id), cx).hittest(cid, pt, cx)
     }
 
-    fn commands(&self, path: &mut IdPath, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
-        let id = cx.view_id(path);
+    fn commands(&self, vid: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
+        let id = vid;
         cx.set_state(id, self.value.clone());
-        path.push(0);
-        (self.func)(StateHandle::new(id), cx).commands(path, cx, cmds);
-        path.pop();
-    }
-
-    fn gc(&self, path: &mut IdPath, cx: &mut Context, map: &mut Vec<ViewId>) {
-        let id = cx.view_id(path);
-        cx.set_state(id, self.value.clone());
-        map.push(id);
-        path.push(0);
-        (self.func)(StateHandle::new(id), cx).gc(path, cx, map);
-        path.pop();
+        let cid = cx.child(vid, 0);
+        (self.func)(StateHandle::new(id), cx).commands(cid, cx, cmds);
     }
 
     fn access(
         &self,
-        path: &mut IdPath,
+        vid: ViewId,
         cx: &mut Context,
         nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
     ) -> Option<accesskit::NodeId> {
-        let id = cx.view_id(path);
+        let id = vid;
         cx.set_state(id, self.value.clone());
-        path.push(0);
-        let node_id = (self.func)(StateHandle::new(id), cx).access(path, cx, nodes);
-        path.pop();
-        node_id
+        let cid = cx.child(vid, 0);
+
+        (self.func)(StateHandle::new(id), cx).access(cid, cx, nodes)
     }
 }
 
