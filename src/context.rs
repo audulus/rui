@@ -402,6 +402,10 @@ impl Context {
         old_value
     }
 
+    /// Returns the state that `id` refers to.
+    ///
+    /// Panics if the view that owns the state no longer exists. A handle can outlive its view
+    /// when it is kept in a closure passed to `on_main`; use `try_get` there.
     pub fn get<S>(&self, id: StateHandle<S>) -> &S
     where
         S: 'static,
@@ -417,6 +421,9 @@ impl Context {
             .unwrap()
     }
 
+    /// Returns the state that `id` refers to, for writing, and marks it changed.
+    ///
+    /// Panics if the view that owns the state no longer exists; see `try_get_mut`.
     pub fn get_mut<S>(&mut self, id: StateHandle<S>) -> &mut S
     where
         S: 'static,
@@ -430,6 +437,39 @@ impl Context {
             .expect("rui: no state for handle")
             .downcast_mut()
             .unwrap()
+    }
+
+    /// Returns the state that `id` refers to, or None if the view that owned it no longer
+    /// exists (an item removed from a list, say).
+    pub fn try_get<S>(&self, id: StateHandle<S>) -> Option<&S>
+    where
+        S: 'static,
+    {
+        self.is_live(id.id).then(|| self.get(id))
+    }
+
+    /// Like `get_mut`, but returns None if the view that owned the state no longer exists, as
+    /// for a background task that finishes after its view went away:
+    ///
+    /// ```no_run
+    /// # use rui::*;
+    /// # fn f(s: StateHandle<String>) {
+    /// on_main(move |cx| {
+    ///     if let Some(text) = cx.try_get_mut(s) {
+    ///         *text = "done".into();
+    ///     }
+    /// });
+    /// # }
+    /// ```
+    pub fn try_get_mut<S>(&mut self, id: StateHandle<S>) -> Option<&mut S>
+    where
+        S: 'static,
+    {
+        if self.is_live(id.id) {
+            Some(self.get_mut(id))
+        } else {
+            None
+        }
     }
 }
 

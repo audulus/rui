@@ -30,7 +30,7 @@ impl ViewId {
 }
 
 /// Hashes a value, as for the keys of a `list`.
-pub fn hh<H: Hash>(index: &H) -> u64 {
+pub(crate) fn hh<H: Hash>(index: &H) -> u64 {
     let mut hasher = DefaultHasher::new();
     index.hash(&mut hasher);
     hasher.finish()

@@ -54,6 +54,9 @@ static GLOBAL_EVENT_LOOP_PROXY: Mutex<Option<EventLoopProxy<()>>> = Mutex::new(N
 #[cfg(not(target_arch = "wasm32"))]
 static GLOBAL_WORK_QUEUE: Mutex<WorkQueue> = Mutex::new(WorkQueue::new());
 
+/// Runs `f` on the main thread, with the `Context`, as for updating state from a background
+/// thread. By the time `f` runs, the view whose state a `StateHandle` refers to may be gone; use
+/// `Context::try_get_mut` when it might be.
 #[cfg(not(target_arch = "wasm32"))]
 pub fn on_main(f: impl FnOnce(&mut Context) + Send + 'static) {
     GLOBAL_WORK_QUEUE.lock().unwrap().push_back(Box::new(f));
@@ -64,6 +67,19 @@ pub fn on_main(f: impl FnOnce(&mut Context) + Send + 'static) {
         && let Err(err) = proxy.send_event(())
     {
         log::debug!("error waking up event loop: {:?}", err);
+    }
+}
+
+/// Runs the closures passed to `on_main`.
+#[cfg(not(target_arch = "wasm32"))]
+fn run_work_queue(cx: &mut Context) {
+    // Take each closure before running it, so it can call `on_main` itself.
+    loop {
+        let f = GLOBAL_WORK_QUEUE.lock().unwrap().pop_front();
+        match f {
+            Some(f) => f(cx),
+            None => break,
+        }
     }
 }
 
@@ -490,9 +506,7 @@ where
         // Process the work queue.
         #[cfg(not(target_arch = "wasm32"))]
         {
-            while let Some(f) = GLOBAL_WORK_QUEUE.lock().unwrap().pop_front() {
-                f(&mut self.cx);
-            }
+            run_work_queue(&mut self.cx);
         }
     }
 
@@ -623,3 +637,60 @@ pub trait Run: View + Sized {
 }
 
 impl<V: View> Run for V {}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod tests {
+    use super::*;
+
+    fn layout(cx: &mut Context, view: &impl View) {
+        let root = cx.root_id();
+        view.layout(
+            root,
+            &mut LayoutArgs {
+                sz: [100.0, 100.0].into(),
+                cx,
+                text_bounds: &mut |_, _, _| LocalRect::zero(),
+            },
+        );
+    }
+
+    fn items(ids: Vec<i32>) -> impl View {
+        list(ids, |_| state(|| 0i32, |_, _| rectangle()))
+    }
+
+    #[test]
+    fn test_on_main_across_a_removed_view() {
+        let mut cx = Context::new();
+        layout(&mut cx, &items(vec![1]));
+        let s = StateHandle::<i32>::new(cx.id_at(&[0, hh(&1)]));
+
+        // A background task holds the handle...
+        let (wrote, saw) = (
+            std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false)),
+            std::sync::Arc::new(std::sync::atomic::AtomicBool::new(true)),
+        );
+        let (w, v) = (wrote.clone(), saw.clone());
+        std::thread::spawn(move || {
+            on_main(move |cx| {
+                v.store(cx.try_get(s).is_some(), std::sync::atomic::Ordering::SeqCst);
+                if let Some(x) = cx.try_get_mut(s) {
+                    *x = 5;
+                    w.store(true, std::sync::atomic::Ordering::SeqCst);
+                }
+            })
+        })
+        .join()
+        .unwrap();
+
+        // ...while its view is removed and its slot reused by another.
+        layout(&mut cx, &items(vec![]));
+        layout(&mut cx, &items(vec![2, 3]));
+        let others = [2, 3].map(|k| StateHandle::<i32>::new(cx.id_at(&[0, hh(&k)])));
+        assert!(others.iter().any(|o| o.id.index == s.id.index));
+
+        run_work_queue(&mut cx);
+        assert!(!saw.load(std::sync::atomic::Ordering::SeqCst));
+        assert!(!wrote.load(std::sync::atomic::Ordering::SeqCst));
+        assert_eq!(others.map(|o| cx[o]), [0, 0]);
+    }
+}

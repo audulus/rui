@@ -233,7 +233,7 @@ impl Context {
             }
             self.free_subtree(child);
         }
-        let child = self.alloc(parent, hh(&tid));
+        let child = self.alloc(parent, 0);
         self.node_mut(child).tid = Some(tid);
         let children = &mut self.node_mut(parent).children;
         children.clear();
