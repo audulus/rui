@@ -85,6 +85,27 @@ pub trait Modifiers: View + Sized {
         Hover::new(self, HoverFuncP { f })
     }
 
+    /// Fixes the width of the view, which keeps the height it takes. The child is laid out at
+    /// that width and centered in it.
+    fn fixed_width(self, width: f32) -> Frame<Self> {
+        Frame::new(self, Some(width), None)
+    }
+
+    /// Fixes the height of the view, which keeps the width it takes. The child is laid out at
+    /// that height and centered in it.
+    fn fixed_height(self, height: f32) -> Frame<Self> {
+        Frame::new(self, None, Some(height))
+    }
+
+    /// Calls a function when the mouse wheel or touchpad scrolls over the view. The function gets
+    /// how far the content should move, in local units (y up).
+    fn on_scroll<A: 'static, F: Fn(&mut Context, LocalOffset) -> A + Clone + 'static>(
+        self,
+        f: F,
+    ) -> ScrollGesture<Self, F> {
+        ScrollGesture::new(self, f)
+    }
+
     /// Add an environment value.
     fn env<E: Clone + 'static>(self, value: E) -> SetenvView<Self, E> {
         SetenvView::new(self, value)
@@ -100,8 +121,11 @@ pub trait Modifiers: View + Sized {
         FullscreenView::new(self)
     }
 
-    /// Calls a function with the view's geometry after layout runs.
-    /// Currently only the view's size is returned.
+    /// Calls a function with the view's geometry when the view is drawn: its size and its
+    /// transform to window coordinates.
+    ///
+    /// It is not called while the view isn't drawn, as for a `list` row that lies outside the
+    /// visible area, so don't rely on it to track views that may be scrolled out of sight.
     fn geom<F: Fn(&mut Context, LocalSize, LocalToWorld) + Clone + 'static>(
         self,
         f: F,

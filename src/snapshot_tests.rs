@@ -18,7 +18,7 @@ fn fmt_layout(path: &IdPath, lb: &context::LayoutBox) -> String {
 fn layout_snapshot(view: &impl View, sz: impl Into<LocalSize>) -> String {
     let mut cx = Context::new();
     let sz = sz.into();
-    let mut path = vec![0];
+    let mut path = IdPath::root();
     let root_size = view.layout(
         &mut path,
         &mut LayoutArgs {

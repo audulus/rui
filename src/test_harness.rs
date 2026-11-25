@@ -12,7 +12,7 @@ use crate::*;
 /// });
 /// let mut h = TestHarness::new(&ui, [100.0, 50.0]);
 /// h.tap([50.0, 25.0]);
-/// let s = StateHandle::<i32>::new(h.cx.view_id(&vec![0]));
+/// let s = StateHandle::<i32>::new(h.cx.view_id(&IdPath::root()));
 /// assert_eq!(h.cx[s], 1);
 /// ```
 pub(crate) struct TestHarness<'a, V: View> {
@@ -36,7 +36,7 @@ impl<'a, V: View> TestHarness<'a, V> {
 
     /// Run layout, computing sizes and positions for all views.
     pub fn layout(&mut self) {
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         self.view.layout(
             &mut path,
             &mut LayoutArgs {
@@ -55,7 +55,7 @@ impl<'a, V: View> TestHarness<'a, V> {
     /// Send a single event to the view tree (no re-layout).
     fn send_event(&mut self, event: &Event) {
         let mut actions = vec![];
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         self.view
             .process(event, &mut path, &mut self.cx, &mut actions);
     }
@@ -137,7 +137,7 @@ mod tests {
         );
 
         let mut h = TestHarness::new(&ui, [100.0, 50.0]);
-        let s = StateHandle::<i32>::new(h.cx.view_id(&vec![0]));
+        let s = StateHandle::<i32>::new(h.cx.view_id(&IdPath::root()));
         assert_eq!(h.cx[s], 0);
 
         h.tap([50.0, 25.0]);
@@ -161,7 +161,7 @@ mod tests {
         );
 
         let mut h = TestHarness::new(&ui, [100.0, 50.0]);
-        let s = StateHandle::<i32>::new(h.cx.view_id(&vec![0]));
+        let s = StateHandle::<i32>::new(h.cx.view_id(&IdPath::root()));
 
         for expected in 1..=10 {
             h.tap([50.0, 25.0]);
@@ -176,7 +176,7 @@ mod tests {
         let ui = state(|| false, |s, _| toggle(s));
 
         let mut h = TestHarness::new(&ui, [100.0, 50.0]);
-        let s = StateHandle::<bool>::new(h.cx.view_id(&vec![0]));
+        let s = StateHandle::<bool>::new(h.cx.view_id(&IdPath::root()));
         assert!(!h.cx[s]);
 
         h.tap([10.0, 10.0]);
@@ -193,7 +193,7 @@ mod tests {
         let ui = state(|| 0.5f32, |s, _| knob(s));
 
         let mut h = TestHarness::new(&ui, [100.0, 100.0]);
-        let s = StateHandle::<f32>::new(h.cx.view_id(&vec![0]));
+        let s = StateHandle::<f32>::new(h.cx.view_id(&IdPath::root()));
         assert_eq!(h.cx[s], 0.5);
 
         // Drag rightward should increase value.
@@ -220,7 +220,7 @@ mod tests {
         );
 
         let mut h = TestHarness::new(&ui, [200.0, 50.0]);
-        let s = StateHandle::<(i32, i32)>::new(h.cx.view_id(&vec![0]));
+        let s = StateHandle::<(i32, i32)>::new(h.cx.view_id(&IdPath::root()));
         assert_eq!(h.cx[s], (0, 0));
 
         // Tap left half.
@@ -248,7 +248,7 @@ mod tests {
         );
 
         let mut h = TestHarness::new(&ui, [100.0, 100.0]);
-        let s = StateHandle::<Vec<GestureState>>::new(h.cx.view_id(&vec![0]));
+        let s = StateHandle::<Vec<GestureState>>::new(h.cx.view_id(&IdPath::root()));
         assert_eq!(h.cx[s], vec![]);
 
         h.drag([50.0, 50.0], [80.0, 50.0]);
@@ -268,15 +268,11 @@ mod tests {
     fn test_tap_miss() {
         let ui = state(
             || 0i32,
-            |count, _| {
-                rectangle()
-                    .size([50.0, 50.0])
-                    .tap(move |cx| cx[count] += 1)
-            },
+            |count, _| rectangle().size([50.0, 50.0]).tap(move |cx| cx[count] += 1),
         );
 
         let mut h = TestHarness::new(&ui, [200.0, 200.0]);
-        let s = StateHandle::<i32>::new(h.cx.view_id(&vec![0]));
+        let s = StateHandle::<i32>::new(h.cx.view_id(&IdPath::root()));
 
         // Tap outside the 50x50 rectangle.
         h.tap([150.0, 150.0]);
@@ -301,7 +297,7 @@ mod tests {
         );
 
         let mut h = TestHarness::new(&ui, [100.0, 100.0]);
-        let s = StateHandle::<Vec<Key>>::new(h.cx.view_id(&vec![0]));
+        let s = StateHandle::<Vec<Key>>::new(h.cx.view_id(&IdPath::root()));
 
         h.key(Key::ArrowLeft);
         h.key(Key::Character('a'));
@@ -327,7 +323,7 @@ mod tests {
         );
 
         let mut h = TestHarness::new(&ui, [100.0, 100.0]);
-        let s = StateHandle::<Vec<Key>>::new(h.cx.view_id(&vec![0]));
+        let s = StateHandle::<Vec<Key>>::new(h.cx.view_id(&IdPath::root()));
 
         h.type_text("hi ");
 
@@ -351,7 +347,7 @@ mod tests {
         );
 
         let mut h = TestHarness::new(&ui, [100.0, 100.0]);
-        let s = StateHandle::<bool>::new(h.cx.view_id(&vec![0]));
+        let s = StateHandle::<bool>::new(h.cx.view_id(&IdPath::root()));
 
         h.set_key_mods(KeyboardModifiers {
             shift: true,
@@ -382,7 +378,7 @@ mod tests {
         );
 
         let mut h = TestHarness::new(&ui, [100.0, 90.0]);
-        let s = StateHandle::<Option<i32>>::new(h.cx.view_id(&vec![0]));
+        let s = StateHandle::<Option<i32>>::new(h.cx.view_id(&IdPath::root()));
         assert_eq!(h.cx[s], None);
 
         // List is 100x90, items stacked vertically each 30px tall.
@@ -416,7 +412,7 @@ mod tests {
         );
 
         let mut h = TestHarness::new(&ui, [200.0, 80.0]);
-        let s = StateHandle::<bool>::new(h.cx.view_id(&vec![0]));
+        let s = StateHandle::<bool>::new(h.cx.view_id(&IdPath::root()));
         assert!(!h.cx[s]);
 
         // Tap the bottom rectangle (the "button").
@@ -445,7 +441,7 @@ mod tests {
 
         // Process events manually to capture actions.
         let mut actions = vec![];
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         let events = [
             Event::TouchBegin {
                 id: 0,
@@ -461,9 +457,6 @@ mod tests {
         }
 
         assert_eq!(actions.len(), 1);
-        assert_eq!(
-            actions[0].downcast_ref::<Action>(),
-            Some(&Action::Clicked)
-        );
+        assert_eq!(actions[0].downcast_ref::<Action>(), Some(&Action::Clicked));
     }
 }

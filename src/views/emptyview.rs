@@ -21,7 +21,7 @@ mod tests {
         let mut cx = Context::new();
         let ui = EmptyView {};
         let sz = [100.0, 100.0].into();
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         let result = ui.layout(
             &mut path,
             &mut LayoutArgs {

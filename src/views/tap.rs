@@ -177,7 +177,7 @@ mod tests {
         );
 
         let sz = [100.0, 100.0].into();
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         ui.layout(
             &mut path,
             &mut LayoutArgs {
@@ -223,7 +223,7 @@ mod tests {
         );
 
         let sz = [100.0, 100.0].into();
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         ui.layout(
             &mut path,
             &mut LayoutArgs {

@@ -40,9 +40,11 @@ where
 
         args.vger.save();
         args.vger.scissor(rect);
+        let visible = args.cx.clip_visible(rect, args.vger);
         path.push(0);
         self.child.draw(path, args);
         path.pop();
+        args.cx.restore_visible(visible);
         args.vger.restore();
     }
 

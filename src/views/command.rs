@@ -170,14 +170,8 @@ impl<A: CommandBase, B: CommandBase, C: CommandBase, D: CommandBase, E: CommandB
     }
 }
 
-impl<
-        A: CommandBase,
-        B: CommandBase,
-        C: CommandBase,
-        D: CommandBase,
-        E: CommandBase,
-        F: CommandBase,
-    > CommandTuple for (A, B, C, D, E, F)
+impl<A: CommandBase, B: CommandBase, C: CommandBase, D: CommandBase, E: CommandBase, F: CommandBase>
+    CommandTuple for (A, B, C, D, E, F)
 {
     fn foreach_cmd<FN: FnMut(&dyn DynCommandBase)>(&self, f: &mut FN) {
         f(&self.0);
@@ -193,14 +187,14 @@ impl<
 }
 
 impl<
-        A: CommandBase,
-        B: CommandBase,
-        C: CommandBase,
-        D: CommandBase,
-        E: CommandBase,
-        F: CommandBase,
-        G: CommandBase,
-    > CommandTuple for (A, B, C, D, E, F, G)
+    A: CommandBase,
+    B: CommandBase,
+    C: CommandBase,
+    D: CommandBase,
+    E: CommandBase,
+    F: CommandBase,
+    G: CommandBase,
+> CommandTuple for (A, B, C, D, E, F, G)
 {
     fn foreach_cmd<FN: FnMut(&dyn DynCommandBase)>(&self, f: &mut FN) {
         f(&self.0);
@@ -217,15 +211,15 @@ impl<
 }
 
 impl<
-        A: CommandBase,
-        B: CommandBase,
-        C: CommandBase,
-        D: CommandBase,
-        E: CommandBase,
-        F: CommandBase,
-        G: CommandBase,
-        H: CommandBase,
-    > CommandTuple for (A, B, C, D, E, F, G, H)
+    A: CommandBase,
+    B: CommandBase,
+    C: CommandBase,
+    D: CommandBase,
+    E: CommandBase,
+    F: CommandBase,
+    G: CommandBase,
+    H: CommandBase,
+> CommandTuple for (A, B, C, D, E, F, G, H)
 {
     fn foreach_cmd<FN: FnMut(&dyn DynCommandBase)>(&self, f: &mut FN) {
         f(&self.0);

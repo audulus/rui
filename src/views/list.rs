@@ -2,6 +2,10 @@ use crate::*;
 use std::any::Any;
 use std::hash::Hash;
 
+/// How far outside its bounds a child of a list may draw and still be drawn when its bounds are
+/// just outside the visible area, as for a shadow.
+const DRAW_SLACK: f32 = 64.0;
+
 #[derive(Clone, Copy)]
 pub enum ListOrientation {
     Horizontal,
@@ -40,7 +44,22 @@ where
     fn draw(&self, path: &mut IdPath, args: &mut DrawArgs) {
         for child in &self.ids {
             path.push(hh(child));
-            let offset = args.cx.get_layout(path).offset;
+            let layout = args.cx.get_layout(path);
+            let offset = layout.offset;
+
+            // Skip a child that lies entirely outside the visible area, with some slack for
+            // shadows and other drawing just outside its bounds. A z-list keeps no child sizes,
+            // so it draws everything.
+            if layout.rect.size != LocalSize::zero() {
+                let bounds = layout
+                    .rect
+                    .translate(offset)
+                    .inflate(DRAW_SLACK, DRAW_SLACK);
+                if !args.cx.is_visible(bounds, args.vger) {
+                    path.pop();
+                    continue;
+                }
+            }
 
             args.vger.save();
 
@@ -87,7 +106,15 @@ where
                         VAlignment::Middle,
                     );
 
-                    args.cx.set_layout_offset(path, child_offset);
+                    // Keep the child's size with its offset, so drawing can skip children
+                    // outside the visible area.
+                    args.cx.update_layout(
+                        path,
+                        LayoutBox {
+                            rect: LocalRect::new(LocalPoint::origin(), *child_size),
+                            offset: child_offset,
+                        },
+                    );
 
                     path.pop();
 
@@ -131,7 +158,15 @@ where
                         HAlignment::Center,
                     );
 
-                    args.cx.set_layout_offset(path, child_offset);
+                    // Keep the child's size with its offset, so drawing can skip children
+                    // outside the visible area.
+                    args.cx.update_layout(
+                        path,
+                        LayoutBox {
+                            rect: LocalRect::new(LocalPoint::origin(), *child_size),
+                            offset: child_offset,
+                        },
+                    );
                     path.pop();
 
                     y -= child_size.height;
@@ -221,6 +256,10 @@ impl<ID, F> private::Sealed for List<ID, F> {}
 
 /// Displays a list of items all of which are represented by the same View. See `examples/list.rs`.
 ///
+/// While rendering, items that lie entirely outside the visible area (the window, narrowed by
+/// any `clip` or `scroll` around the list) are not drawn. They are still laid out and still
+/// receive events.
+///
 /// `ids` is a Vec of items that implement Hash.
 ///
 /// `f` is a function called to generate a DynView for each item.
@@ -278,7 +317,7 @@ mod tests {
         let mut cx = Context::new();
         let ui = list(vec![0, 1, 2], |_id| rectangle().size([40.0, 20.0]));
         let sz = [200.0, 200.0].into();
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         let result = ui.layout(
             &mut path,
             &mut LayoutArgs {
@@ -297,7 +336,7 @@ mod tests {
         let mut cx = Context::new();
         let ui = hlist(vec![0, 1, 2], |_id| rectangle().size([30.0, 50.0]));
         let sz = [200.0, 200.0].into();
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         let result = ui.layout(
             &mut path,
             &mut LayoutArgs {
@@ -316,7 +355,7 @@ mod tests {
         let mut cx = Context::new();
         let ui = zlist(vec![0, 1], |_id| rectangle());
         let sz = [100.0, 80.0].into();
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         let result = ui.layout(
             &mut path,
             &mut LayoutArgs {
@@ -334,7 +373,7 @@ mod tests {
         let mut cx = Context::new();
         let ui = list(Vec::<i32>::new(), |_id| rectangle());
         let sz = [100.0, 100.0].into();
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         let result = ui.layout(
             &mut path,
             &mut LayoutArgs {
@@ -355,7 +394,7 @@ mod tests {
             rectangle().size([50.0, h])
         });
         let sz = [200.0, 200.0].into();
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         let result = ui.layout(
             &mut path,
             &mut LayoutArgs {

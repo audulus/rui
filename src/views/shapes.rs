@@ -147,7 +147,7 @@ mod tests {
         let mut cx = Context::new();
         let ui = circle();
         let sz = [80.0, 60.0].into();
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         let result = ui.layout(
             &mut path,
             &mut LayoutArgs {
@@ -164,7 +164,7 @@ mod tests {
         let mut cx = Context::new();
         let ui = circle();
         let sz = [100.0, 100.0].into();
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         ui.layout(
             &mut path,
             &mut LayoutArgs {
@@ -174,7 +174,10 @@ mod tests {
             },
         );
         // Center of a 100x100 circle is (50,50), radius 50
-        assert!(ui.hittest(&mut path, [50.0, 50.0].into(), &mut cx).is_some());
+        assert!(
+            ui.hittest(&mut path, [50.0, 50.0].into(), &mut cx)
+                .is_some()
+        );
     }
 
     #[test]
@@ -182,7 +185,7 @@ mod tests {
         let mut cx = Context::new();
         let ui = circle();
         let sz = [100.0, 100.0].into();
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         ui.layout(
             &mut path,
             &mut LayoutArgs {
@@ -200,7 +203,7 @@ mod tests {
         let mut cx = Context::new();
         let ui = rectangle();
         let sz = [120.0, 40.0].into();
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         let result = ui.layout(
             &mut path,
             &mut LayoutArgs {
@@ -217,7 +220,7 @@ mod tests {
         let mut cx = Context::new();
         let ui = rectangle();
         let sz = [100.0, 50.0].into();
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         ui.layout(
             &mut path,
             &mut LayoutArgs {
@@ -226,7 +229,10 @@ mod tests {
                 text_bounds: &mut |_, _, _| LocalRect::zero(),
             },
         );
-        assert!(ui.hittest(&mut path, [50.0, 25.0].into(), &mut cx).is_some());
+        assert!(
+            ui.hittest(&mut path, [50.0, 25.0].into(), &mut cx)
+                .is_some()
+        );
     }
 
     #[test]
@@ -234,7 +240,7 @@ mod tests {
         let mut cx = Context::new();
         let ui = rectangle();
         let sz = [100.0, 50.0].into();
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         ui.layout(
             &mut path,
             &mut LayoutArgs {
@@ -243,6 +249,9 @@ mod tests {
                 text_bounds: &mut |_, _, _| LocalRect::zero(),
             },
         );
-        assert!(ui.hittest(&mut path, [150.0, 25.0].into(), &mut cx).is_none());
+        assert!(
+            ui.hittest(&mut path, [150.0, 25.0].into(), &mut cx)
+                .is_none()
+        );
     }
 }

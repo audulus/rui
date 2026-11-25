@@ -140,7 +140,7 @@ mod tests {
             rectangle().size([100.0, 100.0]),
         );
         let sz = [200.0, 200.0].into();
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         let result = ui.layout(
             &mut path,
             &mut LayoutArgs {
@@ -161,7 +161,7 @@ mod tests {
             rectangle().size([100.0, 100.0]),
         );
         let sz = [200.0, 200.0].into();
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         let result = ui.layout(
             &mut path,
             &mut LayoutArgs {

@@ -130,7 +130,7 @@ mod tests {
         let mut cx = Context::new();
         let ui = Padding::new(rectangle(), PaddingParam::Px(10.0));
         let sz = [100.0, 100.0].into();
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         let result = ui.layout(
             &mut path,
             &mut LayoutArgs {
@@ -148,7 +148,7 @@ mod tests {
         let mut cx = Context::new();
         let ui = Padding::new(rectangle(), PaddingParam::Auto);
         let sz = [50.0, 50.0].into();
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         let result = ui.layout(
             &mut path,
             &mut LayoutArgs {
@@ -166,7 +166,7 @@ mod tests {
         let mut cx = Context::new();
         let ui = Padding::new(rectangle(), PaddingParam::Px(20.0));
         let sz = [100.0, 100.0].into();
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         ui.layout(
             &mut path,
             &mut LayoutArgs {
@@ -176,7 +176,10 @@ mod tests {
             },
         );
         // Point inside the padded child area (child starts at 20,20)
-        assert!(ui.hittest(&mut path, [50.0, 50.0].into(), &mut cx).is_some());
+        assert!(
+            ui.hittest(&mut path, [50.0, 50.0].into(), &mut cx)
+                .is_some()
+        );
         // Point in the padding area (outside child)
         assert!(ui.hittest(&mut path, [5.0, 5.0].into(), &mut cx).is_none());
     }

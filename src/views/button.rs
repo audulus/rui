@@ -14,40 +14,37 @@ pub fn button<A: 'static, F: Fn(&mut Context) -> A + 'static + Clone>(
     view: impl View,
     f: F,
 ) -> impl View {
-    state(
-        ButtonState::default,
-        move |s, cx| {
-            let f = f.clone();
-            view.clone()
-                .padding(Auto)
-                .background(
-                    rectangle()
-                        .corner_radius(BUTTON_CORNER_RADIUS)
-                        .color(if cx[s].down {
-                            BUTTON_DOWN_COLOR
-                        } else if cx[s].hovered {
-                            BUTTON_HOVER_COLOR
-                        } else {
-                            BUTTON_BACKGROUND_COLOR
-                        }),
-                )
-                .touch(move |cx, info| match info.state {
-                    TouchState::Begin => {
-                        cx[s].down = true;
+    state(ButtonState::default, move |s, cx| {
+        let f = f.clone();
+        view.clone()
+            .padding(Auto)
+            .background(
+                rectangle()
+                    .corner_radius(BUTTON_CORNER_RADIUS)
+                    .color(if cx[s].down {
+                        BUTTON_DOWN_COLOR
+                    } else if cx[s].hovered {
+                        BUTTON_HOVER_COLOR
+                    } else {
+                        BUTTON_BACKGROUND_COLOR
+                    }),
+            )
+            .touch(move |cx, info| match info.state {
+                TouchState::Begin => {
+                    cx[s].down = true;
+                }
+                TouchState::End => {
+                    cx[s].down = false;
+                    if cx[s].hovered {
+                        f(cx);
                     }
-                    TouchState::End => {
-                        cx[s].down = false;
-                        if cx[s].hovered {
-                            f(cx);
-                        }
-                    }
-                })
-                .hover(move |cx, inside| {
-                    cx[s].hovered = inside;
-                })
-                .role(Role::Button)
-        },
-    )
+                }
+            })
+            .hover(move |cx, inside| {
+                cx[s].hovered = inside;
+            })
+            .role(Role::Button)
+    })
 }
 
 /// Version of button which emits an action directly instead of taking a callback.
@@ -74,7 +71,7 @@ mod tests {
         );
         let sz = [100.0, 100.0].into();
 
-        let mut path = vec![0];
+        let mut path = IdPath::root();
         let button_sz = ui.layout(
             &mut path,
             &mut LayoutArgs {
