@@ -228,3 +228,5 @@ Layout, on the other hand, can't easily be offloaded to GPU free-performance lan
 [How Layout Works in SwiftUI](https://www.hackingwithswift.com/books/ios-swiftui/how-layout-works-in-swiftui)
 
 [Xilem: an architecture for UI in Rust](https://raphlinus.github.io/rust/gui/2022/05/07/ui-architecture.html)
+
+[Advice for the next 100 Rust GUIs](https://linebender.org/blog/next-100-guis/)
