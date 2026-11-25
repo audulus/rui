@@ -2,7 +2,7 @@
 //! This calculator provides basic arithmetic operations, keyboard input support,
 //! and a responsive touch-friendly interface.
 
-use enterpolation::{Generator, linear::ConstEquidistantLinear};
+use enterpolation::{linear::ConstEquidistantLinear, Generator};
 use palette::LinSrgb;
 use rui::*;
 
@@ -301,12 +301,7 @@ impl Calculator {
         // })
     }
 
-    fn button_view(
-        &self,
-        s: StateHandle<CalculatorState>,
-        button: Button,
-        id: usize,
-    ) -> impl View + use<> {
+    fn button_view(&self, s: StateHandle<CalculatorState>, button: Button, id: usize) -> impl View + use<> {
         let calculator = self.clone();
 
         let is_number = matches!(button, Button::Digit(_));

@@ -42,6 +42,9 @@ pub trait DynView: private::Sealed + DynClone + 'static {
     fn dirty(&self, _path: &mut IdPath, _xform: LocalToWorld, _cx: &mut Context) {}
 
     /// Draws the view using vger.
+    ///
+    /// A container may skip drawing a child that lies outside the visible area (see `list`),
+    /// so drawing should not have side effects that other code relies on.
     fn draw(&self, path: &mut IdPath, args: &mut DrawArgs);
 
     /// Gets IDs for views currently in use.

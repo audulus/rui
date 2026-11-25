@@ -121,8 +121,11 @@ pub trait Modifiers: View + Sized {
         FullscreenView::new(self)
     }
 
-    /// Calls a function with the view's geometry after layout runs.
-    /// Currently only the view's size is returned.
+    /// Calls a function with the view's geometry when the view is drawn: its size and its
+    /// transform to window coordinates.
+    ///
+    /// It is not called while the view isn't drawn, as for a `list` row that lies outside the
+    /// visible area, so don't rely on it to track views that may be scrolled out of sight.
     fn geom<F: Fn(&mut Context, LocalSize, LocalToWorld) + Clone + 'static>(
         self,
         f: F,

@@ -43,15 +43,18 @@ impl<V: View> DynView for ScrollView<V> {
             _ => None,
         };
 
-        // Content that is scrolled out of view takes no touches: a press outside the viewport
-        // does not reach it, and motion outside it reaches it far away, so hovers end.
+        // Content that is scrolled out of view takes no presses or wheel events from outside the
+        // viewport. Motion outside it reaches the content far away, so hovers end, unless a view
+        // is tracking that touch (a drag), which keeps getting the real position.
         let child_event = match (event, inside) {
-            (Event::TouchBegin { .. }, Some(false)) => None,
-            (Event::TouchMove { id, delta, .. }, Some(false)) => Some(Event::TouchMove {
-                id: *id,
-                position: [f32::MIN, f32::MIN].into(),
-                delta: *delta,
-            }),
+            (Event::TouchBegin { .. } | Event::Scroll { .. }, Some(false)) => None,
+            (Event::TouchMove { id, delta, .. }, Some(false)) if cx.touches[*id].is_default() => {
+                Some(Event::TouchMove {
+                    id: *id,
+                    position: [f32::MIN, f32::MIN].into(),
+                    delta: *delta,
+                })
+            }
             _ => Some(event.offset(-offset)),
         };
 
@@ -67,7 +70,9 @@ impl<V: View> DynView for ScrollView<V> {
             path.pop();
             let max = (content.height - viewport.height()).max(0.0);
             let handle = self.position(path, cx);
-            let new_position = (cx[handle] + delta.y).clamp(0.0, max);
+            // The stored position may be past the end if the content got shorter since; start
+            // from where the content is shown.
+            let new_position = (cx[handle].min(max) + delta.y).clamp(0.0, max);
             if new_position != cx[handle] {
                 cx[handle] = new_position;
             }
@@ -237,5 +242,95 @@ mod tests {
             delta: [0.0, 30.0].into(),
         });
         assert_eq!(position(&mut h), 0.0);
+    }
+
+    #[test]
+    fn test_hidden_content_gets_no_wheel_from_outside() {
+        // A 50 px gesture area at the top of 500 px of content, in a scroll view over the
+        // lower 100 px of a 200 px window.
+        let ui = state(
+            || 0,
+            |wheels, _| {
+                vstack((
+                    rectangle().size([100.0, 100.0]),
+                    scroll(vstack((
+                        rectangle()
+                            .size([100.0, 50.0])
+                            .on_scroll(move |cx, _| cx[wheels] += 1),
+                        rectangle().size([100.0, 450.0]),
+                    ))),
+                ))
+            },
+        );
+        let mut h = TestHarness::new(&ui, [100.0, 200.0]);
+        let wheels = |h: &mut TestHarness<_>| {
+            let id = h.cx.view_id(&IdPath::root());
+            h.cx[StateHandle::<i32>::new(id)]
+        };
+        let wheel = |h: &mut TestHarness<_>, y: f32| {
+            h.event(&Event::Scroll {
+                position: [50.0, y].into(),
+                delta: [0.0, 60.0].into(),
+            });
+            h.layout();
+        };
+        // Over the gesture area, inside the viewport: it sees the wheel, and the view scrolls
+        // it out of sight.
+        wheel(&mut h, 75.0);
+        assert_eq!(wheels(&mut h), 1);
+        // Over the top half of the window, where the gesture area now sits hidden.
+        wheel(&mut h, 130.0);
+        assert_eq!(wheels(&mut h), 1);
+    }
+
+    #[test]
+    fn test_drag_keeps_its_position_outside() {
+        let ui = state(
+            || LocalPoint::zero(),
+            |last, _| {
+                scroll(
+                    rectangle()
+                        .size([100.0, 500.0])
+                        .drag_p(move |cx, pt, _, _| cx[last] = pt),
+                )
+            },
+        );
+        let mut h = TestHarness::new(&ui, [100.0, 100.0]);
+        // Press inside, then move above the viewport while still pressed.
+        h.event(&Event::TouchBegin {
+            id: 0,
+            position: [50.0, 50.0].into(),
+        });
+        h.event(&Event::TouchMove {
+            id: 0,
+            position: [50.0, 150.0].into(),
+            delta: [0.0, 100.0].into(),
+        });
+        let id = h.cx.view_id(&IdPath::root());
+        let last = h.cx[StateHandle::<LocalPoint>::new(id)];
+        assert!(last.y > 100.0, "{last:?}");
+    }
+
+    #[test]
+    fn test_scroll_after_content_shrinks() {
+        let ui = state(
+            || 500.0f32,
+            |height, cx| scroll(rectangle().size([100.0, cx[height]])),
+        );
+        let mut h = TestHarness::new(&ui, [100.0, 100.0]);
+        let scroll_by = |h: &mut TestHarness<_>, dy: f32| {
+            h.event(&Event::Scroll {
+                position: [50.0, 50.0].into(),
+                delta: [0.0, dy].into(),
+            });
+            h.layout();
+        };
+        scroll_by(&mut h, 400.0);
+        let height = StateHandle::<f32>::new(h.cx.view_id(&IdPath::root()));
+        h.cx[height] = 200.0;
+        h.layout();
+        // At most 100 px down now; one notch up shows a move at once.
+        scroll_by(&mut h, -40.0);
+        assert_eq!(position(&mut h), 60.0);
     }
 }

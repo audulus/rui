@@ -256,6 +256,10 @@ impl<ID, F> private::Sealed for List<ID, F> {}
 
 /// Displays a list of items all of which are represented by the same View. See `examples/list.rs`.
 ///
+/// While rendering, items that lie entirely outside the visible area (the window, narrowed by
+/// any `clip` or `scroll` around the list) are not drawn. They are still laid out and still
+/// receive events.
+///
 /// `ids` is a Vec of items that implement Hash.
 ///
 /// `f` is a function called to generate a DynView for each item.

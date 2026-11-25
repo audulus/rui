@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 use std::time::Instant;
 
-use rodio::Sink;
 use rodio::source::Source;
+use rodio::Sink;
 
 mod oscillator;
 pub use oscillator::Oscillator;

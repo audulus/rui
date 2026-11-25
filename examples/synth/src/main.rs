@@ -1,5 +1,5 @@
-use rodio::OutputStream;
 use rodio::source::Source;
+use rodio::OutputStream;
 use std::sync::{Arc, Mutex};
 
 mod midi_keyboard;
@@ -16,10 +16,8 @@ fn main() {
     let synth_clone = synth.clone();
     let synth_clone_update = synth.clone();
 
-    std::thread::spawn(move || {
-        loop {
-            synth_clone_update.lock().unwrap().update();
-        }
+    std::thread::spawn(move || loop {
+        synth_clone_update.lock().unwrap().update();
     });
 
     // Create and configure the MIDI keyboard
