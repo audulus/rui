@@ -485,3 +485,30 @@ where
         self.get_mut(index)
     }
 }
+
+/// Allows `cx[binding]` for bindings made with `bind` or a lens.
+impl<S, B, L, T> ops::Index<Map<B, L, S, T>> for Context
+where
+    B: Binding<T>,
+    L: Lens<T, S>,
+    S: 'static,
+    T: 'static,
+{
+    type Output = S;
+
+    fn index(&self, binding: Map<B, L, S, T>) -> &S {
+        binding.get(self)
+    }
+}
+
+impl<S, B, L, T> ops::IndexMut<Map<B, L, S, T>> for Context
+where
+    B: Binding<T>,
+    L: Lens<T, S>,
+    S: 'static,
+    T: 'static,
+{
+    fn index_mut(&mut self, binding: Map<B, L, S, T>) -> &mut S {
+        binding.get_mut(self)
+    }
+}

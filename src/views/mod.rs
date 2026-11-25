@@ -12,6 +12,8 @@ mod clip;
 pub use clip::*;
 mod command;
 pub use command::*;
+mod component;
+pub use component::*;
 mod cond;
 pub use cond::*;
 mod drag;
