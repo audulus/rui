@@ -1,3 +1,4 @@
+use crate::timing::timed;
 use crate::*;
 
 use futures::executor::block_on;
@@ -22,31 +23,6 @@ use winit::{
 
 /// How far one notch of a mouse wheel scrolls, in logical pixels.
 const WHEEL_LINE: f32 = 40.0;
-
-/// Whether `RUI_TIMING` is set: then the event loop prints how long it spends processing each
-/// event, updating and rendering to stderr.
-#[cfg(not(target_arch = "wasm32"))]
-fn timing_enabled() -> bool {
-    static ENABLED: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
-    *ENABLED.get_or_init(|| std::env::var_os("RUI_TIMING").is_some())
-}
-
-/// Runs `f`, and prints how long it took under `label` when `RUI_TIMING` is set.
-fn timed<R>(label: &str, f: impl FnOnce() -> R) -> R {
-    #[cfg(not(target_arch = "wasm32"))]
-    if timing_enabled() {
-        let start = std::time::Instant::now();
-        let result = f();
-        eprintln!(
-            "rui-timing {label} {:.3} ms",
-            start.elapsed().as_secs_f64() * 1000.0
-        );
-        return result;
-    }
-    #[cfg(target_arch = "wasm32")]
-    let _ = label;
-    f()
-}
 
 /// The main window of an app run with `rui_with_config`.
 #[derive(Clone, Debug)]
@@ -335,20 +311,18 @@ where
                     let height = window_size.height as f32 / scale;
 
                     // log::debug!("RedrawRequested");
-                    timed("render", || {
-                        self.cx.render(
-                            RenderInfo {
-                                device: &context.device,
-                                surface: &context.surface,
-                                config: &context.config,
-                                queue: &context.queue,
-                            },
-                            &self.view,
-                            &mut context.vger,
-                            [width, height].into(),
-                            scale,
-                        )
-                    });
+                    self.cx.render(
+                        RenderInfo {
+                            device: &context.device,
+                            surface: &context.surface,
+                            config: &context.config,
+                            queue: &context.queue,
+                        },
+                        &self.view,
+                        &mut context.vger,
+                        [width, height].into(),
+                        scale,
+                    );
                 }
             }
             WindowEvent::MouseInput { state, button, .. } => {
@@ -513,7 +487,9 @@ where
                 };
 
                 if let (Some(key), wElementState::Pressed) = (key, key_event.state) {
-                    timed("event:key", || self.cx.process(&self.view, &Event::Key(key)))
+                    timed("event:key", || {
+                        self.cx.process(&self.view, &Event::Key(key))
+                    })
                 }
 
                 if let (Some(key), wElementState::Released) = (key, key_event.state) {
@@ -589,21 +565,15 @@ where
             let width = window_size.width as f32 / scale;
             let height = window_size.height as f32 / scale;
 
-            #[cfg(not(target_arch = "wasm32"))]
-            let start = std::time::Instant::now();
+            // Timed only when it does work, so idle passes print nothing.
+            let start = crate::timing::start();
             if self.cx.update(
                 &self.view,
                 &mut context.vger,
                 &mut self.access_nodes,
                 [width, height].into(),
             ) {
-                #[cfg(not(target_arch = "wasm32"))]
-                if timing_enabled() {
-                    eprintln!(
-                        "rui-timing update {:.3} ms",
-                        start.elapsed().as_secs_f64() * 1000.0
-                    );
-                }
+                crate::timing::stop("update", start);
                 window.request_redraw();
             }
 
