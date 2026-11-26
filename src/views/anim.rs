@@ -29,6 +29,7 @@ where
         cx: &mut Context,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
+        cx.mark_anim(vid);
         if let Event::Anim = event {
             (self.func)(cx, 1.0 / 60.0) // XXX: assume 60fps for now.
         }
@@ -43,6 +44,8 @@ where
     }
 
     fn layout(&self, vid: ViewId, args: &mut LayoutArgs) -> LocalSize {
+        // Lets the `Event::Anim` pass find this view.
+        args.cx.mark_anim(vid);
         let cid = args.cx.child(vid, 0);
 
         self.child.layout(cid, args)
