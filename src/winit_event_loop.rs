@@ -70,16 +70,16 @@ pub fn on_main(f: impl FnOnce(&mut Context) + Send + 'static) {
     }
 }
 
-/// Runs the closures passed to `on_main`.
+/// Runs the closures passed to `on_main` so far.
 #[cfg(not(target_arch = "wasm32"))]
 fn run_work_queue(cx: &mut Context) {
-    // Take each closure before running it, so it can call `on_main` itself.
-    loop {
-        let f = GLOBAL_WORK_QUEUE.lock().unwrap().pop_front();
-        match f {
-            Some(f) => f(cx),
-            None => break,
-        }
+    // Take the queued closures before running them, so the lock isn't held while they run and
+    // they can call `on_main` themselves. What they queue runs on the next wake-up, which
+    // `on_main` sends, so a closure that queues itself again doesn't keep the event loop from
+    // running.
+    let batch = std::mem::take(&mut *GLOBAL_WORK_QUEUE.lock().unwrap());
+    for f in batch {
+        f(cx);
     }
 }
 
@@ -642,6 +642,15 @@ impl<V: View> Run for V {}
 mod tests {
     use super::*;
 
+    /// Held by the tests that use the global `on_main` queue, which test threads share.
+    static QUEUE: Mutex<()> = Mutex::new(());
+
+    fn lock_queue() -> std::sync::MutexGuard<'static, ()> {
+        let guard = QUEUE.lock().unwrap_or_else(|e| e.into_inner());
+        GLOBAL_WORK_QUEUE.lock().unwrap().clear();
+        guard
+    }
+
     fn layout(cx: &mut Context, view: &impl View) {
         let root = cx.root_id();
         view.layout(
@@ -660,6 +669,7 @@ mod tests {
 
     #[test]
     fn test_on_main_across_a_removed_view() {
+        let _queue = lock_queue();
         let mut cx = Context::new();
         layout(&mut cx, &items(vec![1]));
         let s = StateHandle::<i32>::new(cx.id_at(&[0, hh(&1)]));
@@ -692,5 +702,27 @@ mod tests {
         assert!(!saw.load(std::sync::atomic::Ordering::SeqCst));
         assert!(!wrote.load(std::sync::atomic::Ordering::SeqCst));
         assert_eq!(others.map(|o| cx[o]), [0, 0]);
+    }
+
+    /// Queues a closure that counts its runs and queues itself again.
+    fn tick(count: std::sync::Arc<std::sync::atomic::AtomicUsize>) {
+        on_main(move |_| {
+            count.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+            tick(count);
+        });
+    }
+
+    #[test]
+    fn test_a_closure_that_queues_itself_runs_once_per_drain() {
+        let _queue = lock_queue();
+        let mut cx = Context::new();
+        let count = std::sync::Arc::new(std::sync::atomic::AtomicUsize::new(0));
+        tick(count.clone());
+
+        // Before the fix, this drain never returned.
+        run_work_queue(&mut cx);
+        assert_eq!(count.load(std::sync::atomic::Ordering::SeqCst), 1);
+        run_work_queue(&mut cx);
+        assert_eq!(count.load(std::sync::atomic::Ordering::SeqCst), 2);
     }
 }
