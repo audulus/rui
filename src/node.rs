@@ -58,19 +58,21 @@ pub(crate) struct Node {
 }
 
 /// What a `state` view's layout depends on, and the size it computed.
-#[derive(Clone, Copy)]
 struct LayoutCache {
     /// `Context::write_gen` when the layout started.
     stamp: u64,
+    /// States read outside the view's ancestors and subtree.
+    foreign: Box<[ViewId]>,
     /// The proposed size.
     proposed: LocalSize,
     size: LocalSize,
 }
 
-#[derive(Clone, Copy)]
 struct AccessCache {
     /// `Context::write_gen` when the walk started.
     stamp: u64,
+    /// States read outside the view's ancestors and subtree.
+    foreign: Box<[ViewId]>,
     id: Option<accesskit::NodeId>,
 }
 
@@ -309,18 +311,75 @@ impl Context {
         self.node(id).subtree_gen > self.clean_gen
     }
 
-    /// Makes every cached layout and accessibility result stale, for changes that aren't
-    /// state writes, such as a new window size or keyboard focus.
-    pub(crate) fn invalidate_all(&mut self) {
+    /// Makes every cached layout and accessibility result stale.
+    ///
+    /// Cached results follow the states a view depends on: those of its enclosing `state`
+    /// views, those under it, and any other state it reads through the `Context`. Call this
+    /// after changing anything else that views read while building, such as a value in a
+    /// `RefCell` or a field of the `Context` like `key_mods`. rui calls it itself for a new
+    /// window size or keyboard focus.
+    pub fn invalidate_all(&mut self) {
         self.write_gen += 1;
         self.floor_gen = self.write_gen;
         self.set_dirty();
     }
 
-    /// Is a result computed for `id` at generation `stamp` still valid: nothing under `id`, and
-    /// no enclosing `state` view, written since, and nothing invalidated everything?
-    fn still_valid(&self, node: &Node, stamp: u64) -> bool {
-        stamp >= self.floor_gen && node.subtree_gen <= stamp && self.ancestor_gen <= stamp
+    /// Is a result computed for `id` at generation `stamp` still valid: nothing under `id`, no
+    /// enclosing `state` view, and none of the `foreign` states it read written since, and
+    /// nothing invalidated everything?
+    fn still_valid(&self, node: &Node, stamp: u64, foreign: &[ViewId]) -> bool {
+        stamp >= self.floor_gen
+            && node.subtree_gen <= stamp
+            && self.ancestor_gen <= stamp
+            && foreign
+                .iter()
+                .all(|r| self.is_live(*r) && self.nodes[r.index as usize].state_gen <= stamp)
+    }
+
+    /// Starts recording the states read while the `state` view at `id` computes a result to
+    /// cache. Returns what `end_reads` needs.
+    pub(crate) fn begin_reads(&self) -> usize {
+        self.reading.set(self.reading.get() + 1);
+        self.reads.borrow().len()
+    }
+
+    /// Stops recording for the `state` view at `id`, returning the states read since
+    /// `begin_reads` that are neither enclosing it nor under it, whose writes the generations
+    /// don't catch. The reads stay recorded for any enclosing `state` view.
+    pub(crate) fn end_reads(&self, id: ViewId, start: usize) -> Box<[ViewId]> {
+        let depth = self.reading.get() - 1;
+        self.reading.set(depth);
+        let mut reads = self.reads.borrow_mut();
+        let mut foreign: Vec<ViewId> = reads[start..]
+            .iter()
+            .copied()
+            .filter(|r| !self.is_ancestor_or_self(*r, id) && !self.is_ancestor_or_self(id, *r))
+            .collect();
+        foreign.sort_by_key(|r| (r.index, r.generation));
+        foreign.dedup();
+        if depth == 0 {
+            reads.clear();
+        }
+        foreign.into_boxed_slice()
+    }
+
+    /// Passes the foreign reads of a reused result on to the `state` views computing around it.
+    fn reuse_reads(&self, foreign: &[ViewId]) {
+        if self.reading.get() > 0 && !foreign.is_empty() {
+            self.reads.borrow_mut().extend_from_slice(foreign);
+        }
+    }
+
+    /// Is `a` the node `b` or one of its ancestors?
+    fn is_ancestor_or_self(&self, a: ViewId, b: ViewId) -> bool {
+        let mut node = b;
+        while self.is_live(node) {
+            if node == a {
+                return true;
+            }
+            node = self.nodes[node.index as usize].parent;
+        }
+        false
     }
 
     /// Enters the `state` view at `id` during a walk: the views under it depend on its state.
@@ -339,19 +398,26 @@ impl Context {
     /// valid, so its layout can be skipped without building its view.
     pub(crate) fn cached_layout(&self, id: ViewId, proposed: LocalSize) -> Option<LocalSize> {
         let node = self.node(id);
-        let cache = node.layout_cache?;
-        (cache.proposed == proposed && self.still_valid(node, cache.stamp)).then_some(cache.size)
+        let cache = node.layout_cache.as_ref()?;
+        if cache.proposed == proposed && self.still_valid(node, cache.stamp, &cache.foreign) {
+            self.reuse_reads(&cache.foreign);
+            Some(cache.size)
+        } else {
+            None
+        }
     }
 
     pub(crate) fn store_layout(
         &mut self,
         id: ViewId,
         stamp: u64,
+        foreign: Box<[ViewId]>,
         proposed: LocalSize,
         size: LocalSize,
     ) {
         self.node_mut(id).layout_cache = Some(LayoutCache {
             stamp,
+            foreign,
             proposed,
             size,
         });
@@ -361,17 +427,27 @@ impl Context {
     /// under it were sent in an earlier update and haven't changed.
     pub(crate) fn cached_access(&self, id: ViewId) -> Option<Option<accesskit::NodeId>> {
         let node = self.node(id);
-        let cache = node.access_cache?;
-        self.still_valid(node, cache.stamp).then_some(cache.id)
+        let cache = node.access_cache.as_ref()?;
+        if self.still_valid(node, cache.stamp, &cache.foreign) {
+            self.reuse_reads(&cache.foreign);
+            Some(cache.id)
+        } else {
+            None
+        }
     }
 
     pub(crate) fn store_access(
         &mut self,
         id: ViewId,
         stamp: u64,
+        foreign: Box<[ViewId]>,
         result: Option<accesskit::NodeId>,
     ) {
-        self.node_mut(id).access_cache = Some(AccessCache { stamp, id: result });
+        self.node_mut(id).access_cache = Some(AccessCache {
+            stamp,
+            foreign,
+            id: result,
+        });
     }
 
     /// Records that an `anim` view is at `id`.
@@ -394,7 +470,8 @@ impl Context {
         !node.has_anim
             && node
                 .layout_cache
-                .is_some_and(|c| self.still_valid(node, c.stamp))
+                .as_ref()
+                .is_some_and(|c| self.still_valid(node, c.stamp, &c.foreign))
     }
 
     pub(crate) fn get_layout(&self, id: ViewId) -> LayoutBox {

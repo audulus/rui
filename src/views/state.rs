@@ -92,11 +92,13 @@ where
         let stamp = args.cx.write_gen;
         let proposed = args.sz;
         let before = args.cx.enter_state(vid);
+        let reads = args.cx.begin_reads();
 
         let view = (self.func)(StateHandle::new(vid), args.cx);
         let cid = args.cx.child(vid, 0);
         let child_size = view.layout(cid, args);
 
+        let foreign = args.cx.end_reads(vid, reads);
         args.cx.leave_state(before);
 
         let layout_box = LayoutBox {
@@ -104,7 +106,8 @@ where
             offset: LocalOffset::zero(),
         };
         args.cx.update_layout(vid, layout_box);
-        args.cx.store_layout(vid, stamp, proposed, child_size);
+        args.cx
+            .store_layout(vid, stamp, foreign, proposed, child_size);
 
         child_size
     }
@@ -157,10 +160,12 @@ where
 
         let stamp = cx.write_gen;
         let before = cx.enter_state(vid);
+        let reads = cx.begin_reads();
         let cid = cx.child(vid, 0);
         let id = (self.func)(StateHandle::new(vid), cx).access(cid, cx, nodes);
+        let foreign = cx.end_reads(vid, reads);
         cx.leave_state(before);
-        cx.store_access(vid, stamp, id);
+        cx.store_access(vid, stamp, foreign, id);
         id
     }
 }
@@ -174,6 +179,12 @@ impl<S, F> private::Sealed for StateView<S, F> {}
 /// `initial` is the initial value for your state.
 ///
 /// `f` callback which is passed a `State<S>`
+///
+/// The layout and accessibility nodes of a `state` view are cached, and `f` isn't called again
+/// for them until a state the view depends on is written: this one, an enclosing one, one
+/// under it, or any other state `f` or its views read through the `Context`. If `f` reads
+/// something else that changes, such as a `RefCell` or `Context::key_mods`, call
+/// `Context::invalidate_all` after changing it.
 pub fn state<
     S: 'static,
     V: View,

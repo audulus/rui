@@ -413,3 +413,89 @@ fn test_removing_the_focused_view_clears_the_focus() {
     layout(&mut cx, &counter_list(vec![]));
     assert_eq!(cx.focused_id, None);
 }
+
+/// A `state` view A, and beside it a view B, wrapped in another `state` view, whose width is
+/// A's state: B reads a state that is neither enclosing it nor under it.
+fn sibling_reader() -> impl View {
+    let shared: Rc<Cell<Option<StateHandle<f32>>>> = Rc::new(Cell::new(None));
+    let (a, b) = (shared.clone(), shared);
+    hstack((
+        state(
+            || 10.0f32,
+            move |w, _| {
+                a.set(Some(w));
+                rectangle().size([10.0, 10.0])
+            },
+        ),
+        state(
+            || (),
+            move |_, _| {
+                let b = b.clone();
+                state(
+                    || (),
+                    move |_, cx| {
+                        let w = cx[b.get().unwrap()];
+                        rectangle().size([w, 10.0]).role(accesskit::Role::Button)
+                    },
+                )
+            },
+        ),
+    ))
+}
+
+#[test]
+fn test_layout_follows_a_state_read_from_elsewhere() {
+    let ui = sibling_reader();
+    let mut cx = Context::new();
+    layout(&mut cx, &ui);
+    // Reuse every cache once, so the reads have to carry over from reused results.
+    layout(&mut cx, &ui);
+
+    let a = StateHandle::<f32>::new(cx.id_at(&[0, 0]));
+    let reader = cx.id_at(&[0, 1, 0]);
+    assert_eq!(cx.get_layout(reader).rect.width(), 10.0);
+    cx[a] = 30.0;
+    layout(&mut cx, &ui);
+    assert_eq!(cx.get_layout(reader).rect.width(), 30.0);
+}
+
+#[test]
+fn test_access_follows_a_state_read_from_elsewhere() {
+    let ui = sibling_reader();
+    let mut cx = Context::new();
+    layout(&mut cx, &ui);
+    let root = cx.root_id();
+    let mut nodes = vec![];
+    ui.access(root, &mut cx, &mut nodes);
+    cx.clear_dirty();
+
+    let a = StateHandle::<f32>::new(cx.id_at(&[0, 0]));
+    cx[a] = 30.0;
+    nodes.clear();
+    ui.access(root, &mut cx, &mut nodes);
+    assert!(
+        nodes
+            .iter()
+            .any(|(_, n)| n.role() == accesskit::Role::Button)
+    );
+}
+
+#[test]
+fn test_tapping_the_focused_view_keeps_the_caches() {
+    let ui = focus(|_| rectangle());
+    let mut cx = Context::new();
+    layout(&mut cx, &ui);
+    let root = cx.root_id();
+    let tap = Event::TouchBegin {
+        id: 0,
+        position: [50.0, 50.0].into(),
+    };
+
+    ui.process(&tap, root, &mut cx, &mut vec![]);
+    assert_eq!(cx.focused_id, Some(root));
+    let floor = cx.floor_gen;
+    assert!(floor > 0);
+
+    ui.process(&tap, root, &mut cx, &mut vec![]);
+    assert_eq!(cx.floor_gen, floor);
+}

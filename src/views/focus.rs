@@ -21,7 +21,7 @@ where
     ) {
         match &event {
             Event::TouchBegin { id: _, position } => {
-                if self.hittest(vid, *position, cx).is_some() {
+                if cx.focused_id != Some(vid) && self.hittest(vid, *position, cx).is_some() {
                     cx.focused_id = Some(vid);
                     // Views read the focus without a state, so cached results can't tell.
                     cx.invalidate_all();

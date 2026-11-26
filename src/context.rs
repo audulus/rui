@@ -2,6 +2,7 @@ use crate::*;
 use euclid::*;
 use std::any::Any;
 use std::any::TypeId;
+use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
 use std::ops;
 use std::sync::Arc;
@@ -62,6 +63,14 @@ pub struct Context {
     /// During a walk, the latest write generation of the states of the enclosing `state`
     /// views, on which everything under them depends.
     pub(crate) ancestor_gen: u64,
+
+    /// While `state` views compute results to cache (see `begin_reads`), the states read
+    /// through `get`, so a cache also goes stale when a state outside its view's ancestors
+    /// and subtree is written.
+    pub(crate) reads: RefCell<Vec<ViewId>>,
+
+    /// How many `state` views are computing results to cache.
+    pub(crate) reading: Cell<u32>,
 
     /// Which views each touch (or mouse pointer) is interacting with.
     pub(crate) touches: [ViewId; 16],
@@ -138,6 +147,8 @@ impl Context {
             clean_gen: 0,
             floor_gen: 0,
             ancestor_gen: 0,
+            reads: RefCell::new(vec![]),
+            reading: Cell::new(0),
             touches: [ViewId::default(); 16],
             starts: [LocalPoint::zero(); 16],
             previous_position: [LocalPoint::zero(); 16],
@@ -395,6 +406,9 @@ impl Context {
     where
         S: 'static,
     {
+        if self.reading.get() > 0 {
+            self.reads.borrow_mut().push(id.id);
+        }
         self.node(id.id)
             .state
             .as_ref()
