@@ -464,6 +464,14 @@ impl Context {
         });
     }
 
+    /// Drops every `state` view's cached access result, so the next `access` walk gives the
+    /// whole tree.
+    pub(crate) fn clear_access_caches(&mut self) {
+        for node in &mut self.nodes {
+            node.access_cache = None;
+        }
+    }
+
     /// Records that an `anim` view is at `id`.
     pub(crate) fn mark_anim(&mut self, id: ViewId) {
         let mut node = id;

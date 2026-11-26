@@ -130,6 +130,10 @@ pub struct Context {
 
     /// Value of grab_cursor before processing event.
     pub(crate) prev_grab_cursor: bool,
+
+    /// Does `update` build the accessibility tree? Off by default, since nothing consumes it
+    /// yet (see `set_access_enabled`).
+    access_enabled: bool,
 }
 
 impl Default for Context {
@@ -168,15 +172,36 @@ impl Context {
             render_dirty: false,
             grab_cursor: false,
             prev_grab_cursor: false,
+            access_enabled: false,
+        }
+    }
+
+    /// Is the accessibility tree built (see `set_access_enabled`)?
+    pub fn access_enabled(&self) -> bool {
+        self.access_enabled
+    }
+
+    /// Turns building the accessibility tree in `update` on or off. It is off by default, so
+    /// that apps which don't hand the nodes to an AccessKit adapter don't pay for building
+    /// them. Turning it on makes the next `update` give the whole tree.
+    pub fn set_access_enabled(&mut self, enabled: bool) {
+        if enabled != self.access_enabled {
+            self.access_enabled = enabled;
+            // Cached access results say their nodes were sent in an earlier update, which is no
+            // longer true once the nodes stop being sent. Dropping them on either change also
+            // frees them while the tree is off.
+            self.clear_access_caches();
+            self.dirty = true;
         }
     }
 
     /// Call this after the event queue is cleared.
     ///
-    /// When anything changed, replaces `access_nodes` with the AccessKit nodes that changed
-    /// since the last update, as for an AccessKit `TreeUpdate`: the first update gives the whole
-    /// tree, later ones only the nodes under `state` views whose state, or whose enclosing
-    /// states, were written.
+    /// When anything changed and the accessibility tree is on (see `set_access_enabled`),
+    /// replaces `access_nodes` with the AccessKit nodes that changed since the last update, as
+    /// for an AccessKit `TreeUpdate`: the first update gives the whole tree, later ones only the
+    /// nodes under `state` views whose state, or whose enclosing states, were written. While
+    /// the tree is off, `access_nodes` is left empty.
     pub fn update(
         &mut self,
         view: &impl View,
@@ -197,10 +222,7 @@ impl Context {
         view.process(&Event::Anim, root, self, &mut actions);
 
         if self.dirty {
-            // Get the accesskit nodes that changed.
-            access_nodes.clear();
-            view.access(root, self, access_nodes);
-            log::debug!("access nodes changed: {}", access_nodes.len());
+            self.update_access(view, access_nodes);
 
             // XXX: we're doing layout both here and in rendering.
             view.layout(
@@ -220,6 +242,21 @@ impl Context {
             true
         } else {
             false
+        }
+    }
+
+    /// Replaces `access_nodes` with the accessibility nodes that changed, or nothing while the
+    /// accessibility tree is off.
+    pub(crate) fn update_access(
+        &mut self,
+        view: &impl View,
+        access_nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
+    ) {
+        access_nodes.clear();
+        if self.access_enabled {
+            let root = self.root_id();
+            view.access(root, self, access_nodes);
+            log::debug!("access nodes changed: {}", access_nodes.len());
         }
     }
 
