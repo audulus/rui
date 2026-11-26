@@ -8,13 +8,14 @@ use rui::*;
 use super::style::{Surface, color, gap, label, paint_centered_text};
 use crate::dash::{self, Message};
 
-/// One message with the texts its card shows, made once and shared by every build of the card.
+/// One message with the texts its card shows, made once and shared by every build of the card:
+/// the short ones inline, the body in an `Arc<str>`.
 pub struct Card {
-    author: Arc<str>,
-    initials: Arc<str>,
+    author: TextStr,
+    initials: TextStr,
     avatar: u32,
-    time: Arc<str>,
-    body: Arc<str>,
+    time: TextStr,
+    body: TextStr,
 }
 
 impl Card {
@@ -68,7 +69,7 @@ fn card(message: &Card) -> impl View + use<> {
 
 /// The avatar of a message: a circle whose top is the top of the author's line, which it
 /// overhangs downwards.
-fn avatar(initials: Arc<str>, hex: u32) -> impl View + use<> {
+fn avatar(initials: TextStr, hex: u32) -> impl View + use<> {
     canvas(move |_, rect, vger| {
         let r = dash::MESSAGE_AVATAR / 2.0;
         let center = LocalPoint::new(r, rect.height() - r);

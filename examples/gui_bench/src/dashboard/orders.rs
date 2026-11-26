@@ -20,20 +20,21 @@ const AMOUNT_WIDTH: f32 = dash::SORT_WIDTH;
 const PADDING_RIGHT: f32 = 992.0 - dash::COL_AMOUNT_END;
 
 /// One order with the texts its row shows, made once and shared by every build of the row.
+/// They are short, so `TextStr` keeps them inline, without an allocation.
 pub struct Row {
     pub order: Order,
-    number: Arc<str>,
-    customer: Arc<str>,
-    initials: Arc<str>,
-    amount: Arc<str>,
+    number: TextStr,
+    customer: TextStr,
+    initials: TextStr,
+    amount: TextStr,
 }
 
 impl Row {
     pub fn new(order: Order) -> Self {
         Self {
             number: order.number_text().into(),
-            customer: order.customer.as_str().into(),
-            initials: order.initials.as_str().into(),
+            customer: TextStr::new(&order.customer),
+            initials: TextStr::new(&order.initials),
             amount: order.amount().into(),
             order,
         }

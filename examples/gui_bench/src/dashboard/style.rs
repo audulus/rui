@@ -138,7 +138,7 @@ pub fn paint_centered_text(
 
 /// A circle of `size` in `hex` with white initials of `font` px, as for the avatars.
 ///
-/// The view keeps `initials`, so it takes an owned string: clone an `Arc<str>` to pass one.
+/// The view keeps `initials`, so it takes an owned string, such as a cloned `TextStr`.
 pub fn avatar(initials: impl Into<TextStr> + 'static, size: f32, font: u32, hex: u32) -> impl View {
     let initials = initials.into();
     canvas(move |_, rect, vger| {
@@ -151,7 +151,7 @@ pub fn avatar(initials: impl Into<TextStr> + 'static, size: f32, font: u32, hex:
 
 /// A pill: a rounded box of `height` around a text, `padding_x` on each side.
 ///
-/// The view keeps `content`, so it takes an owned string: clone an `Arc<str>` to pass one.
+/// The view keeps `content`, so it takes an owned string, such as a cloned `TextStr`.
 pub fn pill(
     content: impl Into<TextStr> + 'static,
     size: f32,
@@ -170,7 +170,7 @@ pub fn pill(
 
 /// A button of `width` with a centered label.
 ///
-/// The view keeps `content`, so it takes an owned string: clone an `Arc<str>` to pass one.
+/// The view keeps `content`, so it takes an owned string, such as a cloned `TextStr`.
 pub fn button_box(
     content: impl Into<TextStr> + 'static,
     width: f32,
