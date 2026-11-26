@@ -12,7 +12,7 @@ impl MyMod for AnyView {
 
 fn my_text(name: &str) -> AnyView {
     let name = name.to_string();
-    any_view(text(name.as_str()))
+    any_view(text(name))
 }
 
 fn main() {

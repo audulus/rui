@@ -39,7 +39,7 @@ fn card(k: usize, value: String) -> impl View {
         gap(0.0, 18.0),
         leading(label(kpi.label, 13.0, dash::MUTED)).fixed_height(16.0),
         gap(0.0, 6.0),
-        leading(label(&value, 24.0, dash::TEXT)).fixed_height(28.0),
+        leading(label(value, 24.0, dash::TEXT)).fixed_height(28.0),
         gap(0.0, 10.0),
         leading(pill(kpi.delta, 12.0, fg, 22.0, 8.0, bg)),
         gap(0.0, dash::KPI_HEIGHT - 100.0),

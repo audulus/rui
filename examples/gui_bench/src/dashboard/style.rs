@@ -24,7 +24,7 @@ pub fn color(hex: u32) -> Color {
 
 /// Returns a text of `size` px in the spec color `hex`. vger has one font face, so the spec's
 /// weights all render regular.
-pub fn label(content: &str, size: f32, hex: u32) -> Text {
+pub fn label(content: impl Into<TextStr>, size: f32, hex: u32) -> Text {
     text(content).font_size(size as u32).color(color(hex))
 }
 
@@ -137,8 +137,10 @@ pub fn paint_centered_text(
 }
 
 /// A circle of `size` in `hex` with white initials of `font` px, as for the avatars.
-pub fn avatar(initials: &str, size: f32, font: u32, hex: u32) -> impl View + use<> {
-    let initials = initials.to_owned();
+///
+/// The view keeps `initials`, so it takes an owned string, such as a cloned `TextStr`.
+pub fn avatar(initials: impl Into<TextStr> + 'static, size: f32, font: u32, hex: u32) -> impl View {
+    let initials = initials.into();
     canvas(move |_, rect, vger| {
         let paint = vger.color_paint(color(hex));
         vger.fill_circle(rect.center(), size / 2.0, paint);
@@ -148,14 +150,16 @@ pub fn avatar(initials: &str, size: f32, font: u32, hex: u32) -> impl View + use
 }
 
 /// A pill: a rounded box of `height` around a text, `padding_x` on each side.
+///
+/// The view keeps `content`, so it takes an owned string, such as a cloned `TextStr`.
 pub fn pill(
-    content: &str,
+    content: impl Into<TextStr> + 'static,
     size: f32,
     hex: u32,
     height: f32,
     padding_x: f32,
     bg: u32,
-) -> impl View + use<> {
+) -> impl View {
     hstack((
         gap(padding_x, height),
         label(content, size, hex),
@@ -165,7 +169,14 @@ pub fn pill(
 }
 
 /// A button of `width` with a centered label.
-pub fn button_box(content: &str, width: f32, text_hex: u32, surface: Surface) -> impl View + use<> {
+///
+/// The view keeps `content`, so it takes an owned string, such as a cloned `TextStr`.
+pub fn button_box(
+    content: impl Into<TextStr> + 'static,
+    width: f32,
+    text_hex: u32,
+    surface: Surface,
+) -> impl View {
     label(content, dash::FONT_SIZE, text_hex)
         .fixed_width(width)
         .fixed_height(dash::CONTROL_HEIGHT)

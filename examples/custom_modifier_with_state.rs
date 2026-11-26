@@ -29,7 +29,7 @@ impl<V: View> MyMod for V {}
 
 fn my_text(name: &str) -> impl View {
     let name = name.to_string();
-    text(name.as_str())
+    text(name)
 }
 
 fn main() {
