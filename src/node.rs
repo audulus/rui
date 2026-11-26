@@ -370,6 +370,20 @@ impl Context {
         }
     }
 
+    /// The child of `parent` that is `id` or one of its ancestors, or `None` when `id` isn't
+    /// under `parent`.
+    pub(crate) fn child_toward(&self, parent: ViewId, id: ViewId) -> Option<ViewId> {
+        let mut node = id;
+        while self.is_live(node) {
+            let up = self.nodes[node.index as usize].parent;
+            if up == parent {
+                return Some(node);
+            }
+            node = up;
+        }
+        None
+    }
+
     /// Is `a` the node `b` or one of its ancestors?
     fn is_ancestor_or_self(&self, a: ViewId, b: ViewId) -> bool {
         let mut node = b;
