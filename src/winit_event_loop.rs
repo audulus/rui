@@ -1,3 +1,4 @@
+use crate::timing::timed;
 use crate::*;
 
 use futures::executor::block_on;
@@ -180,7 +181,14 @@ async fn setup(window: Arc<Window>) -> DrawContext {
 }
 
 fn process_event(cx: &mut Context, view: &impl View, event: &Event, window: &Window) {
-    cx.process(view, event);
+    let label = match event {
+        Event::TouchBegin { .. } => "event:touch-begin",
+        Event::TouchMove { .. } => "event:touch-move",
+        Event::TouchEnd { .. } => "event:touch-end",
+        Event::Scroll { .. } => "event:scroll",
+        _ => "event:other",
+    };
+    timed(label, || cx.process(view, event));
 
     if cx.grab_cursor && !cx.prev_grab_cursor {
         log::debug!("grabbing cursor");
@@ -479,11 +487,15 @@ where
                 };
 
                 if let (Some(key), wElementState::Pressed) = (key, key_event.state) {
-                    self.cx.process(&self.view, &Event::Key(key))
+                    timed("event:key", || {
+                        self.cx.process(&self.view, &Event::Key(key))
+                    })
                 }
 
                 if let (Some(key), wElementState::Released) = (key, key_event.state) {
-                    self.cx.process(&self.view, &Event::KeyReleased(key))
+                    timed("event:key-released", || {
+                        self.cx.process(&self.view, &Event::KeyReleased(key))
+                    })
                 }
             }
 
@@ -553,12 +565,15 @@ where
             let width = window_size.width as f32 / scale;
             let height = window_size.height as f32 / scale;
 
+            // Timed only when it does work, so idle passes print nothing.
+            let start = crate::timing::start();
             if self.cx.update(
                 &self.view,
                 &mut context.vger,
                 &mut self.access_nodes,
                 [width, height].into(),
             ) {
+                crate::timing::stop("update", start);
                 window.request_redraw();
             }
 

@@ -235,6 +235,9 @@ impl Context {
         let surface = render_info.surface;
         let device = render_info.device;
         let config = render_info.config;
+        // Getting the frame can wait for the display to free one, so it is timed apart from
+        // rui's own work.
+        let wait = crate::timing::start();
         let frame = match surface.get_current_texture() {
             Ok(frame) => frame,
             Err(_) => {
@@ -244,6 +247,9 @@ impl Context {
                     .expect("Failed to acquire next surface texture!")
             }
         };
+
+        crate::timing::stop("frame-wait", wait);
+        let work = crate::timing::start();
 
         vger.begin(window_size.width, window_size.height, scale);
 
@@ -308,6 +314,7 @@ impl Context {
         vger.encode(&desc);
 
         frame.present();
+        crate::timing::stop("render", work);
     }
 
     /// Process a UI event.

@@ -3,8 +3,13 @@ use std::any::Any;
 use std::hash::Hash;
 
 /// How far outside its bounds a child of a list may draw and still be drawn when its bounds are
-/// just outside the visible area, as for a shadow.
+/// just outside the visible area, as for a shadow. Pointer motion this close to an item also
+/// reaches it.
 const DRAW_SLACK: f32 = 64.0;
+
+/// The items that were under the pointer at a list's last motion, press or release, kept in the
+/// list's node. Not a `state`, so keeping it marks nothing written.
+struct PointerItems(Vec<ViewId>);
 
 #[derive(Clone, Copy)]
 pub enum ListOrientation {
@@ -62,15 +67,95 @@ where
         actions: &mut Vec<Box<dyn Any>>,
     ) {
         self.sync(vid, cx);
+
+        let position = match event {
+            Event::TouchBegin { position, .. }
+            | Event::TouchMove { position, .. }
+            | Event::TouchEnd { position, .. }
+            | Event::Scroll { position, .. } => Some(*position),
+            _ => None,
+        };
+
+        let Some(position) = position else {
+            for (i, child) in self.ids.iter().enumerate().rev() {
+                let cid = cx.child(vid, i);
+                if let Event::Anim = event
+                    && cx.skip_anim(cid)
+                {
+                    continue;
+                }
+                let offset = cx.get_layout(cid).offset;
+                ((self.func)(child)).process(&event.offset(-offset), cid, cx, actions);
+            }
+            return;
+        };
+
+        // Motion and wheel events go only to the items they can concern: those under the
+        // pointer, those that were under it at the last motion, press or release (so a hover
+        // sees the pointer leave, even when a `scroll` moves it far away), and those holding a
+        // touch (so a drag or a press that leaves its item still sees it move and end). Presses
+        // and releases are rare and go to every item.
+        let filter = matches!(event, Event::TouchMove { .. } | Event::Scroll { .. });
+        let previous = cx
+            .node_mut(vid)
+            .state
+            .take()
+            .and_then(|s| s.downcast::<PointerItems>().ok())
+            .map(|p| p.0)
+            .unwrap_or_default();
+        let holders: Vec<ViewId> = if filter {
+            cx.touches
+                .iter()
+                .filter(|t| !t.is_default())
+                .filter_map(|t| cx.child_toward(vid, *t))
+                .collect()
+        } else {
+            vec![]
+        };
+
+        let mut under = vec![];
         for (i, child) in self.ids.iter().enumerate().rev() {
             let cid = cx.child(vid, i);
-            if let Event::Anim = event
-                && cx.skip_anim(cid)
-            {
+            let layout = cx.get_layout(cid);
+            let offset = layout.offset;
+
+            // A z-list keeps no child sizes, so its items count as under the pointer, as for
+            // drawing.
+            let inside = layout.rect.size == LocalSize::zero()
+                || layout
+                    .rect
+                    .translate(offset)
+                    .inflate(DRAW_SLACK, DRAW_SLACK)
+                    .contains(position);
+            let nearby = !inside && (previous.contains(&cid) || holders.contains(&cid));
+            if filter && !inside && !nearby {
                 continue;
             }
-            let offset = cx.get_layout(cid).offset;
-            ((self.func)(child)).process(&event.offset(-offset), cid, cx, actions);
+
+            let view = (self.func)(child);
+            view.process(&event.offset(-offset), cid, cx, actions);
+
+            // An item reached while the pointer is beyond the slack, but still over a part
+            // of it drawn outside its bounds (as with `offset`), stays under the pointer, so
+            // it sees the pointer leave that part too.
+            if inside
+                || (nearby && cx.is_live(cid) && view.hittest(cid, position - offset, cx).is_some())
+            {
+                under.push(cid);
+            }
+        }
+
+        // An item can remove the list while processing (as by closing its window). The items
+        // under the pointer are kept from the last motion, press or release, not from a wheel
+        // event: scrolling moves the content under a still pointer, and the item hovered before
+        // must still see the next motion.
+        if cx.is_live(vid) {
+            let items = if matches!(event, Event::Scroll { .. }) {
+                previous
+            } else {
+                under
+            };
+            cx.node_mut(vid).state = Some(Box::new(PointerItems(items)));
         }
     }
 
@@ -282,6 +367,11 @@ impl<ID, F> private::Sealed for List<ID, F> {}
 /// any `clip` or `scroll` around the list) are not drawn. They are still laid out and still
 /// receive events.
 ///
+/// Pointer motion and wheel events reach only the items near the pointer, the items that were
+/// under it at the last motion, press or release, and the items holding a touch, as for a drag;
+/// presses, releases and every other event reach all items. An item that takes motion more than
+/// 64 points outside its bounds gets it there only when the pointer moves there from over it.
+///
 /// `ids` is a Vec of items that implement Hash.
 ///
 /// `f` is a function called to generate a DynView for each item.
@@ -428,5 +518,192 @@ mod tests {
         // Heights: 10 + 20 + 30 = 60
         assert_eq!(result.height, 60.0);
         assert_eq!(result.width, 50.0);
+    }
+
+    // Pointer events and the items they reach. Each test gives its layout in rui's y-up
+    // coordinates, where the first item of a list is at the top.
+
+    use crate::test_harness::TestHarness;
+
+    fn moved(position: [f32; 2]) -> Event {
+        Event::TouchMove {
+            id: 0,
+            position: position.into(),
+            delta: LocalOffset::zero(),
+        }
+    }
+
+    #[test]
+    fn test_drag_that_leaves_its_item_keeps_going() {
+        // Items 200 tall, so each is far from the others even with the slack: item 0 is at
+        // y=400..600, item 1 at 200..400, item 2 at 0..200.
+        let ui = state(Vec::<(usize, GestureState)>::new, |log, _| {
+            list(vec![0usize, 1, 2], move |&i| {
+                rectangle()
+                    .size([100.0, 200.0])
+                    .drag(move |cx, _, gesture, _| cx[log].push((i, gesture)))
+            })
+        });
+        let mut h = TestHarness::new(&ui, [100.0, 600.0]);
+        let log = StateHandle::<Vec<(usize, GestureState)>>::new(h.cx.root_id());
+
+        h.event(&Event::TouchBegin {
+            id: 0,
+            position: [50.0, 500.0].into(),
+        });
+        // Onto item 2, then out of the list altogether.
+        h.event(&moved([50.0, 100.0]));
+        h.event(&moved([50.0, -5000.0]));
+        h.event(&Event::TouchEnd {
+            id: 0,
+            position: [50.0, -5000.0].into(),
+        });
+
+        assert_eq!(
+            h.cx[log],
+            vec![
+                (0, GestureState::Began),
+                (0, GestureState::Changed),
+                (0, GestureState::Changed),
+                (0, GestureState::Ended),
+            ]
+        );
+
+        // The touch was released, so another item can take the next one.
+        h.drag([50.0, 300.0], [50.0, 310.0]);
+        assert_eq!(h.cx[log][4], (1, GestureState::Began));
+    }
+
+    #[test]
+    fn test_tap_released_outside_its_item_frees_the_touch() {
+        let ui = state(Vec::<usize>::new, |taps, _| {
+            list(vec![0usize, 1, 2], move |&i| {
+                rectangle()
+                    .size([100.0, 30.0])
+                    .tap(move |cx| cx[taps].push(i))
+            })
+        });
+        // Items 30 tall: item 0 is at y=60..90, item 1 at 30..60, item 2 at 0..30.
+        let mut h = TestHarness::new(&ui, [100.0, 90.0]);
+        let taps = StateHandle::<Vec<usize>>::new(h.cx.root_id());
+
+        h.event(&Event::TouchBegin {
+            id: 0,
+            position: [50.0, 75.0].into(),
+        });
+        h.event(&moved([50.0, -500.0]));
+        h.event(&Event::TouchEnd {
+            id: 0,
+            position: [50.0, -500.0].into(),
+        });
+        assert!(h.cx.touches[0].is_default());
+
+        h.tap([50.0, 45.0]);
+        assert_eq!(h.cx[taps].last(), Some(&1));
+    }
+
+    /// Three rows that each keep whether they are hovered and count their hover calls, in a
+    /// 100x90 list: item 0 is at y=60..90, item 1 at 30..60, item 2 at 0..30.
+    fn hover_rows() -> impl View {
+        state(
+            || ([false; 3], [0u32; 3]),
+            |rows, _| {
+                list(vec![0usize, 1, 2], move |&i| {
+                    rectangle().size([100.0, 30.0]).hover(move |cx, inside| {
+                        cx[rows].0[i] = inside;
+                        cx[rows].1[i] += 1;
+                    })
+                })
+            },
+        )
+    }
+
+    #[test]
+    fn test_hover_sees_the_pointer_leave() {
+        let ui = hover_rows();
+        let mut h = TestHarness::new(&ui, [100.0, 90.0]);
+        let rows = StateHandle::<([bool; 3], [u32; 3])>::new(h.cx.root_id());
+
+        h.event(&moved([50.0, 75.0]));
+        assert_eq!(h.cx[rows].0, [true, false, false]);
+
+        // Far onto item 2: item 0, under the pointer before, still hears of it.
+        h.event(&moved([50.0, 15.0]));
+        assert_eq!(h.cx[rows].0, [false, false, true]);
+
+        // Far away, as a `scroll` sends motion outside its viewport.
+        h.event(&moved([f32::MIN, f32::MIN]));
+        assert_eq!(h.cx[rows].0, [false, false, false]);
+    }
+
+    #[test]
+    fn test_motion_skips_items_far_from_the_pointer() {
+        let ui = state(
+            || [0u32; 10],
+            |calls, _| {
+                list((0..10usize).collect(), move |&i| {
+                    rectangle()
+                        .size([100.0, 100.0])
+                        .hover(move |cx, _| cx[calls][i] += 1)
+                })
+            },
+        );
+        let mut h = TestHarness::new(&ui, [100.0, 1000.0]);
+        let calls = StateHandle::<[u32; 10]>::new(h.cx.root_id());
+
+        // Item 0 is at the top, y=900..1000; item 1 ends at 900, plus the 64 points of slack.
+        h.event(&moved([50.0, 980.0]));
+        h.event(&moved([50.0, 990.0]));
+        assert_eq!(h.cx[calls], [2, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+    }
+
+    #[test]
+    fn test_hover_sees_the_pointer_leave_after_scrolling() {
+        let ui = hover_rows();
+        let mut h = TestHarness::new(&ui, [100.0, 90.0]);
+        let rows = StateHandle::<([bool; 3], [u32; 3])>::new(h.cx.root_id());
+
+        h.event(&moved([50.0, 75.0]));
+        assert_eq!(h.cx[rows].0, [true, false, false]);
+
+        // Wheel events with the pointer still: a `scroll` around the list moves the pointer,
+        // in the list's coordinates, far from item 0.
+        for y in [-200.0, -400.0] {
+            h.event(&Event::Scroll {
+                position: [50.0, y].into(),
+                delta: [0.0, -200.0].into(),
+            });
+        }
+
+        // The next motion still reaches item 0.
+        h.event(&moved([50.0, -600.0]));
+        assert_eq!(h.cx[rows].0, [false, false, false]);
+    }
+
+    #[test]
+    fn test_hover_beyond_the_slack_sees_the_pointer_leave() {
+        // One item 30 tall at y=0..30 whose hover area is moved 200 up, to y=200..230, beyond
+        // the 64 points of slack.
+        let ui = state(
+            || false,
+            |hovered, _| {
+                list(vec![0usize], move |_| {
+                    rectangle()
+                        .size([100.0, 30.0])
+                        .offset([0.0, 200.0])
+                        .hover(move |cx, inside| cx[hovered] = inside)
+                })
+            },
+        );
+        let mut h = TestHarness::new(&ui, [100.0, 30.0]);
+        let hovered = StateHandle::<bool>::new(h.cx.root_id());
+
+        // Over the item, then up onto its hover area.
+        h.event(&moved([50.0, 15.0]));
+        h.event(&moved([50.0, 215.0]));
+        assert!(h.cx[hovered]);
+
+        h.event(&moved([50.0, -1000.0]));
+        assert!(!h.cx[hovered]);
     }
 }
