@@ -12,8 +12,9 @@ pub trait TextModifiers: View + Sized {
 /// The string a [`Text`] shows, held so that showing it again doesn't allocate.
 ///
 /// - A literal is kept as its `&'static str`.
-/// - A string of up to [`TextStr::INLINE`] bytes is copied into the `TextStr` itself, so it
-///   needs no allocation at all and clones by copying 24 bytes.
+/// - A short string (up to 22 bytes, or 10 on 32-bit targets) is copied into the `TextStr`
+///   itself, so it needs no allocation at all and clones by copying the `TextStr`, which is as
+///   big as a `String`.
 /// - A longer one is copied once into an `Arc<str>`, which clones by bumping a count. An
 ///   `Arc<str>` passed in is kept as it is, so strings made once and held as `Arc<str>` are
 ///   shared, whatever their length.
@@ -25,10 +26,15 @@ pub trait TextModifiers: View + Sized {
 #[derive(Clone)]
 pub struct TextStr(Repr);
 
+// Checked on every target that builds rui, 32-bit ones included.
+const _: () = assert!(std::mem::size_of::<TextStr>() == std::mem::size_of::<String>());
+
 #[derive(Clone)]
 enum Repr {
     Static(&'static str),
-    /// The first `len` bytes of `buf`, always valid UTF-8.
+    /// The first `len` bytes of `buf`, always valid UTF-8: they are only ever copied from a
+    /// `str`, whole. rui has no `unsafe`, so reading them checks that again, which for at most
+    /// 22 bytes costs a few nanoseconds.
     Inline {
         len: u8,
         buf: [u8; TextStr::INLINE],
@@ -37,8 +43,9 @@ enum Repr {
 }
 
 impl TextStr {
-    /// The longest string, in bytes, kept inline. It makes a `TextStr` as big as a `String`.
-    pub const INLINE: usize = 22;
+    /// The longest string, in bytes, kept inline: what fits in a `String`'s three words beside
+    /// the length and the variant, so a `TextStr` is as big as a `String` on every target.
+    pub(crate) const INLINE: usize = 3 * std::mem::size_of::<usize>() - 2;
 
     /// Copies `s`: inline when it's short, into an `Arc<str>` otherwise. Use it for a borrowed
     /// `&str` that isn't `'static`.
@@ -58,7 +65,8 @@ impl TextStr {
     }
 
     /// Whether the text is kept inline, without an allocation.
-    pub fn is_inline(&self) -> bool {
+    #[cfg(test)]
+    fn is_inline(&self) -> bool {
         matches!(self.0, Repr::Inline { .. })
     }
 }
@@ -83,6 +91,30 @@ impl PartialEq for TextStr {
 }
 
 impl Eq for TextStr {}
+
+impl PartialEq<str> for TextStr {
+    fn eq(&self, other: &str) -> bool {
+        **self == *other
+    }
+}
+
+impl PartialEq<&str> for TextStr {
+    fn eq(&self, other: &&str) -> bool {
+        **self == **other
+    }
+}
+
+impl PartialEq<TextStr> for str {
+    fn eq(&self, other: &TextStr) -> bool {
+        *self == **other
+    }
+}
+
+impl PartialEq<TextStr> for &str {
+    fn eq(&self, other: &TextStr) -> bool {
+        **self == **other
+    }
+}
 
 impl PartialOrd for TextStr {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
@@ -492,9 +524,10 @@ mod tests {
     #[test]
     fn text_str_formats_inline() {
         let n = 1042;
-        let short = TextStr::from(format_args!("#{n} ${:.2}", 3.5));
+        // Short enough to stay inline on 32-bit targets too.
+        let short = TextStr::from(format_args!("#{n} {:.1}", 3.5));
         assert!(short.is_inline());
-        assert_eq!(&*short, "#1042 $3.50");
+        assert_eq!(&*short, "#1042 3.5");
 
         // Spills into a shared string once the text outgrows the buffer, in the middle of
         // one argument or across several.
@@ -520,12 +553,16 @@ mod tests {
         let shared = TextStr::from(Arc::<str>::from("Save"));
         assert_eq!(literal, inline);
         assert_eq!(inline, shared);
-        assert!(TextStr::from("a") < TextStr::from(String::from("b")));
+        let (a, b) = (TextStr::from("a"), TextStr::from(String::from("b")));
+        assert!(a < b);
 
         let set: HashSet<TextStr> = [literal].into_iter().collect();
         assert!(set.contains(&inline));
         assert!(set.contains(&shared));
         assert!(set.contains("Save"));
         assert_eq!(format!("{inline:?}"), "\"Save\"");
+
+        assert!(inline == "Save" && "Save" == inline && shared == *"Save" && *"Save" == shared);
+        assert!(inline != "Load");
     }
 }
