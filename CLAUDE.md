@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-rui is an experimental declarative UI library for Rust, inspired by SwiftUI. It focuses on GPU-rendered UIs that update reactively when state changes, without a retained view tree or DOM diffing. The entire UI is re-rendered when state changes, under the assumption that this is fast enough for good performance.
+rui is an experimental declarative UI library for Rust, inspired by SwiftUI. It focuses on GPU-rendered UIs that update reactively when state changes, without a retained view tree or DOM diffing. Views are rebuilt from the app's functions and never diffed; per-view data lives in a tree of nodes in the `Context`, which lets walks skip the parts of the UI whose state didn't change.
 
 ## Common Development Commands
 
@@ -33,16 +33,17 @@ Examples serve as both demos and integration tests. Test by running them and ver
 
 **View System**: The fundamental building block is the `View` trait, which represents immutable UI components. Views are composed hierarchically to build complex UIs.
 
-**Context**: Stores all mutable UI state, keyed by `ViewId`s. The `Context` manages:
+**Context**: Stores all mutable UI state in a tree of nodes, one per view, kept in an arena (`src/node.rs`). The `Context` manages:
 - Layout information for all views
 - User state created by `state` functions
+- Cached layout and accessibility results
 - Touch/mouse interaction state
 - Environment values
-- Dirty tracking for reactive updates
+- Write generations for reactive updates
 
-**ViewId System**: Each view gets a unique identifier (u64) formed by hashing the traversal path down the view tree. This enables efficient state storage and retrieval.
+**ViewId System**: A `ViewId` is a view's node: an index into the arena plus a generation. Every `DynView` method gets its view's `ViewId` and passes child `i` the id `cx.child(vid, i)`, which creates the node the first time. List items are matched to nodes by key (`sync_keyed_children`), the hidden branch of a `cond` is freed (`sole_child`), and an `any_view` child is freed when its type changes (`typed_child`). Freeing changes the slot's generation, so stale ids and `StateHandle`s are detected.
 
-**Reactive Updates**: The entire UI re-renders when state changes. Multiple state changes in a single event cycle are coalesced for efficiency.
+**Reactive Updates**: Each state write takes the next write generation, recorded on the state's node and all its ancestors. A `state` view reuses its cached layout and accessibility result while nothing under it, no enclosing state, and no other state it read (recorded by `Context::get` between `begin_reads` and `end_reads`) was written since; a `list` checks an item's node before building its view. Changes that aren't state writes (window size, focus) call `Context::invalidate_all`. Multiple state changes in a single event cycle are coalesced.
 
 ### Key Concepts
 
@@ -61,6 +62,8 @@ Examples serve as both demos and integration tests. Test by running them and ver
 - `src/lib.rs` - Main library entry point and exports
 - `src/view.rs` - Core `View` and `DynView` traits
 - `src/context.rs` - Context for managing state and layout
+- `src/node.rs` - The node tree: creating, matching and freeing nodes, write generations and caches
+- `src/viewid.rs` - `ViewId`
 - `src/views/` - Individual view implementations (button, text, shapes, etc.)
 - `src/modifiers.rs` - Common view modifiers
 - `src/binding.rs` - State binding system
@@ -73,14 +76,14 @@ State is managed through a combination of:
 1. **Local State**: Using `state(initial_value, |state, cx| view)` 
 2. **Bindings**: Read/write access to state via `Binding<T>`
 3. **Environment**: Shared values propagated down the view tree
-4. **Context**: Central storage for all state, indexed by ViewId
+4. **Context**: Central storage for all state, in the node of the `state` view, addressed by `ViewId`
 
 ### Rendering Pipeline
 
 1. **Event Processing**: Handle user input and update state
-2. **Layout**: Compute view sizes and positions (cached until state changes)  
+2. **Layout**: Compute view sizes and positions (cached per `state` view until a state it depends on changes)
 3. **Drawing**: Render using vger (GPU vector graphics)
-4. **Dirty Tracking**: Only re-render when state actually changes
+4. **Dirty Tracking**: Only update when state changes, skipping subtrees with no writes
 
 ### Platform Support
 
@@ -106,6 +109,8 @@ State is managed through a combination of:
 - Test by running examples and ensuring they work correctly
 
 ### Performance Considerations
-- Layout is cached and only recomputed when state changes
+- Layout is cached per `state` view and only recomputed when a state it depends on changes
+- A list item whose view is a `state` view at its root is skipped while clean; any other item is rebuilt whenever its list is laid out
+- A view that reads something other than state through the `Context` (like the focus) needs `Context::invalidate_all` when it changes
 - Rendering assumes 2D UI graphics are trivial for modern GPUs
 - Avoid complex state dependencies that cause excessive re-renders
