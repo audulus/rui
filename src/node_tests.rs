@@ -318,6 +318,43 @@ fn test_access_sends_only_changed_rows() {
 }
 
 #[test]
+fn test_access_tree_is_built_only_when_enabled() {
+    let calls = Calls::default();
+    let ui = rows(&calls);
+    let mut cx = Context::new();
+    layout(&mut cx, &ui);
+    let mut nodes = vec![];
+
+    // Off by default: nothing is built, and no row's view is built for it.
+    assert!(!cx.access_enabled());
+    calls.reset();
+    cx.update_access(&ui, &mut nodes);
+    assert!(nodes.is_empty());
+    assert_eq!(calls.bodies(), [0, 0, 0]);
+    cx.clear_dirty();
+
+    // Turning it on marks the UI dirty and the next update gives the whole tree: the list and
+    // three buttons.
+    cx.set_access_enabled(true);
+    assert!(cx.dirty);
+    cx.update_access(&ui, &mut nodes);
+    assert_eq!(nodes.len(), 4);
+    cx.clear_dirty();
+    cx.update_access(&ui, &mut nodes);
+    assert!(nodes.is_empty());
+
+    // Off again, then on with nothing written in between: the caches from before must not
+    // report the nodes as already sent.
+    cx.set_access_enabled(false);
+    assert!(!cx.dirty);
+    cx.update_access(&ui, &mut nodes);
+    assert!(nodes.is_empty());
+    cx.set_access_enabled(true);
+    cx.update_access(&ui, &mut nodes);
+    assert_eq!(nodes.len(), 4);
+}
+
+#[test]
 fn test_dirty_regions_skip_clean_rows() {
     let calls = Calls::default();
     let ui = rows(&calls);
