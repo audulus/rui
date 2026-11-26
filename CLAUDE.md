@@ -33,7 +33,7 @@ Examples serve as both demos and integration tests. Test by running them and ver
 
 **View System**: The fundamental building block is the `View` trait, which represents immutable UI components. Views are composed hierarchically to build complex UIs.
 
-**Context**: Stores all mutable UI state in a tree of nodes, one per view, kept in an arena (`src/node.rs`). The `Context` manages:
+**Context**: Stores all mutable UI state in a tree of nodes, one per view, kept in an arena (`src/tree.rs`). The `Context` manages:
 - Layout information for all views
 - User state created by `state` functions
 - Cached layout and accessibility results
@@ -62,7 +62,8 @@ Examples serve as both demos and integration tests. Test by running them and ver
 - `src/lib.rs` - Main library entry point and exports
 - `src/view.rs` - Core `View` and `DynView` traits
 - `src/context.rs` - Context for managing state and layout
-- `src/node.rs` - The node tree: creating, matching and freeing nodes, write generations and caches
+- `src/node.rs` - `Node`, the data the `Context` stores for one view
+- `src/tree.rs` - The node tree: creating, matching and freeing nodes, write generations and caches
 - `src/viewid.rs` - `ViewId`
 - `src/views/` - Individual view implementations (button, text, shapes, etc.)
 - `src/modifiers.rs` - Common view modifiers

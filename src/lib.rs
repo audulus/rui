@@ -28,6 +28,8 @@ pub use context::*;
 mod node;
 pub(crate) use node::*;
 
+mod tree;
+
 mod views;
 pub use views::*;
 
