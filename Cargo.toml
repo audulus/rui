@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = [".", "./examples/flip_cards", "./examples/calculator", "./examples/synth"]
+members = [".", "./examples/flip_cards", "./examples/calculator", "./examples/synth", "./examples/gui_bench"]
 default-members = ["."]
 
 [workspace.dependencies]

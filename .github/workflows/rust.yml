@@ -36,6 +36,8 @@ jobs:
       run: cargo test
     - name: Build examples
       run: cargo build --examples
+    - name: Build the gui-bench app
+      run: cargo build -p rui-bench
     - name: Build w/o default features
       run: cargo build --no-default-features
     - name: Build for wasm
