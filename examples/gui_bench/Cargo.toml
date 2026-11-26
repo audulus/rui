@@ -1,0 +1,9 @@
+[package]
+name = "rui-bench"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "The gui-bench workbench app in rui"
+
+[dependencies]
+rui = { workspace = true }
