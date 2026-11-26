@@ -191,7 +191,10 @@ impl Context {
             // longer true once the nodes stop being sent. Dropping them on either change also
             // frees them while the tree is off.
             self.clear_access_caches();
-            self.dirty = true;
+            // Only turning it on has something new for the next update to give.
+            if enabled {
+                self.dirty = true;
+            }
         }
     }
 
