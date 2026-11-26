@@ -71,7 +71,7 @@ fn nav_item(app: StateHandle<App>, i: usize) -> impl View {
             let text = if active { 0xffffff } else { dash::SIDEBAR_TEXT };
             let badge = if i == dash::BADGE_ITEM {
                 any_view(pill(
-                    &dash::BADGE_COUNT.to_string(),
+                    dash::BADGE_COUNT.to_string(),
                     12.0,
                     0xffffff,
                     20.0,

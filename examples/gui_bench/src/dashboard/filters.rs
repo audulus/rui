@@ -97,7 +97,12 @@ pub fn view(app: StateHandle<App>) -> impl View {
 }
 
 /// The row of checkbox `k`: the box and the label. A click anywhere on the row toggles it.
-fn check_row(app: StateHandle<App>, k: usize, checked: bool, text: &str) -> impl View + use<> {
+fn check_row(
+    app: StateHandle<App>,
+    k: usize,
+    checked: bool,
+    text: &'static str,
+) -> impl View + use<> {
     hstack((
         checkbox(checked),
         gap(28.0 - dash::CHECK_SIZE, dash::CHECK_STRIDE),

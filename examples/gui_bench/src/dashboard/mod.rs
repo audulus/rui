@@ -76,7 +76,7 @@ impl App {
 #[derive(Clone)]
 pub struct Data {
     pub orders: Arc<Vec<orders::Row>>,
-    pub messages: Arc<Vec<dash::Message>>,
+    pub messages: Arc<Vec<messages::Card>>,
 }
 
 /// Returns the window content with `count` orders and `count` messages.
@@ -88,7 +88,12 @@ pub fn view(count: usize) -> impl View {
                 .map(orders::Row::new)
                 .collect(),
         ),
-        messages: Arc::new(dash::messages(count)),
+        messages: Arc::new(
+            dash::messages(count)
+                .into_iter()
+                .map(messages::Card::new)
+                .collect(),
+        ),
     };
     state(App::new, move |app, cx| {
         let page = dash::page(cx[app].nav);

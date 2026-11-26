@@ -1,4 +1,5 @@
 use crate::*;
+use std::sync::Arc;
 
 pub trait TextModifiers: View + Sized {
     fn font_size(self, size: u32) -> Text;
@@ -8,10 +9,107 @@ pub trait TextModifiers: View + Sized {
     fn wrap(self) -> Text;
 }
 
+/// The string a [`Text`] shows: a literal, or a shared string that clones without copying.
+///
+/// Literals are kept as `&'static str`. Any other string is copied once into an `Arc<str>`, so
+/// a view rebuilt every frame from strings made once (held as `Arc<str>`) doesn't allocate.
+///
+/// Two `TextStr`s are equal, ordered and hashed by their text, whichever way they hold it.
+#[derive(Clone, Debug)]
+pub enum TextStr {
+    Static(&'static str),
+    Shared(Arc<str>),
+}
+
+impl PartialEq for TextStr {
+    fn eq(&self, other: &Self) -> bool {
+        **self == **other
+    }
+}
+
+impl Eq for TextStr {}
+
+impl PartialOrd for TextStr {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for TextStr {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        (**self).cmp(&**other)
+    }
+}
+
+impl std::hash::Hash for TextStr {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        (**self).hash(state)
+    }
+}
+
+impl std::borrow::Borrow<str> for TextStr {
+    fn borrow(&self) -> &str {
+        self
+    }
+}
+
+impl std::ops::Deref for TextStr {
+    type Target = str;
+    fn deref(&self) -> &str {
+        match self {
+            TextStr::Static(s) => s,
+            TextStr::Shared(s) => s,
+        }
+    }
+}
+
+impl std::fmt::Display for TextStr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self)
+    }
+}
+
+impl From<&'static str> for TextStr {
+    fn from(s: &'static str) -> Self {
+        TextStr::Static(s)
+    }
+}
+
+impl From<Arc<str>> for TextStr {
+    fn from(s: Arc<str>) -> Self {
+        TextStr::Shared(s)
+    }
+}
+
+impl From<&Arc<str>> for TextStr {
+    fn from(s: &Arc<str>) -> Self {
+        TextStr::Shared(s.clone())
+    }
+}
+
+impl From<String> for TextStr {
+    fn from(s: String) -> Self {
+        TextStr::Shared(s.into())
+    }
+}
+
+/// Copies the string. Hold an `Arc<str>` instead to show it without copying.
+impl From<&String> for TextStr {
+    fn from(s: &String) -> Self {
+        TextStr::Shared(s.as_str().into())
+    }
+}
+
+impl From<&TextStr> for TextStr {
+    fn from(s: &TextStr) -> Self {
+        s.clone()
+    }
+}
+
 /// Struct for `text`.
 #[derive(Clone)]
 pub struct Text {
-    text: String,
+    text: TextStr,
     size: u32,
     color: Color,
     max_width: Option<f32>,
@@ -40,19 +138,17 @@ impl DynView for Text {
     fn draw(&self, vid: ViewId, args: &mut DrawArgs) {
         let max_width = self.break_width(vid, args.cx);
         let vger = &mut args.vger;
-        let origin = vger
-            .text_bounds(self.text.as_str(), self.size, max_width)
-            .origin;
+        let origin = vger.text_bounds(&self.text, self.size, max_width).origin;
 
         vger.save();
         vger.translate([-origin.x, -origin.y]);
-        vger.text(self.text.as_str(), self.size, self.color, max_width);
+        vger.text(&self.text, self.size, self.color, max_width);
         vger.restore();
     }
     fn layout(&self, vid: ViewId, args: &mut LayoutArgs) -> LocalSize {
         if self.wrap {
             let width = args.sz.width.max(1.0);
-            let size = (args.text_bounds)(self.text.as_str(), self.size, Some(width)).size;
+            let size = (args.text_bounds)(&self.text, self.size, Some(width)).size;
             args.cx.update_layout(
                 vid,
                 LayoutBox {
@@ -62,7 +158,7 @@ impl DynView for Text {
             );
             [width, size.height].into()
         } else {
-            (args.text_bounds)(self.text.as_str(), self.size, self.max_width).size
+            (args.text_bounds)(&self.text, self.size, self.max_width).size
         }
     }
     fn hittest(&self, _vid: ViewId, _pt: LocalPoint, _cx: &mut Context) -> Option<ViewId> {
@@ -77,7 +173,7 @@ impl DynView for Text {
     ) -> Option<accesskit::NodeId> {
         let aid = vid.access_id();
         let mut builder = accesskit::NodeBuilder::new(accesskit::Role::Label);
-        builder.set_name(self.text.clone());
+        builder.set_name(&*self.text);
         nodes.push((aid, builder.build()));
         Some(aid)
     }
@@ -104,9 +200,13 @@ impl TextModifiers for Text {
 impl private::Sealed for Text {}
 
 /// Shows a string as a label (not editable).
-pub fn text(name: &str) -> Text {
+///
+/// Takes a literal, a `String`, or an `Arc<str>` (see [`TextStr`]). A borrowed `&str` that
+/// isn't `'static` has to be owned first: pass `s.to_owned()`, or keep the string as an
+/// `Arc<str>` to show it without copying each time the view is built.
+pub fn text(name: impl Into<TextStr>) -> Text {
     Text {
-        text: String::from(name),
+        text: name.into(),
         size: Text::DEFAULT_SIZE,
         color: TEXT_COLOR,
         max_width: None,
@@ -149,7 +249,7 @@ macro_rules! impl_text {
         impl TextModifiers for $ty {
             fn font_size(self, size: u32) -> Text {
                 Text {
-                    text: format!("{}", self),
+                    text: format!("{}", self).into(),
                     size,
                     color: TEXT_COLOR,
                     max_width: None,
@@ -158,7 +258,7 @@ macro_rules! impl_text {
             }
             fn color(self, color: Color) -> Text {
                 Text {
-                    text: format!("{}", self),
+                    text: format!("{}", self).into(),
                     size: Text::DEFAULT_SIZE,
                     color,
                     max_width: None,
@@ -168,7 +268,7 @@ macro_rules! impl_text {
 
             fn max_width(self, max_width: f32) -> Text {
                 Text {
-                    text: format!("{}", self),
+                    text: format!("{}", self).into(),
                     size: Text::DEFAULT_SIZE,
                     color: TEXT_COLOR,
                     max_width: Some(max_width),
@@ -177,7 +277,7 @@ macro_rules! impl_text {
             }
 
             fn wrap(self) -> Text {
-                text(&format!("{}", self)).wrap()
+                text(format!("{}", self)).wrap()
             }
         }
     };
@@ -186,7 +286,6 @@ macro_rules! impl_text {
 // XXX: this used to be generic for any Display but
 //      that was causing trouble with adding Clone to view.
 //      Perhaps a rust wizard can figure out why.
-impl_text!(String);
 impl_text!(u32);
 impl_text!(i32);
 impl_text!(u64);
@@ -194,50 +293,90 @@ impl_text!(i64);
 impl_text!(f32);
 impl_text!(f64);
 
-// XXX: Can't do impl_text!(&'static str)
-impl DynView for &'static str {
-    fn draw(&self, _vid: ViewId, args: &mut DrawArgs) {
-        let txt = &self.to_string();
-        let vger = &mut args.vger;
-        let origin = vger.text_bounds(txt, Text::DEFAULT_SIZE, None).origin;
+/// Draws a string as a text of the default size and color.
+macro_rules! impl_str_text {
+    ( $($ty:ty),* ) => { $(
+        impl DynView for $ty {
+            fn draw(&self, _vid: ViewId, args: &mut DrawArgs) {
+                let txt: &str = &**self;
+                let vger = &mut args.vger;
+                let origin = vger.text_bounds(txt, Text::DEFAULT_SIZE, None).origin;
 
-        vger.save();
-        vger.translate([-origin.x, -origin.y]);
-        vger.text(txt, Text::DEFAULT_SIZE, TEXT_COLOR, None);
-        vger.restore();
-    }
-    fn layout(&self, _vid: ViewId, args: &mut LayoutArgs) -> LocalSize {
-        let txt = &self.to_string();
-        (args.text_bounds)(txt, Text::DEFAULT_SIZE, None).size
-    }
+                vger.save();
+                vger.translate([-origin.x, -origin.y]);
+                vger.text(txt, Text::DEFAULT_SIZE, TEXT_COLOR, None);
+                vger.restore();
+            }
+            fn layout(&self, _vid: ViewId, args: &mut LayoutArgs) -> LocalSize {
+                (args.text_bounds)(&**self, Text::DEFAULT_SIZE, None).size
+            }
 
-    fn access(
-        &self,
-        vid: ViewId,
-        _cx: &mut Context,
-        nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
-    ) -> Option<accesskit::NodeId> {
-        let aid = vid.access_id();
-        let mut builder = accesskit::NodeBuilder::new(accesskit::Role::Label);
-        builder.set_name(self.to_string());
-        nodes.push((aid, builder.build()));
-        Some(aid)
-    }
+            fn access(
+                &self,
+                vid: ViewId,
+                _cx: &mut Context,
+                nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
+            ) -> Option<accesskit::NodeId> {
+                let aid = vid.access_id();
+                let mut builder = accesskit::NodeBuilder::new(accesskit::Role::Label);
+                builder.set_name(&**self);
+                nodes.push((aid, builder.build()));
+                Some(aid)
+            }
+        }
+
+        impl TextModifiers for $ty {
+            fn font_size(self, size: u32) -> Text {
+                text(self).font_size(size)
+            }
+            fn color(self, color: Color) -> Text {
+                text(self).color(color)
+            }
+            fn max_width(self, max_width: f32) -> Text {
+                text(self).max_width(max_width)
+            }
+            fn wrap(self) -> Text {
+                text(self).wrap()
+            }
+        }
+    )* };
 }
 
-impl TextModifiers for &'static str {
-    fn font_size(self, size: u32) -> Text {
-        text(self).font_size(size)
-    }
-    fn color(self, color: Color) -> Text {
-        text(self).color(color)
-    }
-    fn max_width(self, max_width: f32) -> Text {
-        text(self).max_width(max_width)
-    }
-    fn wrap(self) -> Text {
-        text(self).wrap()
-    }
-}
+impl_str_text!(&'static str, String, Arc<str>, TextStr);
 
 impl<V> private::Sealed for V where V: std::fmt::Display {}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn text_str_does_not_copy() {
+        assert!(matches!(
+            TextStr::from("literal"),
+            TextStr::Static("literal")
+        ));
+
+        let shared: Arc<str> = Arc::from("shared");
+        let TextStr::Shared(s) = TextStr::from(&shared) else {
+            panic!("an Arc<str> should stay shared");
+        };
+        assert!(Arc::ptr_eq(&s, &shared));
+
+        assert_eq!(&*text(String::from("owned")).text, "owned");
+    }
+
+    #[test]
+    fn text_str_compares_by_text() {
+        use std::collections::HashSet;
+
+        let literal = TextStr::from("Save");
+        let owned = TextStr::from(String::from("Save"));
+        assert_eq!(literal, owned);
+        assert!(TextStr::from("a") < TextStr::from(String::from("b")));
+
+        let set: HashSet<TextStr> = [literal].into_iter().collect();
+        assert!(set.contains(&owned));
+        assert!(set.contains("Save"));
+    }
+}

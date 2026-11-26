@@ -8,8 +8,29 @@ use rui::*;
 use super::style::{Surface, color, gap, label, paint_centered_text};
 use crate::dash::{self, Message};
 
+/// One message with the texts its card shows, made once and shared by every build of the card.
+pub struct Card {
+    author: Arc<str>,
+    initials: Arc<str>,
+    avatar: u32,
+    time: Arc<str>,
+    body: Arc<str>,
+}
+
+impl Card {
+    pub fn new(message: Message) -> Self {
+        Self {
+            author: message.author.into(),
+            initials: message.initials.into(),
+            avatar: message.avatar,
+            time: message.time.into(),
+            body: message.body.into(),
+        }
+    }
+}
+
 /// Returns the feed of `messages`.
-pub fn view(messages: Arc<Vec<Message>>) -> impl View {
+pub fn view(messages: Arc<Vec<Card>>) -> impl View {
     let count = messages.len();
     list((0..count).collect(), move |&i| {
         let below = if i + 1 < count {
@@ -23,11 +44,11 @@ pub fn view(messages: Arc<Vec<Message>>) -> impl View {
 }
 
 /// The card of one message.
-fn card(message: &Message) -> impl View + use<> {
+fn card(message: &Card) -> impl View + use<> {
     let (down, across) = dash::MESSAGE_PADDING;
     let head = hstack((
         gap(across, dash::MESSAGE_LINE),
-        avatar(&message.initials, message.avatar),
+        avatar(message.initials.clone(), message.avatar),
         gap(dash::MESSAGE_TEXT_X - across - dash::MESSAGE_AVATAR, 0.0),
         label(&message.author, dash::FONT_SIZE, dash::TEXT),
         gap(8.0, 0.0),
@@ -47,8 +68,7 @@ fn card(message: &Message) -> impl View + use<> {
 
 /// The avatar of a message: a circle whose top is the top of the author's line, which it
 /// overhangs downwards.
-fn avatar(initials: &str, hex: u32) -> impl View + use<> {
-    let initials = initials.to_owned();
+fn avatar(initials: Arc<str>, hex: u32) -> impl View + use<> {
     canvas(move |_, rect, vger| {
         let r = dash::MESSAGE_AVATAR / 2.0;
         let center = LocalPoint::new(r, rect.height() - r);

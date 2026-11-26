@@ -19,18 +19,22 @@ const AMOUNT_WIDTH: f32 = dash::SORT_WIDTH;
 /// The space right of the amount column.
 const PADDING_RIGHT: f32 = 992.0 - dash::COL_AMOUNT_END;
 
-/// One order with the texts its row shows, made once.
+/// One order with the texts its row shows, made once and shared by every build of the row.
 pub struct Row {
     pub order: Order,
-    number: String,
-    amount: String,
+    number: Arc<str>,
+    customer: Arc<str>,
+    initials: Arc<str>,
+    amount: Arc<str>,
 }
 
 impl Row {
     pub fn new(order: Order) -> Self {
         Self {
-            number: order.number_text(),
-            amount: order.amount(),
+            number: order.number_text().into(),
+            customer: order.customer.as_str().into(),
+            initials: order.initials.as_str().into(),
+            amount: order.amount().into(),
             order,
         }
     }
@@ -113,9 +117,9 @@ pub fn row(row: &Row) -> impl View + use<> {
         gap(dash::COL_ORDER, dash::ORDER_ROW_HEIGHT),
         leading(label(&row.number, dash::FONT_SIZE, dash::MUTED)).fixed_width(ORDER_WIDTH),
         leading(hstack((
-            avatar(&order.initials, dash::AVATAR, 11, order.avatar),
+            avatar(row.initials.clone(), dash::AVATAR, 11, order.avatar),
             gap(40.0 - dash::AVATAR, 0.0),
-            label(&order.customer, dash::FONT_SIZE, dash::TEXT),
+            label(&row.customer, dash::FONT_SIZE, dash::TEXT),
         )))
         .fixed_width(CUSTOMER_WIDTH),
         leading(pill(
