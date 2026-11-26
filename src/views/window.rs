@@ -27,67 +27,54 @@ where
     fn process(
         &self,
         event: &Event,
-        path: &mut IdPath,
+        vid: ViewId,
         cx: &mut Context,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
-        path.push(0);
-        self.child.process(event, path, cx, actions);
-        path.pop();
+        let cid = cx.child(vid, 0);
+        self.child.process(event, cid, cx, actions);
     }
 
-    fn draw(&self, path: &mut IdPath, args: &mut DrawArgs) {
-        path.push(0);
-        self.child.draw(path, args);
-        path.pop();
+    fn draw(&self, vid: ViewId, args: &mut DrawArgs) {
+        let cid = args.cx.child(vid, 0);
+        self.child.draw(cid, args);
         let cx = &mut args.cx;
         if cx.window_title != self.title {
             cx.window_title = self.title.clone();
         }
     }
 
-    fn layout(&self, path: &mut IdPath, args: &mut LayoutArgs) -> LocalSize {
-        path.push(0);
-        let sz = self.child.layout(path, args);
-        path.pop();
-        sz
+    fn layout(&self, vid: ViewId, args: &mut LayoutArgs) -> LocalSize {
+        let cid = args.cx.child(vid, 0);
+
+        self.child.layout(cid, args)
     }
 
-    fn dirty(&self, path: &mut IdPath, xform: LocalToWorld, cx: &mut Context) {
-        path.push(0);
-        self.child.dirty(path, xform, cx);
-        path.pop();
+    fn dirty(&self, vid: ViewId, xform: LocalToWorld, cx: &mut Context) {
+        let cid = cx.child(vid, 0);
+        self.child.dirty(cid, xform, cx);
     }
 
-    fn hittest(&self, path: &mut IdPath, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
-        path.push(0);
-        let id = self.child.hittest(path, pt, cx);
-        path.pop();
-        id
+    fn hittest(&self, vid: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
+        let cid = cx.child(vid, 0);
+
+        self.child.hittest(cid, pt, cx)
     }
 
-    fn commands(&self, path: &mut IdPath, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
-        path.push(0);
-        self.child.commands(path, cx, cmds);
-        path.pop();
-    }
-
-    fn gc(&self, path: &mut IdPath, cx: &mut Context, map: &mut Vec<ViewId>) {
-        path.push(0);
-        self.child.gc(path, cx, map);
-        path.pop();
+    fn commands(&self, vid: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
+        let cid = cx.child(vid, 0);
+        self.child.commands(cid, cx, cmds);
     }
 
     fn access(
         &self,
-        path: &mut IdPath,
+        vid: ViewId,
         cx: &mut Context,
         nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
     ) -> Option<accesskit::NodeId> {
-        path.push(0);
-        let node_id = self.child.access(path, cx, nodes);
-        path.pop();
-        node_id
+        let cid = cx.child(vid, 0);
+
+        self.child.access(cid, cx, nodes)
     }
 }
 
@@ -115,64 +102,51 @@ where
     fn process(
         &self,
         event: &Event,
-        path: &mut IdPath,
+        vid: ViewId,
         cx: &mut Context,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
-        path.push(0);
-        self.child.process(event, path, cx, actions);
-        path.pop();
+        let cid = cx.child(vid, 0);
+        self.child.process(event, cid, cx, actions);
     }
 
-    fn draw(&self, path: &mut IdPath, args: &mut DrawArgs) {
-        path.push(0);
-        self.child.draw(path, args);
-        path.pop();
+    fn draw(&self, vid: ViewId, args: &mut DrawArgs) {
+        let cid = args.cx.child(vid, 0);
+        self.child.draw(cid, args);
         args.cx.fullscreen = true;
     }
 
-    fn layout(&self, path: &mut IdPath, args: &mut LayoutArgs) -> LocalSize {
-        path.push(0);
-        let sz = self.child.layout(path, args);
-        path.pop();
-        sz
+    fn layout(&self, vid: ViewId, args: &mut LayoutArgs) -> LocalSize {
+        let cid = args.cx.child(vid, 0);
+
+        self.child.layout(cid, args)
     }
 
-    fn dirty(&self, path: &mut IdPath, xform: LocalToWorld, cx: &mut Context) {
-        path.push(0);
-        self.child.dirty(path, xform, cx);
-        path.pop();
+    fn dirty(&self, vid: ViewId, xform: LocalToWorld, cx: &mut Context) {
+        let cid = cx.child(vid, 0);
+        self.child.dirty(cid, xform, cx);
     }
 
-    fn hittest(&self, path: &mut IdPath, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
-        path.push(0);
-        let id = self.child.hittest(path, pt, cx);
-        path.pop();
-        id
+    fn hittest(&self, vid: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
+        let cid = cx.child(vid, 0);
+
+        self.child.hittest(cid, pt, cx)
     }
 
-    fn commands(&self, path: &mut IdPath, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
-        path.push(0);
-        self.child.commands(path, cx, cmds);
-        path.pop();
-    }
-
-    fn gc(&self, path: &mut IdPath, cx: &mut Context, map: &mut Vec<ViewId>) {
-        path.push(0);
-        self.child.gc(path, cx, map);
-        path.pop();
+    fn commands(&self, vid: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
+        let cid = cx.child(vid, 0);
+        self.child.commands(cid, cx, cmds);
     }
 
     fn access(
         &self,
-        path: &mut IdPath,
+        vid: ViewId,
         cx: &mut Context,
         nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
     ) -> Option<accesskit::NodeId> {
-        path.push(0);
-        let node_id = self.child.access(path, cx, nodes);
-        path.pop();
-        node_id
+        let cid = cx.child(vid, 0);
+
+        self.child.access(cid, cx, nodes)
     }
 }
 

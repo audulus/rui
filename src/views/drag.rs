@@ -128,14 +128,13 @@ where
     fn process(
         &self,
         event: &Event,
-        path: &mut IdPath,
+        vid: ViewId,
         cx: &mut Context,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
-        let vid = cx.view_id(path);
         match &event {
             Event::TouchBegin { id, position } => {
-                if cx.touches[*id].is_default() && self.hittest(path, *position, cx).is_some() {
+                if cx.touches[*id].is_default() && self.hittest(vid, *position, cx).is_some() {
                     cx.touches[*id] = vid;
                     cx.starts[*id] = *position;
                     cx.previous_position[*id] = *position;
@@ -184,61 +183,48 @@ where
                 }
             }
             _ => {
-                path.push(0);
-                self.child.process(event, path, cx, actions);
-                path.pop();
+                let cid = cx.child(vid, 0);
+                self.child.process(event, cid, cx, actions);
             }
         }
     }
 
-    fn draw(&self, path: &mut IdPath, args: &mut DrawArgs) {
-        path.push(0);
-        self.child.draw(path, args);
-        path.pop();
+    fn draw(&self, vid: ViewId, args: &mut DrawArgs) {
+        let cid = args.cx.child(vid, 0);
+        self.child.draw(cid, args);
     }
 
-    fn layout(&self, path: &mut IdPath, args: &mut LayoutArgs) -> LocalSize {
-        path.push(0);
-        let sz = self.child.layout(path, args);
-        path.pop();
-        sz
+    fn layout(&self, vid: ViewId, args: &mut LayoutArgs) -> LocalSize {
+        let cid = args.cx.child(vid, 0);
+
+        self.child.layout(cid, args)
     }
 
-    fn dirty(&self, path: &mut IdPath, xform: LocalToWorld, cx: &mut Context) {
-        path.push(0);
-        self.child.dirty(path, xform, cx);
-        path.pop();
+    fn dirty(&self, vid: ViewId, xform: LocalToWorld, cx: &mut Context) {
+        let cid = cx.child(vid, 0);
+        self.child.dirty(cid, xform, cx);
     }
 
-    fn hittest(&self, path: &mut IdPath, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
-        path.push(0);
-        let id = self.child.hittest(path, pt, cx);
-        path.pop();
-        id
+    fn hittest(&self, vid: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
+        let cid = cx.child(vid, 0);
+
+        self.child.hittest(cid, pt, cx)
     }
 
-    fn commands(&self, path: &mut IdPath, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
-        path.push(0);
-        self.child.commands(path, cx, cmds);
-        path.pop();
-    }
-
-    fn gc(&self, path: &mut IdPath, cx: &mut Context, map: &mut Vec<ViewId>) {
-        path.push(0);
-        self.child.gc(path, cx, map);
-        path.pop();
+    fn commands(&self, vid: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
+        let cid = cx.child(vid, 0);
+        self.child.commands(cid, cx, cmds);
     }
 
     fn access(
         &self,
-        path: &mut IdPath,
+        vid: ViewId,
         cx: &mut Context,
         nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
     ) -> Option<accesskit::NodeId> {
-        path.push(0);
-        let node_id = self.child.access(path, cx, nodes);
-        path.pop();
-        node_id
+        let cid = cx.child(vid, 0);
+
+        self.child.access(cid, cx, nodes)
     }
 }
 
@@ -253,25 +239,23 @@ mod tests {
     fn test_drag() {
         let mut cx = Context::new();
 
-        let ui = state(
-            || vec![],
-            |states, _| rectangle().drag(move |cx, _delta, state, _| cx[states].push(state)),
-        );
+        let ui = state(std::vec::Vec::new, |states, _| {
+            rectangle().drag(move |cx, _delta, state, _| cx[states].push(state))
+        });
         let sz = [100.0, 100.0].into();
-        let mut path = IdPath::root();
+        let vid = cx.root_id();
 
         let rect_sz = ui.layout(
-            &mut path,
+            vid,
             &mut LayoutArgs {
                 sz,
                 cx: &mut cx,
                 text_bounds: &mut |_, _, _| LocalRect::new(LocalPoint::zero(), [90.0, 90.0].into()),
             },
         );
-        assert_eq!(path.len(), 1);
 
         assert_eq!(rect_sz, sz);
-        let s = StateHandle::<Vec<GestureState>>::new(cx.view_id(&path));
+        let s = StateHandle::<Vec<GestureState>>::new(vid);
         assert_eq!(cx[s], vec![]);
 
         let events = [
@@ -292,9 +276,8 @@ mod tests {
 
         let mut actions = vec![];
         for event in &events {
-            ui.process(event, &mut path, &mut cx, &mut actions);
+            ui.process(event, vid, &mut cx, &mut actions);
         }
-        assert_eq!(path.len(), 1);
 
         assert_eq!(
             cx[s],

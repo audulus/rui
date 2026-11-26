@@ -23,64 +23,50 @@ where
     fn process(
         &self,
         event: &Event,
-        path: &mut IdPath,
+        vid: ViewId,
         cx: &mut Context,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
-        path.push(0);
-        (self.func)(self.value.clone(), cx).process(event, path, cx, actions);
-        path.pop();
+        let cid = cx.child(vid, 0);
+        (self.func)(self.value.clone(), cx).process(event, cid, cx, actions);
     }
 
-    fn draw(&self, path: &mut IdPath, args: &mut DrawArgs) {
-        path.push(0);
-        (self.func)(self.value.clone(), args.cx).draw(path, args);
-        path.pop();
+    fn draw(&self, vid: ViewId, args: &mut DrawArgs) {
+        let cid = args.cx.child(vid, 0);
+        (self.func)(self.value.clone(), args.cx).draw(cid, args);
     }
 
-    fn layout(&self, path: &mut IdPath, args: &mut LayoutArgs) -> LocalSize {
-        path.push(0);
-        let sz = (self.func)(self.value.clone(), args.cx).layout(path, args);
-        path.pop();
-        sz
+    fn layout(&self, vid: ViewId, args: &mut LayoutArgs) -> LocalSize {
+        let cid = args.cx.child(vid, 0);
+
+        (self.func)(self.value.clone(), args.cx).layout(cid, args)
     }
 
-    fn dirty(&self, path: &mut IdPath, xform: LocalToWorld, cx: &mut Context) {
-        path.push(0);
-        (self.func)(self.value.clone(), cx).dirty(path, xform, cx);
-        path.pop();
+    fn dirty(&self, vid: ViewId, xform: LocalToWorld, cx: &mut Context) {
+        let cid = cx.child(vid, 0);
+        (self.func)(self.value.clone(), cx).dirty(cid, xform, cx);
     }
 
-    fn hittest(&self, path: &mut IdPath, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
-        path.push(0);
-        let hit_id = (self.func)(self.value.clone(), cx).hittest(path, pt, cx);
-        path.pop();
-        hit_id
+    fn hittest(&self, vid: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
+        let cid = cx.child(vid, 0);
+
+        (self.func)(self.value.clone(), cx).hittest(cid, pt, cx)
     }
 
-    fn commands(&self, path: &mut IdPath, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
-        path.push(0);
-        (self.func)(self.value.clone(), cx).commands(path, cx, cmds);
-        path.pop();
-    }
-
-    fn gc(&self, path: &mut IdPath, cx: &mut Context, map: &mut Vec<ViewId>) {
-        map.push(cx.view_id(path));
-        path.push(0);
-        (self.func)(self.value.clone(), cx).gc(path, cx, map);
-        path.pop();
+    fn commands(&self, vid: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
+        let cid = cx.child(vid, 0);
+        (self.func)(self.value.clone(), cx).commands(cid, cx, cmds);
     }
 
     fn access(
         &self,
-        path: &mut IdPath,
+        vid: ViewId,
         cx: &mut Context,
         nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
     ) -> Option<accesskit::NodeId> {
-        path.push(0);
-        let node_id = (self.func)(self.value.clone(), cx).access(path, cx, nodes);
-        path.pop();
-        node_id
+        let cid = cx.child(vid, 0);
+
+        (self.func)(self.value.clone(), cx).access(cid, cx, nodes)
     }
 }
 

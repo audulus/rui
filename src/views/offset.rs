@@ -15,67 +15,54 @@ where
     fn process(
         &self,
         event: &Event,
-        path: &mut IdPath,
+        vid: ViewId,
         cx: &mut Context,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
-        path.push(0);
+        let cid = cx.child(vid, 0);
         self.child
-            .process(&event.offset(-self.offset), path, cx, actions);
-        path.pop();
+            .process(&event.offset(-self.offset), cid, cx, actions);
     }
 
-    fn draw(&self, path: &mut IdPath, args: &mut DrawArgs) {
+    fn draw(&self, vid: ViewId, args: &mut DrawArgs) {
         args.vger.save();
         args.vger.translate(self.offset);
-        path.push(0);
-        self.child.draw(path, args);
-        path.pop();
+        let cid = args.cx.child(vid, 0);
+        self.child.draw(cid, args);
         args.vger.restore();
     }
 
-    fn layout(&self, path: &mut IdPath, args: &mut LayoutArgs) -> LocalSize {
-        path.push(0);
-        let sz = self.child.layout(path, args);
-        path.pop();
-        sz
+    fn layout(&self, vid: ViewId, args: &mut LayoutArgs) -> LocalSize {
+        let cid = args.cx.child(vid, 0);
+
+        self.child.layout(cid, args)
     }
 
-    fn dirty(&self, path: &mut IdPath, xform: LocalToWorld, cx: &mut Context) {
-        path.push(0);
-        self.child.dirty(path, xform.pre_translate(self.offset), cx);
-        path.pop();
+    fn dirty(&self, vid: ViewId, xform: LocalToWorld, cx: &mut Context) {
+        let cid = cx.child(vid, 0);
+        self.child.dirty(cid, xform.pre_translate(self.offset), cx);
     }
 
-    fn hittest(&self, path: &mut IdPath, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
-        path.push(0);
-        let hit_id = self.child.hittest(path, pt - self.offset, cx);
-        path.pop();
-        hit_id
+    fn hittest(&self, vid: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
+        let cid = cx.child(vid, 0);
+
+        self.child.hittest(cid, pt - self.offset, cx)
     }
 
-    fn commands(&self, path: &mut IdPath, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
-        path.push(0);
-        self.child.commands(path, cx, cmds);
-        path.pop();
-    }
-
-    fn gc(&self, path: &mut IdPath, cx: &mut Context, map: &mut Vec<ViewId>) {
-        path.push(0);
-        self.child.gc(path, cx, map);
-        path.pop();
+    fn commands(&self, vid: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
+        let cid = cx.child(vid, 0);
+        self.child.commands(cid, cx, cmds);
     }
 
     fn access(
         &self,
-        path: &mut IdPath,
+        vid: ViewId,
         cx: &mut Context,
         nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
     ) -> Option<accesskit::NodeId> {
-        path.push(0);
-        let node_id = self.child.access(path, cx, nodes);
-        path.pop();
-        node_id
+        let cid = cx.child(vid, 0);
+
+        self.child.access(cid, cx, nodes)
     }
 }
 
@@ -99,9 +86,9 @@ mod tests {
         let mut cx = Context::new();
         let ui = Offset::new(rectangle(), [10.0, 20.0].into());
         let sz = [100.0, 100.0].into();
-        let mut path = IdPath::root();
+        let vid = cx.root_id();
         let result = ui.layout(
-            &mut path,
+            vid,
             &mut LayoutArgs {
                 sz,
                 cx: &mut cx,
@@ -117,9 +104,9 @@ mod tests {
         let mut cx = Context::new();
         let ui = Offset::new(rectangle(), [50.0, 50.0].into());
         let sz = [100.0, 100.0].into();
-        let mut path = IdPath::root();
+        let vid = cx.root_id();
         ui.layout(
-            &mut path,
+            vid,
             &mut LayoutArgs {
                 sz,
                 cx: &mut cx,
@@ -128,14 +115,8 @@ mod tests {
         );
         // The rectangle is offset by (50,50), so point (25,25) maps to (-25,-25) in child space
         // which is outside the 100x100 rect
-        assert!(
-            ui.hittest(&mut path, [25.0, 25.0].into(), &mut cx)
-                .is_none()
-        );
+        assert!(ui.hittest(vid, [25.0, 25.0].into(), &mut cx).is_none());
         // Point (75,75) maps to (25,25) in child space, which is inside
-        assert!(
-            ui.hittest(&mut path, [75.0, 75.0].into(), &mut cx)
-                .is_some()
-        );
+        assert!(ui.hittest(vid, [75.0, 75.0].into(), &mut cx).is_some());
     }
 }

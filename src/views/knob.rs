@@ -48,9 +48,9 @@ mod tests {
         let ui = state(|| 0.0, |s, _| knob(s));
         let sz = [100.0, 100.0].into();
 
-        let mut path = IdPath::root();
+        let vid = cx.root_id();
         let knob_sz = ui.layout(
-            &mut path,
+            vid,
             &mut LayoutArgs {
                 sz,
                 cx: &mut cx,
@@ -59,7 +59,7 @@ mod tests {
         );
 
         assert_eq!(knob_sz, sz);
-        let s = StateHandle::<f32>::new(cx.view_id(&path));
+        let s = StateHandle::<f32>::new(vid);
         assert_eq!(*s.get(&cx), 0.0);
 
         let events = [
@@ -80,11 +80,10 @@ mod tests {
 
         let mut actions = vec![];
         for event in &events {
-            ui.process(event, &mut path, &mut cx, &mut actions);
+            ui.process(event, vid, &mut cx, &mut actions);
         }
 
-        let vid = cx.view_id(&path);
-        assert!(cx.state_map.contains_key(&vid));
+        assert!(cx.is_live(vid));
         // State should have changed.
         assert_eq!(*s.get(&cx), 0.125);
     }

@@ -27,9 +27,9 @@ impl Text {
 
 impl Text {
     /// The width the text breaks its lines at, if any.
-    fn break_width(&self, path: &IdPath, cx: &mut Context) -> Option<f32> {
+    fn break_width(&self, vid: ViewId, cx: &mut Context) -> Option<f32> {
         if self.wrap {
-            Some(cx.get_layout(path).rect.width())
+            Some(cx.get_layout(vid).rect.width())
         } else {
             self.max_width
         }
@@ -37,8 +37,8 @@ impl Text {
 }
 
 impl DynView for Text {
-    fn draw(&self, path: &mut IdPath, args: &mut DrawArgs) {
-        let max_width = self.break_width(path, args.cx);
+    fn draw(&self, vid: ViewId, args: &mut DrawArgs) {
+        let max_width = self.break_width(vid, args.cx);
         let vger = &mut args.vger;
         let origin = vger
             .text_bounds(self.text.as_str(), self.size, max_width)
@@ -49,12 +49,12 @@ impl DynView for Text {
         vger.text(self.text.as_str(), self.size, self.color, max_width);
         vger.restore();
     }
-    fn layout(&self, path: &mut IdPath, args: &mut LayoutArgs) -> LocalSize {
+    fn layout(&self, vid: ViewId, args: &mut LayoutArgs) -> LocalSize {
         if self.wrap {
             let width = args.sz.width.max(1.0);
             let size = (args.text_bounds)(self.text.as_str(), self.size, Some(width)).size;
             args.cx.update_layout(
-                path,
+                vid,
                 LayoutBox {
                     rect: LocalRect::new(LocalPoint::zero(), [width, size.height].into()),
                     offset: LocalOffset::zero(),
@@ -65,22 +65,17 @@ impl DynView for Text {
             (args.text_bounds)(self.text.as_str(), self.size, self.max_width).size
         }
     }
-    fn gc(&self, path: &mut IdPath, cx: &mut Context, map: &mut Vec<ViewId>) {
-        if self.wrap {
-            map.push(cx.view_id(path));
-        }
-    }
-    fn hittest(&self, _path: &mut IdPath, _pt: LocalPoint, _cx: &mut Context) -> Option<ViewId> {
+    fn hittest(&self, _vid: ViewId, _pt: LocalPoint, _cx: &mut Context) -> Option<ViewId> {
         None
     }
 
     fn access(
         &self,
-        path: &mut IdPath,
-        cx: &mut Context,
+        vid: ViewId,
+        _cx: &mut Context,
         nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
     ) -> Option<accesskit::NodeId> {
-        let aid = cx.view_id(path).access_id();
+        let aid = vid.access_id();
         let mut builder = accesskit::NodeBuilder::new(accesskit::Role::Label);
         builder.set_name(self.text.clone());
         nodes.push((aid, builder.build()));
@@ -122,7 +117,7 @@ pub fn text(name: &str) -> Text {
 macro_rules! impl_text {
     ( $ty:ident ) => {
         impl DynView for $ty {
-            fn draw(&self, _path: &mut IdPath, args: &mut DrawArgs) {
+            fn draw(&self, _vid: ViewId, args: &mut DrawArgs) {
                 let txt = &format!("{}", self);
                 let vger = &mut args.vger;
                 let origin = vger.text_bounds(txt, Text::DEFAULT_SIZE, None).origin;
@@ -132,18 +127,18 @@ macro_rules! impl_text {
                 vger.text(txt, Text::DEFAULT_SIZE, TEXT_COLOR, None);
                 vger.restore();
             }
-            fn layout(&self, _path: &mut IdPath, args: &mut LayoutArgs) -> LocalSize {
+            fn layout(&self, _vid: ViewId, args: &mut LayoutArgs) -> LocalSize {
                 let txt = &format!("{}", self);
                 (args.text_bounds)(txt, Text::DEFAULT_SIZE, None).size
             }
 
             fn access(
                 &self,
-                path: &mut IdPath,
-                cx: &mut Context,
+                vid: ViewId,
+                _cx: &mut Context,
                 nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
             ) -> Option<accesskit::NodeId> {
-                let aid = cx.view_id(path).access_id();
+                let aid = vid.access_id();
                 let mut builder = accesskit::NodeBuilder::new(accesskit::Role::Label);
                 builder.set_name(format!("{}", self));
                 nodes.push((aid, builder.build()));
@@ -201,7 +196,7 @@ impl_text!(f64);
 
 // XXX: Can't do impl_text!(&'static str)
 impl DynView for &'static str {
-    fn draw(&self, _path: &mut IdPath, args: &mut DrawArgs) {
+    fn draw(&self, _vid: ViewId, args: &mut DrawArgs) {
         let txt = &self.to_string();
         let vger = &mut args.vger;
         let origin = vger.text_bounds(txt, Text::DEFAULT_SIZE, None).origin;
@@ -211,18 +206,18 @@ impl DynView for &'static str {
         vger.text(txt, Text::DEFAULT_SIZE, TEXT_COLOR, None);
         vger.restore();
     }
-    fn layout(&self, _path: &mut IdPath, args: &mut LayoutArgs) -> LocalSize {
+    fn layout(&self, _vid: ViewId, args: &mut LayoutArgs) -> LocalSize {
         let txt = &self.to_string();
         (args.text_bounds)(txt, Text::DEFAULT_SIZE, None).size
     }
 
     fn access(
         &self,
-        path: &mut IdPath,
-        cx: &mut Context,
+        vid: ViewId,
+        _cx: &mut Context,
         nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
     ) -> Option<accesskit::NodeId> {
-        let aid = cx.view_id(path).access_id();
+        let aid = vid.access_id();
         let mut builder = accesskit::NodeBuilder::new(accesskit::Role::Label);
         builder.set_name(self.to_string());
         nodes.push((aid, builder.build()));

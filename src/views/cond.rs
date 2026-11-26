@@ -17,101 +17,77 @@ where
     fn process(
         &self,
         event: &Event,
-        path: &mut IdPath,
+        vid: ViewId,
         cx: &mut Context,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
         if self.cond {
-            path.push(0);
-            self.if_true.process(event, path, cx, actions);
-            path.pop();
+            let cid = cx.sole_child(vid, 0);
+            self.if_true.process(event, cid, cx, actions);
         } else {
-            path.push(1);
-            self.if_false.process(event, path, cx, actions);
-            path.pop();
+            let cid = cx.sole_child(vid, 1);
+            self.if_false.process(event, cid, cx, actions);
         }
     }
 
-    fn draw(&self, path: &mut IdPath, args: &mut DrawArgs) {
+    fn draw(&self, vid: ViewId, args: &mut DrawArgs) {
         if self.cond {
-            path.push(0);
-            self.if_true.draw(path, args);
-            path.pop();
+            let cid = args.cx.sole_child(vid, 0);
+            self.if_true.draw(cid, args);
         } else {
-            path.push(1);
-            self.if_false.draw(path, args);
-            path.pop();
+            let cid = args.cx.sole_child(vid, 1);
+            self.if_false.draw(cid, args);
         }
     }
 
-    fn layout(&self, path: &mut IdPath, args: &mut LayoutArgs) -> LocalSize {
+    fn layout(&self, vid: ViewId, args: &mut LayoutArgs) -> LocalSize {
         if self.cond {
-            path.push(0);
-            let sz = self.if_true.layout(path, args);
-            path.pop();
-            sz
+            let cid = args.cx.sole_child(vid, 0);
+
+            self.if_true.layout(cid, args)
         } else {
-            path.push(1);
-            let sz = self.if_false.layout(path, args);
-            path.pop();
-            sz
+            let cid = args.cx.sole_child(vid, 1);
+
+            self.if_false.layout(cid, args)
         }
     }
 
-    fn hittest(&self, path: &mut IdPath, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
+    fn hittest(&self, vid: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
         if self.cond {
-            path.push(0);
-            let id = self.if_true.hittest(path, pt, cx);
-            path.pop();
-            id
+            let cid = cx.sole_child(vid, 0);
+
+            self.if_true.hittest(cid, pt, cx)
         } else {
-            path.push(1);
-            let id = self.if_false.hittest(path, pt, cx);
-            path.pop();
-            id
+            let cid = cx.sole_child(vid, 1);
+
+            self.if_false.hittest(cid, pt, cx)
         }
     }
 
-    fn commands(&self, path: &mut IdPath, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
+    fn commands(&self, vid: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
         if self.cond {
-            path.push(0);
-            self.if_true.commands(path, cx, cmds);
-            path.pop();
+            let cid = cx.sole_child(vid, 0);
+            self.if_true.commands(cid, cx, cmds);
         } else {
-            path.push(1);
-            self.if_false.commands(path, cx, cmds);
-            path.pop();
-        }
-    }
-
-    fn gc(&self, path: &mut IdPath, cx: &mut Context, map: &mut Vec<ViewId>) {
-        if self.cond {
-            path.push(0);
-            self.if_true.gc(path, cx, map);
-            path.pop();
-        } else {
-            path.push(1);
-            self.if_false.gc(path, cx, map);
-            path.pop();
+            let cid = cx.sole_child(vid, 1);
+            self.if_false.commands(cid, cx, cmds);
         }
     }
 
     fn access(
         &self,
-        path: &mut IdPath,
+        vid: ViewId,
         cx: &mut Context,
         nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
     ) -> Option<accesskit::NodeId> {
         if self.cond {
-            path.push(0);
-            let node_id = self.if_true.access(path, cx, nodes);
-            path.pop();
-            node_id
+            let cid = cx.sole_child(vid, 0);
+
+            self.if_true.access(cid, cx, nodes)
         } else {
-            path.push(1);
-            let node_id = self.if_false.access(path, cx, nodes);
-            path.pop();
-            node_id
+            let cid = cx.sole_child(vid, 1);
+
+            self.if_false.access(cid, cx, nodes)
         }
     }
 }
@@ -140,9 +116,9 @@ mod tests {
             rectangle().size([100.0, 100.0]),
         );
         let sz = [200.0, 200.0].into();
-        let mut path = IdPath::root();
+        let root = cx.root_id();
         let result = ui.layout(
-            &mut path,
+            root,
             &mut LayoutArgs {
                 sz,
                 cx: &mut cx,
@@ -161,9 +137,9 @@ mod tests {
             rectangle().size([100.0, 100.0]),
         );
         let sz = [200.0, 200.0].into();
-        let mut path = IdPath::root();
+        let root = cx.root_id();
         let result = ui.layout(
-            &mut path,
+            root,
             &mut LayoutArgs {
                 sz,
                 cx: &mut cx,

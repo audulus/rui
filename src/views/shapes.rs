@@ -7,8 +7,8 @@ pub struct Circle {
 }
 
 impl Circle {
-    fn geom(&self, path: &IdPath, cx: &mut Context) -> (LocalPoint, f32) {
-        let rect = cx.get_layout(path).rect;
+    fn geom(&self, vid: ViewId, cx: &mut Context) -> (LocalPoint, f32) {
+        let rect = cx.get_layout(vid).rect;
 
         (rect.center(), rect.size.width.min(rect.size.height) / 2.0)
     }
@@ -21,17 +21,17 @@ impl Circle {
 }
 
 impl DynView for Circle {
-    fn draw(&self, path: &mut IdPath, args: &mut DrawArgs) {
-        let (center, radius) = self.geom(path, args.cx);
+    fn draw(&self, vid: ViewId, args: &mut DrawArgs) {
+        let (center, radius) = self.geom(vid, args.cx);
 
         let vger = &mut args.vger;
         let paint = self.paint.vger_paint(vger);
         vger.fill_circle(center, radius, paint);
     }
 
-    fn layout(&self, path: &mut IdPath, args: &mut LayoutArgs) -> LocalSize {
+    fn layout(&self, vid: ViewId, args: &mut LayoutArgs) -> LocalSize {
         args.cx.update_layout(
-            path,
+            vid,
             LayoutBox {
                 rect: LocalRect::new(LocalPoint::zero(), args.sz),
                 offset: LocalOffset::zero(),
@@ -40,18 +40,14 @@ impl DynView for Circle {
         args.sz
     }
 
-    fn hittest(&self, path: &mut IdPath, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
-        let (center, radius) = self.geom(path, cx);
+    fn hittest(&self, vid: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
+        let (center, radius) = self.geom(vid, cx);
 
         if pt.distance_to(center) < radius {
-            Some(cx.view_id(path))
+            Some(vid)
         } else {
             None
         }
-    }
-
-    fn gc(&self, path: &mut IdPath, cx: &mut Context, map: &mut Vec<ViewId>) {
-        map.push(cx.view_id(path));
     }
 }
 
@@ -72,8 +68,8 @@ pub struct Rectangle {
 }
 
 impl Rectangle {
-    fn geom(&self, path: &IdPath, cx: &mut Context) -> LocalRect {
-        cx.get_layout(path).rect
+    fn geom(&self, vid: ViewId, cx: &mut Context) -> LocalRect {
+        cx.get_layout(vid).rect
     }
 
     /// Sets the fill color for the rectangle.
@@ -94,17 +90,17 @@ impl Rectangle {
 }
 
 impl DynView for Rectangle {
-    fn draw(&self, path: &mut IdPath, args: &mut DrawArgs) {
-        let rect = self.geom(path, args.cx);
+    fn draw(&self, vid: ViewId, args: &mut DrawArgs) {
+        let rect = self.geom(vid, args.cx);
 
         let vger = &mut args.vger;
         let paint = self.paint.vger_paint(vger);
         vger.fill_rect(rect, self.corner_radius, paint);
     }
 
-    fn layout(&self, path: &mut IdPath, args: &mut LayoutArgs) -> LocalSize {
+    fn layout(&self, vid: ViewId, args: &mut LayoutArgs) -> LocalSize {
         args.cx.update_layout(
-            path,
+            vid,
             LayoutBox {
                 rect: LocalRect::new(LocalPoint::zero(), args.sz),
                 offset: LocalOffset::zero(),
@@ -113,18 +109,10 @@ impl DynView for Rectangle {
         args.sz
     }
 
-    fn hittest(&self, path: &mut IdPath, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
-        let rect = self.geom(path, cx);
+    fn hittest(&self, vid: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
+        let rect = self.geom(vid, cx);
 
-        if rect.contains(pt) {
-            Some(cx.view_id(path))
-        } else {
-            None
-        }
-    }
-
-    fn gc(&self, path: &mut IdPath, cx: &mut Context, map: &mut Vec<ViewId>) {
-        map.push(cx.view_id(path));
+        if rect.contains(pt) { Some(vid) } else { None }
     }
 }
 
@@ -147,9 +135,9 @@ mod tests {
         let mut cx = Context::new();
         let ui = circle();
         let sz = [80.0, 60.0].into();
-        let mut path = IdPath::root();
+        let vid = cx.root_id();
         let result = ui.layout(
-            &mut path,
+            vid,
             &mut LayoutArgs {
                 sz,
                 cx: &mut cx,
@@ -164,9 +152,9 @@ mod tests {
         let mut cx = Context::new();
         let ui = circle();
         let sz = [100.0, 100.0].into();
-        let mut path = IdPath::root();
+        let vid = cx.root_id();
         ui.layout(
-            &mut path,
+            vid,
             &mut LayoutArgs {
                 sz,
                 cx: &mut cx,
@@ -174,10 +162,7 @@ mod tests {
             },
         );
         // Center of a 100x100 circle is (50,50), radius 50
-        assert!(
-            ui.hittest(&mut path, [50.0, 50.0].into(), &mut cx)
-                .is_some()
-        );
+        assert!(ui.hittest(vid, [50.0, 50.0].into(), &mut cx).is_some());
     }
 
     #[test]
@@ -185,9 +170,9 @@ mod tests {
         let mut cx = Context::new();
         let ui = circle();
         let sz = [100.0, 100.0].into();
-        let mut path = IdPath::root();
+        let vid = cx.root_id();
         ui.layout(
-            &mut path,
+            vid,
             &mut LayoutArgs {
                 sz,
                 cx: &mut cx,
@@ -195,7 +180,7 @@ mod tests {
             },
         );
         // Corner of square is outside circle
-        assert!(ui.hittest(&mut path, [0.0, 0.0].into(), &mut cx).is_none());
+        assert!(ui.hittest(vid, [0.0, 0.0].into(), &mut cx).is_none());
     }
 
     #[test]
@@ -203,9 +188,9 @@ mod tests {
         let mut cx = Context::new();
         let ui = rectangle();
         let sz = [120.0, 40.0].into();
-        let mut path = IdPath::root();
+        let vid = cx.root_id();
         let result = ui.layout(
-            &mut path,
+            vid,
             &mut LayoutArgs {
                 sz,
                 cx: &mut cx,
@@ -220,19 +205,16 @@ mod tests {
         let mut cx = Context::new();
         let ui = rectangle();
         let sz = [100.0, 50.0].into();
-        let mut path = IdPath::root();
+        let vid = cx.root_id();
         ui.layout(
-            &mut path,
+            vid,
             &mut LayoutArgs {
                 sz,
                 cx: &mut cx,
                 text_bounds: &mut |_, _, _| LocalRect::zero(),
             },
         );
-        assert!(
-            ui.hittest(&mut path, [50.0, 25.0].into(), &mut cx)
-                .is_some()
-        );
+        assert!(ui.hittest(vid, [50.0, 25.0].into(), &mut cx).is_some());
     }
 
     #[test]
@@ -240,18 +222,15 @@ mod tests {
         let mut cx = Context::new();
         let ui = rectangle();
         let sz = [100.0, 50.0].into();
-        let mut path = IdPath::root();
+        let vid = cx.root_id();
         ui.layout(
-            &mut path,
+            vid,
             &mut LayoutArgs {
                 sz,
                 cx: &mut cx,
                 text_bounds: &mut |_, _, _| LocalRect::zero(),
             },
         );
-        assert!(
-            ui.hittest(&mut path, [150.0, 25.0].into(), &mut cx)
-                .is_none()
-        );
+        assert!(ui.hittest(vid, [150.0, 25.0].into(), &mut cx).is_none());
     }
 }
