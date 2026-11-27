@@ -399,6 +399,15 @@ impl Context {
         self.visible = before;
     }
 
+    /// The visible area in the local space of `vger`'s current transform, or a rectangle
+    /// around it where the transform isn't a plain move and scale; `None` when everything
+    /// counts as visible.
+    pub(crate) fn local_visible(&self, vger: &Vger) -> Option<LocalRect> {
+        let visible = self.visible?;
+        let inverse = vger.current_transform().inverse()?;
+        Some(inverse.outer_transformed_rect(&visible))
+    }
+
     /// Returns false when `rect`, in the local space of `vger`'s current transform, lies
     /// entirely outside the visible area, so drawing it would show nothing.
     pub(crate) fn is_visible(&self, rect: LocalRect, vger: &Vger) -> bool {

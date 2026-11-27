@@ -1,6 +1,22 @@
 use crate::*;
 use std::any::Any;
 use std::hash::Hash;
+use std::ops::Range;
+
+/// The first of `0..n` for which `pred` is false, where `pred` is true for some first part of
+/// the range and false after it.
+fn partition_point(n: usize, mut pred: impl FnMut(usize) -> bool) -> usize {
+    let (mut lo, mut hi) = (0, n);
+    while lo < hi {
+        let mid = lo + (hi - lo) / 2;
+        if pred(mid) {
+            lo = mid + 1;
+        } else {
+            hi = mid;
+        }
+    }
+    lo
+}
 
 /// How far outside its bounds a child of a list may draw and still be drawn when its bounds are
 /// just outside the visible area, as for a shadow. Pointer motion this close to an item also
@@ -45,6 +61,41 @@ where
             return size;
         }
         ((self.func)(id)).layout(cid, &mut args.size(sz))
+    }
+
+    /// The items, in order, that may meet `area`, in the list's local space, once their bounds
+    /// are inflated by `DRAW_SLACK`. A vertical or horizontal list lays its items out in order
+    /// along its axis, so a binary search finds them; a z-list stacks them all, so all of them.
+    fn items_near(&self, vid: ViewId, cx: &mut Context, area: LocalRect) -> Range<usize> {
+        // The bounds of item `i` along the list's axis, inflated.
+        let mut span = |i: usize| {
+            let cid = cx.child(vid, i);
+            let layout = cx.get_layout(cid);
+            let rect = layout
+                .rect
+                .translate(layout.offset)
+                .inflate(DRAW_SLACK, DRAW_SLACK);
+            match self.orientation {
+                ListOrientation::Vertical => (rect.min_y(), rect.max_y()),
+                _ => (rect.min_x(), rect.max_x()),
+            }
+        };
+        let n = self.ids.len();
+        match self.orientation {
+            ListOrientation::Z => 0..n,
+            // Item 0 is at the top, and y is up: the items before `start` lie above the
+            // area, those from `end` on below it.
+            ListOrientation::Vertical => {
+                let start = partition_point(n, |i| span(i).0 > area.max_y());
+                let end = partition_point(n, |i| span(i).1 >= area.min_y());
+                start..end.max(start)
+            }
+            ListOrientation::Horizontal => {
+                let start = partition_point(n, |i| span(i).1 < area.min_x());
+                let end = partition_point(n, |i| span(i).0 <= area.max_x());
+                start..end.max(start)
+            }
+        }
     }
 
     /// Matches the list's child nodes to its items, so child `i` is the node of `ids[i]`.
@@ -121,8 +172,27 @@ where
             vec![]
         };
 
+        // The items that motion or a wheel event may concern, last first as for every event:
+        // those near the pointer, and those that were under it or hold a touch.
+        let items: Vec<usize> = if filter {
+            let point = LocalRect::new(position, LocalSize::zero());
+            let mut items: Vec<usize> = self.items_near(vid, cx, point).collect();
+            items.extend(
+                previous
+                    .iter()
+                    .chain(&holders)
+                    .filter_map(|id| cx.child_index(vid, *id)),
+            );
+            items.sort_unstable_by(|a, b| b.cmp(a));
+            items.dedup();
+            items
+        } else {
+            (0..self.ids.len()).rev().collect()
+        };
+
         let mut under = vec![];
-        for (i, child) in self.ids.iter().enumerate().rev() {
+        for i in items {
+            let child = &self.ids[i];
             let cid = cx.child(vid, i);
             let layout = cx.get_layout(cid);
             let offset = layout.offset;
@@ -169,7 +239,12 @@ where
 
     fn draw(&self, vid: ViewId, args: &mut DrawArgs) {
         self.sync(vid, args.cx);
-        for (i, child) in self.ids.iter().enumerate() {
+        let items = match args.cx.local_visible(args.vger) {
+            Some(area) => self.items_near(vid, args.cx, area),
+            None => 0..self.ids.len(),
+        };
+        for i in items {
+            let child = &self.ids[i];
             let cid = args.cx.child(vid, i);
             let layout = args.cx.get_layout(cid);
             let offset = layout.offset;
@@ -305,6 +380,9 @@ where
     }
 
     fn dirty(&self, vid: ViewId, xform: LocalToWorld, cx: &mut Context) {
+        if !cx.is_subtree_dirty(vid) {
+            return;
+        }
         self.sync(vid, cx);
         for (i, child) in self.ids.iter().enumerate() {
             let cid = cx.child(vid, i);
@@ -686,6 +764,80 @@ mod tests {
         // The next motion still reaches item 0.
         h.event(&moved([50.0, -600.0]));
         assert_eq!(h.cx[rows].0, [false, false, false]);
+    }
+
+    /// Lays out `ui` in a 2000 x 2000 window.
+    fn lay_out(ui: &impl View, cx: &mut Context) {
+        let root = cx.root_id();
+        ui.layout(
+            root,
+            &mut LayoutArgs {
+                sz: [2000.0, 2000.0].into(),
+                cx,
+                text_bounds: &mut |_, _, _| LocalRect::zero(),
+            },
+        );
+    }
+
+    fn area(x: f32, y: f32, width: f32, height: f32) -> LocalRect {
+        LocalRect::new([x, y].into(), [width, height].into())
+    }
+
+    #[test]
+    fn test_items_near_an_area_of_a_vertical_list() {
+        // Item i covers y=1980-20i..2000-20i.
+        let ui = list((0..100usize).collect(), |_| rectangle().size([40.0, 20.0]));
+        let mut cx = Context::new();
+        lay_out(&ui, &mut cx);
+        let root = cx.root_id();
+
+        // Inflated by 64, items 41 (y=1096..1180 before inflating) to 53 reach y=1000..1100.
+        assert_eq!(
+            ui.items_near(root, &mut cx, area(0.0, 1000.0, 40.0, 100.0)),
+            41..54
+        );
+        assert_eq!(
+            ui.items_near(root, &mut cx, area(0.0, 1990.0, 0.0, 0.0)),
+            0..4
+        );
+        assert!(
+            ui.items_near(root, &mut cx, area(0.0, 3000.0, 40.0, 10.0))
+                .is_empty()
+        );
+        assert!(
+            ui.items_near(root, &mut cx, area(0.0, -500.0, 40.0, 10.0))
+                .is_empty()
+        );
+    }
+
+    #[test]
+    fn test_items_near_an_area_of_a_horizontal_list() {
+        // Item i covers x=10i..10i+10.
+        let ui = hlist((0..100usize).collect(), |_| rectangle().size([10.0, 20.0]));
+        let mut cx = Context::new();
+        lay_out(&ui, &mut cx);
+        let root = cx.root_id();
+
+        assert_eq!(
+            ui.items_near(root, &mut cx, area(500.0, 0.0, 10.0, 20.0)),
+            43..58
+        );
+        assert!(
+            ui.items_near(root, &mut cx, area(1100.0, 0.0, 10.0, 20.0))
+                .is_empty()
+        );
+    }
+
+    #[test]
+    fn test_items_near_an_area_of_a_z_list_are_all() {
+        let ui = zlist((0..5usize).collect(), |_| rectangle().size([10.0, 20.0]));
+        let mut cx = Context::new();
+        lay_out(&ui, &mut cx);
+        let root = cx.root_id();
+        assert_eq!(
+            ui.items_near(root, &mut cx, area(1500.0, 1500.0, 1.0, 1.0)),
+            0..5
+        );
     }
 
     #[test]

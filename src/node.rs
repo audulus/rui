@@ -23,6 +23,10 @@ pub(crate) struct Node {
     /// Child nodes, indexed by slot.
     children: Vec<ViewId>,
 
+    /// For a list, the key of each child as of the last `sync_keyed_children`, kept together
+    /// so checking that the keys are unchanged doesn't visit every child node.
+    keys: Vec<u64>,
+
     /// Type of the view owning the node, where it can change (children of `any_view`).
     tid: Option<TypeId>,
 
@@ -84,6 +88,7 @@ impl Node {
             parent,
             label,
             children: vec![],
+            keys: vec![],
             tid: None,
             layout: LayoutBox::default(),
             #[cfg(test)]
@@ -197,6 +202,11 @@ impl Context {
         child
     }
 
+    /// The slot of `parent` that holds `id`, if `id` is a child of `parent`.
+    pub(crate) fn child_index(&self, parent: ViewId, id: ViewId) -> Option<usize> {
+        self.node(parent).children.iter().position(|c| *c == id)
+    }
+
     /// Returns child `slot` of `parent`, freeing any other children, as for the branch
     /// `cond` shows.
     pub(crate) fn sole_child(&mut self, parent: ViewId, slot: usize) -> ViewId {
@@ -252,11 +262,8 @@ impl Context {
         {
             let node = self.node(parent);
             if node.children.len() == keys.len()
-                && node
-                    .children
-                    .iter()
-                    .zip(keys.clone())
-                    .all(|(c, k)| self.nodes[c.index as usize].label == k)
+                && node.keys.len() == keys.len()
+                && node.keys.iter().copied().eq(keys.clone())
             {
                 return;
             }
@@ -269,7 +276,9 @@ impl Context {
             .collect();
         let mut used = std::collections::HashMap::<u64, ViewId>::new();
         let mut children = Vec::with_capacity(keys.len());
+        let mut new_keys = Vec::with_capacity(keys.len());
         for key in keys {
+            new_keys.push(key);
             let child = if let Some(&c) = used.get(&key) {
                 c
             } else {
@@ -284,7 +293,9 @@ impl Context {
         for (_, gone) in by_key {
             self.free_subtree(gone);
         }
-        self.node_mut(parent).children = children;
+        let node = self.node_mut(parent);
+        node.keys = new_keys;
+        node.children = children;
     }
 
     /// Records a write to the state of `id`: raises the state's generation and the subtree
