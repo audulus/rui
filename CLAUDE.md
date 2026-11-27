@@ -111,6 +111,8 @@ State is managed through a combination of:
 ### Performance Considerations
 - Layout is cached per `state` view and only recomputed when a state it depends on changes
 - A list item whose view is a `state` view at its root is skipped while clean; any other item is rebuilt whenever its list is laid out
+- Scrolling a `scroll` view isn't a state write: it moves its content's offset and asks for a redraw, so no layout is invalidated
+- The `Event::Anim` pass, which runs every update, skips a list with no `anim` view in it while nothing was written since the last layout
 - A view that reads something other than state through the `Context` (like the focus) needs `Context::invalidate_all` when it changes
 - Rendering assumes 2D UI graphics are trivial for modern GPUs
 - Avoid complex state dependencies that cause excessive re-renders

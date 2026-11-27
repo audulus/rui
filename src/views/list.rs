@@ -66,6 +66,14 @@ where
         cx: &mut Context,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
+        // A list with no `anim` view in it has nothing to do in the `Event::Anim` pass, which
+        // runs every update: return before visiting every item.
+        if let Event::Anim = event
+            && cx.skip_unmarked_anim(vid)
+        {
+            return;
+        }
+
         self.sync(vid, cx);
 
         let position = match event {
@@ -80,7 +88,7 @@ where
             for (i, child) in self.ids.iter().enumerate().rev() {
                 let cid = cx.child(vid, i);
                 if let Event::Anim = event
-                    && cx.skip_anim(cid)
+                    && (cx.skip_anim(cid) || cx.skip_unmarked_anim(cid))
                 {
                     continue;
                 }

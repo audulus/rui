@@ -496,6 +496,13 @@ impl Context {
                 .is_some_and(|c| self.still_valid(node, c.stamp, &c.foreign))
     }
 
+    /// Can the `Event::Anim` pass skip the view at `id`, which need not be a `state` view?
+    /// Only if no `anim` view was seen there, and the tree was laid out with nothing written
+    /// since, so every `anim` view in it was seen.
+    pub(crate) fn skip_unmarked_anim(&self, id: ViewId) -> bool {
+        !self.node(id).has_anim && self.marked_gen == Some(self.write_gen)
+    }
+
     pub(crate) fn get_layout(&self, id: ViewId) -> LayoutBox {
         self.node(id).layout
     }

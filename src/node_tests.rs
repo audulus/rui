@@ -403,6 +403,65 @@ fn test_anim_pass_visits_only_anim_subtrees() {
     assert_eq!([built[0].get(), built[1].get()], [1, 0]);
 }
 
+/// Lays `view` out as an update does, after which the `has_anim` marks are complete.
+fn update_layout(cx: &mut Context, view: &impl View) {
+    layout(cx, view);
+    cx.marked_gen = Some(cx.write_gen);
+}
+
+#[test]
+fn test_anim_pass_skips_lists_without_anim() {
+    let built = Rc::new(Cell::new(0));
+    let b = built.clone();
+    let ui = list(vec![0usize, 1, 2], move |_| {
+        b.set(b.get() + 1);
+        rectangle().size([10.0, 10.0])
+    });
+    let mut cx = Context::new();
+    let root = cx.root_id();
+
+    // Before any update's layout the marks may be missing, so the pass visits the items.
+    layout(&mut cx, &ui);
+    built.set(0);
+    ui.process(&Event::Anim, root, &mut cx, &mut vec![]);
+    assert_eq!(built.get(), 3);
+
+    update_layout(&mut cx, &ui);
+    built.set(0);
+    ui.process(&Event::Anim, root, &mut cx, &mut vec![]);
+    assert_eq!(built.get(), 0);
+
+    // After a write the tree may hold new `anim` views until the next layout.
+    cx.invalidate_all();
+    ui.process(&Event::Anim, root, &mut cx, &mut vec![]);
+    assert_eq!(built.get(), 3);
+}
+
+#[test]
+fn test_anim_pass_reaches_anim_in_plain_list_items() {
+    let ticks = Rc::new(Cell::new(0));
+    let built = Rc::new([Cell::new(0), Cell::new(0)]);
+    let (t, b) = (ticks.clone(), built.clone());
+    let ui = list(vec![0usize, 1], move |&i| {
+        b[i].set(b[i].get() + 1);
+        let t = t.clone();
+        cond(
+            i == 0,
+            rectangle().anim(move |_, _| t.set(t.get() + 1)),
+            rectangle(),
+        )
+    });
+    let mut cx = Context::new();
+    update_layout(&mut cx, &ui);
+    let root = cx.root_id();
+    built[0].set(0);
+    built[1].set(0);
+
+    ui.process(&Event::Anim, root, &mut cx, &mut vec![]);
+    assert_eq!(ticks.get(), 1);
+    assert_eq!([built[0].get(), built[1].get()], [1, 0]);
+}
+
 /// Rows of `ids`, 20 tall, that count the drags each one sees.
 fn draggable_rows(ids: Vec<i32>, drags: Rc<[Cell<usize>; 3]>) -> impl View {
     list(ids, move |&i| {

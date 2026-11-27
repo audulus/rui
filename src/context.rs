@@ -60,6 +60,10 @@ pub struct Context {
     /// Cached results computed before this generation are stale (see `invalidate_all`).
     pub(crate) floor_gen: u64,
 
+    /// `write_gen` at the last layout of an update, or `None` before the first. While nothing
+    /// has been written since, the `has_anim` marks cover every `anim` view in the tree.
+    pub(crate) marked_gen: Option<u64>,
+
     /// During a walk, the latest write generation of the states of the enclosing `state`
     /// views, on which everything under them depends.
     pub(crate) ancestor_gen: u64,
@@ -150,6 +154,7 @@ impl Context {
             write_gen: 0,
             clean_gen: 0,
             floor_gen: 0,
+            marked_gen: None,
             ancestor_gen: 0,
             reads: RefCell::new(vec![]),
             reading: Cell::new(0),
@@ -236,6 +241,8 @@ impl Context {
                     text_bounds: &mut |str, size, max_width| vger.text_bounds(str, size, max_width),
                 },
             );
+
+            self.marked_gen = Some(self.write_gen);
 
             // Get dirty rectangles.
             view.dirty(root, LocalToWorld::identity(), self);
