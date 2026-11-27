@@ -113,7 +113,8 @@ State is managed through a combination of:
 - A list item whose view is a `state` view at its root is skipped while clean; any other item is rebuilt whenever its list is laid out
 - Scrolling a `scroll` view isn't a state write: it moves its content's offset and asks for a redraw, so no layout is invalidated
 - The `Event::Anim` pass, which runs every update, skips a list with no `anim` view in it while nothing was written since the last layout
-- A vertical or horizontal list finds the items to draw, and the items near the pointer for motion and wheel events, by binary search over their laid-out positions; checking that its keys are unchanged is a compare of one `Vec<u64>`
+- A vertical or horizontal list finds the items to draw, and the items near the pointer for motion and wheel events, by binary search over their laid-out positions. It only looks at its keys after a write (or `invalidate_all`), and then compares one `Vec<u64>`
+- Every walk builds the views again, so a long list should get its ids from `list_shared` with an `Arc` the app keeps, and anything derived from all its items (a filter, a sort) should be computed once per change, not on every build
 - A view that reads something other than state through the `Context` (like the focus) needs `Context::invalidate_all` when it changes
 - Rendering assumes 2D UI graphics are trivial for modern GPUs
 - Avoid complex state dependencies that cause excessive re-renders

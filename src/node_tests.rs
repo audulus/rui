@@ -3,6 +3,7 @@
 use crate::*;
 use std::cell::Cell;
 use std::rc::Rc;
+use std::sync::Arc;
 
 fn layout(cx: &mut Context, view: &impl View) {
     let root = cx.root_id();
@@ -48,6 +49,36 @@ fn test_list_frees_removed_keys() {
 
     layout(&mut cx, &counter_list(vec![]));
     assert_eq!(cx.live_nodes(), before);
+}
+
+#[test]
+fn test_list_keys_are_matched_again_after_a_write() {
+    let mut cx = Context::new();
+    let ui = |ids: Vec<i32>| {
+        list_shared(Arc::new(ids), |_| {
+            state(|| 0i32, |_, _| rectangle().size([10.0, 10.0]))
+        })
+    };
+    layout(&mut cx, &ui(vec![1, 2, 3]));
+    let id = cx.id_at(&[0, hh(&2)]);
+    let s = StateHandle::<i32>::new(id);
+
+    // Nothing was written, so the list doesn't look at its keys: views are built from the
+    // states, and keys that change otherwise need `invalidate_all`. Key 2's node stays in slot 1.
+    layout(&mut cx, &ui(vec![2, 1, 3]));
+    assert_eq!(cx.child(cx.root_id(), 1), id);
+
+    // After a write it matches them again; the node of key 2 moves with it.
+    cx[s] = 5;
+    layout(&mut cx, &ui(vec![2, 3, 1]));
+    assert_eq!(cx.child(cx.root_id(), 0), id);
+    assert_eq!(cx[s], 5);
+
+    // `invalidate_all` does too.
+    layout(&mut cx, &ui(vec![2, 3, 1]));
+    cx.invalidate_all();
+    layout(&mut cx, &ui(vec![1, 3, 2]));
+    assert_eq!(cx.child(cx.root_id(), 2), id);
 }
 
 #[test]

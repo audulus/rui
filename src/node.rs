@@ -27,6 +27,10 @@ pub(crate) struct Node {
     /// so checking that the keys are unchanged doesn't visit every child node.
     keys: Vec<u64>,
 
+    /// `Context::write_gen` at the last `sync_keyed_children`. A list is built from the
+    /// states, so its keys can only have changed after a write.
+    synced_gen: u64,
+
     /// Type of the view owning the node, where it can change (children of `any_view`).
     tid: Option<TypeId>,
 
@@ -89,6 +93,7 @@ impl Node {
             label,
             children: vec![],
             keys: vec![],
+            synced_gen: 0,
             tid: None,
             layout: LayoutBox::default(),
             #[cfg(test)]
@@ -202,9 +207,14 @@ impl Context {
         child
     }
 
-    /// The slot of `parent` that holds `id`, if `id` is a child of `parent`.
-    pub(crate) fn child_index(&self, parent: ViewId, id: ViewId) -> Option<usize> {
-        self.node(parent).children.iter().position(|c| *c == id)
+    /// The slot of `parent` that holds `id`, if `id` is a child of `parent`: `hint` when it
+    /// still holds `id`, else found by looking through the children.
+    pub(crate) fn child_index(&self, parent: ViewId, id: ViewId, hint: usize) -> Option<usize> {
+        let children = &self.node(parent).children;
+        if children.get(hint) == Some(&id) {
+            return Some(hint);
+        }
+        children.iter().position(|c| *c == id)
     }
 
     /// Returns child `slot` of `parent`, freeing any other children, as for the branch
@@ -254,17 +264,23 @@ impl Context {
     /// Matches the children of `parent` to a list's keys, so that afterwards child `i` (see
     /// `child`) is the node for `keys[i]`. Nodes of keys that persist are kept, wherever they
     /// moved; nodes of keys that are gone are freed. Equal keys share a node.
+    ///
+    /// The keys aren't looked at when nothing was written since the last call and their number
+    /// is the same: views are built from the states, so the keys are too (`invalidate_all`
+    /// covers anything else they depend on). Walking a long list then costs nothing per key.
     pub(crate) fn sync_keyed_children<I>(&mut self, parent: ViewId, keys: I)
     where
         I: ExactSizeIterator<Item = u64> + Clone,
     {
-        // Fast path: the keys are unchanged.
+        // Fast paths: nothing was written, or the keys are unchanged.
+        let write_gen = self.write_gen;
         {
             let node = self.node(parent);
             if node.children.len() == keys.len()
                 && node.keys.len() == keys.len()
-                && node.keys.iter().copied().eq(keys.clone())
+                && (node.synced_gen == write_gen || node.keys.iter().copied().eq(keys.clone()))
             {
+                self.node_mut(parent).synced_gen = write_gen;
                 return;
             }
         }
@@ -296,6 +312,7 @@ impl Context {
         let node = self.node_mut(parent);
         node.keys = new_keys;
         node.children = children;
+        node.synced_gen = write_gen;
     }
 
     /// Records a write to the state of `id`: raises the state's generation and the subtree

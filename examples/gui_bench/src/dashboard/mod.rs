@@ -76,7 +76,11 @@ impl App {
 #[derive(Clone)]
 pub struct Data {
     pub orders: Arc<Vec<orders::Row>>,
+    /// The orders the table shows, found again only when the filter changes.
+    pub shown: orders::Shown,
     pub messages: Arc<Vec<messages::Card>>,
+    /// The indices of the messages, the keys of the feed.
+    pub message_ids: Arc<Vec<usize>>,
 }
 
 /// Returns the window content with `count` orders and `count` messages.
@@ -88,18 +92,23 @@ pub fn view(count: usize) -> impl View {
                 .map(orders::Row::new)
                 .collect(),
         ),
+        shown: orders::Shown::default(),
         messages: Arc::new(
             dash::messages(count)
                 .into_iter()
                 .map(messages::Card::new)
                 .collect(),
         ),
+        message_ids: Arc::new((0..count).collect()),
     };
     state(App::new, move |app, cx| {
         let page = dash::page(cx[app].nav);
         let content = match page {
             Page::Overview => any_view(overview(app, data.clone())),
-            Page::Messages => any_view(messages::view(data.messages.clone())),
+            Page::Messages => any_view(messages::view(
+                data.messages.clone(),
+                data.message_ids.clone(),
+            )),
             Page::Empty => any_view(empty()),
         };
         let main = vstack((topbar::view(app), scroll(content).flex()));
@@ -127,7 +136,7 @@ fn overview(app: StateHandle<App>, data: Data) -> impl View {
         ))
         .fixed_height(dash::ROW2_HEIGHT),
         gap(0.0, dash::GAP),
-        orders::view(app, data.orders),
+        orders::view(app, data.orders, data.shown),
     ))
     .padding(dash::CONTENT_PADDING)
 }

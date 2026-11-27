@@ -2,6 +2,7 @@ use crate::*;
 use std::any::Any;
 use std::hash::Hash;
 use std::ops::Range;
+use std::sync::Arc;
 
 /// The first of `0..n` for which `pred` is false, where `pred` is true for some first part of
 /// the range and false after it.
@@ -23,9 +24,10 @@ fn partition_point(n: usize, mut pred: impl FnMut(usize) -> bool) -> usize {
 /// reaches it.
 const DRAW_SLACK: f32 = 64.0;
 
-/// The items that were under the pointer at a list's last motion, press or release, kept in the
-/// list's node. Not a `state`, so keeping it marks nothing written.
-struct PointerItems(Vec<ViewId>);
+/// The items that were under the pointer at a list's last motion, press or release, with the
+/// slot each was in, kept in the list's node. Not a `state`, so keeping it marks nothing
+/// written.
+struct PointerItems(Vec<(usize, ViewId)>);
 
 #[derive(Clone, Copy)]
 pub enum ListOrientation {
@@ -37,7 +39,8 @@ pub enum ListOrientation {
 #[derive(Clone)]
 pub struct List<ID, F> {
     orientation: ListOrientation,
-    ids: Vec<ID>,
+    /// Shared, so an app can keep a long list's ids and hand the same ones to every build.
+    ids: Arc<Vec<ID>>,
     func: F,
 }
 
@@ -180,8 +183,9 @@ where
             items.extend(
                 previous
                     .iter()
-                    .chain(&holders)
-                    .filter_map(|id| cx.child_index(vid, *id)),
+                    .copied()
+                    .chain(holders.iter().map(|id| (0, *id)))
+                    .filter_map(|(slot, id)| cx.child_index(vid, id, slot)),
             );
             items.sort_unstable_by(|a, b| b.cmp(a));
             items.dedup();
@@ -205,7 +209,8 @@ where
                     .translate(offset)
                     .inflate(DRAW_SLACK, DRAW_SLACK)
                     .contains(position);
-            let nearby = !inside && (previous.contains(&cid) || holders.contains(&cid));
+            let nearby =
+                !inside && (previous.iter().any(|(_, id)| *id == cid) || holders.contains(&cid));
             if filter && !inside && !nearby {
                 continue;
             }
@@ -219,7 +224,7 @@ where
             if inside
                 || (nearby && cx.is_live(cid) && view.hittest(cid, position - offset, cx).is_some())
             {
-                under.push(cid);
+                under.push((i, cid));
             }
         }
 
@@ -458,7 +463,9 @@ impl<ID, F> private::Sealed for List<ID, F> {}
 /// presses, releases and every other event reach all items. An item that takes motion more than
 /// 64 points outside its bounds gets it there only when the pointer moves there from over it.
 ///
-/// `ids` is a Vec of items that implement Hash.
+/// `ids` is a Vec of items that implement Hash. The list only looks at them after a state
+/// write (or `invalidate_all`): views are built from the states, so their ids are too. Use
+/// `list_shared` for a long list, so that building it doesn't copy its ids.
 ///
 /// `f` is a function called to generate a DynView for each item.
 ///
@@ -477,6 +484,16 @@ pub fn list<ID: Hash + Clone, V: View, F: Fn(&ID) -> V + Clone + 'static>(
     ids: Vec<ID>,
     f: F,
 ) -> List<ID, F> {
+    list_shared(Arc::new(ids), f)
+}
+
+/// A `list` of shared `ids`. rui builds views again on every walk, so a long list built from
+/// ids an app keeps, rather than a new `Vec` each time, costs nothing per item that isn't
+/// shown.
+pub fn list_shared<ID: Hash + Clone, V: View, F: Fn(&ID) -> V + Clone + 'static>(
+    ids: Arc<Vec<ID>>,
+    f: F,
+) -> List<ID, F> {
     List {
         orientation: ListOrientation::Vertical,
         ids,
@@ -484,8 +501,17 @@ pub fn list<ID: Hash + Clone, V: View, F: Fn(&ID) -> V + Clone + 'static>(
     }
 }
 
+/// A list laid out from left to right.
 pub fn hlist<ID: Hash + Clone, V: View, F: Fn(&ID) -> V + Clone + 'static>(
     ids: Vec<ID>,
+    f: F,
+) -> List<ID, F> {
+    hlist_shared(Arc::new(ids), f)
+}
+
+/// An `hlist` of shared `ids`, as for `list_shared`.
+pub fn hlist_shared<ID: Hash + Clone, V: View, F: Fn(&ID) -> V + Clone + 'static>(
+    ids: Arc<Vec<ID>>,
     f: F,
 ) -> List<ID, F> {
     List {
@@ -495,8 +521,17 @@ pub fn hlist<ID: Hash + Clone, V: View, F: Fn(&ID) -> V + Clone + 'static>(
     }
 }
 
+/// A list whose items are stacked on top of each other.
 pub fn zlist<ID: Hash + Clone, V: View, F: Fn(&ID) -> V + Clone + 'static>(
     ids: Vec<ID>,
+    f: F,
+) -> List<ID, F> {
+    zlist_shared(Arc::new(ids), f)
+}
+
+/// A `zlist` of shared `ids`, as for `list_shared`.
+pub fn zlist_shared<ID: Hash + Clone, V: View, F: Fn(&ID) -> V + Clone + 'static>(
+    ids: Arc<Vec<ID>>,
     f: F,
 ) -> List<ID, F> {
     List {
