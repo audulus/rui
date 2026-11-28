@@ -203,6 +203,16 @@ impl Context {
         }
     }
 
+    /// Lays the UI out again from scratch when the window size changed since the last layout,
+    /// by `update` or `render`: a redraw can come before the first update, and its layout
+    /// counts.
+    fn set_window_size(&mut self, window_size: Size2D<f32, WorldSpace>) {
+        if window_size != self.window_size {
+            self.invalidate_all();
+            self.window_size = window_size;
+        }
+    }
+
     /// Call this after the event queue is cleared.
     ///
     /// When anything changed and the accessibility tree is on (see `set_access_enabled`),
@@ -217,11 +227,7 @@ impl Context {
         access_nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
         window_size: Size2D<f32, WorldSpace>,
     ) -> bool {
-        // If the window size has changed, force a relayout.
-        if window_size != self.window_size {
-            self.invalidate_all();
-            self.window_size = window_size;
-        }
+        self.set_window_size(window_size);
 
         let root = self.root_id();
 
@@ -299,6 +305,9 @@ impl Context {
         let work = crate::timing::start();
 
         vger.begin(window_size.width, window_size.height, scale);
+
+        // Before dirtying is disabled, so the next update still runs, reusing this layout.
+        self.set_window_size(window_size);
 
         let root = self.root_id();
         // Disable dirtying the state during layout and rendering
