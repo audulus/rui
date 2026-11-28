@@ -15,6 +15,12 @@ impl<V: View> ScrollView<V> {
         StateHandle::new(id)
     }
 
+    /// The offset of `content` in a view `height` tall, scrolled to `position`: the content's
+    /// top sits at the view's top, moved up by the position (y is up).
+    fn content_offset(height: f32, content: LocalSize, position: f32) -> LocalOffset {
+        [0.0, height - content.height + position].into()
+    }
+
     /// The viewport and the offset of the content inside it.
     fn geometry(vid: ViewId, cx: &mut Context) -> (LocalRect, LocalOffset) {
         let viewport = cx.get_layout(vid).rect;
@@ -71,7 +77,15 @@ impl<V: View> DynView for ScrollView<V> {
             // from where the content is shown.
             let new_position = (cx[handle].min(max) + delta.y).clamp(0.0, max);
             if new_position != cx[handle] {
-                cx[handle] = new_position;
+                // Scrolling only moves the content, so it isn't a write: no layout is
+                // invalidated, above the view or in its content. Move the content here and ask
+                // for a redraw.
+                cx.set_state(vid, new_position);
+                cx.set_layout_offset(
+                    cid,
+                    Self::content_offset(viewport.height(), content, new_position),
+                );
+                cx.set_dirty();
             }
         }
     }
@@ -98,13 +112,12 @@ impl<V: View> DynView for ScrollView<V> {
         let max = (content.height - args.sz.height).max(0.0);
         let position = args.cx[handle].min(max);
 
-        // The content's top sits at the view's top, moved up by the position (y is up).
         let cid = args.cx.child(vid, 0);
         args.cx.update_layout(
             cid,
             LayoutBox {
                 rect: LocalRect::new(LocalPoint::zero(), content),
-                offset: [0.0, args.sz.height - content.height + position].into(),
+                offset: Self::content_offset(args.sz.height, content, position),
             },
         );
 
@@ -213,6 +226,32 @@ mod tests {
         assert_eq!(taps(&mut h), 1);
         scroll(&mut h, -1000.0);
         assert_eq!(position(&mut h), 0.0);
+    }
+
+    #[test]
+    fn test_scrolling_moves_the_content_without_layout() {
+        let ui = column();
+        let mut h = TestHarness::new(&ui, [100.0, 100.0]);
+        let root = h.cx.root_id();
+        let wheel = Event::Scroll {
+            position: [50.0, 50.0].into(),
+            delta: [0.0, 30.0].into(),
+        };
+        ui.process(&wheel, root, &mut h.cx, &mut vec![]);
+
+        // The content moved up by 30 px at once, and the enclosing `state` view keeps its
+        // layout: nothing was written.
+        assert_eq!(position(&mut h), 30.0);
+        let content = h.cx.id_at(&[0, 0, 0]);
+        assert_eq!(h.cx.get_layout(content).offset.y, 100.0 - 500.0 + 30.0);
+        assert!(h.cx.cached_layout(root, [100.0, 100.0].into()).is_some());
+        assert!(h.cx.dirty);
+
+        // The top row now covers only the top 20 px of the view.
+        h.tap([50.0, 85.0]);
+        assert_eq!(taps(&mut h), 1);
+        h.tap([50.0, 75.0]);
+        assert_eq!(taps(&mut h), 1);
     }
 
     #[test]

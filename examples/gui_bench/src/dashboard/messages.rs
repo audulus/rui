@@ -30,10 +30,11 @@ impl Card {
     }
 }
 
-/// Returns the feed of `messages`.
-pub fn view(messages: Arc<Vec<Card>>) -> impl View {
+/// Returns the feed of `messages`, whose indices are `ids`, made once so that building the feed
+/// costs nothing per message.
+pub fn view(messages: Arc<Vec<Card>>, ids: Arc<Vec<usize>>) -> impl View {
     let count = messages.len();
-    list((0..count).collect(), move |&i| {
+    list_shared(ids, move |&i| {
         let below = if i + 1 < count {
             dash::MESSAGE_GAP
         } else {

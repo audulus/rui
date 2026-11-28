@@ -2,6 +2,8 @@
 //! the search, in the order of the data or by amount. Every shown order is a real row view,
 //! keyed by its index in the data, and keeps its hover in a `state` of its own.
 
+use std::cell::RefCell;
+use std::rc::Rc;
 use std::sync::Arc;
 
 use rui::*;
@@ -41,24 +43,52 @@ impl Row {
     }
 }
 
+/// The indices of the orders the table shows, kept with the status filter, the search and the
+/// sort they were found for. rui builds the card on every walk, and finding them looks at every
+/// order, so it is done again only when one of those changes.
+#[derive(Clone, Default)]
+pub struct Shown(Rc<RefCell<Option<Found>>>);
+
+/// The status filter, the search and the sort, and the indices of the orders they show.
+type Found = (([bool; 4], String, bool), Arc<Vec<usize>>);
+
+impl Shown {
+    /// The indices of `orders` that `app` shows, in the order of the rows.
+    fn get(&self, orders: &[Row], app: &App) -> Arc<Vec<usize>> {
+        let mut cache = self.0.borrow_mut();
+        if let Some((filter, ids)) = &*cache
+            && filter.0 == app.shown
+            && filter.1 == app.search
+            && filter.2 == app.sorted
+        {
+            return ids.clone();
+        }
+        let mut ids: Vec<usize> = (0..orders.len())
+            .filter(|&i| dash::visible(&orders[i].order, &app.shown, &app.search))
+            .collect();
+        if app.sorted {
+            ids.sort_by(|a, b| orders[*b].order.cents.cmp(&orders[*a].order.cents));
+        }
+        let ids = Arc::new(ids);
+        let filter = (app.shown, app.search.clone(), app.sorted);
+        *cache = Some((filter, ids.clone()));
+        ids
+    }
+}
+
 /// Returns the orders card.
-pub fn view(app: StateHandle<App>, orders: Arc<Vec<Row>>) -> impl View {
+pub fn view(app: StateHandle<App>, orders: Arc<Vec<Row>>, shown: Shown) -> impl View {
     state(
         || (),
         move |_, cx| {
             let state = &cx[app];
-            let mut ids: Vec<usize> = (0..orders.len())
-                .filter(|&i| dash::visible(&orders[i].order, &state.shown, &state.search))
-                .collect();
-            if state.sorted {
-                ids.sort_by(|a, b| orders[*b].order.cents.cmp(&orders[*a].order.cents));
-            }
+            let ids = shown.get(&orders, state);
             let orders = orders.clone();
             vstack((
                 header(state.sorted, dash::CARD_RADIUS, move |cx| {
                     cx[app].sorted = !cx[app].sorted
                 }),
-                list(ids, move |&i| row(&orders[i])),
+                list_shared(ids, move |&i| row(&orders[i])),
             ))
             .background(Surface::CARD.view())
         },

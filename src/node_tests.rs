@@ -3,6 +3,7 @@
 use crate::*;
 use std::cell::Cell;
 use std::rc::Rc;
+use std::sync::Arc;
 
 fn layout(cx: &mut Context, view: &impl View) {
     let root = cx.root_id();
@@ -31,6 +32,8 @@ fn test_list_state_follows_its_key() {
     let s = StateHandle::<i32>::new(id);
     cx[s] = 5;
 
+    // The keys change here without a state write, as from outside rui: say so.
+    cx.invalidate_all();
     layout(&mut cx, &counter_list(vec![3, 1, 2]));
     assert_eq!(cx.id_at(&[0, hh(&2)]), id);
     assert_eq!(cx[s], 5);
@@ -48,6 +51,57 @@ fn test_list_frees_removed_keys() {
 
     layout(&mut cx, &counter_list(vec![]));
     assert_eq!(cx.live_nodes(), before);
+}
+
+/// A list in a `state` view, whose state stands for what the app builds the keys from.
+fn keyed_rows(ids: Vec<i32>) -> impl View {
+    state(
+        || 0i32,
+        move |_, _| {
+            list_shared(Arc::new(ids.clone()), |_| {
+                state(|| 0i32, |_, _| rectangle().size([10.0, 10.0]))
+            })
+        },
+    )
+}
+
+#[test]
+fn test_list_keys_are_matched_again_after_a_write() {
+    let mut cx = Context::new();
+    layout(&mut cx, &keyed_rows(vec![1, 2, 3]));
+    let outer = StateHandle::<i32>::new(cx.root_id());
+    let list_id = cx.child(cx.root_id(), 0);
+    let id = cx.id_at(&[0, 0, hh(&2)]);
+    let item = StateHandle::<i32>::new(id);
+
+    // A write to an item's own state: the list doesn't look at its keys, which are the same.
+    cx[item] = 5;
+    layout(&mut cx, &keyed_rows(vec![1, 2, 3]));
+    assert_eq!(cx.child(list_id, 1), id);
+
+    // After any other write it matches them again; the node of key 2 moves with it.
+    cx[outer] = 1;
+    layout(&mut cx, &keyed_rows(vec![2, 3, 1]));
+    assert_eq!(cx.child(list_id, 0), id);
+    assert_eq!(cx[item], 5);
+
+    // `invalidate_all` does too.
+    cx.invalidate_all();
+    layout(&mut cx, &keyed_rows(vec![1, 3, 2]));
+    assert_eq!(cx.child(list_id, 2), id);
+}
+
+#[test]
+#[cfg(debug_assertions)]
+#[should_panic(expected = "ids changed without a state write")]
+fn test_list_keys_changed_unseen_are_reported_in_debug_builds() {
+    // Keys reordered after only an item's own write: the list wouldn't match them, and its
+    // items' states would stay in the wrong places, so a debug build says so.
+    let mut cx = Context::new();
+    layout(&mut cx, &keyed_rows(vec![1, 2, 3]));
+    let item = StateHandle::<i32>::new(cx.id_at(&[0, 0, hh(&2)]));
+    cx[item] = 5;
+    layout(&mut cx, &keyed_rows(vec![2, 1, 3]));
 }
 
 #[test]
@@ -403,6 +457,63 @@ fn test_anim_pass_visits_only_anim_subtrees() {
     assert_eq!([built[0].get(), built[1].get()], [1, 0]);
 }
 
+/// Lays `view` out as an update does, after which the `has_anim` marks are complete.
+fn update_layout(cx: &mut Context, view: &impl View) {
+    layout(cx, view);
+    cx.marked_gen = Some(cx.write_gen);
+}
+
+#[test]
+fn test_anim_pass_skips_lists_without_anim() {
+    let built = Rc::new(Cell::new(0));
+    let b = built.clone();
+    let ui = list(vec![0usize, 1, 2], move |_| {
+        b.set(b.get() + 1);
+        rectangle().size([10.0, 10.0])
+    });
+    let mut cx = Context::new();
+    let root = cx.root_id();
+
+    // Before the list's first layout the marks may be missing, so the pass visits the items.
+    ui.process(&Event::Anim, root, &mut cx, &mut vec![]);
+    assert_eq!(built.get(), 3);
+
+    update_layout(&mut cx, &ui);
+    built.set(0);
+    ui.process(&Event::Anim, root, &mut cx, &mut vec![]);
+    assert_eq!(built.get(), 0);
+
+    // After a write the tree may hold new `anim` views until the next layout.
+    cx.invalidate_all();
+    ui.process(&Event::Anim, root, &mut cx, &mut vec![]);
+    assert_eq!(built.get(), 3);
+}
+
+#[test]
+fn test_anim_pass_reaches_anim_in_plain_list_items() {
+    let ticks = Rc::new(Cell::new(0));
+    let built = Rc::new([Cell::new(0), Cell::new(0)]);
+    let (t, b) = (ticks.clone(), built.clone());
+    let ui = list(vec![0usize, 1], move |&i| {
+        b[i].set(b[i].get() + 1);
+        let t = t.clone();
+        cond(
+            i == 0,
+            rectangle().anim(move |_, _| t.set(t.get() + 1)),
+            rectangle(),
+        )
+    });
+    let mut cx = Context::new();
+    update_layout(&mut cx, &ui);
+    let root = cx.root_id();
+    built[0].set(0);
+    built[1].set(0);
+
+    ui.process(&Event::Anim, root, &mut cx, &mut vec![]);
+    assert_eq!(ticks.get(), 1);
+    assert_eq!([built[0].get(), built[1].get()], [1, 0]);
+}
+
 /// Rows of `ids`, 20 tall, that count the drags each one sees.
 fn draggable_rows(ids: Vec<i32>, drags: Rc<[Cell<usize>; 3]>) -> impl View {
     list(ids, move |&i| {
@@ -535,4 +646,218 @@ fn test_tapping_the_focused_view_keeps_the_caches() {
 
     ui.process(&tap, root, &mut cx, &mut vec![]);
     assert_eq!(cx.floor_gen, floor);
+}
+
+/// A list of `n` rows that aren't `state` views, each holding a `state` with its height, and
+/// counting how often each row is built.
+fn plain_rows(n: usize, built: Rc<Vec<Cell<usize>>>) -> impl View {
+    list_shared(Arc::new((0..n).collect()), move |&i| {
+        built[i].set(built[i].get() + 1);
+        vstack((state(|| 10.0f32, |h, cx| rectangle().size([10.0, cx[h]])),))
+    })
+}
+
+fn row_height(cx: &Context, i: usize) -> StateHandle<f32> {
+    StateHandle::new(cx.id_at(&[0, hh(&i), 0]))
+}
+
+fn builds(built: &[Cell<usize>]) -> Vec<usize> {
+    built.iter().map(|b| b.replace(0)).collect()
+}
+
+#[test]
+fn test_list_lays_out_only_written_items() {
+    let built = Rc::new((0..4).map(|_| Cell::new(0)).collect::<Vec<_>>());
+    let ui = plain_rows(4, built.clone());
+    let mut cx = Context::new();
+    layout(&mut cx, &ui);
+    assert_eq!(builds(&built), [1, 1, 1, 1]);
+
+    // A write that leaves the row's size: only that row is laid out again, and every row
+    // keeps its place.
+    let offsets = |cx: &mut Context| -> Vec<f32> {
+        (0..4)
+            .map(|i| {
+                let id = cx.child(cx.root_id(), i);
+                cx.get_layout(id).offset.y
+            })
+            .collect()
+    };
+    let before = offsets(&mut cx);
+    let h = row_height(&cx, 2);
+    cx[h] = 10.0;
+    layout(&mut cx, &ui);
+    assert_eq!(builds(&built), [0, 0, 1, 0]);
+    assert_eq!(offsets(&mut cx), before);
+
+    // Nothing written: no row is built.
+    layout(&mut cx, &ui);
+    assert_eq!(builds(&built), [0, 0, 0, 0]);
+}
+
+#[test]
+fn test_list_item_that_changes_size_moves_the_others() {
+    let built = Rc::new((0..3).map(|_| Cell::new(0)).collect::<Vec<_>>());
+    let ui = plain_rows(3, built.clone());
+    let mut cx = Context::new();
+    layout(&mut cx, &ui);
+
+    let h = row_height(&cx, 0);
+    cx[h] = 30.0;
+    layout(&mut cx, &ui);
+    // Row 0 is at the top (y is up): 30 tall above two rows of 10.
+    let root = cx.root_id();
+    let offset = |cx: &mut Context, i: usize| {
+        let id = cx.child(root, i);
+        cx.get_layout(id).offset.y
+    };
+    assert_eq!(offset(&mut cx, 0), 20.0);
+    assert_eq!(offset(&mut cx, 1), 10.0);
+    assert_eq!(offset(&mut cx, 2), 0.0);
+}
+
+#[test]
+fn test_list_lays_out_every_item_after_a_write_around_it() {
+    let built = Rc::new((0..3).map(|_| Cell::new(0)).collect::<Vec<_>>());
+    let b = built.clone();
+    // The rows show the state of the `state` view around the list.
+    let ui = state(
+        || 10.0f32,
+        move |height, _| {
+            let b = b.clone();
+            list_shared(Arc::new((0..3usize).collect()), move |&i| {
+                b[i].set(b[i].get() + 1);
+                vstack((state(
+                    || (),
+                    move |_, cx| rectangle().size([10.0, cx[height]]),
+                ),))
+            })
+        },
+    );
+    let mut cx = Context::new();
+    layout(&mut cx, &ui);
+    builds(&built);
+
+    let height = StateHandle::<f32>::new(cx.root_id());
+    cx[height] = 20.0;
+    layout(&mut cx, &ui);
+    assert_eq!(builds(&built), [1, 1, 1]);
+    assert_eq!(cx.get_layout(cx.root_id()).rect.height(), 60.0);
+}
+
+#[test]
+fn test_list_dirty_walk_visits_only_written_items() {
+    let built = Rc::new((0..4).map(|_| Cell::new(0)).collect::<Vec<_>>());
+    let ui = plain_rows(4, built.clone());
+    let mut cx = Context::new();
+    layout(&mut cx, &ui);
+    let root = cx.root_id();
+    ui.dirty(root, LocalToWorld::identity(), &mut cx);
+    cx.clear_dirty();
+    cx.dirty_region.clear();
+
+    let h = row_height(&cx, 1);
+    cx[h] = 10.0;
+    layout(&mut cx, &ui);
+    builds(&built);
+    ui.dirty(root, LocalToWorld::identity(), &mut cx);
+    assert_eq!(builds(&built), [0, 1, 0, 0]);
+    assert_eq!(cx.dirty_region.rects().len(), 1);
+}
+
+#[test]
+fn test_anim_pass_visits_only_written_items() {
+    let ticks = Rc::new(Cell::new(0));
+    let built = Rc::new((0..3).map(|_| Cell::new(0)).collect::<Vec<_>>());
+    let (t, b) = (ticks.clone(), built.clone());
+    // Rows that start an animation when their state turns on.
+    let ui = list_shared(Arc::new((0..3usize).collect()), move |&i| {
+        b[i].set(b[i].get() + 1);
+        let t = t.clone();
+        vstack((state(
+            || false,
+            move |on, cx| {
+                let t = t.clone();
+                cond(
+                    cx[on],
+                    rectangle().anim(move |_, _| t.set(t.get() + 1)),
+                    rectangle(),
+                )
+            },
+        ),))
+    });
+    let mut cx = Context::new();
+    update_layout(&mut cx, &ui);
+    let root = cx.root_id();
+    builds(&built);
+
+    // Row 1 turns on: the pass, before any layout, visits only row 1 and finds its new `anim`.
+    let on = StateHandle::<bool>::new(cx.id_at(&[0, hh(&1usize), 0]));
+    cx[on] = true;
+    ui.process(&Event::Anim, root, &mut cx, &mut vec![]);
+    assert_eq!(builds(&built), [0, 1, 0]);
+    assert_eq!(ticks.get(), 1);
+}
+
+#[test]
+fn test_long_list_estimates_the_rows_not_laid_out() {
+    // 1,000 rows, alternately 10 and 30 tall, in a 200 tall space.
+    let ui = list_shared(Arc::new((0..1000usize).collect()), |&i| {
+        rectangle().size([10.0, if i % 2 == 0 { 10.0 } else { 30.0 }])
+    });
+    let mut cx = Context::new();
+    layout(&mut cx, &ui);
+    let root = cx.root_id();
+
+    // Laid out down to 400, two spaces' worth; the other 980 rows count at the average, 20.
+    assert_eq!(cx.list_measured(root, 1000), 20);
+    assert_eq!(cx.list_extent(root).size.height, 400.0 + 20.0 * 980.0);
+    // Row 0 is at the top (y is up), row 1 below it.
+    let row = |cx: &mut Context, i| {
+        let id = cx.list_child(root, i);
+        cx.get_layout(id).offset.y
+    };
+    assert_eq!(row(&mut cx, 0), 20_000.0 - 10.0);
+    assert_eq!(row(&mut cx, 1), 20_000.0 - 40.0);
+    // Rows not laid out have no nodes: two for each of the 20, and the list's.
+    assert_eq!(cx.live_nodes(), 41);
+}
+
+#[test]
+fn test_commands_reach_list_items_before_any_layout() {
+    // The menu can be gathered before anything is laid out: every item counts then.
+    let ui = hlist(vec![0usize, 1], |&i| {
+        rectangle().command(if i == 0 { "Edit:A" } else { "Edit:B" }, None, |_| {})
+    });
+    let mut cx = Context::new();
+    let mut cmds = vec![];
+    cx.commands(&ui, &mut cmds);
+    assert_eq!(cmds.len(), 2);
+}
+
+#[test]
+fn test_long_list_estimate_does_not_shrink_while_rows_remain() {
+    // 1,000 rows: the first 20 are 30 tall, the rest 10.
+    let ui = list_shared(Arc::new((0..1000usize).collect()), |&i| {
+        rectangle().size([10.0, if i < 20 { 30.0 } else { 10.0 }])
+    });
+    let mut cx = Context::new();
+    layout(&mut cx, &ui);
+    let root = cx.root_id();
+    // 14 rows to reach 400: all 30 tall, so the rest count at 30.
+    let first = cx.list_extent(root).size.height;
+    assert_eq!(first, 14.0 * 30.0 + 986.0 * 30.0);
+
+    // Asked to reach further, the list lays out shorter rows; its average falls, but the
+    // height a scroll view sees doesn't shrink while rows remain.
+    cx.grow_list(root, 1000.0);
+    layout(&mut cx, &ui);
+    assert!(cx.list_measured(root, 1000) > 14);
+    assert_eq!(cx.list_extent(root).size.height, first);
+
+    // With every row laid out it is exact.
+    cx.grow_list(root, f32::INFINITY);
+    layout(&mut cx, &ui);
+    assert_eq!(cx.list_measured(root, 1000), 1000);
+    assert_eq!(cx.list_extent(root).size.height, 20.0 * 30.0 + 980.0 * 10.0);
 }

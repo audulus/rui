@@ -60,6 +60,10 @@ pub struct Context {
     /// Cached results computed before this generation are stale (see `invalidate_all`).
     pub(crate) floor_gen: u64,
 
+    /// `write_gen` at the last layout of an update, or `None` before the first. While nothing
+    /// has been written since, the `has_anim` marks cover every `anim` view in the tree.
+    pub(crate) marked_gen: Option<u64>,
+
     /// During a walk, the latest write generation of the states of the enclosing `state`
     /// views, on which everything under them depends.
     pub(crate) ancestor_gen: u64,
@@ -112,7 +116,7 @@ pub struct Context {
     pub(crate) dirty_region: Region<WorldSpace>,
 
     /// Previous window size.
-    window_size: Size2D<f32, WorldSpace>,
+    pub(crate) window_size: Size2D<f32, WorldSpace>,
 
     /// Offset for events at the root level.
     root_offset: LocalOffset,
@@ -150,6 +154,7 @@ impl Context {
             write_gen: 0,
             clean_gen: 0,
             floor_gen: 0,
+            marked_gen: None,
             ancestor_gen: 0,
             reads: RefCell::new(vec![]),
             reading: Cell::new(0),
@@ -198,6 +203,16 @@ impl Context {
         }
     }
 
+    /// Lays the UI out again from scratch when the window size changed since the last layout,
+    /// by `update` or `render`: a redraw can come before the first update, and its layout
+    /// counts.
+    fn set_window_size(&mut self, window_size: Size2D<f32, WorldSpace>) {
+        if window_size != self.window_size {
+            self.invalidate_all();
+            self.window_size = window_size;
+        }
+    }
+
     /// Call this after the event queue is cleared.
     ///
     /// When anything changed and the accessibility tree is on (see `set_access_enabled`),
@@ -212,11 +227,7 @@ impl Context {
         access_nodes: &mut Vec<(accesskit::NodeId, accesskit::Node)>,
         window_size: Size2D<f32, WorldSpace>,
     ) -> bool {
-        // If the window size has changed, force a relayout.
-        if window_size != self.window_size {
-            self.invalidate_all();
-            self.window_size = window_size;
-        }
+        self.set_window_size(window_size);
 
         let root = self.root_id();
 
@@ -236,6 +247,8 @@ impl Context {
                     text_bounds: &mut |str, size, max_width| vger.text_bounds(str, size, max_width),
                 },
             );
+
+            self.marked_gen = Some(self.write_gen);
 
             // Get dirty rectangles.
             view.dirty(root, LocalToWorld::identity(), self);
@@ -292,6 +305,9 @@ impl Context {
         let work = crate::timing::start();
 
         vger.begin(window_size.width, window_size.height, scale);
+
+        // Before dirtying is disabled, so the next update still runs, reusing this layout.
+        self.set_window_size(window_size);
 
         let root = self.root_id();
         // Disable dirtying the state during layout and rendering
@@ -390,6 +406,15 @@ impl Context {
     /// Restores the visible area that `clip_visible` returned.
     pub(crate) fn restore_visible(&mut self, before: Option<WorldRect>) {
         self.visible = before;
+    }
+
+    /// The visible area in the local space of `vger`'s current transform, or a rectangle
+    /// around it where the transform isn't a plain move and scale; `None` when everything
+    /// counts as visible.
+    pub(crate) fn local_visible(&self, vger: &Vger) -> Option<LocalRect> {
+        let visible = self.visible?;
+        let inverse = vger.current_transform().inverse()?;
+        Some(inverse.outer_transformed_rect(&visible))
     }
 
     /// Returns false when `rect`, in the local space of `vger`'s current transform, lies

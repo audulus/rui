@@ -2,7 +2,7 @@ use crate::timing::timed;
 use crate::*;
 
 use futures::executor::block_on;
-use std::{collections::HashMap, sync::Arc};
+use std::sync::Arc;
 #[cfg(not(target_arch = "wasm32"))]
 use std::{collections::VecDeque, sync::Mutex};
 
@@ -612,15 +612,6 @@ pub fn rui_with_config(view: impl View, config: WindowConfig) {
         *GLOBAL_EVENT_LOOP_PROXY.lock().unwrap() = Some(event_loop.create_proxy());
     }
 
-    let mut commands: Vec<CommandInfo> = Vec::new();
-    let mut command_map = HashMap::new();
-    app.cx.commands(&app.view, &mut commands);
-
-    {
-        // So we can infer a type for CommandMap when winit is enabled.
-        command_map.insert("", "");
-    }
-
     if let Err(e) = event_loop.run_app(&mut app) {
         log::error!("Error exiting event loop: {:?}", e);
     };
@@ -711,7 +702,13 @@ mod tests {
         layout(&mut cx, &items(vec![]));
         layout(&mut cx, &items(vec![2, 3]));
         let others = [2, 3].map(|k| StateHandle::<i32>::new(cx.id_at(&[0, hh(&k)])));
-        assert!(others.iter().any(|o| o.id.index == s.id.index));
+        let reused = (1..10).any(|generation| {
+            cx.is_live(ViewId {
+                index: s.id.index,
+                generation,
+            })
+        });
+        assert!(reused && !cx.is_live(s.id));
 
         run_work_queue(&mut cx);
         assert!(!saw.load(std::sync::atomic::Ordering::SeqCst));

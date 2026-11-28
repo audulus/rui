@@ -1,15 +1,38 @@
 use crate::*;
 use std::any::Any;
 use std::hash::Hash;
+use std::ops::Range;
+use std::sync::Arc;
+
+/// The first of `0..n` for which `pred` is false, where `pred` is true for some first part of
+/// the range and false after it.
+fn partition_point(n: usize, mut pred: impl FnMut(usize) -> bool) -> usize {
+    let (mut lo, mut hi) = (0, n);
+    while lo < hi {
+        let mid = lo + (hi - lo) / 2;
+        if pred(mid) {
+            lo = mid + 1;
+        } else {
+            hi = mid;
+        }
+    }
+    lo
+}
+
+/// The width of the list at `id` as of its last layout or growth.
+fn list_width(cx: &Context, id: ViewId) -> f32 {
+    cx.list_extent(id).size.width
+}
 
 /// How far outside its bounds a child of a list may draw and still be drawn when its bounds are
 /// just outside the visible area, as for a shadow. Pointer motion this close to an item also
 /// reaches it.
 const DRAW_SLACK: f32 = 64.0;
 
-/// The items that were under the pointer at a list's last motion, press or release, kept in the
-/// list's node. Not a `state`, so keeping it marks nothing written.
-struct PointerItems(Vec<ViewId>);
+/// The items that were under the pointer at a list's last motion, press or release, with the
+/// slot each was in, kept in the list's node. Not a `state`, so keeping it marks nothing
+/// written.
+struct PointerItems(Vec<(usize, ViewId)>);
 
 #[derive(Clone, Copy)]
 pub enum ListOrientation {
@@ -21,7 +44,8 @@ pub enum ListOrientation {
 #[derive(Clone)]
 pub struct List<ID, F> {
     orientation: ListOrientation,
-    ids: Vec<ID>,
+    /// Shared, so an app can keep a long list's ids and hand the same ones to every build.
+    ids: Arc<Vec<ID>>,
     func: F,
 }
 
@@ -30,26 +54,283 @@ where
     ID: Hash,
 {
     /// Lays out an item, or reuses its last size without building its view when the item is a
-    /// `state` view whose layout is still valid.
+    /// `state` view whose layout is still valid. Adds the states it read outside itself, and
+    /// outside the views around the list, to `foreign`.
     fn layout_child<V: View>(
         &self,
         id: &ID,
         cid: ViewId,
         sz: LocalSize,
         args: &mut LayoutArgs,
+        foreign: &mut Vec<ViewId>,
     ) -> LocalSize
     where
         F: Fn(&ID) -> V,
     {
-        if let Some(size) = args.cx.cached_layout(cid, sz) {
-            return size;
+        let reads = args.cx.begin_reads();
+        let size = match args.cx.cached_layout(cid, sz) {
+            Some(size) => size,
+            None => ((self.func)(id)).layout(cid, &mut args.size(sz)),
+        };
+        foreign.extend(args.cx.end_reads(cid, reads).iter());
+        size
+    }
+
+    /// The items laid out, in order, that may meet `area`, in the list's local space, once their
+    /// bounds are inflated by `DRAW_SLACK`. A vertical or horizontal list lays its items out in
+    /// order along its axis, so a binary search finds them; a z-list stacks them all, so all of
+    /// them.
+    fn items_near(&self, vid: ViewId, cx: &mut Context, area: LocalRect) -> Range<usize> {
+        let n = cx.list_measured(vid, self.ids.len());
+        // The bounds of item `i` along the list's axis, inflated.
+        let mut span = |i: usize| {
+            let cid = cx.list_child(vid, i);
+            let layout = cx.get_layout(cid);
+            let rect = layout
+                .rect
+                .translate(layout.offset)
+                .inflate(DRAW_SLACK, DRAW_SLACK);
+            match self.orientation {
+                ListOrientation::Vertical => (rect.min_y(), rect.max_y()),
+                _ => (rect.min_x(), rect.max_x()),
+            }
+        };
+        match self.orientation {
+            ListOrientation::Z => 0..n,
+            // Item 0 is at the top, and y is up: the items before `start` lie above the
+            // area, those from `end` on below it.
+            ListOrientation::Vertical => {
+                let start = partition_point(n, |i| span(i).0 > area.max_y());
+                let end = partition_point(n, |i| span(i).1 >= area.min_y());
+                start..end.max(start)
+            }
+            ListOrientation::Horizontal => {
+                let start = partition_point(n, |i| span(i).1 < area.min_x());
+                let end = partition_point(n, |i| span(i).0 <= area.max_x());
+                start..end.max(start)
+            }
         }
-        ((self.func)(id)).layout(cid, &mut args.size(sz))
+    }
+
+    /// The size proposed to each item.
+    fn proposed_child_size(&self, sz: LocalSize) -> LocalSize {
+        let n = self.ids.len() as f32;
+        match self.orientation {
+            ListOrientation::Horizontal => LocalSize::new(sz.width / n, sz.height),
+            ListOrientation::Vertical => LocalSize::new(sz.width, sz.height / n),
+            ListOrientation::Z => sz,
+        }
+    }
+
+    /// How far down from its top a vertical list lays out its items: as far as it was asked to
+    /// by drawing, at least the height of the window, which is all of the list that can be seen
+    /// while it starts at the top, and a window more, for scrolling.
+    fn reach(args: &LayoutArgs, want: f32) -> f32 {
+        let screen = match args.cx.window_size.height {
+            h if h > 0.0 => h,
+            _ => args.sz.height,
+        };
+        want.max(screen) + screen
+    }
+
+    /// Lays out the items of a vertical list from `from`, whose top is `top` below the list's,
+    /// until the next would start `reach` below it, and places them in a list of `size`, as
+    /// estimated. Returns the sizes of the items laid out.
+    #[allow(clippy::too_many_arguments)]
+    fn layout_down<V: View>(
+        &self,
+        vid: ViewId,
+        from: usize,
+        mut top: f32,
+        reach: f32,
+        proposed: LocalSize,
+        args: &mut LayoutArgs,
+        foreign: &mut Vec<ViewId>,
+    ) -> Vec<LocalSize>
+    where
+        F: Fn(&ID) -> V,
+    {
+        let mut sizes = vec![];
+        for i in from..self.ids.len() {
+            if top >= reach {
+                break;
+            }
+            let cid = args.cx.list_child(vid, i);
+            let size = self.layout_child(&self.ids[i], cid, proposed, args, foreign);
+            top += size.height;
+            sizes.push(size);
+        }
+        sizes
+    }
+
+    /// Places item `i`, `size`, whose top is `top` below the list's, in a vertical list of
+    /// `list` (y is up), centered across it.
+    fn place(vid: ViewId, i: usize, size: LocalSize, top: f32, list: LocalSize, cx: &mut Context) {
+        let cid = cx.list_child(vid, i);
+        let offset = align_h(
+            LocalRect::new(LocalPoint::origin(), size),
+            LocalRect::new(
+                [0.0, list.height - top - size.height].into(),
+                [list.width, size.height].into(),
+            ),
+            HAlignment::Center,
+        );
+        cx.update_layout(
+            cid,
+            LayoutBox {
+                rect: LocalRect::new(LocalPoint::origin(), size),
+                offset,
+            },
+        );
+    }
+
+    /// Lays out more items of a vertical list while drawing it, when the visible area reaches
+    /// past the items laid out: they are placed in the list as laid out, so they can be drawn
+    /// now, and the list asks for a layout, to learn its new size.
+    fn grow<V: View>(&self, vid: ViewId, args: &mut DrawArgs)
+    where
+        F: Fn(&ID) -> V,
+    {
+        let n = self.ids.len();
+        let measured = args.cx.list_measured(vid, n);
+        if measured >= n {
+            return;
+        }
+        let ListExtent {
+            height,
+            size,
+            proposed: list_proposed,
+            ..
+        } = args.cx.list_extent(vid);
+        // How far down from the list's top the visible area reaches: all of it when nothing
+        // limits what is visible, as when drawing offscreen.
+        let bottom = match args.cx.local_visible(args.vger) {
+            Some(area) => size.height - area.min_y() + DRAW_SLACK,
+            None => f32::INFINITY,
+        };
+        if bottom <= height {
+            return;
+        }
+        let vger = &mut *args.vger;
+        let mut text_bounds =
+            |s: &str, size: u32, width: Option<f32>| vger.text_bounds(s, size, width);
+        // The items are laid out as the list's layout would: proposed what it was proposed.
+        let mut layout_args = LayoutArgs {
+            sz: list_proposed,
+            cx: &mut *args.cx,
+            text_bounds: &mut text_bounds,
+        };
+        let reach = Self::reach(&layout_args, bottom);
+        let proposed = self.proposed_child_size(list_proposed);
+        let sizes = self.layout_down(
+            vid,
+            measured,
+            height,
+            reach,
+            proposed,
+            &mut layout_args,
+            &mut vec![],
+        );
+        // A wider item widens the list: the items above are centered across it again, so all
+        // of them line up in this frame as at the next layout.
+        let width = sizes.iter().fold(size.width, |w, s| w.max(s.width));
+        let size = LocalSize::new(width, size.height);
+        let mut top = 0.0;
+        let from = if width > list_width(args.cx, vid) {
+            0
+        } else {
+            top = height;
+            measured
+        };
+        for i in from..measured + sizes.len() {
+            let item = if i < measured {
+                let cid = args.cx.list_child(vid, i);
+                args.cx.get_layout(cid).rect.size
+            } else {
+                sizes[i - measured]
+            };
+            Self::place(vid, i, item, top, size, args.cx);
+            top += item.height;
+        }
+        args.cx
+            .set_list_measured(vid, measured + sizes.len(), top, size, list_proposed);
+        args.cx.grow_list(vid, bottom);
+    }
+
+    /// Lays out only the items with a write under them since the last layout, when nothing
+    /// else it depends on changed: the size proposed to the list, an enclosing `state` view,
+    /// a state it read outside its items, or a state the views around it read in this walk.
+    /// Returns `None`, to lay out every item, when it can't tell which items were written or
+    /// one of them changed size, which moves the ones after it.
+    fn layout_written<V: View>(&self, vid: ViewId, args: &mut LayoutArgs) -> Option<LocalSize>
+    where
+        F: Fn(&ID) -> V,
+    {
+        let cx = &*args.cx;
+        let last = cx.list_layout(vid)?;
+        if last.proposed != args.sz
+            || !cx.list_layout_valid(last.stamp, &last.foreign)
+            || !cx.reads_unchanged_since(last.stamp)
+        {
+            return None;
+        }
+        let (last_stamp, size) = (last.stamp, last.size);
+        let last_foreign = last.foreign.clone();
+        // A vertical list must still reach as far down as it was asked to.
+        if let ListOrientation::Vertical = self.orientation {
+            let extent = cx.list_extent(vid);
+            if cx.list_measured(vid, self.ids.len()) < self.ids.len()
+                && extent.height < Self::reach(args, extent.want)
+            {
+                return None;
+            }
+        }
+        let items = cx.written_items(vid, last_stamp)?;
+
+        let stamp = args.cx.write_gen;
+        let writes = args.cx.writes_under(vid);
+        let mut read = vec![];
+        let proposed = self.proposed_child_size(args.sz);
+        let mut same = true;
+        for i in items {
+            let cid = args.cx.list_child(vid, i);
+            let before = args.cx.get_layout(cid);
+            let child_size = self.layout_child(&self.ids[i], cid, proposed, args, &mut read);
+            // The item keeps its place; its own layout may have set its offset.
+            args.cx.update_layout(cid, before);
+            if child_size != before.rect.size {
+                same = false;
+                break;
+            }
+        }
+        if !same {
+            return None;
+        }
+
+        // What the items that weren't laid out again read still counts, here and around.
+        args.cx.reuse_reads(&last_foreign);
+        let mut foreign: Vec<ViewId> = last_foreign.iter().chain(read.iter()).copied().collect();
+        foreign.sort_by_key(|r| (r.index, r.generation));
+        foreign.dedup();
+        args.cx.store_list_layout(
+            vid,
+            ListLayout {
+                stamp,
+                writes,
+                foreign: foreign.into_boxed_slice(),
+                proposed: args.sz,
+                size,
+            },
+        );
+        let clean = args.cx.clean_gen;
+        args.cx.forget_written(vid, stamp.min(clean));
+        Some(size)
     }
 
     /// Matches the list's child nodes to its items, so child `i` is the node of `ids[i]`.
     fn sync(&self, vid: ViewId, cx: &mut Context) {
-        cx.sync_keyed_children(vid, self.ids.iter().map(hh));
+        let ids = &self.ids;
+        cx.sync_keyed_children(vid, ids.iter().map(hh), |i| hh(&ids[i]));
     }
 }
 
@@ -66,7 +347,33 @@ where
         cx: &mut Context,
         actions: &mut Vec<Box<dyn Any>>,
     ) {
+        // A list with no `anim` view in it has nothing to do in the `Event::Anim` pass, which
+        // runs every update: return before visiting every item.
+        if let Event::Anim = event
+            && cx.skip_unmarked_anim(vid)
+        {
+            return;
+        }
+
         self.sync(vid, cx);
+
+        // With no `anim` view in the list at its last layout, and only its items written since,
+        // only those items can hold a new one.
+        if let Event::Anim = event
+            && !cx.has_anim(vid)
+            && let Some(stamp) = cx.list_laid_out_since_inner_writes(vid)
+            && let Some(items) = cx.written_items(vid, stamp)
+        {
+            for i in items.into_iter().rev() {
+                let cid = cx.list_child(vid, i);
+                if cx.skip_anim(cid) {
+                    continue;
+                }
+                let offset = cx.get_layout(cid).offset;
+                ((self.func)(&self.ids[i])).process(&event.offset(-offset), cid, cx, actions);
+            }
+            return;
+        }
 
         let position = match event {
             Event::TouchBegin { position, .. }
@@ -76,11 +383,13 @@ where
             _ => None,
         };
 
+        // Only the items laid out take events: the others haven't been shown.
+        let measured = cx.list_measured(vid, self.ids.len());
         let Some(position) = position else {
-            for (i, child) in self.ids.iter().enumerate().rev() {
-                let cid = cx.child(vid, i);
+            for (i, child) in self.ids[..measured].iter().enumerate().rev() {
+                let cid = cx.list_child(vid, i);
                 if let Event::Anim = event
-                    && cx.skip_anim(cid)
+                    && (cx.skip_anim(cid) || cx.skip_unmarked_anim(cid))
                 {
                     continue;
                 }
@@ -113,9 +422,29 @@ where
             vec![]
         };
 
+        // The items that motion or a wheel event may concern, last first as for every event:
+        // those near the pointer, and those that were under it or hold a touch.
+        let items: Vec<usize> = if filter {
+            let point = LocalRect::new(position, LocalSize::zero());
+            let mut items: Vec<usize> = self.items_near(vid, cx, point).collect();
+            items.extend(
+                previous
+                    .iter()
+                    .copied()
+                    .chain(holders.iter().map(|id| (cx.slot_of(*id), *id)))
+                    .filter_map(|(slot, id)| cx.child_index(vid, id, slot)),
+            );
+            items.sort_unstable_by(|a, b| b.cmp(a));
+            items.dedup();
+            items
+        } else {
+            (0..measured).rev().collect()
+        };
+
         let mut under = vec![];
-        for (i, child) in self.ids.iter().enumerate().rev() {
-            let cid = cx.child(vid, i);
+        for i in items {
+            let child = &self.ids[i];
+            let cid = cx.list_child(vid, i);
             let layout = cx.get_layout(cid);
             let offset = layout.offset;
 
@@ -127,7 +456,8 @@ where
                     .translate(offset)
                     .inflate(DRAW_SLACK, DRAW_SLACK)
                     .contains(position);
-            let nearby = !inside && (previous.contains(&cid) || holders.contains(&cid));
+            let nearby =
+                !inside && (previous.iter().any(|(_, id)| *id == cid) || holders.contains(&cid));
             if filter && !inside && !nearby {
                 continue;
             }
@@ -141,7 +471,7 @@ where
             if inside
                 || (nearby && cx.is_live(cid) && view.hittest(cid, position - offset, cx).is_some())
             {
-                under.push(cid);
+                under.push((i, cid));
             }
         }
 
@@ -161,8 +491,16 @@ where
 
     fn draw(&self, vid: ViewId, args: &mut DrawArgs) {
         self.sync(vid, args.cx);
-        for (i, child) in self.ids.iter().enumerate() {
-            let cid = args.cx.child(vid, i);
+        if let ListOrientation::Vertical = self.orientation {
+            self.grow(vid, args);
+        }
+        let items = match args.cx.local_visible(args.vger) {
+            Some(area) => self.items_near(vid, args.cx, area),
+            None => 0..args.cx.list_measured(vid, self.ids.len()),
+        };
+        for i in items {
+            let child = &self.ids[i];
+            let cid = args.cx.list_child(vid, i);
             let layout = args.cx.get_layout(cid);
             let offset = layout.offset;
 
@@ -191,7 +529,15 @@ where
 
     fn layout(&self, vid: ViewId, args: &mut LayoutArgs) -> LocalSize {
         self.sync(vid, args.cx);
-        match self.orientation {
+        if let Some(size) = self.layout_written(vid, args) {
+            return size;
+        }
+
+        // Lay out every item, keeping what they read outside themselves.
+        let stamp = args.cx.write_gen;
+        let writes = args.cx.writes_under(vid);
+        let mut foreign = vec![];
+        let size = match self.orientation {
             ListOrientation::Horizontal => {
                 let n = self.ids.len() as f32;
                 let proposed_child_size = LocalSize::new(args.sz.width / n, args.sz.height);
@@ -200,8 +546,9 @@ where
 
                 let mut width_sum = 0.0;
                 for (i, child) in self.ids.iter().enumerate() {
-                    let cid = args.cx.child(vid, i);
-                    let child_size = self.layout_child(child, cid, proposed_child_size, args);
+                    let cid = args.cx.list_child(vid, i);
+                    let child_size =
+                        self.layout_child(child, cid, proposed_child_size, args, &mut foreign);
                     sizes.push(child_size);
 
                     width_sum += child_size.width;
@@ -214,7 +561,7 @@ where
 
                 let mut x = 0.0;
                 for (i, child_size) in sizes.iter().enumerate() {
-                    let cid = args.cx.child(vid, i);
+                    let cid = args.cx.list_child(vid, i);
 
                     let child_offset = align_v(
                         LocalRect::new(LocalPoint::origin(), *child_size),
@@ -238,68 +585,77 @@ where
                 LocalSize::new(width_sum, max_height)
             }
             ListOrientation::Vertical => {
-                let n = self.ids.len() as f32;
-                let proposed_child_size = LocalSize::new(args.sz.width, args.sz.height / n);
+                // Only as far down as can be seen, or was: the items below count at the average
+                // height of those laid out. They are laid out when drawing reaches them.
+                let reach = Self::reach(args, args.cx.list_extent(vid).want);
+                let proposed = self.proposed_child_size(args.sz);
+                let sizes = self.layout_down(vid, 0, 0.0, reach, proposed, args, &mut foreign);
+                let measured = sizes.len();
+                let height: f32 = sizes.iter().map(|s| s.height).sum();
+                let rest = (self.ids.len() - measured) as f32;
+                let estimate = if measured > 0 {
+                    height / measured as f32
+                } else {
+                    0.0
+                };
+                let width = sizes.iter().fold(0.0f32, |w, s| w.max(s.width));
+                // While items remain to be laid out, the estimate doesn't shrink for the same
+                // proposal: the scroll view would clamp its position to it, moving what shows.
+                let last = args.cx.list_extent(vid);
+                let floor = if rest > 0.0 && last.proposed == args.sz {
+                    last.size.height
+                } else {
+                    0.0
+                };
+                let size = LocalSize::new(width, (height + estimate * rest).max(floor));
 
-                let mut sizes = Vec::<LocalSize>::with_capacity(self.ids.len());
-
-                let mut height_sum = 0.0;
-                for (i, child) in self.ids.iter().enumerate() {
-                    let cid = args.cx.child(vid, i);
-                    let child_size = self.layout_child(child, cid, proposed_child_size, args);
-                    sizes.push(child_size);
-
-                    height_sum += child_size.height;
+                let mut top = 0.0;
+                for (i, item) in sizes.iter().enumerate() {
+                    Self::place(vid, i, *item, top, size, args.cx);
+                    top += item.height;
                 }
-
-                let mut max_width = 0.0;
-                for size in &sizes {
-                    max_width = size.width.max(max_width)
-                }
-
-                let mut y = height_sum;
-                for (i, child_size) in sizes.iter().enumerate() {
-                    let cid = args.cx.child(vid, i);
-
-                    let child_offset = align_h(
-                        LocalRect::new(LocalPoint::origin(), *child_size),
-                        LocalRect::new(
-                            [0.0, y - child_size.height].into(),
-                            [max_width, child_size.height].into(),
-                        ),
-                        HAlignment::Center,
-                    );
-
-                    // Keep the child's size with its offset, so drawing can skip children
-                    // outside the visible area.
-                    args.cx.update_layout(
-                        cid,
-                        LayoutBox {
-                            rect: LocalRect::new(LocalPoint::origin(), *child_size),
-                            offset: child_offset,
-                        },
-                    );
-
-                    y -= child_size.height;
-                }
-
-                LocalSize::new(max_width, height_sum)
+                args.cx
+                    .set_list_measured(vid, measured, height, size, args.sz);
+                size
             }
             ListOrientation::Z => {
                 for (i, child) in self.ids.iter().enumerate() {
-                    let cid = args.cx.child(vid, i);
+                    let cid = args.cx.list_child(vid, i);
                     let sz = args.sz;
-                    self.layout_child(child, cid, sz, args);
+                    self.layout_child(child, cid, sz, args, &mut foreign);
                 }
                 args.sz
             }
-        }
+        };
+        foreign.sort_by_key(|r| (r.index, r.generation));
+        foreign.dedup();
+        args.cx.store_list_layout(
+            vid,
+            ListLayout {
+                stamp,
+                writes,
+                foreign: foreign.into_boxed_slice(),
+                proposed: args.sz,
+                size,
+            },
+        );
+        let clean = args.cx.clean_gen;
+        args.cx.forget_written(vid, stamp.min(clean));
+        size
     }
 
     fn dirty(&self, vid: ViewId, xform: LocalToWorld, cx: &mut Context) {
+        if !cx.is_subtree_dirty(vid) {
+            return;
+        }
         self.sync(vid, cx);
-        for (i, child) in self.ids.iter().enumerate() {
-            let cid = cx.child(vid, i);
+        // Only the items written since the last update can be dirty.
+        let items = cx
+            .written_items(vid, cx.clean_gen)
+            .unwrap_or_else(|| (0..cx.list_measured(vid, self.ids.len())).collect());
+        for i in items {
+            let child = &self.ids[i];
+            let cid = cx.list_child(vid, i);
             if !cx.is_subtree_dirty(cid) {
                 continue;
             }
@@ -307,13 +663,17 @@ where
             let xf = xform.pre_translate(offset);
             ((self.func)(child)).dirty(cid, xf, cx);
         }
+        // The next layout needs the writes after its last one; the next dirty walk none of these.
+        let upto = cx.list_layout(vid).map_or(cx.write_gen, |l| l.stamp);
+        cx.forget_written(vid, upto);
     }
 
     fn hittest(&self, vid: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
         self.sync(vid, cx);
         let mut hit = None;
-        for (i, child) in self.ids.iter().enumerate() {
-            let cid = cx.child(vid, i);
+        let measured = cx.list_measured(vid, self.ids.len());
+        for (i, child) in self.ids[..measured].iter().enumerate() {
+            let cid = cx.list_child(vid, i);
             let offset = cx.get_layout(cid).offset;
 
             if let Some(h) = ((self.func)(child)).hittest(cid, pt - offset, cx) {
@@ -325,8 +685,10 @@ where
 
     fn commands(&self, vid: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
         self.sync(vid, cx);
-        for (i, child) in self.ids.iter().enumerate() {
-            let cid = cx.child(vid, i);
+        // Every item before the list's first layout; after it, the items laid out.
+        let measured = cx.list_measured(vid, self.ids.len());
+        for (i, child) in self.ids[..measured].iter().enumerate() {
+            let cid = cx.list_child(vid, i);
             ((self.func)(child)).commands(cid, cx, cmds);
         }
     }
@@ -340,12 +702,12 @@ where
         self.sync(vid, cx);
         let mut builder = accesskit::NodeBuilder::new(accesskit::Role::List);
 
-        let children: Vec<accesskit::NodeId> = self
-            .ids
+        let measured = cx.list_measured(vid, self.ids.len());
+        let children: Vec<accesskit::NodeId> = self.ids[..measured]
             .iter()
             .enumerate()
             .filter_map(|(i, child)| {
-                let cid = cx.child(vid, i);
+                let cid = cx.list_child(vid, i);
                 // An item whose nodes were sent before and haven't changed is skipped without
                 // building its view.
                 cx.cached_access(cid)
@@ -364,15 +726,26 @@ impl<ID, F> private::Sealed for List<ID, F> {}
 /// Displays a list of items all of which are represented by the same View. See `examples/list.rs`.
 ///
 /// While rendering, items that lie entirely outside the visible area (the window, narrowed by
-/// any `clip` or `scroll` around the list) are not drawn. They are still laid out and still
-/// receive events.
+/// any `clip` or `scroll` around the list) are not drawn.
+///
+/// A vertical list builds and lays out its items only from the top down to as far as has been
+/// shown, and a window further: items below that count at the average height of those laid
+/// out, and are laid out when drawing reaches them, so a list in a `scroll` view costs nothing
+/// for the items never scrolled to, and its height grows exact as they are reached. Once it is
+/// laid out, only the items laid out take events, hit tests, menu commands and accessibility
+/// nodes, and get a node in the `Context`; before, every item does. Drawn with no visible area,
+/// as offscreen, it lays out every item. A horizontal list or a z-list lays out all its items.
 ///
 /// Pointer motion and wheel events reach only the items near the pointer, the items that were
 /// under it at the last motion, press or release, and the items holding a touch, as for a drag;
-/// presses, releases and every other event reach all items. An item that takes motion more than
+/// presses, releases and every other event reach all items laid out. An item that takes motion more than
 /// 64 points outside its bounds gets it there only when the pointer moves there from over it.
 ///
-/// `ids` is a Vec of items that implement Hash.
+/// `ids` is a Vec of items that implement Hash. The list only looks at them after a write to a
+/// state outside its items (or `invalidate_all`): views are built from the states, so their
+/// ids are too, and they mustn't be built from the states inside the items. After writes in
+/// its items alone, it lays out only those items, unless one changes size. Use `list_shared`
+/// for a long list, so that building it doesn't copy its ids.
 ///
 /// `f` is a function called to generate a DynView for each item.
 ///
@@ -391,6 +764,16 @@ pub fn list<ID: Hash + Clone, V: View, F: Fn(&ID) -> V + Clone + 'static>(
     ids: Vec<ID>,
     f: F,
 ) -> List<ID, F> {
+    list_shared(Arc::new(ids), f)
+}
+
+/// A `list` of shared `ids`. rui builds views again on every walk, so a long list built from
+/// ids an app keeps, rather than a new `Vec` each time, costs nothing per item that isn't
+/// shown.
+pub fn list_shared<ID: Hash + Clone, V: View, F: Fn(&ID) -> V + Clone + 'static>(
+    ids: Arc<Vec<ID>>,
+    f: F,
+) -> List<ID, F> {
     List {
         orientation: ListOrientation::Vertical,
         ids,
@@ -398,8 +781,17 @@ pub fn list<ID: Hash + Clone, V: View, F: Fn(&ID) -> V + Clone + 'static>(
     }
 }
 
+/// A list laid out from left to right.
 pub fn hlist<ID: Hash + Clone, V: View, F: Fn(&ID) -> V + Clone + 'static>(
     ids: Vec<ID>,
+    f: F,
+) -> List<ID, F> {
+    hlist_shared(Arc::new(ids), f)
+}
+
+/// An `hlist` of shared `ids`, as for `list_shared`.
+pub fn hlist_shared<ID: Hash + Clone, V: View, F: Fn(&ID) -> V + Clone + 'static>(
+    ids: Arc<Vec<ID>>,
     f: F,
 ) -> List<ID, F> {
     List {
@@ -409,8 +801,17 @@ pub fn hlist<ID: Hash + Clone, V: View, F: Fn(&ID) -> V + Clone + 'static>(
     }
 }
 
+/// A list whose items are stacked on top of each other.
 pub fn zlist<ID: Hash + Clone, V: View, F: Fn(&ID) -> V + Clone + 'static>(
     ids: Vec<ID>,
+    f: F,
+) -> List<ID, F> {
+    zlist_shared(Arc::new(ids), f)
+}
+
+/// A `zlist` of shared `ids`, as for `list_shared`.
+pub fn zlist_shared<ID: Hash + Clone, V: View, F: Fn(&ID) -> V + Clone + 'static>(
+    ids: Arc<Vec<ID>>,
     f: F,
 ) -> List<ID, F> {
     List {
@@ -678,6 +1079,80 @@ mod tests {
         // The next motion still reaches item 0.
         h.event(&moved([50.0, -600.0]));
         assert_eq!(h.cx[rows].0, [false, false, false]);
+    }
+
+    /// Lays out `ui` in a 2000 x 2000 window.
+    fn lay_out(ui: &impl View, cx: &mut Context) {
+        let root = cx.root_id();
+        ui.layout(
+            root,
+            &mut LayoutArgs {
+                sz: [2000.0, 2000.0].into(),
+                cx,
+                text_bounds: &mut |_, _, _| LocalRect::zero(),
+            },
+        );
+    }
+
+    fn area(x: f32, y: f32, width: f32, height: f32) -> LocalRect {
+        LocalRect::new([x, y].into(), [width, height].into())
+    }
+
+    #[test]
+    fn test_items_near_an_area_of_a_vertical_list() {
+        // Item i covers y=1980-20i..2000-20i.
+        let ui = list((0..100usize).collect(), |_| rectangle().size([40.0, 20.0]));
+        let mut cx = Context::new();
+        lay_out(&ui, &mut cx);
+        let root = cx.root_id();
+
+        // Inflated by 64, items 41 (y=1096..1180 before inflating) to 53 reach y=1000..1100.
+        assert_eq!(
+            ui.items_near(root, &mut cx, area(0.0, 1000.0, 40.0, 100.0)),
+            41..54
+        );
+        assert_eq!(
+            ui.items_near(root, &mut cx, area(0.0, 1990.0, 0.0, 0.0)),
+            0..4
+        );
+        assert!(
+            ui.items_near(root, &mut cx, area(0.0, 3000.0, 40.0, 10.0))
+                .is_empty()
+        );
+        assert!(
+            ui.items_near(root, &mut cx, area(0.0, -500.0, 40.0, 10.0))
+                .is_empty()
+        );
+    }
+
+    #[test]
+    fn test_items_near_an_area_of_a_horizontal_list() {
+        // Item i covers x=10i..10i+10.
+        let ui = hlist((0..100usize).collect(), |_| rectangle().size([10.0, 20.0]));
+        let mut cx = Context::new();
+        lay_out(&ui, &mut cx);
+        let root = cx.root_id();
+
+        assert_eq!(
+            ui.items_near(root, &mut cx, area(500.0, 0.0, 10.0, 20.0)),
+            43..58
+        );
+        assert!(
+            ui.items_near(root, &mut cx, area(1100.0, 0.0, 10.0, 20.0))
+                .is_empty()
+        );
+    }
+
+    #[test]
+    fn test_items_near_an_area_of_a_z_list_are_all() {
+        let ui = zlist((0..5usize).collect(), |_| rectangle().size([10.0, 20.0]));
+        let mut cx = Context::new();
+        lay_out(&ui, &mut cx);
+        let root = cx.root_id();
+        assert_eq!(
+            ui.items_near(root, &mut cx, area(1500.0, 1500.0, 1.0, 1.0)),
+            0..5
+        );
     }
 
     #[test]
