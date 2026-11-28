@@ -23,13 +23,15 @@ pub(crate) struct Node {
     /// Child nodes, indexed by slot.
     children: Vec<ViewId>,
 
-    /// For a list, the key of each child as of the last `sync_keyed_children`, kept together
-    /// so checking that the keys are unchanged doesn't visit every child node.
-    keys: Vec<u64>,
+    /// The slot of the node among its parent's children, for a list item: its index in the
+    /// list as of the last `sync_keyed_children`.
+    slot: u32,
 
-    /// `Context::write_gen` at the last `sync_keyed_children`. A list is built from the
-    /// states, so its keys can only have changed after a write.
-    synced_gen: u64,
+    /// The number of writes to states at or under this node.
+    writes_under: u64,
+
+    /// What a list keeps about its items, for a node whose children are matched to keys.
+    list: Option<Box<ListNode>>,
 
     /// Type of the view owning the node, where it can change (children of `any_view`).
     tid: Option<TypeId>,
@@ -65,6 +67,43 @@ pub(crate) struct Node {
     has_anim: bool,
 }
 
+/// What a list's node keeps, so that walking a long list costs nothing per item that didn't
+/// change.
+#[derive(Default)]
+struct ListNode {
+    /// The key of each child as of the last `sync_keyed_children`, kept together so that
+    /// checking the keys doesn't visit every child node.
+    keys: Vec<u64>,
+    /// Do two items share a key, and so a node?
+    duplicates: bool,
+    /// `Context::write_gen` and the node's `writes_under` at the last `sync_keyed_children`.
+    synced_gen: u64,
+    synced_writes: u64,
+    /// The items with a write under them, with the generation of the write, oldest first, as
+    /// many as `WRITTEN_ITEMS`.
+    written: Vec<(u64, ViewId)>,
+    /// The generation of a write that didn't fit in `written`: every item may have one since.
+    overflow_gen: u64,
+    /// The list's last layout.
+    layout: Option<ListLayout>,
+}
+
+/// How many written items a list keeps track of between layouts; beyond that it looks at them
+/// all.
+const WRITTEN_ITEMS: usize = 256;
+
+/// A list's last layout and what it depends on, besides its items.
+pub(crate) struct ListLayout {
+    /// `Context::write_gen` when the layout started.
+    pub(crate) stamp: u64,
+    /// The node's `writes_under` when the layout started.
+    pub(crate) writes: u64,
+    /// States read while laying out its items, outside them.
+    pub(crate) foreign: Box<[ViewId]>,
+    pub(crate) proposed: LocalSize,
+    pub(crate) size: LocalSize,
+}
+
 /// What a `state` view's layout depends on, and the size it computed.
 struct LayoutCache {
     /// `Context::write_gen` when the layout started.
@@ -92,8 +131,9 @@ impl Node {
             parent,
             label,
             children: vec![],
-            keys: vec![],
-            synced_gen: 0,
+            slot: 0,
+            writes_under: 0,
+            list: None,
             tid: None,
             layout: LayoutBox::default(),
             #[cfg(test)]
@@ -265,22 +305,29 @@ impl Context {
     /// `child`) is the node for `keys[i]`. Nodes of keys that persist are kept, wherever they
     /// moved; nodes of keys that are gone are freed. Equal keys share a node.
     ///
-    /// The keys aren't looked at when nothing was written since the last call and their number
-    /// is the same: views are built from the states, so the keys are too (`invalidate_all`
-    /// covers anything else they depend on). Walking a long list then costs nothing per key.
+    /// The keys aren't looked at when their number is the same and every write since the last
+    /// call was to a state under the list, in its items: views are built from the states, so
+    /// the keys are too, and the views around a list don't read the states in its items
+    /// (`invalidate_all` covers anything else the keys depend on). Walking a long list then
+    /// costs nothing per key.
     pub(crate) fn sync_keyed_children<I>(&mut self, parent: ViewId, keys: I)
     where
         I: ExactSizeIterator<Item = u64> + Clone,
     {
-        // Fast paths: nothing was written, or the keys are unchanged.
+        // Fast paths: only the items were written, or the keys are unchanged.
         let write_gen = self.write_gen;
         {
             let node = self.node(parent);
-            if node.children.len() == keys.len()
-                && node.keys.len() == keys.len()
-                && (node.synced_gen == write_gen || node.keys.iter().copied().eq(keys.clone()))
+            if let Some(list) = &node.list
+                && node.children.len() == keys.len()
+                && list.keys.len() == keys.len()
+                && (write_gen - list.synced_gen == node.writes_under - list.synced_writes
+                    || list.keys.iter().copied().eq(keys.clone()))
             {
-                self.node_mut(parent).synced_gen = write_gen;
+                let writes = node.writes_under;
+                let list = self.node_mut(parent).list.as_mut().unwrap();
+                list.synced_gen = write_gen;
+                list.synced_writes = writes;
                 return;
             }
         }
@@ -309,10 +356,90 @@ impl Context {
         for (_, gone) in by_key {
             self.free_subtree(gone);
         }
+        for (i, c) in children.iter().enumerate() {
+            self.nodes[c.index as usize].slot = i as u32;
+        }
+        let duplicates = used.len() < children.len();
         let node = self.node_mut(parent);
-        node.keys = new_keys;
+        let writes = node.writes_under;
         node.children = children;
-        node.synced_gen = write_gen;
+        let list = node.list.get_or_insert_with(Default::default);
+        list.keys = new_keys;
+        list.duplicates = duplicates;
+        list.synced_gen = write_gen;
+        list.synced_writes = writes;
+        // The items moved: lay them all out again.
+        list.layout = None;
+    }
+
+    /// The items of the list at `id` with a write under them after generation `since`, by
+    /// slot, or `None` when that isn't known and any item may have one.
+    pub(crate) fn written_items(&self, id: ViewId, since: u64) -> Option<Vec<usize>> {
+        let node = self.node(id);
+        let list = node.list.as_ref()?;
+        if list.overflow_gen > since || list.duplicates {
+            return None;
+        }
+        let mut slots = vec![];
+        for &(stamp, item) in &list.written {
+            if stamp <= since {
+                continue;
+            }
+            if !self.is_live(item) {
+                continue;
+            }
+            let slot = self.nodes[item.index as usize].slot as usize;
+            if node.children.get(slot) != Some(&item) {
+                return None;
+            }
+            slots.push(slot);
+        }
+        slots.sort_unstable();
+        slots.dedup();
+        Some(slots)
+    }
+
+    /// Forgets the written items of the list at `id` up to generation `upto`.
+    pub(crate) fn forget_written(&mut self, id: ViewId, upto: u64) {
+        if let Some(list) = self.node_mut(id).list.as_mut() {
+            list.written.retain(|(stamp, _)| *stamp > upto);
+        }
+    }
+
+    /// The last layout of the list at `id`.
+    pub(crate) fn list_layout(&self, id: ViewId) -> Option<&ListLayout> {
+        self.node(id).list.as_ref()?.layout.as_ref()
+    }
+
+    /// The number of writes to states at or under `id`.
+    pub(crate) fn writes_under(&self, id: ViewId) -> u64 {
+        self.node(id).writes_under
+    }
+
+    /// The generation the list at `id` was last laid out at, if every write since was to a
+    /// state in its items, so that the views around it are as they were (see
+    /// `sync_keyed_children`).
+    pub(crate) fn list_laid_out_since_inner_writes(&self, id: ViewId) -> Option<u64> {
+        let node = self.node(id);
+        let layout = node.list.as_ref()?.layout.as_ref()?;
+        (self.write_gen - layout.stamp == node.writes_under - layout.writes).then_some(layout.stamp)
+    }
+
+    pub(crate) fn store_list_layout(&mut self, id: ViewId, layout: ListLayout) {
+        if let Some(list) = self.node_mut(id).list.as_mut() {
+            list.layout = Some(layout);
+        }
+    }
+
+    /// Is a list layout computed at generation `stamp` with `foreign` reads still valid for
+    /// everything but its items: no enclosing `state` view and none of the `foreign` states
+    /// written since, and nothing invalidated everything?
+    pub(crate) fn list_layout_valid(&self, stamp: u64, foreign: &[ViewId]) -> bool {
+        stamp >= self.floor_gen
+            && self.ancestor_gen <= stamp
+            && foreign
+                .iter()
+                .all(|r| self.is_live(*r) && self.nodes[r.index as usize].state_gen <= stamp)
     }
 
     /// Records a write to the state of `id`: raises the state's generation and the subtree
@@ -322,9 +449,23 @@ impl Context {
         let stamp = self.write_gen;
         self.node_mut(id).state_gen = stamp;
         let mut node = id;
+        let mut below = ViewId::default();
         while !node.is_default() {
             let n = &mut self.nodes[node.index as usize];
             n.subtree_gen = stamp;
+            n.writes_under += 1;
+            // A list learns which of its items was written.
+            if !below.is_default()
+                && let Some(list) = n.list.as_mut()
+            {
+                if list.written.len() < WRITTEN_ITEMS {
+                    list.written.push((stamp, below));
+                } else {
+                    list.written.clear();
+                    list.overflow_gen = stamp;
+                }
+            }
+            below = node;
             node = n.parent;
         }
     }
@@ -364,6 +505,15 @@ impl Context {
                 .all(|r| self.is_live(*r) && self.nodes[r.index as usize].state_gen <= stamp)
     }
 
+    /// Were none of the states read so far in this walk, by the views around the one being
+    /// laid out, written after generation `stamp`?
+    pub(crate) fn reads_unchanged_since(&self, stamp: u64) -> bool {
+        self.reads
+            .borrow()
+            .iter()
+            .all(|r| self.is_live(*r) && self.nodes[r.index as usize].state_gen <= stamp)
+    }
+
     /// Starts recording the states read while the `state` view at `id` computes a result to
     /// cache. Returns what `end_reads` needs.
     pub(crate) fn begin_reads(&self) -> usize {
@@ -392,7 +542,7 @@ impl Context {
     }
 
     /// Passes the foreign reads of a reused result on to the `state` views computing around it.
-    fn reuse_reads(&self, foreign: &[ViewId]) {
+    pub(crate) fn reuse_reads(&self, foreign: &[ViewId]) {
         if self.reading.get() > 0 && !foreign.is_empty() {
             self.reads.borrow_mut().extend_from_slice(foreign);
         }
@@ -527,6 +677,11 @@ impl Context {
     /// Can the `Event::Anim` pass skip the view at `id`, which need not be a `state` view?
     /// Only if no `anim` view was seen there, and the tree was laid out with nothing written
     /// since, so every `anim` view in it was seen.
+    /// Has an `anim` view been seen at or under `id`?
+    pub(crate) fn has_anim(&self, id: ViewId) -> bool {
+        self.node(id).has_anim
+    }
+
     pub(crate) fn skip_unmarked_anim(&self, id: ViewId) -> bool {
         !self.node(id).has_anim && self.marked_gen == Some(self.write_gen)
     }

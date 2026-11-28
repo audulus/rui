@@ -54,31 +54,43 @@ fn test_list_frees_removed_keys() {
 #[test]
 fn test_list_keys_are_matched_again_after_a_write() {
     let mut cx = Context::new();
+    // A list in a `state` view, whose state stands for what the app builds the keys from.
     let ui = |ids: Vec<i32>| {
-        list_shared(Arc::new(ids), |_| {
-            state(|| 0i32, |_, _| rectangle().size([10.0, 10.0]))
-        })
+        state(
+            || 0i32,
+            move |_, _| {
+                list_shared(Arc::new(ids.clone()), |_| {
+                    state(|| 0i32, |_, _| rectangle().size([10.0, 10.0]))
+                })
+            },
+        )
     };
     layout(&mut cx, &ui(vec![1, 2, 3]));
-    let id = cx.id_at(&[0, hh(&2)]);
-    let s = StateHandle::<i32>::new(id);
+    let outer = StateHandle::<i32>::new(cx.root_id());
+    let list_id = cx.child(cx.root_id(), 0);
+    let id = cx.id_at(&[0, 0, hh(&2)]);
+    let item = StateHandle::<i32>::new(id);
 
     // Nothing was written, so the list doesn't look at its keys: views are built from the
     // states, and keys that change otherwise need `invalidate_all`. Key 2's node stays in slot 1.
     layout(&mut cx, &ui(vec![2, 1, 3]));
-    assert_eq!(cx.child(cx.root_id(), 1), id);
+    assert_eq!(cx.child(list_id, 1), id);
 
-    // After a write it matches them again; the node of key 2 moves with it.
-    cx[s] = 5;
+    // Nor after a write to an item's own state: the views around a list don't read those.
+    cx[item] = 5;
+    layout(&mut cx, &ui(vec![2, 1, 3]));
+    assert_eq!(cx.child(list_id, 1), id);
+
+    // After any other write it matches them again; the node of key 2 moves with it.
+    cx[outer] = 1;
     layout(&mut cx, &ui(vec![2, 3, 1]));
-    assert_eq!(cx.child(cx.root_id(), 0), id);
-    assert_eq!(cx[s], 5);
+    assert_eq!(cx.child(list_id, 0), id);
+    assert_eq!(cx[item], 5);
 
     // `invalidate_all` does too.
-    layout(&mut cx, &ui(vec![2, 3, 1]));
     cx.invalidate_all();
     layout(&mut cx, &ui(vec![1, 3, 2]));
-    assert_eq!(cx.child(cx.root_id(), 2), id);
+    assert_eq!(cx.child(list_id, 2), id);
 }
 
 #[test]
@@ -451,9 +463,7 @@ fn test_anim_pass_skips_lists_without_anim() {
     let mut cx = Context::new();
     let root = cx.root_id();
 
-    // Before any update's layout the marks may be missing, so the pass visits the items.
-    layout(&mut cx, &ui);
-    built.set(0);
+    // Before the list's first layout the marks may be missing, so the pass visits the items.
     ui.process(&Event::Anim, root, &mut cx, &mut vec![]);
     assert_eq!(built.get(), 3);
 
@@ -625,4 +635,155 @@ fn test_tapping_the_focused_view_keeps_the_caches() {
 
     ui.process(&tap, root, &mut cx, &mut vec![]);
     assert_eq!(cx.floor_gen, floor);
+}
+
+/// A list of `n` rows that aren't `state` views, each holding a `state` with its height, and
+/// counting how often each row is built.
+fn plain_rows(n: usize, built: Rc<Vec<Cell<usize>>>) -> impl View {
+    list_shared(Arc::new((0..n).collect()), move |&i| {
+        built[i].set(built[i].get() + 1);
+        vstack((state(|| 10.0f32, |h, cx| rectangle().size([10.0, cx[h]])),))
+    })
+}
+
+fn row_height(cx: &Context, i: usize) -> StateHandle<f32> {
+    StateHandle::new(cx.id_at(&[0, hh(&i), 0]))
+}
+
+fn builds(built: &[Cell<usize>]) -> Vec<usize> {
+    built.iter().map(|b| b.replace(0)).collect()
+}
+
+#[test]
+fn test_list_lays_out_only_written_items() {
+    let built = Rc::new((0..4).map(|_| Cell::new(0)).collect::<Vec<_>>());
+    let ui = plain_rows(4, built.clone());
+    let mut cx = Context::new();
+    layout(&mut cx, &ui);
+    assert_eq!(builds(&built), [1, 1, 1, 1]);
+
+    // A write that leaves the row's size: only that row is laid out again, and every row
+    // keeps its place.
+    let offsets = |cx: &mut Context| -> Vec<f32> {
+        (0..4)
+            .map(|i| {
+                let id = cx.child(cx.root_id(), i);
+                cx.get_layout(id).offset.y
+            })
+            .collect()
+    };
+    let before = offsets(&mut cx);
+    let h = row_height(&cx, 2);
+    cx[h] = 10.0;
+    layout(&mut cx, &ui);
+    assert_eq!(builds(&built), [0, 0, 1, 0]);
+    assert_eq!(offsets(&mut cx), before);
+
+    // Nothing written: no row is built.
+    layout(&mut cx, &ui);
+    assert_eq!(builds(&built), [0, 0, 0, 0]);
+}
+
+#[test]
+fn test_list_item_that_changes_size_moves_the_others() {
+    let built = Rc::new((0..3).map(|_| Cell::new(0)).collect::<Vec<_>>());
+    let ui = plain_rows(3, built.clone());
+    let mut cx = Context::new();
+    layout(&mut cx, &ui);
+
+    let h = row_height(&cx, 0);
+    cx[h] = 30.0;
+    layout(&mut cx, &ui);
+    // Row 0 is at the top (y is up): 30 tall above two rows of 10.
+    let root = cx.root_id();
+    let offset = |cx: &mut Context, i: usize| {
+        let id = cx.child(root, i);
+        cx.get_layout(id).offset.y
+    };
+    assert_eq!(offset(&mut cx, 0), 20.0);
+    assert_eq!(offset(&mut cx, 1), 10.0);
+    assert_eq!(offset(&mut cx, 2), 0.0);
+}
+
+#[test]
+fn test_list_lays_out_every_item_after_a_write_around_it() {
+    let built = Rc::new((0..3).map(|_| Cell::new(0)).collect::<Vec<_>>());
+    let b = built.clone();
+    // The rows show the state of the `state` view around the list.
+    let ui = state(
+        || 10.0f32,
+        move |height, _| {
+            let b = b.clone();
+            list_shared(Arc::new((0..3usize).collect()), move |&i| {
+                b[i].set(b[i].get() + 1);
+                vstack((state(
+                    || (),
+                    move |_, cx| rectangle().size([10.0, cx[height]]),
+                ),))
+            })
+        },
+    );
+    let mut cx = Context::new();
+    layout(&mut cx, &ui);
+    builds(&built);
+
+    let height = StateHandle::<f32>::new(cx.root_id());
+    cx[height] = 20.0;
+    layout(&mut cx, &ui);
+    assert_eq!(builds(&built), [1, 1, 1]);
+    assert_eq!(cx.get_layout(cx.root_id()).rect.height(), 60.0);
+}
+
+#[test]
+fn test_list_dirty_walk_visits_only_written_items() {
+    let built = Rc::new((0..4).map(|_| Cell::new(0)).collect::<Vec<_>>());
+    let ui = plain_rows(4, built.clone());
+    let mut cx = Context::new();
+    layout(&mut cx, &ui);
+    let root = cx.root_id();
+    ui.dirty(root, LocalToWorld::identity(), &mut cx);
+    cx.clear_dirty();
+    cx.dirty_region.clear();
+
+    let h = row_height(&cx, 1);
+    cx[h] = 10.0;
+    layout(&mut cx, &ui);
+    builds(&built);
+    ui.dirty(root, LocalToWorld::identity(), &mut cx);
+    assert_eq!(builds(&built), [0, 1, 0, 0]);
+    assert_eq!(cx.dirty_region.rects().len(), 1);
+}
+
+#[test]
+fn test_anim_pass_visits_only_written_items() {
+    let ticks = Rc::new(Cell::new(0));
+    let built = Rc::new((0..3).map(|_| Cell::new(0)).collect::<Vec<_>>());
+    let (t, b) = (ticks.clone(), built.clone());
+    // Rows that start an animation when their state turns on.
+    let ui = list_shared(Arc::new((0..3usize).collect()), move |&i| {
+        b[i].set(b[i].get() + 1);
+        let t = t.clone();
+        vstack((state(
+            || false,
+            move |on, cx| {
+                let t = t.clone();
+                cond(
+                    cx[on],
+                    rectangle().anim(move |_, _| t.set(t.get() + 1)),
+                    rectangle(),
+                )
+            },
+        ),))
+    });
+    let mut cx = Context::new();
+    update_layout(&mut cx, &ui);
+    let root = cx.root_id();
+    builds(&built);
+
+    // Row 1 turns on: the pass, before any layout, visits only row 1 and finds its new `anim`.
+    let on = StateHandle::<bool>::new(cx.id_at(&[0, hh(&1usize), 0]));
+    cx[on] = true;
+    ui.process(&Event::Anim, root, &mut cx, &mut vec![]);
+    assert_eq!(builds(&built), [0, 1, 0]);
+    assert_eq!(ticks.get(), 1);
 }

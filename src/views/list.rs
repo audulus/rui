@@ -49,21 +49,26 @@ where
     ID: Hash,
 {
     /// Lays out an item, or reuses its last size without building its view when the item is a
-    /// `state` view whose layout is still valid.
+    /// `state` view whose layout is still valid. Adds the states it read outside itself, and
+    /// outside the views around the list, to `foreign`.
     fn layout_child<V: View>(
         &self,
         id: &ID,
         cid: ViewId,
         sz: LocalSize,
         args: &mut LayoutArgs,
+        foreign: &mut Vec<ViewId>,
     ) -> LocalSize
     where
         F: Fn(&ID) -> V,
     {
-        if let Some(size) = args.cx.cached_layout(cid, sz) {
-            return size;
-        }
-        ((self.func)(id)).layout(cid, &mut args.size(sz))
+        let reads = args.cx.begin_reads();
+        let size = match args.cx.cached_layout(cid, sz) {
+            Some(size) => size,
+            None => ((self.func)(id)).layout(cid, &mut args.size(sz)),
+        };
+        foreign.extend(args.cx.end_reads(cid, reads).iter());
+        size
     }
 
     /// The items, in order, that may meet `area`, in the list's local space, once their bounds
@@ -101,6 +106,77 @@ where
         }
     }
 
+    /// The size proposed to each item.
+    fn proposed_child_size(&self, sz: LocalSize) -> LocalSize {
+        let n = self.ids.len() as f32;
+        match self.orientation {
+            ListOrientation::Horizontal => LocalSize::new(sz.width / n, sz.height),
+            ListOrientation::Vertical => LocalSize::new(sz.width, sz.height / n),
+            ListOrientation::Z => sz,
+        }
+    }
+
+    /// Lays out only the items with a write under them since the last layout, when nothing
+    /// else it depends on changed: the size proposed to the list, an enclosing `state` view,
+    /// a state it read outside its items, or a state the views around it read in this walk.
+    /// Returns `None`, to lay out every item, when it can't tell which items were written or
+    /// one of them changed size, which moves the ones after it.
+    fn layout_written<V: View>(&self, vid: ViewId, args: &mut LayoutArgs) -> Option<LocalSize>
+    where
+        F: Fn(&ID) -> V,
+    {
+        let cx = &*args.cx;
+        let last = cx.list_layout(vid)?;
+        if last.proposed != args.sz
+            || !cx.list_layout_valid(last.stamp, &last.foreign)
+            || !cx.reads_unchanged_since(last.stamp)
+        {
+            return None;
+        }
+        let (last_stamp, size) = (last.stamp, last.size);
+        let last_foreign = last.foreign.clone();
+        let items = cx.written_items(vid, last_stamp)?;
+
+        let stamp = args.cx.write_gen;
+        let writes = args.cx.writes_under(vid);
+        let mut read = vec![];
+        let proposed = self.proposed_child_size(args.sz);
+        let mut same = true;
+        for i in items {
+            let cid = args.cx.child(vid, i);
+            let before = args.cx.get_layout(cid);
+            let child_size = self.layout_child(&self.ids[i], cid, proposed, args, &mut read);
+            // The item keeps its place; its own layout may have set its offset.
+            args.cx.update_layout(cid, before);
+            if child_size != before.rect.size {
+                same = false;
+                break;
+            }
+        }
+        if !same {
+            return None;
+        }
+
+        // What the items that weren't laid out again read still counts, here and around.
+        args.cx.reuse_reads(&last_foreign);
+        let mut foreign: Vec<ViewId> = last_foreign.iter().chain(read.iter()).copied().collect();
+        foreign.sort_by_key(|r| (r.index, r.generation));
+        foreign.dedup();
+        args.cx.store_list_layout(
+            vid,
+            ListLayout {
+                stamp,
+                writes,
+                foreign: foreign.into_boxed_slice(),
+                proposed: args.sz,
+                size,
+            },
+        );
+        let clean = args.cx.clean_gen;
+        args.cx.forget_written(vid, stamp.min(clean));
+        Some(size)
+    }
+
     /// Matches the list's child nodes to its items, so child `i` is the node of `ids[i]`.
     fn sync(&self, vid: ViewId, cx: &mut Context) {
         cx.sync_keyed_children(vid, self.ids.iter().map(hh));
@@ -129,6 +205,24 @@ where
         }
 
         self.sync(vid, cx);
+
+        // With no `anim` view in the list at its last layout, and only its items written since,
+        // only those items can hold a new one.
+        if let Event::Anim = event
+            && !cx.has_anim(vid)
+            && let Some(stamp) = cx.list_laid_out_since_inner_writes(vid)
+            && let Some(items) = cx.written_items(vid, stamp)
+        {
+            for i in items.into_iter().rev() {
+                let cid = cx.child(vid, i);
+                if cx.skip_anim(cid) {
+                    continue;
+                }
+                let offset = cx.get_layout(cid).offset;
+                ((self.func)(&self.ids[i])).process(&event.offset(-offset), cid, cx, actions);
+            }
+            return;
+        }
 
         let position = match event {
             Event::TouchBegin { position, .. }
@@ -279,7 +373,15 @@ where
 
     fn layout(&self, vid: ViewId, args: &mut LayoutArgs) -> LocalSize {
         self.sync(vid, args.cx);
-        match self.orientation {
+        if let Some(size) = self.layout_written(vid, args) {
+            return size;
+        }
+
+        // Lay out every item, keeping what they read outside themselves.
+        let stamp = args.cx.write_gen;
+        let writes = args.cx.writes_under(vid);
+        let mut foreign = vec![];
+        let size = match self.orientation {
             ListOrientation::Horizontal => {
                 let n = self.ids.len() as f32;
                 let proposed_child_size = LocalSize::new(args.sz.width / n, args.sz.height);
@@ -289,7 +391,8 @@ where
                 let mut width_sum = 0.0;
                 for (i, child) in self.ids.iter().enumerate() {
                     let cid = args.cx.child(vid, i);
-                    let child_size = self.layout_child(child, cid, proposed_child_size, args);
+                    let child_size =
+                        self.layout_child(child, cid, proposed_child_size, args, &mut foreign);
                     sizes.push(child_size);
 
                     width_sum += child_size.width;
@@ -334,7 +437,8 @@ where
                 let mut height_sum = 0.0;
                 for (i, child) in self.ids.iter().enumerate() {
                     let cid = args.cx.child(vid, i);
-                    let child_size = self.layout_child(child, cid, proposed_child_size, args);
+                    let child_size =
+                        self.layout_child(child, cid, proposed_child_size, args, &mut foreign);
                     sizes.push(child_size);
 
                     height_sum += child_size.height;
@@ -377,11 +481,26 @@ where
                 for (i, child) in self.ids.iter().enumerate() {
                     let cid = args.cx.child(vid, i);
                     let sz = args.sz;
-                    self.layout_child(child, cid, sz, args);
+                    self.layout_child(child, cid, sz, args, &mut foreign);
                 }
                 args.sz
             }
-        }
+        };
+        foreign.sort_by_key(|r| (r.index, r.generation));
+        foreign.dedup();
+        args.cx.store_list_layout(
+            vid,
+            ListLayout {
+                stamp,
+                writes,
+                foreign: foreign.into_boxed_slice(),
+                proposed: args.sz,
+                size,
+            },
+        );
+        let clean = args.cx.clean_gen;
+        args.cx.forget_written(vid, stamp.min(clean));
+        size
     }
 
     fn dirty(&self, vid: ViewId, xform: LocalToWorld, cx: &mut Context) {
@@ -389,7 +508,12 @@ where
             return;
         }
         self.sync(vid, cx);
-        for (i, child) in self.ids.iter().enumerate() {
+        // Only the items written since the last update can be dirty.
+        let items = cx
+            .written_items(vid, cx.clean_gen)
+            .unwrap_or_else(|| (0..self.ids.len()).collect());
+        for i in items {
+            let child = &self.ids[i];
             let cid = cx.child(vid, i);
             if !cx.is_subtree_dirty(cid) {
                 continue;
@@ -398,6 +522,9 @@ where
             let xf = xform.pre_translate(offset);
             ((self.func)(child)).dirty(cid, xf, cx);
         }
+        // The next layout needs the writes after its last one; the next dirty walk none of these.
+        let upto = cx.list_layout(vid).map_or(cx.write_gen, |l| l.stamp);
+        cx.forget_written(vid, upto);
     }
 
     fn hittest(&self, vid: ViewId, pt: LocalPoint, cx: &mut Context) -> Option<ViewId> {
@@ -463,9 +590,11 @@ impl<ID, F> private::Sealed for List<ID, F> {}
 /// presses, releases and every other event reach all items. An item that takes motion more than
 /// 64 points outside its bounds gets it there only when the pointer moves there from over it.
 ///
-/// `ids` is a Vec of items that implement Hash. The list only looks at them after a state
-/// write (or `invalidate_all`): views are built from the states, so their ids are too. Use
-/// `list_shared` for a long list, so that building it doesn't copy its ids.
+/// `ids` is a Vec of items that implement Hash. The list only looks at them after a write to a
+/// state outside its items (or `invalidate_all`): views are built from the states, so their
+/// ids are too, and they mustn't be built from the states inside the items. After writes in
+/// its items alone, it lays out only those items, unless one changes size. Use `list_shared`
+/// for a long list, so that building it doesn't copy its ids.
 ///
 /// `f` is a function called to generate a DynView for each item.
 ///
