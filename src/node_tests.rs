@@ -800,7 +800,7 @@ fn test_long_list_estimates_the_rows_not_laid_out() {
 
     // Laid out down to 400, two spaces' worth; the other 980 rows count at the average, 20.
     assert_eq!(cx.list_measured(root, 1000), 20);
-    assert_eq!(cx.list_extent(root).1.height, 400.0 + 20.0 * 980.0);
+    assert_eq!(cx.list_extent(root).size.height, 400.0 + 20.0 * 980.0);
     // Row 0 is at the top (y is up), row 1 below it.
     let row = |cx: &mut Context, i| {
         let id = cx.list_child(root, i);
@@ -810,4 +810,16 @@ fn test_long_list_estimates_the_rows_not_laid_out() {
     assert_eq!(row(&mut cx, 1), 20_000.0 - 40.0);
     // Rows not laid out have no nodes: two for each of the 20, and the list's.
     assert_eq!(cx.live_nodes(), 41);
+}
+
+#[test]
+fn test_commands_reach_list_items_before_any_layout() {
+    // The menu can be gathered before anything is laid out: every item counts then.
+    let ui = hlist(vec![0usize, 1], |&i| {
+        rectangle().command(if i == 0 { "Edit:A" } else { "Edit:B" }, None, |_| {})
+    });
+    let mut cx = Context::new();
+    let mut cmds = vec![];
+    cx.commands(&ui, &mut cmds);
+    assert_eq!(cmds.len(), 2);
 }

@@ -89,11 +89,22 @@ struct ListNode {
     /// How many items, from the first, have been laid out, or `None` before the first layout,
     /// when every item counts; a vertical list lays out only as far down as has been shown.
     measured: Option<usize>,
-    /// The height of the items laid out, and the list's size with the others estimated.
+    /// The height of the items laid out, the list's size with the others estimated, and the
+    /// size proposed to the list at its last layout.
     measured_height: f32,
     size: LocalSize,
+    proposed: LocalSize,
     /// How far down from its top the list was asked to lay out its items, by drawing.
     want: f32,
+}
+
+/// What a vertical list knows of its extent (see `Context::list_extent`).
+#[derive(Default, Clone, Copy)]
+pub(crate) struct ListExtent {
+    pub(crate) height: f32,
+    pub(crate) size: LocalSize,
+    pub(crate) proposed: LocalSize,
+    pub(crate) want: f32,
 }
 
 /// How many written items a list keeps track of between layouts; beyond that it looks at them
@@ -414,43 +425,36 @@ impl Context {
             .map_or(n, |m| m.min(n))
     }
 
-    /// How many items of the list at `id`, from the first, have been laid out: none before its
-    /// first layout.
-    pub(crate) fn list_laid_out(&self, id: ViewId) -> usize {
-        let node = self.node(id);
-        node.list.as_ref().map_or(0, |l| {
-            l.measured.unwrap_or(if l.layout.is_some() {
-                node.children.len()
-            } else {
-                0
-            })
-        })
-    }
-
-    /// The height of the items of the list at `id` that have been laid out, its size as of its
-    /// last layout, and how far down drawing asked it to lay out its items.
-    pub(crate) fn list_extent(&self, id: ViewId) -> (f32, LocalSize, f32) {
+    /// What the list at `id` knows of its extent: the height of the items laid out, its size as
+    /// of its last layout and the size proposed to it there, and how far down drawing asked it
+    /// to lay out its items.
+    pub(crate) fn list_extent(&self, id: ViewId) -> ListExtent {
         self.node(id)
             .list
             .as_ref()
-            .map_or((0.0, LocalSize::zero(), 0.0), |l| {
-                (l.measured_height, l.size, l.want)
+            .map_or(ListExtent::default(), |l| ListExtent {
+                height: l.measured_height,
+                size: l.size,
+                proposed: l.proposed,
+                want: l.want,
             })
     }
 
     /// Records that the first `measured` items of the list at `id`, `height` tall, are laid
-    /// out, and the list's size.
+    /// out in a list of `size` that was proposed `proposed`.
     pub(crate) fn set_list_measured(
         &mut self,
         id: ViewId,
         measured: usize,
         height: f32,
         size: LocalSize,
+        proposed: LocalSize,
     ) {
         if let Some(list) = self.node_mut(id).list.as_mut() {
             list.measured = Some(measured);
             list.measured_height = height;
             list.size = size;
+            list.proposed = proposed;
         }
     }
 

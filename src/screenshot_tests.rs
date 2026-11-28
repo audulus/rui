@@ -392,10 +392,18 @@ fn test_screenshot_cond() {
     screenshot_test(&mut renderer, &ui, "cond_true");
 }
 
-/// Lays out `view` at `size` and draws it as `Context::render` does, with the window as the
-/// visible area, into `renderer`'s `Vger` (nothing is read back).
-fn lay_out_and_draw(renderer: &mut TestRenderer, view: &impl View, cx: &mut Context, size: f32) {
+/// Lays out `view` in a window of `size` and draws it as `Context::render` does, with the
+/// window as the visible area when `visible`, else none, as offscreen, into `renderer`'s
+/// `Vger` (nothing is read back).
+fn lay_out_and_draw(
+    renderer: &mut TestRenderer,
+    view: &impl View,
+    cx: &mut Context,
+    size: f32,
+    visible: bool,
+) {
     let root = cx.root_id();
+    cx.window_size = [size, size].into();
     renderer.vger.begin(size, size, 1.0);
     let vger = &mut renderer.vger;
     view.layout(
@@ -406,7 +414,7 @@ fn lay_out_and_draw(renderer: &mut TestRenderer, view: &impl View, cx: &mut Cont
             text_bounds: &mut |s, font, width| vger.text_bounds(s, font, width),
         },
     );
-    cx.visible = Some(WorldRect::new(WorldPoint::origin(), [size, size].into()));
+    cx.visible = visible.then(|| WorldRect::new(WorldPoint::origin(), [size, size].into()));
     view.draw(root, &mut DrawArgs { cx, vger });
     cx.visible = None;
 }
@@ -414,24 +422,24 @@ fn lay_out_and_draw(renderer: &mut TestRenderer, view: &impl View, cx: &mut Cont
 #[test]
 fn test_long_list_lays_out_only_what_is_shown() {
     let mut renderer = TestRenderer::new();
-    // 1,000 rows 20 tall in a 100 x 100 scroll view.
+    // 1,000 rows 20 tall in a 100 x 100 window, scrolled.
     let ui = scroll(list_shared(
         std::sync::Arc::new((0..1000usize).collect()),
-        |_| rectangle().size([100.0, 20.0]),
+        |_| state(|| (), |_, _| rectangle().size([100.0, 20.0])),
     ));
     let mut cx = Context::new();
-    lay_out_and_draw(&mut renderer, &ui, &mut cx, 100.0);
+    lay_out_and_draw(&mut renderer, &ui, &mut cx, 100.0, true);
     let list_id = cx.id_at(&[0, 0]);
 
-    // A view and a view more of rows, as nothing larger can be seen; the others are counted at
+    // A window and a window more of rows, as no more can be seen; the others are counted at
     // their height without being laid out.
-    let measured = cx.list_measured(list_id, 1000);
-    assert_eq!(measured, 10);
-    assert_eq!(cx.list_extent(list_id).1.height, 20_000.0);
+    assert_eq!(cx.list_measured(list_id, 1000), 10);
+    assert_eq!(cx.list_extent(list_id).size.height, 20_000.0);
     assert!(cx.live_nodes() < 50);
 
     // Scrolled 500 down, rows 25 to 29 show: drawing lays them out where a full layout
-    // would put them, and asks for a layout.
+    // would put them, proposed what the list's layout proposes, and asks for a layout. It
+    // lays out down to a window past the visible area, not the whole list.
     ui.process(
         &Event::Scroll {
             position: [50.0, 50.0].into(),
@@ -442,14 +450,30 @@ fn test_long_list_lays_out_only_what_is_shown() {
         &mut vec![],
     );
     cx.dirty = false;
-    lay_out_and_draw(&mut renderer, &ui, &mut cx, 100.0);
-    assert!(cx.list_measured(list_id, 1000) >= 30);
+    lay_out_and_draw(&mut renderer, &ui, &mut cx, 100.0, true);
+    let measured = cx.list_measured(list_id, 1000);
+    assert!((30..50).contains(&measured), "{measured}");
     let row = cx.list_child(list_id, 27);
     assert_eq!(cx.get_layout(row).offset.y, 20_000.0 - 20.0 * 28.0);
+    let item_proposed = LocalSize::new(100.0, 100.0 / 1000.0);
+    assert!(cx.cached_layout(row, item_proposed).is_some());
     assert!(cx.dirty);
 
-    // The next layout keeps them, and lays out a view more.
-    lay_out_and_draw(&mut renderer, &ui, &mut cx, 100.0);
-    assert!(cx.list_measured(list_id, 1000) >= 35);
+    // The next layout keeps them where they are.
+    lay_out_and_draw(&mut renderer, &ui, &mut cx, 100.0, true);
+    assert_eq!(cx.list_measured(list_id, 1000), measured);
     assert_eq!(cx.get_layout(row).offset.y, 20_000.0 - 20.0 * 28.0);
+}
+
+#[test]
+fn test_long_list_drawn_offscreen_lays_out_every_row() {
+    let mut renderer = TestRenderer::new();
+    // With no visible area, as offscreen, every row may show: a list taller than the target
+    // is centered on it.
+    let ui = list_shared(std::sync::Arc::new((0..1000usize).collect()), |_| {
+        rectangle().size([100.0, 20.0])
+    });
+    let mut cx = Context::new();
+    lay_out_and_draw(&mut renderer, &ui, &mut cx, 100.0, false);
+    assert_eq!(cx.list_measured(cx.root_id(), 1000), 1000);
 }

@@ -2,7 +2,7 @@ use crate::timing::timed;
 use crate::*;
 
 use futures::executor::block_on;
-use std::{collections::HashMap, sync::Arc};
+use std::sync::Arc;
 #[cfg(not(target_arch = "wasm32"))]
 use std::{collections::VecDeque, sync::Mutex};
 
@@ -610,15 +610,6 @@ pub fn rui_with_config(view: impl View, config: WindowConfig) {
     #[cfg(not(target_arch = "wasm32"))]
     {
         *GLOBAL_EVENT_LOOP_PROXY.lock().unwrap() = Some(event_loop.create_proxy());
-    }
-
-    let mut commands: Vec<CommandInfo> = Vec::new();
-    let mut command_map = HashMap::new();
-    app.cx.commands(&app.view, &mut commands);
-
-    {
-        // So we can infer a type for CommandMap when winit is enabled.
-        command_map.insert("", "");
     }
 
     if let Err(e) = event_loop.run_app(&mut app) {

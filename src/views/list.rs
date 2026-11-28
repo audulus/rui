@@ -191,25 +191,32 @@ where
         if measured >= n {
             return;
         }
-        let Some(area) = args.cx.local_visible(args.vger) else {
-            return;
+        let ListExtent {
+            height,
+            size,
+            proposed: list_proposed,
+            ..
+        } = args.cx.list_extent(vid);
+        // How far down from the list's top the visible area reaches: all of it when nothing
+        // limits what is visible, as when drawing offscreen.
+        let bottom = match args.cx.local_visible(args.vger) {
+            Some(area) => size.height - area.min_y() + DRAW_SLACK,
+            None => f32::INFINITY,
         };
-        let (height, size, _) = args.cx.list_extent(vid);
-        // How far down from the list's top the visible area reaches.
-        let bottom = size.height - area.min_y() + DRAW_SLACK;
         if bottom <= height {
             return;
         }
         let vger = &mut *args.vger;
         let mut text_bounds =
             |s: &str, size: u32, width: Option<f32>| vger.text_bounds(s, size, width);
+        // The items are laid out as the list's layout would: proposed what it was proposed.
         let mut layout_args = LayoutArgs {
-            sz: size,
+            sz: list_proposed,
             cx: &mut *args.cx,
             text_bounds: &mut text_bounds,
         };
         let reach = Self::reach(&layout_args, bottom);
-        let proposed = self.proposed_child_size(size);
+        let proposed = self.proposed_child_size(list_proposed);
         let sizes = self.layout_down(
             vid,
             measured,
@@ -225,7 +232,7 @@ where
             top += item.height;
         }
         args.cx
-            .set_list_measured(vid, measured + sizes.len(), top, size);
+            .set_list_measured(vid, measured + sizes.len(), top, size, list_proposed);
         args.cx.grow_list(vid, bottom);
     }
 
@@ -250,9 +257,9 @@ where
         let last_foreign = last.foreign.clone();
         // A vertical list must still reach as far down as it was asked to.
         if let ListOrientation::Vertical = self.orientation {
-            let (height, _, want) = cx.list_extent(vid);
+            let extent = cx.list_extent(vid);
             if cx.list_measured(vid, self.ids.len()) < self.ids.len()
-                && height < Self::reach(args, want)
+                && extent.height < Self::reach(args, extent.want)
             {
                 return None;
             }
@@ -558,8 +565,7 @@ where
             ListOrientation::Vertical => {
                 // Only as far down as can be seen, or was: the items below count at the average
                 // height of those laid out. They are laid out when drawing reaches them.
-                let (_, _, want) = args.cx.list_extent(vid);
-                let reach = Self::reach(args, want);
+                let reach = Self::reach(args, args.cx.list_extent(vid).want);
                 let proposed = self.proposed_child_size(args.sz);
                 let sizes = self.layout_down(vid, 0, 0.0, reach, proposed, args, &mut foreign);
                 let measured = sizes.len();
@@ -578,7 +584,8 @@ where
                     Self::place(vid, i, *item, top, size, args.cx);
                     top += item.height;
                 }
-                args.cx.set_list_measured(vid, measured, height, size);
+                args.cx
+                    .set_list_measured(vid, measured, height, size, args.sz);
                 size
             }
             ListOrientation::Z => {
@@ -648,9 +655,8 @@ where
 
     fn commands(&self, vid: ViewId, cx: &mut Context, cmds: &mut Vec<CommandInfo>) {
         self.sync(vid, cx);
-        // The menu is made once, before anything is laid out: only items laid out take part,
-        // so a long list isn't walked for it.
-        let measured = cx.list_laid_out(vid);
+        // Every item before the list's first layout; after it, the items laid out.
+        let measured = cx.list_measured(vid, self.ids.len());
         for (i, child) in self.ids[..measured].iter().enumerate() {
             let cid = cx.list_child(vid, i);
             ((self.func)(child)).commands(cid, cx, cmds);
@@ -695,9 +701,10 @@ impl<ID, F> private::Sealed for List<ID, F> {}
 /// A vertical list builds and lays out its items only from the top down to as far as has been
 /// shown, and a window further: items below that count at the average height of those laid
 /// out, and are laid out when drawing reaches them, so a list in a `scroll` view costs nothing
-/// for the items never scrolled to, and its height grows exact as they are reached. Only the
-/// items laid out take events, hit tests, menu commands and accessibility nodes, and get a node
-/// in the `Context`. A horizontal list or a z-list lays out all its items.
+/// for the items never scrolled to, and its height grows exact as they are reached. Once it is
+/// laid out, only the items laid out take events, hit tests, menu commands and accessibility
+/// nodes, and get a node in the `Context`; before, every item does. Drawn with no visible area,
+/// as offscreen, it lays out every item. A horizontal list or a z-list lays out all its items.
 ///
 /// Pointer motion and wheel events reach only the items near the pointer, the items that were
 /// under it at the last motion, press or release, and the items holding a touch, as for a drag;
