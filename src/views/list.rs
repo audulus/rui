@@ -53,9 +53,11 @@ impl<ID, F> List<ID, F>
 where
     ID: Hash,
 {
-    /// Lays out an item, or reuses its last size without building its view when the item is a
-    /// `state` view whose layout is still valid. Adds the states it read outside itself, and
-    /// outside the views around the list, to `foreign`.
+    /// Lays out an item, or reuses its last size without building its view while it is still
+    /// valid: proposed the same size, with nothing under it, no enclosing `state` view, no
+    /// state the views around it read, and no state it read written since. An item is cached
+    /// this way whatever its root, as a `state` view caches itself. Adds the states it read
+    /// outside itself, and outside the views around the list, to `foreign`.
     fn layout_child<V: View>(
         &self,
         id: &ID,
@@ -68,11 +70,15 @@ where
         F: Fn(&ID) -> V,
     {
         let reads = args.cx.begin_reads();
-        let size = match args.cx.cached_layout(cid, sz) {
-            Some(size) => size,
-            None => ((self.func)(id)).layout(cid, &mut args.size(sz)),
-        };
-        foreign.extend(args.cx.end_reads(cid, reads).iter());
+        if let Some(size) = args.cx.cached_layout(cid, sz) {
+            foreign.extend(args.cx.end_reads(cid, reads).iter());
+            return size;
+        }
+        let stamp = args.cx.write_gen;
+        let size = ((self.func)(id)).layout(cid, &mut args.size(sz));
+        let read = args.cx.end_reads(cid, reads);
+        foreign.extend(read.iter());
+        args.cx.store_layout(cid, stamp, read, sz, size);
         size
     }
 
@@ -709,9 +715,16 @@ where
             .filter_map(|(i, child)| {
                 let cid = cx.list_child(vid, i);
                 // An item whose nodes were sent before and haven't changed is skipped without
-                // building its view.
-                cx.cached_access(cid)
-                    .unwrap_or_else(|| ((self.func)(child)).access(cid, cx, nodes))
+                // building its view, whatever its root.
+                if let Some(id) = cx.cached_access(cid) {
+                    return id;
+                }
+                let stamp = cx.write_gen;
+                let reads = cx.begin_reads();
+                let id = ((self.func)(child)).access(cid, cx, nodes);
+                let read = cx.end_reads(cid, reads);
+                cx.store_access(cid, stamp, read, id);
+                id
             })
             .collect();
 
@@ -744,8 +757,10 @@ impl<ID, F> private::Sealed for List<ID, F> {}
 /// `ids` is a Vec of items that implement Hash. The list only looks at them after a write to a
 /// state outside its items (or `invalidate_all`): views are built from the states, so their
 /// ids are too, and they mustn't be built from the states inside the items. After writes in
-/// its items alone, it lays out only those items, unless one changes size. Use `list_shared`
-/// for a long list, so that building it doesn't copy its ids.
+/// its items alone, it lays out only those items. When one changes size, the others are placed
+/// again but not built: each item's layout and accessibility result is cached on its node, as
+/// for a `state` view, until it, a state around the list, or a state it read is written. Use
+/// `list_shared` for a long list, so that building it doesn't copy its ids.
 ///
 /// `f` is a function called to generate a DynView for each item.
 ///

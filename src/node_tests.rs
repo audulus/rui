@@ -984,3 +984,105 @@ fn test_a_read_in_one_memo_doesnt_reach_its_sibling() {
     assert_eq!(cx.get_layout(cx.id_at(&[0, 0, 1, 0])).rect.width(), 5.0);
     assert_eq!(built.get(), 0);
 }
+
+/// Three rows like `rows`, but each item's root is a stack around its `state`, not the `state`
+/// itself. `calls.item` counts the builds of each item.
+fn stacked_rows(calls: &Calls) -> impl View + use<> {
+    let calls = calls.clone();
+    state(
+        || 0.0f32,
+        move |spacing, cx| {
+            let spacing = cx[spacing];
+            let calls = calls.clone();
+            list(vec![0usize, 1, 2], move |&i| {
+                calls.item[i].set(calls.item[i].get() + 1);
+                hstack((state(
+                    || 10.0f32,
+                    move |w, cx| {
+                        rectangle()
+                            .size([cx[w], 10.0 + spacing])
+                            .role(accesskit::Role::Button)
+                    },
+                ),))
+            })
+        },
+    )
+}
+
+fn stacked_row_handle(cx: &Context, i: usize) -> StateHandle<f32> {
+    StateHandle::new(cx.id_at(&[0, 0, hh(&i), 0]))
+}
+
+#[test]
+fn test_plain_list_items_are_cached_when_another_changes_size() {
+    let calls = Calls::default();
+    let ui = stacked_rows(&calls);
+    let mut cx = Context::new();
+    layout(&mut cx, &ui);
+    assert_eq!(calls.items(), [1, 1, 1]);
+
+    calls.reset();
+    layout(&mut cx, &ui);
+    assert_eq!(calls.items(), [0, 0, 0]);
+
+    // Row 1 grows, so every row is placed again, but only row 1 is built.
+    let s = stacked_row_handle(&cx, 1);
+    cx[s] = 30.0;
+    calls.reset();
+    layout(&mut cx, &ui);
+    assert_eq!(calls.items(), [0, 1, 0]);
+    let width = |cx: &Context, i: usize| cx.get_layout(cx.id_at(&[0, 0, hh(&i)])).rect.width();
+    assert_eq!([0, 1, 2].map(|i| width(&cx, i)), [10.0, 30.0, 10.0]);
+
+    // A write to the enclosing state builds every row again.
+    let spacing = StateHandle::<f32>::new(cx.root_id());
+    cx[spacing] = 5.0;
+    calls.reset();
+    layout(&mut cx, &ui);
+    assert_eq!(calls.items(), [1, 1, 1]);
+    assert_eq!(
+        cx.get_layout(cx.id_at(&[0, 0, hh(&0usize)])).rect.height(),
+        15.0
+    );
+}
+
+#[test]
+fn test_plain_list_item_sees_what_the_views_around_it_read() {
+    let mut cx = Context::new();
+    let x = first_state(&mut cx);
+    let ui = foreign_reader(memo(move |cx| {
+        let w = cx[x] as f32 + 1.0;
+        list(vec![0], move |_| rectangle().size([w, 10.0]))
+    }));
+    let width = |cx: &Context| cx.get_layout(cx.id_at(&[0, 0, 1, 0, hh(&0)])).rect.width();
+    layout(&mut cx, &ui);
+    assert_eq!(width(&cx), 1.0);
+
+    cx[x] = 4;
+    layout(&mut cx, &ui);
+    assert_eq!(width(&cx), 5.0);
+}
+
+#[test]
+fn test_access_sends_only_changed_plain_rows() {
+    let calls = Calls::default();
+    let ui = stacked_rows(&calls);
+    let mut cx = Context::new();
+    layout(&mut cx, &ui);
+    let root = cx.root_id();
+
+    let mut nodes = vec![];
+    ui.access(root, &mut cx, &mut nodes);
+    // The list, and each row's stack and button.
+    assert_eq!(nodes.len(), 7);
+    cx.clear_dirty();
+
+    // A write in row 2 builds only row 2, and sends the list and row 2's stack and button.
+    let s = stacked_row_handle(&cx, 2);
+    cx[s] = 12.0;
+    calls.reset();
+    nodes.clear();
+    ui.access(root, &mut cx, &mut nodes);
+    assert_eq!(calls.items(), [0, 0, 1]);
+    assert_eq!(nodes.len(), 3);
+}

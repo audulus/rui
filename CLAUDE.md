@@ -110,7 +110,7 @@ State is managed through a combination of:
 
 ### Performance Considerations
 - Layout is cached per `state` view and only recomputed when a state it depends on changes
-- A list item whose view is a `state` view at its root is skipped while clean; any other item is rebuilt whenever its list is laid out
+- A list caches each item's layout and accessibility result on the item's node, whatever the item's root, like a `state` view: a clean item isn't built when its list is laid out again (after another item changes size, say). A write to a state around the list still rebuilds every item
 - Scrolling a `scroll` view isn't a state write: it moves its content's offset and asks for a redraw, so no layout is invalidated
 - The `Event::Anim` pass, which runs every update, skips a list with no `anim` view in it, apart from the items written since its last layout
 - A vertical or horizontal list finds the items to draw, and the items near the pointer for motion and wheel events, by binary search over their laid-out positions. It only looks at its keys after a write outside its items (or `invalidate_all`), and then compares one `Vec<u64>`. After writes only in its items (a hover, say), its layout and dirty walk visit only those items, unless one changed size. So the views around a list must not build its ids from the states inside its items; debug builds check a sample of the keys when the compare is skipped
