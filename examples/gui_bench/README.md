@@ -17,6 +17,20 @@ cargo run --release -- --scenario list --rows 1000000   # the virtual list
 
 The window is 1280x800 without decorations; quit with Cmd+Q or by killing the process.
 
+## Profile
+
+```sh
+cargo run --release --example profile_hover                # 100 orders
+ROWS=3000 ITERS=5000 cargo run --release --example profile_hover
+ONLY=invalidate_all cargo run --release --example profile_hover
+```
+
+`examples/profile_hover.rs` runs the `app` scenario headless, with vger's real text measurement
+but no window. It times `Context::update` (the anim pass, layout and the dirty walk) with no
+writes (`idle`), with the pointer moving between two order rows (`hover`), and with everything
+laid out again (`invalidate_all`). `ONLY` picks one case, which is handy under a sampling
+profiler. Drawing isn't measured: it needs a window surface.
+
 ## What it shows
 
 - **`app`:** a sidebar with nav items, a top bar, metric cards, a bar chart with filters, and a

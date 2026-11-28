@@ -9,22 +9,19 @@ use crate::dash;
 
 /// Returns the row of metric cards, which share the width.
 pub fn view(app: StateHandle<App>) -> impl View {
-    state(
-        || (),
-        move |_, cx| {
-            let tick = cx[app].live.tick;
-            let card = |k: usize| card(k, dash::kpi_value(k, tick)).flex();
-            hstack((
-                card(0),
-                gap(dash::GAP, 0.0),
-                card(1),
-                gap(dash::GAP, 0.0),
-                card(2),
-                gap(dash::GAP, 0.0),
-                card(3),
-            ))
-        },
-    )
+    memo(move |cx| {
+        let tick = cx[app].live.tick;
+        let card = |k: usize| card(k, dash::kpi_value(k, tick)).flex();
+        hstack((
+            card(0),
+            gap(dash::GAP, 0.0),
+            card(1),
+            gap(dash::GAP, 0.0),
+            card(2),
+            gap(dash::GAP, 0.0),
+            card(3),
+        ))
+    })
 }
 
 /// Metric card `k` showing `value`.

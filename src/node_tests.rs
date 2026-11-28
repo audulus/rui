@@ -861,3 +861,228 @@ fn test_long_list_estimate_does_not_shrink_while_rows_remain() {
     assert_eq!(cx.list_measured(root, 1000), 1000);
     assert_eq!(cx.list_extent(root).size.height, 20.0 * 30.0 + 980.0 * 10.0);
 }
+
+/// A root state with two sections: a `memo` that reads the root state and counts its builds
+/// during layout, and a sibling with a local state.
+fn memo_sections(built: Rc<Cell<usize>>) -> impl View {
+    state(
+        || 0i32,
+        move |app, _| {
+            let built = built.clone();
+            hstack((
+                memo(move |cx| {
+                    built.set(built.get() + 1);
+                    let _ = cx[app];
+                    rectangle().size([10.0, 10.0])
+                }),
+                state(|| 0i32, |_, _| rectangle().size([10.0, 10.0])),
+            ))
+        },
+    )
+}
+
+#[test]
+fn test_memo_is_laid_out_apart_from_its_siblings() {
+    let built = Rc::new(Cell::new(0));
+    let ui = memo_sections(built.clone());
+    let mut cx = Context::new();
+    layout(&mut cx, &ui);
+    assert_eq!(built.get(), 1);
+
+    // A write in the sibling lays out the root again, but not the `memo`.
+    let sibling = StateHandle::<i32>::new(cx.id_at(&[0, 0, 1]));
+    cx[sibling] = 1;
+    built.set(0);
+    layout(&mut cx, &ui);
+    assert_eq!(built.get(), 0);
+
+    // A write to the enclosing state lays out the `memo` again.
+    let app = StateHandle::<i32>::new(cx.root_id());
+    cx[app] = 1;
+    layout(&mut cx, &ui);
+    assert_eq!(built.get(), 1);
+}
+
+/// The handle of the state that `foreign_reader` puts first in its stack, which the other views
+/// read from outside it.
+fn first_state(cx: &mut Context) -> StateHandle<i32> {
+    let root = cx.root_id();
+    let stack = cx.child(root, 0);
+    StateHandle::new(cx.child(stack, 0))
+}
+
+/// A stack of a state `x` and `rest`, which reads `x` from outside it, under a root state.
+fn foreign_reader<V: View>(rest: V) -> impl View {
+    state(
+        || (),
+        move |_, _| {
+            hstack((
+                state(|| 0i32, |_, _| rectangle().size([10.0, 10.0])),
+                rest.clone(),
+            ))
+        },
+    )
+}
+
+#[test]
+fn test_nested_memo_sees_what_the_enclosing_one_read() {
+    let mut cx = Context::new();
+    let x = first_state(&mut cx);
+    // The inner `memo` is built from what the outer one read, without reading it itself.
+    let ui = foreign_reader(memo(move |cx| {
+        let w = cx[x] as f32 + 1.0;
+        memo(move |_| rectangle().size([w, 10.0]))
+    }));
+    layout(&mut cx, &ui);
+    assert_eq!(cx.id_at(&[0, 0, 0]), x.id);
+    assert_eq!(cx.get_layout(cx.id_at(&[0, 0, 1, 0])).rect.width(), 1.0);
+
+    cx[x] = 4;
+    layout(&mut cx, &ui);
+    assert_eq!(cx.get_layout(cx.id_at(&[0, 0, 1, 0])).rect.width(), 5.0);
+}
+
+#[test]
+fn test_list_item_sees_what_the_views_around_it_read() {
+    let mut cx = Context::new();
+    let x = first_state(&mut cx);
+    // The items are `state` views, cached on their own, built from what the `memo` read.
+    let ui = foreign_reader(memo(move |cx| {
+        let w = cx[x] as f32 + 1.0;
+        list(vec![0], move |_| {
+            state(|| (), move |_, _| rectangle().size([w, 10.0]))
+        })
+    }));
+    let width = |cx: &Context| cx.get_layout(cx.id_at(&[0, 0, 1, 0, hh(&0)])).rect.width();
+    layout(&mut cx, &ui);
+    assert_eq!(width(&cx), 1.0);
+
+    cx[x] = 4;
+    layout(&mut cx, &ui);
+    assert_eq!(width(&cx), 5.0);
+}
+
+#[test]
+fn test_a_read_in_one_memo_doesnt_reach_its_sibling() {
+    let mut cx = Context::new();
+    let x = first_state(&mut cx);
+    let built = Rc::new(Cell::new(0));
+    let counted = built.clone();
+    let ui = foreign_reader(hstack((
+        memo(move |cx| rectangle().size([cx[x] as f32 + 1.0, 10.0])),
+        memo(move |_| {
+            counted.set(counted.get() + 1);
+            rectangle().size([10.0, 10.0])
+        }),
+    )));
+    layout(&mut cx, &ui);
+    assert_eq!(built.get(), 1);
+
+    cx[x] = 4;
+    built.set(0);
+    layout(&mut cx, &ui);
+    assert_eq!(cx.get_layout(cx.id_at(&[0, 0, 1, 0])).rect.width(), 5.0);
+    assert_eq!(built.get(), 0);
+}
+
+/// Three rows like `rows`, but each item's root is a stack around its `state`, not the `state`
+/// itself. `calls.item` counts the builds of each item.
+fn stacked_rows(calls: &Calls) -> impl View + use<> {
+    let calls = calls.clone();
+    state(
+        || 0.0f32,
+        move |spacing, cx| {
+            let spacing = cx[spacing];
+            let calls = calls.clone();
+            list(vec![0usize, 1, 2], move |&i| {
+                calls.item[i].set(calls.item[i].get() + 1);
+                hstack((state(
+                    || 10.0f32,
+                    move |w, cx| {
+                        rectangle()
+                            .size([cx[w], 10.0 + spacing])
+                            .role(accesskit::Role::Button)
+                    },
+                ),))
+            })
+        },
+    )
+}
+
+fn stacked_row_handle(cx: &Context, i: usize) -> StateHandle<f32> {
+    StateHandle::new(cx.id_at(&[0, 0, hh(&i), 0]))
+}
+
+#[test]
+fn test_plain_list_items_are_cached_when_another_changes_size() {
+    let calls = Calls::default();
+    let ui = stacked_rows(&calls);
+    let mut cx = Context::new();
+    layout(&mut cx, &ui);
+    assert_eq!(calls.items(), [1, 1, 1]);
+
+    calls.reset();
+    layout(&mut cx, &ui);
+    assert_eq!(calls.items(), [0, 0, 0]);
+
+    // Row 1 grows, so every row is placed again, but only row 1 is built.
+    let s = stacked_row_handle(&cx, 1);
+    cx[s] = 30.0;
+    calls.reset();
+    layout(&mut cx, &ui);
+    assert_eq!(calls.items(), [0, 1, 0]);
+    let width = |cx: &Context, i: usize| cx.get_layout(cx.id_at(&[0, 0, hh(&i)])).rect.width();
+    assert_eq!([0, 1, 2].map(|i| width(&cx, i)), [10.0, 30.0, 10.0]);
+
+    // A write to the enclosing state builds every row again.
+    let spacing = StateHandle::<f32>::new(cx.root_id());
+    cx[spacing] = 5.0;
+    calls.reset();
+    layout(&mut cx, &ui);
+    assert_eq!(calls.items(), [1, 1, 1]);
+    assert_eq!(
+        cx.get_layout(cx.id_at(&[0, 0, hh(&0usize)])).rect.height(),
+        15.0
+    );
+}
+
+#[test]
+fn test_plain_list_item_sees_what_the_views_around_it_read() {
+    let mut cx = Context::new();
+    let x = first_state(&mut cx);
+    let ui = foreign_reader(memo(move |cx| {
+        let w = cx[x] as f32 + 1.0;
+        list(vec![0], move |_| rectangle().size([w, 10.0]))
+    }));
+    let width = |cx: &Context| cx.get_layout(cx.id_at(&[0, 0, 1, 0, hh(&0)])).rect.width();
+    layout(&mut cx, &ui);
+    assert_eq!(width(&cx), 1.0);
+
+    cx[x] = 4;
+    layout(&mut cx, &ui);
+    assert_eq!(width(&cx), 5.0);
+}
+
+#[test]
+fn test_access_sends_only_changed_plain_rows() {
+    let calls = Calls::default();
+    let ui = stacked_rows(&calls);
+    let mut cx = Context::new();
+    layout(&mut cx, &ui);
+    let root = cx.root_id();
+
+    let mut nodes = vec![];
+    ui.access(root, &mut cx, &mut nodes);
+    // The list, and each row's stack and button.
+    assert_eq!(nodes.len(), 7);
+    cx.clear_dirty();
+
+    // A write in row 2 builds only row 2, and sends the list and row 2's stack and button.
+    let s = stacked_row_handle(&cx, 2);
+    cx[s] = 12.0;
+    calls.reset();
+    nodes.clear();
+    ui.access(root, &mut cx, &mut nodes);
+    assert_eq!(calls.items(), [0, 0, 1]);
+    assert_eq!(nodes.len(), 3);
+}

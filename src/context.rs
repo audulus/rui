@@ -65,8 +65,10 @@ pub struct Context {
     pub(crate) marked_gen: Option<u64>,
 
     /// During a walk, the latest write generation of the states of the enclosing `state`
-    /// views, on which everything under them depends.
-    pub(crate) ancestor_gen: u64,
+    /// views, and of the states their functions and the views around read through `get`
+    /// while computing results to cache, on which everything under them depends: a view built
+    /// from a value read elsewhere goes stale when that state is written.
+    pub(crate) ancestor_gen: Cell<u64>,
 
     /// While `state` views compute results to cache (see `begin_reads`), the states read
     /// through `get`, so a cache also goes stale when a state outside its view's ancestors
@@ -155,7 +157,7 @@ impl Context {
             clean_gen: 0,
             floor_gen: 0,
             marked_gen: None,
-            ancestor_gen: 0,
+            ancestor_gen: Cell::new(0),
             reads: RefCell::new(vec![]),
             reading: Cell::new(0),
             touches: [ViewId::default(); 16],
@@ -484,6 +486,12 @@ impl Context {
     {
         if self.reading.get() > 0 {
             self.reads.borrow_mut().push(id.id);
+            // The views built from here on, until the enclosing `state` view is left, may
+            // depend on what was read.
+            let read_gen = self.node(id.id).state_gen;
+            if read_gen > self.ancestor_gen.get() {
+                self.ancestor_gen.set(read_gen);
+            }
         }
         self.node(id.id)
             .state

@@ -78,21 +78,18 @@ impl Shown {
 
 /// Returns the orders card.
 pub fn view(app: StateHandle<App>, orders: Arc<Vec<Row>>, shown: Shown) -> impl View {
-    state(
-        || (),
-        move |_, cx| {
-            let state = &cx[app];
-            let ids = shown.get(&orders, state);
-            let orders = orders.clone();
-            vstack((
-                header(state.sorted, dash::CARD_RADIUS, move |cx| {
-                    cx[app].sorted = !cx[app].sorted
-                }),
-                list_shared(ids, move |&i| row(&orders[i])),
-            ))
-            .background(Surface::CARD.view())
-        },
-    )
+    memo(move |cx| {
+        let state = &cx[app];
+        let ids = shown.get(&orders, state);
+        let orders = orders.clone();
+        vstack((
+            header(state.sorted, dash::CARD_RADIUS, move |cx| {
+                cx[app].sorted = !cx[app].sorted
+            }),
+            list_shared(ids, move |&i| row(&orders[i])),
+        ))
+        .background(Surface::CARD.view())
+    })
 }
 
 /// The header with the column titles, its top corners rounded by `radius`. A click on the amount

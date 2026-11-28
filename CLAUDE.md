@@ -43,7 +43,7 @@ Examples serve as both demos and integration tests. Test by running them and ver
 
 **ViewId System**: A `ViewId` is a view's node: an index into the arena plus a generation. Every `DynView` method gets its view's `ViewId` and passes child `i` the id `cx.child(vid, i)`, which creates the node the first time. List items are matched to nodes by key (`sync_keyed_children`), the hidden branch of a `cond` is freed (`sole_child`), and an `any_view` child is freed when its type changes (`typed_child`). Freeing changes the slot's generation, so stale ids and `StateHandle`s are detected.
 
-**Reactive Updates**: Each state write takes the next write generation, recorded on the state's node and all its ancestors. A `state` view reuses its cached layout and accessibility result while nothing under it, no enclosing state, and no other state it read (recorded by `Context::get` between `begin_reads` and `end_reads`) was written since; a `list` checks an item's node before building its view. Changes that aren't state writes (window size, focus) call `Context::invalidate_all`. Multiple state changes in a single event cycle are coalesced.
+**Reactive Updates**: Each state write takes the next write generation, recorded on the state's node and all its ancestors. A `state` view reuses its cached layout and accessibility result while nothing under it, no enclosing state, and no other state it read (recorded by `Context::get` between `begin_reads` and `end_reads`), and no state read by the enclosing `state` views' functions before it was built (which `Context::get` folds into `ancestor_gen`) was written since; a `list` checks an item's node before building its view. Changes that aren't state writes (window size, focus) call `Context::invalidate_all`. Multiple state changes in a single event cycle are coalesced.
 
 ### Key Concepts
 
@@ -110,7 +110,7 @@ State is managed through a combination of:
 
 ### Performance Considerations
 - Layout is cached per `state` view and only recomputed when a state it depends on changes
-- A list item whose view is a `state` view at its root is skipped while clean; any other item is rebuilt whenever its list is laid out
+- A list caches each item's layout and accessibility result on the item's node, whatever the item's root, like a `state` view: a clean item isn't built when its list is laid out again (after another item changes size, say). A write to a state around the list still rebuilds every item
 - Scrolling a `scroll` view isn't a state write: it moves its content's offset and asks for a redraw, so no layout is invalidated
 - The `Event::Anim` pass, which runs every update, skips a list with no `anim` view in it, apart from the items written since its last layout
 - A vertical or horizontal list finds the items to draw, and the items near the pointer for motion and wheel events, by binary search over their laid-out positions. It only looks at its keys after a write outside its items (or `invalidate_all`), and then compares one `Vec<u64>`. After writes only in its items (a hover, say), its layout and dirty walk visit only those items, unless one changed size. So the views around a list must not build its ids from the states inside its items; debug builds check a sample of the keys when the compare is skipped
