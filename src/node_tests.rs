@@ -787,3 +787,27 @@ fn test_anim_pass_visits_only_written_items() {
     assert_eq!(builds(&built), [0, 1, 0]);
     assert_eq!(ticks.get(), 1);
 }
+
+#[test]
+fn test_long_list_estimates_the_rows_not_laid_out() {
+    // 1,000 rows, alternately 10 and 30 tall, in a 200 tall space.
+    let ui = list_shared(Arc::new((0..1000usize).collect()), |&i| {
+        rectangle().size([10.0, if i % 2 == 0 { 10.0 } else { 30.0 }])
+    });
+    let mut cx = Context::new();
+    layout(&mut cx, &ui);
+    let root = cx.root_id();
+
+    // Laid out down to 400, two spaces' worth; the other 980 rows count at the average, 20.
+    assert_eq!(cx.list_measured(root, 1000), 20);
+    assert_eq!(cx.list_extent(root).1.height, 400.0 + 20.0 * 980.0);
+    // Row 0 is at the top (y is up), row 1 below it.
+    let row = |cx: &mut Context, i| {
+        let id = cx.list_child(root, i);
+        cx.get_layout(id).offset.y
+    };
+    assert_eq!(row(&mut cx, 0), 20_000.0 - 10.0);
+    assert_eq!(row(&mut cx, 1), 20_000.0 - 40.0);
+    // Rows not laid out have no nodes: two for each of the 20, and the list's.
+    assert_eq!(cx.live_nodes(), 41);
+}

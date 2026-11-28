@@ -116,7 +116,7 @@ pub struct Context {
     pub(crate) dirty_region: Region<WorldSpace>,
 
     /// Previous window size.
-    window_size: Size2D<f32, WorldSpace>,
+    pub(crate) window_size: Size2D<f32, WorldSpace>,
 
     /// Offset for events at the root level.
     root_offset: LocalOffset,

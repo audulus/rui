@@ -391,3 +391,65 @@ fn test_screenshot_cond() {
     );
     screenshot_test(&mut renderer, &ui, "cond_true");
 }
+
+/// Lays out `view` at `size` and draws it as `Context::render` does, with the window as the
+/// visible area, into `renderer`'s `Vger` (nothing is read back).
+fn lay_out_and_draw(renderer: &mut TestRenderer, view: &impl View, cx: &mut Context, size: f32) {
+    let root = cx.root_id();
+    renderer.vger.begin(size, size, 1.0);
+    let vger = &mut renderer.vger;
+    view.layout(
+        root,
+        &mut LayoutArgs {
+            sz: [size, size].into(),
+            cx,
+            text_bounds: &mut |s, font, width| vger.text_bounds(s, font, width),
+        },
+    );
+    cx.visible = Some(WorldRect::new(WorldPoint::origin(), [size, size].into()));
+    view.draw(root, &mut DrawArgs { cx, vger });
+    cx.visible = None;
+}
+
+#[test]
+fn test_long_list_lays_out_only_what_is_shown() {
+    let mut renderer = TestRenderer::new();
+    // 1,000 rows 20 tall in a 100 x 100 scroll view.
+    let ui = scroll(list_shared(
+        std::sync::Arc::new((0..1000usize).collect()),
+        |_| rectangle().size([100.0, 20.0]),
+    ));
+    let mut cx = Context::new();
+    lay_out_and_draw(&mut renderer, &ui, &mut cx, 100.0);
+    let list_id = cx.id_at(&[0, 0]);
+
+    // A view and a view more of rows, as nothing larger can be seen; the others are counted at
+    // their height without being laid out.
+    let measured = cx.list_measured(list_id, 1000);
+    assert_eq!(measured, 10);
+    assert_eq!(cx.list_extent(list_id).1.height, 20_000.0);
+    assert!(cx.live_nodes() < 50);
+
+    // Scrolled 500 down, rows 25 to 29 show: drawing lays them out where a full layout
+    // would put them, and asks for a layout.
+    ui.process(
+        &Event::Scroll {
+            position: [50.0, 50.0].into(),
+            delta: [0.0, 500.0].into(),
+        },
+        cx.root_id(),
+        &mut cx,
+        &mut vec![],
+    );
+    cx.dirty = false;
+    lay_out_and_draw(&mut renderer, &ui, &mut cx, 100.0);
+    assert!(cx.list_measured(list_id, 1000) >= 30);
+    let row = cx.list_child(list_id, 27);
+    assert_eq!(cx.get_layout(row).offset.y, 20_000.0 - 20.0 * 28.0);
+    assert!(cx.dirty);
+
+    // The next layout keeps them, and lays out a view more.
+    lay_out_and_draw(&mut renderer, &ui, &mut cx, 100.0);
+    assert!(cx.list_measured(list_id, 1000) >= 35);
+    assert_eq!(cx.get_layout(row).offset.y, 20_000.0 - 20.0 * 28.0);
+}

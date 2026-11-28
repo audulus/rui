@@ -711,7 +711,13 @@ mod tests {
         layout(&mut cx, &items(vec![]));
         layout(&mut cx, &items(vec![2, 3]));
         let others = [2, 3].map(|k| StateHandle::<i32>::new(cx.id_at(&[0, hh(&k)])));
-        assert!(others.iter().any(|o| o.id.index == s.id.index));
+        let reused = (1..10).any(|generation| {
+            cx.is_live(ViewId {
+                index: s.id.index,
+                generation,
+            })
+        });
+        assert!(reused && !cx.is_live(s.id));
 
         run_work_queue(&mut cx);
         assert!(!saw.load(std::sync::atomic::Ordering::SeqCst));

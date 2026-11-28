@@ -86,6 +86,14 @@ struct ListNode {
     overflow_gen: u64,
     /// The list's last layout.
     layout: Option<ListLayout>,
+    /// How many items, from the first, have been laid out, or `None` before the first layout,
+    /// when every item counts; a vertical list lays out only as far down as has been shown.
+    measured: Option<usize>,
+    /// The height of the items laid out, and the list's size with the others estimated.
+    measured_height: f32,
+    size: LocalSize,
+    /// How far down from its top the list was asked to lay out its items, by drawing.
+    want: f32,
 }
 
 /// How many written items a list keeps track of between layouts; beyond that it looks at them
@@ -332,34 +340,40 @@ impl Context {
             }
         }
 
+        // Items keep their nodes by key. A new key gets its node when its item is first
+        // reached (`list_child`), so a long list doesn't make a node for every item.
         let old = std::mem::take(&mut self.node_mut(parent).children);
         let mut by_key: std::collections::HashMap<u64, ViewId> = old
             .iter()
+            .filter(|c| !c.is_default())
             .map(|c| (self.nodes[c.index as usize].label, *c))
             .collect();
-        let mut used = std::collections::HashMap::<u64, ViewId>::new();
-        let mut children = Vec::with_capacity(keys.len());
+        let mut first = std::collections::HashMap::<u64, usize>::with_capacity(keys.len());
+        let mut children: Vec<ViewId> = Vec::with_capacity(keys.len());
         let mut new_keys = Vec::with_capacity(keys.len());
-        for key in keys {
+        let mut duplicates = false;
+        for (i, key) in keys.enumerate() {
             new_keys.push(key);
-            let child = if let Some(&c) = used.get(&key) {
-                c
+            if let Some(&j) = first.get(&key) {
+                // Equal keys share a node, made now.
+                duplicates = true;
+                if children[j].is_default() {
+                    children[j] = self.alloc(parent, key);
+                }
+                children.push(children[j]);
             } else {
-                let c = by_key
-                    .remove(&key)
-                    .unwrap_or_else(|| self.alloc(parent, key));
-                used.insert(key, c);
-                c
-            };
-            children.push(child);
+                first.insert(key, i);
+                children.push(by_key.remove(&key).unwrap_or_default());
+            }
         }
         for (_, gone) in by_key {
             self.free_subtree(gone);
         }
         for (i, c) in children.iter().enumerate() {
-            self.nodes[c.index as usize].slot = i as u32;
+            if !c.is_default() {
+                self.nodes[c.index as usize].slot = i as u32;
+            }
         }
-        let duplicates = used.len() < children.len();
         let node = self.node_mut(parent);
         let writes = node.writes_under;
         node.children = children;
@@ -368,8 +382,88 @@ impl Context {
         list.duplicates = duplicates;
         list.synced_gen = write_gen;
         list.synced_writes = writes;
-        // The items moved: lay them all out again.
+        // The items moved: none is laid out where it is now.
         list.layout = None;
+        if list.measured.is_some() {
+            list.measured = Some(0);
+            list.measured_height = 0.0;
+            list.want = 0.0;
+        }
+    }
+
+    /// The node of item `i` of the list at `parent`, made the first time the item is reached.
+    pub(crate) fn list_child(&mut self, parent: ViewId, i: usize) -> ViewId {
+        let node = self.node(parent);
+        let child = node.children[i];
+        if !child.is_default() {
+            return child;
+        }
+        let key = node.list.as_ref().expect("rui: list not synced").keys[i];
+        let child = self.alloc(parent, key);
+        self.nodes[child.index as usize].slot = i as u32;
+        self.node_mut(parent).children[i] = child;
+        child
+    }
+
+    /// How many of the `n` items of the list at `id`, from the first, have been laid out.
+    pub(crate) fn list_measured(&self, id: ViewId, n: usize) -> usize {
+        self.node(id)
+            .list
+            .as_ref()
+            .and_then(|l| l.measured)
+            .map_or(n, |m| m.min(n))
+    }
+
+    /// How many items of the list at `id`, from the first, have been laid out: none before its
+    /// first layout.
+    pub(crate) fn list_laid_out(&self, id: ViewId) -> usize {
+        let node = self.node(id);
+        node.list.as_ref().map_or(0, |l| {
+            l.measured.unwrap_or(if l.layout.is_some() {
+                node.children.len()
+            } else {
+                0
+            })
+        })
+    }
+
+    /// The height of the items of the list at `id` that have been laid out, its size as of its
+    /// last layout, and how far down drawing asked it to lay out its items.
+    pub(crate) fn list_extent(&self, id: ViewId) -> (f32, LocalSize, f32) {
+        self.node(id)
+            .list
+            .as_ref()
+            .map_or((0.0, LocalSize::zero(), 0.0), |l| {
+                (l.measured_height, l.size, l.want)
+            })
+    }
+
+    /// Records that the first `measured` items of the list at `id`, `height` tall, are laid
+    /// out, and the list's size.
+    pub(crate) fn set_list_measured(
+        &mut self,
+        id: ViewId,
+        measured: usize,
+        height: f32,
+        size: LocalSize,
+    ) {
+        if let Some(list) = self.node_mut(id).list.as_mut() {
+            list.measured = Some(measured);
+            list.measured_height = height;
+            list.size = size;
+        }
+    }
+
+    /// Asks the list at `id` to lay out its items `want` down from its top at its next layout,
+    /// and makes that layout happen: the list's size changes as it learns the sizes of more
+    /// items.
+    pub(crate) fn grow_list(&mut self, id: ViewId, want: f32) {
+        if let Some(list) = self.node_mut(id).list.as_mut() {
+            list.want = list.want.max(want);
+            list.layout = None;
+        }
+        self.mark_written(id);
+        self.dirty = true;
     }
 
     /// The items of the list at `id` with a write under them after generation `since`, by
@@ -391,6 +485,10 @@ impl Context {
             let slot = self.nodes[item.index as usize].slot as usize;
             if node.children.get(slot) != Some(&item) {
                 return None;
+            }
+            // An item not laid out yet is laid out fresh when it is reached.
+            if list.measured.is_some_and(|m| slot >= m) {
+                continue;
             }
             slots.push(slot);
         }
