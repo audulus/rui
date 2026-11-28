@@ -32,6 +32,8 @@ fn test_list_state_follows_its_key() {
     let s = StateHandle::<i32>::new(id);
     cx[s] = 5;
 
+    // The keys change here without a state write, as from outside rui: say so.
+    cx.invalidate_all();
     layout(&mut cx, &counter_list(vec![3, 1, 2]));
     assert_eq!(cx.id_at(&[0, hh(&2)]), id);
     assert_eq!(cx[s], 5);
@@ -51,46 +53,55 @@ fn test_list_frees_removed_keys() {
     assert_eq!(cx.live_nodes(), before);
 }
 
+/// A list in a `state` view, whose state stands for what the app builds the keys from.
+fn keyed_rows(ids: Vec<i32>) -> impl View {
+    state(
+        || 0i32,
+        move |_, _| {
+            list_shared(Arc::new(ids.clone()), |_| {
+                state(|| 0i32, |_, _| rectangle().size([10.0, 10.0]))
+            })
+        },
+    )
+}
+
 #[test]
 fn test_list_keys_are_matched_again_after_a_write() {
     let mut cx = Context::new();
-    // A list in a `state` view, whose state stands for what the app builds the keys from.
-    let ui = |ids: Vec<i32>| {
-        state(
-            || 0i32,
-            move |_, _| {
-                list_shared(Arc::new(ids.clone()), |_| {
-                    state(|| 0i32, |_, _| rectangle().size([10.0, 10.0]))
-                })
-            },
-        )
-    };
-    layout(&mut cx, &ui(vec![1, 2, 3]));
+    layout(&mut cx, &keyed_rows(vec![1, 2, 3]));
     let outer = StateHandle::<i32>::new(cx.root_id());
     let list_id = cx.child(cx.root_id(), 0);
     let id = cx.id_at(&[0, 0, hh(&2)]);
     let item = StateHandle::<i32>::new(id);
 
-    // Nothing was written, so the list doesn't look at its keys: views are built from the
-    // states, and keys that change otherwise need `invalidate_all`. Key 2's node stays in slot 1.
-    layout(&mut cx, &ui(vec![2, 1, 3]));
-    assert_eq!(cx.child(list_id, 1), id);
-
-    // Nor after a write to an item's own state: the views around a list don't read those.
+    // A write to an item's own state: the list doesn't look at its keys, which are the same.
     cx[item] = 5;
-    layout(&mut cx, &ui(vec![2, 1, 3]));
+    layout(&mut cx, &keyed_rows(vec![1, 2, 3]));
     assert_eq!(cx.child(list_id, 1), id);
 
     // After any other write it matches them again; the node of key 2 moves with it.
     cx[outer] = 1;
-    layout(&mut cx, &ui(vec![2, 3, 1]));
+    layout(&mut cx, &keyed_rows(vec![2, 3, 1]));
     assert_eq!(cx.child(list_id, 0), id);
     assert_eq!(cx[item], 5);
 
     // `invalidate_all` does too.
     cx.invalidate_all();
-    layout(&mut cx, &ui(vec![1, 3, 2]));
+    layout(&mut cx, &keyed_rows(vec![1, 3, 2]));
     assert_eq!(cx.child(list_id, 2), id);
+}
+
+#[test]
+#[cfg(debug_assertions)]
+#[should_panic(expected = "ids changed without a state write")]
+fn test_list_keys_changed_unseen_are_reported_in_debug_builds() {
+    // Keys reordered after only an item's own write: the list wouldn't match them, and its
+    // items' states would stay in the wrong places, so a debug build says so.
+    let mut cx = Context::new();
+    layout(&mut cx, &keyed_rows(vec![1, 2, 3]));
+    let item = StateHandle::<i32>::new(cx.id_at(&[0, 0, hh(&2)]));
+    cx[item] = 5;
+    layout(&mut cx, &keyed_rows(vec![2, 1, 3]));
 }
 
 #[test]
@@ -822,4 +833,31 @@ fn test_commands_reach_list_items_before_any_layout() {
     let mut cmds = vec![];
     cx.commands(&ui, &mut cmds);
     assert_eq!(cmds.len(), 2);
+}
+
+#[test]
+fn test_long_list_estimate_does_not_shrink_while_rows_remain() {
+    // 1,000 rows: the first 20 are 30 tall, the rest 10.
+    let ui = list_shared(Arc::new((0..1000usize).collect()), |&i| {
+        rectangle().size([10.0, if i < 20 { 30.0 } else { 10.0 }])
+    });
+    let mut cx = Context::new();
+    layout(&mut cx, &ui);
+    let root = cx.root_id();
+    // 14 rows to reach 400: all 30 tall, so the rest count at 30.
+    let first = cx.list_extent(root).size.height;
+    assert_eq!(first, 14.0 * 30.0 + 986.0 * 30.0);
+
+    // Asked to reach further, the list lays out shorter rows; its average falls, but the
+    // height a scroll view sees doesn't shrink while rows remain.
+    cx.grow_list(root, 1000.0);
+    layout(&mut cx, &ui);
+    assert!(cx.list_measured(root, 1000) > 14);
+    assert_eq!(cx.list_extent(root).size.height, first);
+
+    // With every row laid out it is exact.
+    cx.grow_list(root, f32::INFINITY);
+    layout(&mut cx, &ui);
+    assert_eq!(cx.list_measured(root, 1000), 1000);
+    assert_eq!(cx.list_extent(root).size.height, 20.0 * 30.0 + 980.0 * 10.0);
 }

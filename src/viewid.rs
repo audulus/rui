@@ -28,10 +28,11 @@ impl ViewId {
     }
 }
 
-/// Hashes a value, as for the keys of a `list`. A list hashes all its keys on every walk, so
-/// this is a fast multiply-rotate hash (as in rustc-hash), not the default SipHash: keys come
-/// from the app, not from an adversary. For an integer key it is a bijection, so distinct
-/// integers never share a node.
+/// Hashes a value, as for the keys of a `list`. A list may hash all its keys, so this is a fast
+/// multiply and xor-shift per word, not the default SipHash: keys come from the app, not from
+/// an adversary. Each step is a bijection of the state, so distinct integer keys never share a
+/// node, and the xor-shift keeps keys of several words (strings, tuples) from combining
+/// linearly, which would make them collide far more often than random.
 pub(crate) fn hh<H: Hash>(index: &H) -> u64 {
     let mut hasher = KeyHasher(0);
     index.hash(&mut hasher);
@@ -44,7 +45,8 @@ impl KeyHasher {
     const K: u64 = 0xf135_7aea_2e62_a9c5;
 
     fn add(&mut self, word: u64) {
-        self.0 = self.0.wrapping_add(word).wrapping_mul(Self::K);
+        let x = (self.0 ^ word).wrapping_mul(Self::K);
+        self.0 = x ^ (x >> 32);
     }
 }
 
@@ -108,6 +110,10 @@ mod tests {
         let hashes: std::collections::HashSet<u64> = strs.iter().map(hh).collect();
         assert_eq!(hashes.len(), strs.len());
         assert_ne!(hh(&(1, 2)), hh(&(2, 1)));
+        // Two-word keys whose words differ in a way a linear hash maps to equal states.
+        let a = (1u64, 0u64);
+        let b = (0u64, KeyHasher::K);
+        assert_ne!(hh(&a), hh(&b));
     }
 
     #[test]

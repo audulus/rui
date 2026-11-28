@@ -107,6 +107,17 @@ pub(crate) struct ListExtent {
     pub(crate) want: f32,
 }
 
+/// Do `keys` agree with `kept` at up to 64 places spread over them, and at both ends? A cheap
+/// check, for debug builds, that a long list's keys didn't change unseen.
+fn sampled_keys_equal(kept: &[u64], key_at: impl Fn(usize) -> u64) -> bool {
+    let n = kept.len();
+    let step = (n / 64).max(1);
+    (0..n)
+        .step_by(step)
+        .chain(n.checked_sub(1))
+        .all(|i| kept[i] == key_at(i))
+}
+
 /// How many written items a list keeps track of between layouts; beyond that it looks at them
 /// all.
 const WRITTEN_ITEMS: usize = 256;
@@ -329,8 +340,14 @@ impl Context {
     /// the keys are too, and the views around a list don't read the states in its items
     /// (`invalidate_all` covers anything else the keys depend on). Walking a long list then
     /// costs nothing per key.
-    pub(crate) fn sync_keyed_children<I>(&mut self, parent: ViewId, keys: I)
-    where
+    ///
+    /// `key_at(i)` is `keys`' item `i`, for checking a few keys in debug builds.
+    pub(crate) fn sync_keyed_children<I>(
+        &mut self,
+        parent: ViewId,
+        keys: I,
+        key_at: impl Fn(usize) -> u64,
+    ) where
         I: ExactSizeIterator<Item = u64> + Clone,
     {
         // Fast paths: only the items were written, or the keys are unchanged.
@@ -343,6 +360,13 @@ impl Context {
                 && (write_gen - list.synced_gen == node.writes_under - list.synced_writes
                     || list.keys.iter().copied().eq(keys.clone()))
             {
+                // Keys that changed without a write outside the items would keep their items'
+                // states in the wrong places; check some of them in debug builds.
+                debug_assert!(
+                    sampled_keys_equal(&list.keys, key_at),
+                    "rui: a list's ids changed without a state write outside its items; \
+                     call Context::invalidate_all after changing what views are built from"
+                );
                 let writes = node.writes_under;
                 let list = self.node_mut(parent).list.as_mut().unwrap();
                 list.synced_gen = write_gen;
@@ -398,8 +422,15 @@ impl Context {
         if list.measured.is_some() {
             list.measured = Some(0);
             list.measured_height = 0.0;
+            list.size = LocalSize::zero();
             list.want = 0.0;
         }
+    }
+
+    /// The slot of the node `id` among its list's items, as of the list's last sync: a hint
+    /// for `child_index`.
+    pub(crate) fn slot_of(&self, id: ViewId) -> usize {
+        self.nodes[id.index as usize].slot as usize
     }
 
     /// The node of item `i` of the list at `parent`, made the first time the item is reached.

@@ -477,3 +477,35 @@ fn test_long_list_drawn_offscreen_lays_out_every_row() {
     lay_out_and_draw(&mut renderer, &ui, &mut cx, 100.0, false);
     assert_eq!(cx.list_measured(cx.root_id(), 1000), 1000);
 }
+
+#[test]
+fn test_long_list_widens_for_a_wider_row_reached() {
+    let mut renderer = TestRenderer::new();
+    // Rows 50 wide, then 100 wide from row 10 on, in a 100 x 100 window, scrolled.
+    let ui = scroll(list_shared(
+        std::sync::Arc::new((0..1000usize).collect()),
+        |&i| rectangle().size([if i < 10 { 50.0 } else { 100.0 }, 20.0]),
+    ));
+    let mut cx = Context::new();
+    lay_out_and_draw(&mut renderer, &ui, &mut cx, 100.0, true);
+    let list_id = cx.id_at(&[0, 0]);
+    assert_eq!(cx.list_measured(list_id, 1000), 10);
+
+    ui.process(
+        &Event::Scroll {
+            position: [50.0, 50.0].into(),
+            delta: [0.0, 500.0].into(),
+        },
+        cx.root_id(),
+        &mut cx,
+        &mut vec![],
+    );
+    lay_out_and_draw(&mut renderer, &ui, &mut cx, 100.0, true);
+    // Drawing reached wider rows: every row is centered across the wider list at once.
+    let x = |cx: &mut Context, i| {
+        let id = cx.list_child(list_id, i);
+        cx.get_layout(id).offset.x
+    };
+    assert_eq!(x(&mut cx, 0), 25.0);
+    assert_eq!(x(&mut cx, 27), 0.0);
+}

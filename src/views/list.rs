@@ -19,6 +19,11 @@ fn partition_point(n: usize, mut pred: impl FnMut(usize) -> bool) -> usize {
     lo
 }
 
+/// The width of the list at `id` as of its last layout or growth.
+fn list_width(cx: &Context, id: ViewId) -> f32 {
+    cx.list_extent(id).size.width
+}
+
 /// How far outside its bounds a child of a list may draw and still be drawn when its bounds are
 /// just outside the visible area, as for a shadow. Pointer motion this close to an item also
 /// reaches it.
@@ -226,9 +231,25 @@ where
             &mut layout_args,
             &mut vec![],
         );
-        let mut top = height;
-        for (k, item) in sizes.iter().enumerate() {
-            Self::place(vid, measured + k, *item, top, size, args.cx);
+        // A wider item widens the list: the items above are centered across it again, so all
+        // of them line up in this frame as at the next layout.
+        let width = sizes.iter().fold(size.width, |w, s| w.max(s.width));
+        let size = LocalSize::new(width, size.height);
+        let mut top = 0.0;
+        let from = if width > list_width(args.cx, vid) {
+            0
+        } else {
+            top = height;
+            measured
+        };
+        for i in from..measured + sizes.len() {
+            let item = if i < measured {
+                let cid = args.cx.list_child(vid, i);
+                args.cx.get_layout(cid).rect.size
+            } else {
+                sizes[i - measured]
+            };
+            Self::place(vid, i, item, top, size, args.cx);
             top += item.height;
         }
         args.cx
@@ -308,7 +329,8 @@ where
 
     /// Matches the list's child nodes to its items, so child `i` is the node of `ids[i]`.
     fn sync(&self, vid: ViewId, cx: &mut Context) {
-        cx.sync_keyed_children(vid, self.ids.iter().map(hh));
+        let ids = &self.ids;
+        cx.sync_keyed_children(vid, ids.iter().map(hh), |i| hh(&ids[i]));
     }
 }
 
@@ -409,7 +431,7 @@ where
                 previous
                     .iter()
                     .copied()
-                    .chain(holders.iter().map(|id| (0, *id)))
+                    .chain(holders.iter().map(|id| (cx.slot_of(*id), *id)))
                     .filter_map(|(slot, id)| cx.child_index(vid, id, slot)),
             );
             items.sort_unstable_by(|a, b| b.cmp(a));
@@ -577,7 +599,15 @@ where
                     0.0
                 };
                 let width = sizes.iter().fold(0.0f32, |w, s| w.max(s.width));
-                let size = LocalSize::new(width, height + estimate * rest);
+                // While items remain to be laid out, the estimate doesn't shrink for the same
+                // proposal: the scroll view would clamp its position to it, moving what shows.
+                let last = args.cx.list_extent(vid);
+                let floor = if rest > 0.0 && last.proposed == args.sz {
+                    last.size.height
+                } else {
+                    0.0
+                };
+                let size = LocalSize::new(width, (height + estimate * rest).max(floor));
 
                 let mut top = 0.0;
                 for (i, item) in sizes.iter().enumerate() {
