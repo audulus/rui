@@ -7,3 +7,7 @@ description = "The gui-bench workbench app in rui"
 
 [dependencies]
 rui = { workspace = true }
+
+[dev-dependencies]
+wgpu = "0.20.0"
+futures = "0.3"
