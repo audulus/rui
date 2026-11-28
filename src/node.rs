@@ -569,7 +569,7 @@ impl Context {
     /// written since, and nothing invalidated everything?
     pub(crate) fn list_layout_valid(&self, stamp: u64, foreign: &[ViewId]) -> bool {
         stamp >= self.floor_gen
-            && self.ancestor_gen <= stamp
+            && self.ancestor_gen.get() <= stamp
             && foreign
                 .iter()
                 .all(|r| self.is_live(*r) && self.nodes[r.index as usize].state_gen <= stamp)
@@ -632,7 +632,7 @@ impl Context {
     fn still_valid(&self, node: &Node, stamp: u64, foreign: &[ViewId]) -> bool {
         stamp >= self.floor_gen
             && node.subtree_gen <= stamp
-            && self.ancestor_gen <= stamp
+            && self.ancestor_gen.get() <= stamp
             && foreign
                 .iter()
                 .all(|r| self.is_live(*r) && self.nodes[r.index as usize].state_gen <= stamp)
@@ -710,13 +710,13 @@ impl Context {
     /// Enters the `state` view at `id` during a walk: the views under it depend on its state.
     /// Returns what `leave_state` needs to restore.
     pub(crate) fn enter_state(&mut self, id: ViewId) -> u64 {
-        let before = self.ancestor_gen;
-        self.ancestor_gen = before.max(self.node(id).state_gen);
+        let before = self.ancestor_gen.get();
+        self.ancestor_gen.set(before.max(self.node(id).state_gen));
         before
     }
 
     pub(crate) fn leave_state(&mut self, before: u64) {
-        self.ancestor_gen = before;
+        self.ancestor_gen.set(before);
     }
 
     /// The size a `state` view at `id` computed for proposed size `proposed`, if it is still
