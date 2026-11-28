@@ -200,9 +200,30 @@ pub fn state<
     }
 }
 
-/// Convenience to get the context.
-pub fn with_cx<V: View, F: Fn(&Context) -> V + Clone + 'static>(f: F) -> impl View {
+/// Caches the layout and accessibility nodes of the view `f` returns on their own, apart from
+/// those of the enclosing `state` view.
+///
+/// `memo` is a `state` view with no state. Without it, a view shares the cache of the nearest
+/// enclosing `state` view, so a write anywhere under that one (a hover in a list item, say)
+/// lays it out again. Inside a `memo`, it's laid out again only when it's proposed another
+/// size, after `Context::invalidate_all`, or when a state it depends on is written: an
+/// enclosing one, one under the `memo`, or any other state `f` or its views read through the
+/// `Context`. Wrap each independent section of a UI whose data lives in one state at its root,
+/// so a write in one section doesn't lay out the others.
+///
+/// Only the results of layout and accessibility are reused: `f` is still called, and its views
+/// built, on every draw, event and dirty walk. So compute anything expensive that `f` derives
+/// from state (a filter, a sort) once per change, not in `f`. As with `state`, if `f` reads
+/// something other than state that changes (the focus, `Context::key_mods`, a `RefCell`), call
+/// `Context::invalidate_all` after changing it.
+pub fn memo<V: View, F: Fn(&Context) -> V + Clone + 'static>(f: F) -> impl View {
     state(|| (), move |_, cx| f(cx))
+}
+
+/// Convenience to get the context. The same as `memo`, so its view's layout and accessibility
+/// nodes are cached on their own too.
+pub fn with_cx<V: View, F: Fn(&Context) -> V + Clone + 'static>(f: F) -> impl View {
+    memo(f)
 }
 
 /// Convenience to retreive a reference to a value in the context.
@@ -210,5 +231,5 @@ pub fn with_ref<V: View, F: Fn(&T) -> V + Clone + 'static, T>(
     binding: impl Binding<T>,
     f: F,
 ) -> impl View {
-    with_cx(move |cx| f(binding.get(cx)))
+    memo(move |cx| f(binding.get(cx)))
 }

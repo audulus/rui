@@ -861,3 +861,44 @@ fn test_long_list_estimate_does_not_shrink_while_rows_remain() {
     assert_eq!(cx.list_measured(root, 1000), 1000);
     assert_eq!(cx.list_extent(root).size.height, 20.0 * 30.0 + 980.0 * 10.0);
 }
+
+/// A root state with two sections: a `memo` that reads the root state and counts its builds
+/// during layout, and a sibling with a local state.
+fn memo_sections(built: Rc<Cell<usize>>) -> impl View {
+    state(
+        || 0i32,
+        move |app, _| {
+            let built = built.clone();
+            hstack((
+                memo(move |cx| {
+                    built.set(built.get() + 1);
+                    let _ = cx[app];
+                    rectangle().size([10.0, 10.0])
+                }),
+                state(|| 0i32, |_, _| rectangle().size([10.0, 10.0])),
+            ))
+        },
+    )
+}
+
+#[test]
+fn test_memo_is_laid_out_apart_from_its_siblings() {
+    let built = Rc::new(Cell::new(0));
+    let ui = memo_sections(built.clone());
+    let mut cx = Context::new();
+    layout(&mut cx, &ui);
+    assert_eq!(built.get(), 1);
+
+    // A write in the sibling lays out the root again, but not the `memo`.
+    let sibling = StateHandle::<i32>::new(cx.id_at(&[0, 0, 1]));
+    cx[sibling] = 1;
+    built.set(0);
+    layout(&mut cx, &ui);
+    assert_eq!(built.get(), 0);
+
+    // A write to the enclosing state lays out the `memo` again.
+    let app = StateHandle::<i32>::new(cx.root_id());
+    cx[app] = 1;
+    layout(&mut cx, &ui);
+    assert_eq!(built.get(), 1);
+}

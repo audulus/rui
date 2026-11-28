@@ -20,33 +20,30 @@ const SEGMENTS_TOP: f32 = 232.0;
 
 /// Returns the chart card, as wide as it is offered.
 pub fn view(app: StateHandle<App>) -> impl View {
-    state(
-        || (),
-        move |_, cx| {
-            let series = cx[app].series;
-            let compare = cx[app].compare;
-            let track = 2.0;
-            let header_height = dash::SEGMENT_HEIGHT + 2.0 * track;
-            vstack((
-                gap(0.0, SEGMENTS_TOP - CARD_TOP),
-                hstack((
-                    gap(dash::CARD_PADDING, header_height),
-                    label(dash::CHART_TITLE, dash::TITLE_FONT, dash::TEXT),
-                    spacer(),
-                    segments(app, series, track),
-                    gap(dash::CARD_PADDING, 0.0),
-                )),
-                gap(0.0, dash::PLOT_TOP - SEGMENTS_TOP - header_height),
-                hstack((
-                    gap(dash::CARD_PADDING, 0.0),
-                    plot(series, compare),
-                    spacer(),
-                )),
-                gap(0.0, dash::CARD_PADDING),
-            ))
-            .background(Surface::CARD.view())
-        },
-    )
+    memo(move |cx| {
+        let series = cx[app].series;
+        let compare = cx[app].compare;
+        let track = 2.0;
+        let header_height = dash::SEGMENT_HEIGHT + 2.0 * track;
+        vstack((
+            gap(0.0, SEGMENTS_TOP - CARD_TOP),
+            hstack((
+                gap(dash::CARD_PADDING, header_height),
+                label(dash::CHART_TITLE, dash::TITLE_FONT, dash::TEXT),
+                spacer(),
+                segments(app, series, track),
+                gap(dash::CARD_PADDING, 0.0),
+            )),
+            gap(0.0, dash::PLOT_TOP - SEGMENTS_TOP - header_height),
+            hstack((
+                gap(dash::CARD_PADDING, 0.0),
+                plot(series, compare),
+                spacer(),
+            )),
+            gap(0.0, dash::CARD_PADDING),
+        ))
+        .background(Surface::CARD.view())
+    })
 }
 
 /// The segmented control with series `selected` selected.

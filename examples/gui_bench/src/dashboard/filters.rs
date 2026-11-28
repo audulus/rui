@@ -21,79 +21,76 @@ fn place(view: impl View, x: f32, y: f32, w: f32, h: f32) -> impl View {
 
 /// Returns the filter card.
 pub fn view(app: StateHandle<App>) -> impl View {
-    state(
-        || (),
-        move |_, cx| {
-            let shown = cx[app].shown;
-            let compare = cx[app].compare;
-            let checks = zlist(Status::ALL.to_vec(), move |&status| {
-                let k = status.filter_row();
-                place(
-                    check_row(app, k, shown[k], status.label()),
-                    dash::CHECK_X,
-                    dash::CHECK_TOP + k as f32 * dash::CHECK_STRIDE,
-                    dash::SWITCH_X + dash::SWITCH_WIDTH - dash::CHECK_X,
-                    dash::CHECK_STRIDE,
+    memo(move |cx| {
+        let shown = cx[app].shown;
+        let compare = cx[app].compare;
+        let checks = zlist(Status::ALL.to_vec(), move |&status| {
+            let k = status.filter_row();
+            place(
+                check_row(app, k, shown[k], status.label()),
+                dash::CHECK_X,
+                dash::CHECK_TOP + k as f32 * dash::CHECK_STRIDE,
+                dash::SWITCH_X + dash::SWITCH_WIDTH - dash::CHECK_X,
+                dash::CHECK_STRIDE,
+            )
+        });
+        zstack((
+            place(
+                leading(label(dash::FILTERS_TITLE, dash::TITLE_FONT, dash::TEXT)),
+                CARD_X + dash::CARD_PADDING,
+                CARD_TOP + dash::CARD_PADDING,
+                200.0,
+                20.0,
+            ),
+            checks,
+            place(
+                leading(label(dash::COMPARE_LABEL, dash::FONT_SIZE, dash::TEXT)),
+                dash::CHECK_X,
+                dash::COMPARE_Y,
+                240.0,
+                28.0,
+            ),
+            place(
+                map(
+                    compare,
+                    move |on, cx| cx[app].compare = on,
+                    |on, _| switch(on),
+                ),
+                dash::SWITCH_X,
+                dash::SWITCH_Y,
+                dash::SWITCH_WIDTH,
+                dash::SWITCH_HEIGHT,
+            ),
+            place(
+                button_box(
+                    dash::RESET_LABEL,
+                    dash::BUTTON_WIDTH,
+                    dash::TEXT,
+                    style::SECONDARY,
                 )
-            });
-            zstack((
-                place(
-                    leading(label(dash::FILTERS_TITLE, dash::TITLE_FONT, dash::TEXT)),
-                    CARD_X + dash::CARD_PADDING,
-                    CARD_TOP + dash::CARD_PADDING,
-                    200.0,
-                    20.0,
-                ),
-                checks,
-                place(
-                    leading(label(dash::COMPARE_LABEL, dash::FONT_SIZE, dash::TEXT)),
-                    dash::CHECK_X,
-                    dash::COMPARE_Y,
-                    240.0,
-                    28.0,
-                ),
-                place(
-                    map(
-                        compare,
-                        move |on, cx| cx[app].compare = on,
-                        |on, _| switch(on),
-                    ),
-                    dash::SWITCH_X,
-                    dash::SWITCH_Y,
-                    dash::SWITCH_WIDTH,
-                    dash::SWITCH_HEIGHT,
-                ),
-                place(
-                    button_box(
-                        dash::RESET_LABEL,
-                        dash::BUTTON_WIDTH,
-                        dash::TEXT,
-                        style::SECONDARY,
-                    )
-                    .tap(move |cx| cx[app].reset()),
-                    dash::RESET_X,
-                    dash::BUTTONS_Y,
+                .tap(move |cx| cx[app].reset()),
+                dash::RESET_X,
+                dash::BUTTONS_Y,
+                dash::BUTTON_WIDTH,
+                dash::CONTROL_HEIGHT,
+            ),
+            place(
+                button_box(
+                    dash::APPLY_LABEL,
                     dash::BUTTON_WIDTH,
-                    dash::CONTROL_HEIGHT,
-                ),
-                place(
-                    button_box(
-                        dash::APPLY_LABEL,
-                        dash::BUTTON_WIDTH,
-                        dash::PRIMARY_TEXT,
-                        style::PRIMARY,
-                    )
-                    .tap(|_| ()),
-                    dash::APPLY_X,
-                    dash::BUTTONS_Y,
-                    dash::BUTTON_WIDTH,
-                    dash::CONTROL_HEIGHT,
-                ),
-            ))
-            .size([dash::FILTERS_WIDTH, dash::ROW2_HEIGHT])
-            .background(Surface::CARD.view())
-        },
-    )
+                    dash::PRIMARY_TEXT,
+                    style::PRIMARY,
+                )
+                .tap(|_| ()),
+                dash::APPLY_X,
+                dash::BUTTONS_Y,
+                dash::BUTTON_WIDTH,
+                dash::CONTROL_HEIGHT,
+            ),
+        ))
+        .size([dash::FILTERS_WIDTH, dash::ROW2_HEIGHT])
+        .background(Surface::CARD.view())
+    })
 }
 
 /// The row of checkbox `k`: the box and the label. A click anywhere on the row toggles it.

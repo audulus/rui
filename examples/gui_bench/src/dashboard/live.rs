@@ -63,16 +63,13 @@ pub fn set(app: StateHandle<App>, on: bool, cx: &mut Context) {
 
 /// The spinner slot of the top bar: the turning square while live updates are on.
 pub fn spinner(app: StateHandle<App>) -> impl View {
-    state(
-        || (),
-        move |_, cx| {
-            cond(
-                cx[app].live.on,
-                any_view(turning()),
-                any_view(gap(dash::SPINNER_SIZE, dash::SPINNER_SIZE)),
-            )
-        },
-    )
+    memo(move |cx| {
+        cond(
+            cx[app].live.on,
+            any_view(turning()),
+            any_view(gap(dash::SPINNER_SIZE, dash::SPINNER_SIZE)),
+        )
+    })
 }
 
 /// The square, turning once every `SPINNER_PERIOD_MS` at a constant speed from when it shows.
